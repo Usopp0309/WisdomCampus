@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Goods">
+	<typeAlias alias="goods" type="com.guotop.palmschool.shopping.entity.Goods" />
+	<typeAlias alias="goodsDetail" type="com.guotop.palmschool.shopping.entity.GoodsDetail" />
+	<typeAlias alias="goodsType" type="com.guotop.palmschool.shopping.entity.GoodsType" />
+	
+	<resultMap class="com.guotop.palmschool.shopping.entity.Goods"
+		id="result-goods">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="manufacturer" column="manufacturer" />
+		<result property="typeId" column="typeId" />
+		<result property="createTime" column="createTime" />
+		<result property="status" column="status" />
+		<result property="imgPath" column="imgPath" />
+		<result property="order" column="order" />
+		<result property="remark" column="remark" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.shopping.entity.GoodsDetail"
+		id="result-goodsdetail">
+		<result property="id" column="id" />
+		<result property="goodsId" column="goodsId" />
+		<result property="specifications" column="specifications" />
+		<result property="introduction" column="introduction" />
+		<result property="imgPath" column="imgPath" />
+		<result property="createTime" column="createTime" />
+		<result property="price" column="price" />
+		<result property="saledNumber" column="saledNumber" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.shopping.entity.GoodsType"
+		id="result-goodstype">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="imgPath" column="imgPath" />
+		<result property="status" column="status" />
+		<result property="createTime" column="createTime" />
+		<result property="remark" column="remark" />
+	</resultMap>
+	<select id="getGoodsTypeList" resultMap="result-goodstype">
+		select * from platform.goodsType
+	</select>
+	<select id="getGoodsListByTypeId" resultMap="result-goods" parameterClass="Integer">
+		select g.* from platform.goods g where g.typeId=#goodsType# order by g.order asc
+	</select>
+	<select id="getGoodsDetailListByGoodsId" resultMap="result-goodsdetail" parameterClass="Integer">
+		select * from platform.goodsdetail where goodsId=#goodsId#
+	</select>
+	<select id="getGoodsByGoodsId" resultClass="goods" parameterClass="Integer">
+		select * from platform.goods where id=#goodsIde#
+	</select>
+	<select id="getGoodsByDetailId" resultClass="goods" parameterClass="Integer">
+		select g.* from platform.goods g, platform.goodsdetail gd where g.id=gd.goodsId and gd.id=#goodsDetailId#	
+	</select>
+</sqlMap>

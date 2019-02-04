@@ -1,0 +1,98 @@
+body{ font:13px/1.5 "Microsoft Yahei"; background-color:#fff!important;}
+ul,li,ol{list-style-type: none;margin:0px;padding:0px;}
+.login_suggest{height:auto;text-align: center;padding:50px 0px 0px 0px;overflow:hidden;background-color:#fff;}
+.login_suggest ul{max-width:1200px;margin:0px auto;background-color:#fff}
+.login_suggest ul li{width:16%;float:left}
+.login_suggest ul li a{}
+.login_suggest ul li a p{line-height:30px;font-size:13px;color:#676566!important;}
+.login_img_show{background-color:#4a90e2;height:450px;}
+.login_content{background-color:#fff!important; position: absolute; top:50px;right:0%;z-index:99999;width:310px;height:310px;padding:20px;}
+.login_content h3{font-size:16px;}
+.login_content .login_input{margin:0px!important;padding:0px!important;width:100%;}
+.loginheader{background-color: #fff; overflow:hidden;}
+.Remember_pwd{float:right}
+.login_box{max-width:1200px;margin:0 auto;position: relative; clear: both;z-index:9999;}
+.choose_pwd{float:left;width:50%;display:block;}
+.Response{font-style: normal;}
+.loginheader .top{max-width:1200px;height:40px;margin:0 auto;}
+.loginheader .top img{display:inline-block;margin:0;height:40px;float:left;}
+.loginheader .top .login_menu_li{float:right;margin:0px;width:60%;}
+.loginheader .top .login_menu_li li{margin:0px;float:left;line-height:40px; line-height:40px; width:30%; overflow:hidden; text-align:center; float:right}
+.loginheader .top .login_menu_li li a{color:#333333; font-size:13px;}
+.footer{height:auto;background-color:#fff;z-index:99999; width:100%;padding:0px;margin:0 auto;position: fixed;bottom:0px;}
+.footer p{width:max-1200px; color:#666; text-align: center; margin:0 auto;line-height:25px;}
+.footer p span{margin:0 15px 0 0;border-right:1px solid #666;padding:0 15px 0 0}
+.footer p span a{color:#666;}
+.footer p span a:hover{color:#168df0}
+.footer .Response{font-style: normal;}
+
+
+
+.flexslider {margin: 0px auto;position: relative;width: 100%;height: 482px;overflow: hidden;zoom: 1;}
+
+.flexslider .slides li {width: 100%;height: 100%;}
+
+.flex-direction-nav a {width: 70px;height: 70px;line-height: 99em;overflow: hidden;margin: -35px 0 0;display: block;background: url(images/ad_ctr.png) no-repeat;position: absolute;top: 50%;z-index: 10;cursor: pointer;opacity: 0;filter: alpha(opacity=0);-webkit-transition: all .3s ease;border-radius: 35px;}
+
+.flex-direction-nav .flex-next {background-position: 0 -70px;right: 0;}
+
+.flex-direction-nav .flex-prev {left: 0;}
+
+.flexslider:hover .flex-next {opacity: 0.8;filter: alpha(opacity=25);}
+
+.flexslider:hover .flex-prev {opacity: 0.8;filter: alpha(opacity=25);}
+
+.flexslider:hover .flex-next:hover,.flexslider:hover .flex-prev:hover {opacity: 1;filter: alpha(opacity=50);}
+
+.flex-control-nav {width: 100%;position: absolute;bottom: 10px;text-align: center;}
+
+.flex-control-nav li {margin: 0 2px;display: inline-block;zoom: 1;*display: inline;}
+
+.flex-control-paging li a {background: url(images/dot.png) no-repeat 0 -16px;display: block;height: 16px;overflow: hidden;text-indent: -99em;width: 16px;cursor: pointer;}
+
+.flex-control-paging li a.flex-active,.flex-control-paging li.active a {background-position: 0 0;}
+.flexslider .slides a{}
+.flexslider .slides a img {width: 100%;height: 482px;display: block;position: relative;}
+.flexslider .slides a .img_info{width:550px;height:350px;position: absolute; top:60px;left:20%;z-index:99}
+.flexslider .slides a .img_info img{position: relative;left:0px;top:0px;}
+
+@media (min-width: 1200px) and (max-width: 1400px) {
+	.flexslider .slides a .img_info{width:49%;height:auto;position: absolute; top:70px;left:8%;z-index:99}
+	.flexslider .slides a .img_info img{width:100%!important;height:auto!important;}
+	.login_content{background: #fff!important; position: absolute; top:50px;right:7%;z-index: 99;padding:20px;}
+	.footer .Response{font-style: normal;}
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+	.flexslider .slides a .img_info{width:550px;height:350px;position: absolute; top:70px;left:0%;z-index:99}
+	.flexslider .slides a .img_info img{width:100%!important;height:auto!important;}
+	.loginheader .top img{display:inline-block;margin:0;height:100%;float:left}
+	.login_content{background: #fff!important; position: absolute; top:50px;right:7%;z-index: 99;padding:20px;}
+	.footer .Response{font-style: normal;}
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+	.flexslider .slides a .img_info{width:49%;height:auto;position: absolute; top:70px;left:0%;z-index:99}
+	.flexslider .slides a .img_info img{width:100%!important;height:auto!important;}
+	.loginheader .top img{display:inline-block;float:left;margin:0;height:100%;}
+	.login_content{background: #fff!important; position: absolute; top:50px;right:5%;z-index: 99;padding:20px;}
+	.footer .Response{font-style: normal;}
+}
+/*max-width:767*/
+@media (max-width: 767px) {
+	body{ font: 14px/1.5 "Microsoft YaHei",arial,����,sans-serif; background-color:#3aa4f1!important;}
+	.flexslider .slides a .img_info{width:550px;height:350px;position: absolute; top:60px;left:3%;z-index:99}
+	.flexslider .slides a .img_info img{width:100%!important;height:auto!important;}
+	.footer{height:auto;background-color:#fff;width:100%;padding:0px;margin:0 auto;}
+	.login_content{background: none!important; z-index: 99;position:static;width:80%;padding:0px;margin:10% auto 0px;border-radius:4px;height:auto}
+	.control-group.error input{border-color: #d5d5d5;background-color:#e8e8e8!important; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;}
+	.login_content h3{font-size:16px;padding:0px 10px;color:#fff;text-align: center;}
+	.loginheader .top img{display:inline-block;margin:10px 0 0 0;width:30%;height:auto;}
+	.loginheader .top .login_menu_li li a{font-size:16px;}
+	#banner_tabs{display:none;}
+	.login_suggest{display:none}
+	.loginheader .top img{margin:5px 0 0}
+	.loginheader .top .login_menu_li li a{font-size:13px;}
+	.footer .Response{display:none;}
+	.Response{display:none;}
+}

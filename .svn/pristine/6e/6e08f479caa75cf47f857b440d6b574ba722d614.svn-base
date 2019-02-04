@@ -1,0 +1,15 @@
+package com.guotop.palmschool.service;
+
+import com.guotop.palmschool.entity.YintowisdomLog;
+
+public interface YintowisdomLogService
+{
+	/**
+	 * 添加一键亦信用户转智慧校园用户日志
+	 * 
+	 * @author chenyong
+	 * @date 2016年12月3日 下午4:06:28
+	 * @param yintowisdomLog
+	 */
+	public void addYintowisdomLog(YintowisdomLog yintowisdomLog);
+}

@@ -1,0 +1,333 @@
+package com.guotop.palmschool.dynamicGraph.controller;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.gson.Gson;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.controller.BaseController;
+import com.guotop.palmschool.dynamicGraph.entity.DynamicGraph;
+import com.guotop.palmschool.dynamicGraph.service.DynamicGraphService;
+import com.guotop.palmschool.entity.School;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.service.SchoolService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.FileUploadUtil;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+import com.richx.pojo.RichHttpResponse;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 动态图页面（APP首页活动）
+ *
+ */
+@RequestMapping("/dynamicGraph")
+@Controller
+public class DynamicGraphController extends BaseController
+{
+	private Logger log = LoggerFactory.getLogger(DynamicGraphController.class);
+
+	@Resource
+	private DynamicGraphService dynamicGraphService;
+	
+	@Resource
+	private UserService userService;
+	
+	@Resource
+	private SchoolService schoolService;
+
+	/**
+	 * 进入动态图页面
+	 */
+	@RequestMapping(value = "/toDynamicGraph.do")
+	public String toDynamicGraph()
+	{
+		return "dynamicgraph/dynamic_graph";
+	}
+
+	/**
+	 * 上传图片
+	 * 
+	 * @throws IOException
+	 */
+	@RequestMapping(value = "/uploadDynamicGraph.do")
+	public String uploadDynamicGraph(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			User user = (User) session.getAttribute("user");
+
+			// 解析前台发送过来的接收人列表
+			String[] graphPaths = GsonHelper.fromJson(request.getParameter("graphPath"), String[].class);
+
+			Integer type = StringUtil.toint(request.getParameter("type"));
+			
+			String title = request.getParameter("title");
+			
+			String url = request.getParameter("url");
+			
+			for (String path : graphPaths)
+			{
+				DynamicGraph dynamicGraph = new DynamicGraph();
+				dynamicGraph.setPath(Cons.QINIU_BUCKETNAME_RICH_AD_URL + path);
+				dynamicGraph.setUserId(user.getUserId());
+				dynamicGraph.setRealName(user.getRealName());
+				dynamicGraph.setStatus(1);
+				if(type!=0)
+				{
+					dynamicGraph.setType(type);
+				}
+				dynamicGraph.setCount(0);
+				if(!StringUtil.isEmpty(title))
+				{
+					dynamicGraph.setTitle(title);
+				}
+				if(!StringUtil.isEmpty(url))
+				{
+					dynamicGraph.setUrl(url);
+				}
+				dynamicGraph.setCreateTime(TimeUtil.getInstance().now());
+				dynamicGraphService.addDinamicGraph(dynamicGraph);
+			}
+
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return toDynamicGraph();
+
+	}
+
+	/**
+	 * 加载APP首页动态图
+	 */
+	@RequestMapping(value = "/loadAllGraphList.do")
+	public String loadAllGraphList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+
+			List<DynamicGraph> graphList = dynamicGraphService.getAllGraphList();
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(graphList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 修改APP首页动态图
+	 */
+	@RequestMapping(value = "/modifyStatus.do")
+	public String modifyStatus(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+
+			boolean flag = false;
+			try
+			{
+				Integer graphId = StringUtil.toint(request.getParameter("graphId"));
+				Integer status = StringUtil.toint(request.getParameter("status"));
+				Map<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("graphId", graphId);
+				paramMap.put("status", status);
+				dynamicGraphService.modifyStatus(paramMap);
+				flag = true;
+			} catch (Exception e)
+			{
+				e.printStackTrace();
+				flag = false;
+			}
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(flag);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	/**
+	 * 删除APP首页动态图
+	 */
+	@RequestMapping(value = "/deleteGraph.do")
+	public String deleteGraph(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		
+		try
+		{
+			
+			boolean flag = false;
+			try
+			{
+				Integer graphId = StringUtil.toint(request.getParameter("graphId"));
+				DynamicGraph dynamicGraph = dynamicGraphService.getDynamicGraphById(graphId);
+				dynamicGraphService.deleteGraphById(graphId);
+				FileUploadUtil fuu = new FileUploadUtil();
+				fuu.simpleDelete(Cons.QINIU_BUCKETNAME_RICH_AD, dynamicGraph.getPath().substring(Cons.QINIU_BUCKETNAME_RICH_AD_URL.length()));
+				flag = true;
+			} catch (Exception e)
+			{
+				e.printStackTrace();
+				flag = false;
+			}
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(flag);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 【JS端】获取上传token
+	 */
+	@RequestMapping(value = "/getDynamicGraphUpTokenInJS.do")
+	public String getDynamicGraphUpTokenInJS(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		try
+		{
+			FileUploadUtil fileUploadUtil = new FileUploadUtil();
+			String token = fileUploadUtil.getSimpleUpToken(Cons.QINIU_BUCKETNAME_RICH_AD);
+			String json = GsonHelper.toJson(token);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("获取七牛token失败：" + e.getMessage());
+		}
+		return null;
+	}
+	
+	
+	/**
+	 * 【手机端】根据albumId加载相片
+	 */
+	@RequestMapping(value = "/loadAllGraphListByApiKey.do")
+	public String loadAllGraphListByApiKey(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<List<DynamicGraph>> rhr = new RichHttpResponse<List<DynamicGraph>>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		String json;
+		// 这边是利用apikey 进行模拟登录
+		User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+		try
+		{
+			if (loginUser != null)
+			{
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+
+				List<DynamicGraph> graphList = dynamicGraphService.getGraphListByStatus(1);
+				School school = schoolService.getSchoolInfoBySchoolId(Long.valueOf(schoolId));
+				if(graphList.size()==0)
+				{
+					if(school.getSchoolCategory().equals("0"))
+					{
+						DynamicGraph graph1 = new DynamicGraph();
+						graph1.setStatus(1);
+						graph1.setPath("http://o9xrjj4nk.bkt.clouddn.com/1101010004/graph/246/POY5bg_top_nursery_ad1.png");
+						graphList.add(graph1);
+						DynamicGraph graph2 = new DynamicGraph();
+						graph2.setStatus(1);
+						graph2.setPath("http://o9xrjj4nk.bkt.clouddn.com/1101010004/graph/246/FQDNbg_top_nursery_ad2.png");
+						graphList.add(graph2);
+						DynamicGraph graph3 = new DynamicGraph();
+						graph3.setStatus(1);
+						graph3.setPath("http://o9xrjj4nk.bkt.clouddn.com/1101010004/graph/246/TJQKbg_top_nursery_ad3.png");
+						graphList.add(graph3);
+					}else
+					{
+						DynamicGraph graph1 = new DynamicGraph();
+						graph1.setStatus(1);
+						graph1.setPath("http://o9xrjj4nk.bkt.clouddn.com/1101010004/graph/246/EXZ8bg_top_primary_ad1.png");
+						graphList.add(graph1);
+						DynamicGraph graph2 = new DynamicGraph();
+						graph2.setStatus(1);
+						graph2.setPath("http://o9xrjj4nk.bkt.clouddn.com/1101010004/graph/246/XS7Jbg_top_primary_ad2.png");
+						graphList.add(graph2);
+						DynamicGraph graph3 = new DynamicGraph();
+						graph3.setStatus(1);
+						graph3.setPath("http://o9xrjj4nk.bkt.clouddn.com/1101010004/graph/246/TYN1bg_top_primary_ad3.png");
+						graphList.add(graph3);
+					}
+				}
+
+				rhr.ResponseCode = 0;
+				rhr.ResponseResult = "获取成功";
+				rhr.ResponseObject = graphList;
+				json = GsonHelper.toJson(rhr);
+			} else
+			{
+				rhr.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("获取失败：" + e.getMessage());
+		}
+		return null;
+	}
+	
+
+}

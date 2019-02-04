@@ -1,0 +1,835 @@
+package com.guotop.palmschool.schoolbus.service.impl;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.entity.Clazz;
+import com.guotop.palmschool.entity.Grade;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.schoolbus.entity.OnSchoolBus;
+import com.guotop.palmschool.schoolbus.entity.PointInfo;
+import com.guotop.palmschool.schoolbus.entity.SchoolBusAbnormalDetail;
+import com.guotop.palmschool.schoolbus.entity.SchoolBusAbnormalTotal;
+import com.guotop.palmschool.schoolbus.service.SchoolBusService;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 校车管理业务类实现类
+ * 
+ * @author zhou
+ */
+@Service("schoolBusService")
+public class SchoolBusServiceImpl extends BaseService implements SchoolBusService
+{
+
+	@Resource
+	public CommonService commonService;
+
+	/**
+	 * 添加校车异常实体
+	 * 
+	 * @param schoolBusAbnormalDetail
+	 *            待添加的校车异常实体
+	 */
+	public void addSchoolBusAbnormalDetail(SchoolBusAbnormalDetail schoolBusAbnormalDetail)
+	{
+		getBaseDao().addObject("SchoolBus.addSchoolBusAbnormalDetail", schoolBusAbnormalDetail);
+	}
+
+	/**
+	 * 检查相关---begin
+	 */
+	/**
+	 * 学生上学未刷卡
+	 * 
+	 * @param schoolBusSwingCardBeginTime
+	 *            正常刷卡起始时间
+	 * @param schoolBusSwingCardEndTime
+	 *            正常刷卡结束时间
+	 * @return List<User> 上学未刷卡
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> selectOffStudentNotSwingCard(String schoolBusSwingCardBeginTime, String schoolBusSwingCardEndTime)
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		/**
+		 * 时间区间: > 今天(时间格式"yyyy-MM-dd") + 配置最晚归宿舍时间
+		 */
+
+		paramMap.put("schoolBusSwingCardBeginTime", formatter.format(new Date()) + " " + schoolBusSwingCardBeginTime);
+		paramMap.put("schoolBusSwingCardEndTime", formatter.format(new Date()) + " " + schoolBusSwingCardEndTime);
+		paramMap.put("type", Cons.OFFSCHOOLBUS_NOSWINGCARD);
+
+		List<User> studentList = getBaseDao().selectListByObject("SchoolBus.selectStudentNotSwingCard", paramMap);
+		return studentList;
+	}
+
+	/**
+	 * 学生放学未刷卡
+	 * 
+	 * @param schoolBusSwingCardBeginTime
+	 *            正常刷卡起始时间
+	 * @param schoolBusSwingCardEndTime
+	 *            正常刷卡结束时间
+	 * @return List<User> 上学未刷卡
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> selectOnStudentNotSwingCard(String schoolBusSwingCardBeginTime, String schoolBusSwingCardEndTime)
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		/**
+		 * 时间区间: > 今天(时间格式"yyyy-MM-dd") + 配置最晚归宿舍时间
+		 */
+
+		paramMap.put("schoolBusSwingCardBeginTime", formatter.format(new Date()) + " " + schoolBusSwingCardBeginTime);
+		paramMap.put("schoolBusSwingCardEndTime", formatter.format(new Date()) + " " + schoolBusSwingCardEndTime);
+		paramMap.put("type", Cons.ONSCHOOLBUS_NOSWINGCARD);
+
+		List<User> studentList = getBaseDao().selectListByObject("SchoolBus.selectStudentNotSwingCard", paramMap);
+		return studentList;
+	}
+
+	/**
+	 * 统计相关---begin
+	 */
+	/**
+	 * 按学校统计
+	 * 
+	 * @param time
+	 *            统计时间
+	 */
+	public void totalSchoolBusAbnormalBySchool(String time)
+	{
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		/**
+		 * 查询学校学生总数
+		 */
+		Integer studentSum = (Integer) getBaseDao().selectObject("User.selectStudentCountBySchoolScale", null);
+		Integer studentAbnormal = 0;
+
+		SchoolBusAbnormalTotal total = new SchoolBusAbnormalTotal();
+		total.setStudentSum(studentSum);
+		total.setTime(time);
+		total.setScale(Cons.SCALE_SCHOOL);
+
+		/**
+		 * 查询校车异常进出学生总数
+		 */
+		// 下车
+		paramMap.put("time", time);
+		paramMap.put("type", Cons.OFFSCHOOLBUS_NOSWINGCARD);
+		studentAbnormal = (Integer) getBaseDao().selectObjectByObject("SchoolBus.selectSchoolBusAbnormalStudentConut", paramMap);
+		total.setStudentAbnormal(studentAbnormal);
+		total.setType(Cons.OFFSCHOOLBUS_NOSWINGCARD);
+		getBaseDao().addObject("SchoolBus.addSchoolBusAbnormalTotal", total);
+
+		// 上车
+		paramMap.clear();
+		paramMap.put("time", time);
+		paramMap.put("type", Cons.ONSCHOOLBUS_NOSWINGCARD);
+		studentAbnormal = (Integer) getBaseDao().selectObjectByObject("SchoolBus.selectSchoolBusAbnormalStudentConut", paramMap);
+		total.setStudentAbnormal(studentAbnormal);
+		total.setType(Cons.ONSCHOOLBUS_NOSWINGCARD);
+		getBaseDao().addObject("SchoolBus.addSchoolBusAbnormalTotal", total);
+	}
+
+	/**
+	 * 按年级统计
+	 * 
+	 * @param time
+	 *            统计时间
+	 */
+	@SuppressWarnings("unchecked")
+	public void totalSchoolBusAbnormalByGrade(String time)
+	{
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		List<Grade> gradeList = getBaseDao().selectListByObject("Grade.selectGrade", null);
+
+		for (Grade grade : gradeList)
+		{
+			/**
+			 * 通过gradeid查询年级学生总数
+			 */
+			Integer gradeId = grade.getId();
+			Integer studentSum = (Integer) getBaseDao().selectObject("User.selectStudentCountByGradeScale", gradeId);
+			Integer studentAbnormal = 0;
+
+			SchoolBusAbnormalTotal total = new SchoolBusAbnormalTotal();
+			total.setStudentSum(studentSum);
+			total.setTime(time);
+			total.setScale(Cons.SCALE_GRADE);
+
+			/**
+			 * 查询校车异常进出学生总数
+			 */
+			// 下车
+			paramMap.put("time", time);
+			paramMap.put("gradeId", gradeId);
+			paramMap.put("type", Cons.OFFSCHOOLBUS_NOSWINGCARD);
+			studentAbnormal = (Integer) getBaseDao().selectObjectByObject("SchoolBus.selectSchoolBusAbnormalStudentConutByGrade", paramMap);
+			total.setStudentAbnormal(studentAbnormal);
+			total.setType(Cons.OFFSCHOOLBUS_NOSWINGCARD);
+			total.setItemId(gradeId);
+			getBaseDao().addObject("SchoolBus.addSchoolBusAbnormalTotal", total);
+
+			// 上车
+			paramMap.clear();
+			paramMap.put("time", time);
+			paramMap.put("gradeId", gradeId);
+			paramMap.put("type", Cons.ONSCHOOLBUS_NOSWINGCARD);
+			studentAbnormal = (Integer) getBaseDao().selectObjectByObject("SchoolBus.selectSchoolBusAbnormalStudentConutByGrade", paramMap);
+			total.setStudentAbnormal(studentAbnormal);
+			total.setType(Cons.ONSCHOOLBUS_NOSWINGCARD);
+			total.setItemId(gradeId);
+			getBaseDao().addObject("SchoolBus.addSchoolBusAbnormalTotal", total);
+		}
+
+	}
+
+	/**
+	 * 按班级统计
+	 * 
+	 * @param time
+	 *            统计时间
+	 */
+	@SuppressWarnings("unchecked")
+	public void totalSchoolBusAbnormalByClazz(String time)
+	{
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		List<Clazz> clazzList = getBaseDao().selectListByObject("Clazz.selectClazz", null);
+
+		for (Clazz clazz : clazzList)
+		{
+			Integer clazzId = clazz.getId();
+
+			/**
+			 * 通过clazzId查询学校学生总数
+			 */
+			Integer studentSum = (Integer) getBaseDao().selectObject("User.selectStudentCountByClazzScale", clazzId);
+			Integer studentAbnormal = 0;
+
+			SchoolBusAbnormalTotal total = new SchoolBusAbnormalTotal();
+			total.setStudentSum(studentSum);
+			total.setTime(time);
+			total.setScale(Cons.SCALE_CLAZZ);
+
+			/**
+			 * 查询校车异常进出学生总数
+			 */
+			// 下车
+			paramMap.put("time", time);
+			paramMap.put("clazzId", clazzId);
+			paramMap.put("type", Cons.OFFSCHOOLBUS_NOSWINGCARD);
+			studentAbnormal = (Integer) getBaseDao().selectObjectByObject("SchoolBus.selectSchoolBusAbnormalStudentConutByClazz", paramMap);
+			total.setStudentAbnormal(studentAbnormal);
+			total.setType(Cons.OFFSCHOOLBUS_NOSWINGCARD);
+			total.setItemId(clazzId);
+			getBaseDao().addObject("SchoolBus.addSchoolBusAbnormalTotal", total);
+
+			// 上车
+			paramMap.clear();
+			paramMap.put("time", time);
+			paramMap.put("clazzId", clazzId);
+			paramMap.put("type", Cons.ONSCHOOLBUS_NOSWINGCARD);
+			studentAbnormal = (Integer) getBaseDao().selectObjectByObject("SchoolBus.selectSchoolBusAbnormalStudentConutByClazz", paramMap);
+			total.setStudentAbnormal(studentAbnormal);
+			total.setType(Cons.ONSCHOOLBUS_NOSWINGCARD);
+			total.setItemId(clazzId);
+			getBaseDao().addObject("SchoolBus.addSchoolBusAbnormalTotal", total);
+		}
+
+	}
+
+	/**
+	 * 统计相关---end
+	 */
+
+	/**
+	 * 加载校车异常总数据
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @param roleId
+	 *            权限ID
+	 * @return 校车异常总数据
+	 */
+	public SchoolBusAbnormalTotal loadTotalData(Map<String, Object> paramMap, Integer roleId)
+	{
+		SchoolBusAbnormalTotal schoolBusAbnormalTotal = new SchoolBusAbnormalTotal();
+
+		/**
+		 * 新增权限划分
+		 */
+
+		/**
+		 * 校长权限 或者学校管理员权限
+		 */
+		if (Cons.ROLE_SCHOOLADMIN.equals(roleId) || Cons.ROLE_HEADMASTER.equals(roleId))
+		{
+			schoolBusAbnormalTotal = (SchoolBusAbnormalTotal) getBaseDao().selectObjectByObject("SchoolBus.selectTotalData", paramMap);
+		}
+
+		/**
+		 * 年级组长权限
+		 */
+		if (Cons.ROLE_GRADELEADER.equals(roleId))
+		{
+			schoolBusAbnormalTotal = (SchoolBusAbnormalTotal) getBaseDao().selectObjectByObject("SchoolBus.selectTotalDataAsGradeLeader", paramMap);
+		}
+
+		/**
+		 * 班主任权限
+		 */
+		if (Cons.ROLE_HEADTEACHER.equals(roleId))
+		{
+			schoolBusAbnormalTotal = (SchoolBusAbnormalTotal) getBaseDao().selectObjectByObject("SchoolBus.selectTotalDataAsHeadTeacher", paramMap);
+		}
+
+		return schoolBusAbnormalTotal;
+	}
+
+	/**
+	 * 加载校车异常分组数据
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @param roleId
+	 *            权限ID
+	 * @return 校车异常分组数据
+	 */
+	@SuppressWarnings("unchecked")
+	public List<SchoolBusAbnormalTotal> loadGroupData(Map<String, Object> paramMap, Integer roleId)
+	{
+		List<SchoolBusAbnormalTotal> schoolBusAbnormalTotalList = new ArrayList<SchoolBusAbnormalTotal>();
+
+		/**
+		 * 新增权限划分
+		 */
+		/**
+		 * 校长权限 或者学校管理员权限
+		 */
+		if (Cons.ROLE_SCHOOLADMIN.equals(roleId) || Cons.ROLE_HEADMASTER.equals(roleId))
+		{
+			schoolBusAbnormalTotalList = getBaseDao().selectListByObject("SchoolBus.selectGroupDataAsHeadMaster", paramMap);
+
+		}
+
+		/**
+		 * 年级组长权限
+		 */
+		if (Cons.ROLE_GRADELEADER.equals(roleId))
+		{
+			schoolBusAbnormalTotalList = getBaseDao().selectListByObject("SchoolBus.selectGroupDataAsGradeLeader", paramMap);
+		}
+
+		/**
+		 * 班主任权限
+		 */
+		if (Cons.ROLE_HEADTEACHER.equals(roleId))
+		{
+			schoolBusAbnormalTotalList = getBaseDao().selectListByObject("SchoolBus.selectGroupDataAsHeadTeacher", paramMap);
+		}
+
+		return schoolBusAbnormalTotalList;
+	}
+
+	/**
+	 * 加载校车异常详细信息
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @param roleId
+	 *            权限ID
+	 * @return 校车异常详细信息
+	 */
+	@SuppressWarnings("unchecked")
+	public List<SchoolBusAbnormalDetail> loadDetailData(Map<String, Object> paramMap, Integer roleId)
+	{
+		List<SchoolBusAbnormalDetail> schoolBusAbnormalDetailList = new ArrayList<SchoolBusAbnormalDetail>();
+
+		/**
+		 * 新增权限划分
+		 */
+		/**
+		 * 班主任
+		 */
+		if (Cons.ROLE_HEADTEACHER.equals(roleId))
+		{
+			schoolBusAbnormalDetailList = getBaseDao().selectListByObject("SchoolBus.selectDetailDataAsHeadTeacher", paramMap);
+		} else
+		{
+			schoolBusAbnormalDetailList = getBaseDao().selectListByObject("SchoolBus.selectDetailDataAsHeadMaster", paramMap);
+		}
+
+		return schoolBusAbnormalDetailList;
+	}
+
+	public OnSchoolBus selectSchoolBusByUserId(Map<String, Object> paramMap)
+	{
+
+		return (OnSchoolBus) getBaseDao().selectObjectByObject("SchoolBus.selectSchoolBusByUserId", paramMap);
+	}
+
+	/**
+	 * 查找进出记录(为了导出excel)
+	 * 
+	 * @param paramMap
+	 *            参数map
+	 * @param roleId
+	 *            权限ID
+	 */
+	@SuppressWarnings("unchecked")
+	public List<OnSchoolBus> loadSchoolBusListForExport(Map<String, Object> paramMap, User user)
+	{
+		
+		if (commonService.hasAdminPermission(user))
+		{
+			return getBaseDao().selectListByObject("SchoolBus.getSwingCardDetailDataAsAdminPermission", paramMap);
+		}else 
+		{
+			
+		}
+
+		return null;
+	}
+
+	/**
+	 * 查询学生总人数 20151209
+	 */
+
+	public Integer getStudentSum(Map<String, Object> paramMap, User user)
+	{
+
+		/**
+		 * 校长权限管理员
+		 */
+		if (commonService.hasAdminPermission(user))
+		{
+			return (Integer) getBaseDao().selectObjectByObject("SchoolBus.getStudentSumAsAdminPermission", null);
+		}
+		/**
+		 * 自己管理的班级
+		 */
+		else
+		{
+			List<Integer> clazzIdList = commonService.getIdsByUserIdAndPermissionCode(user.getUserId(), "schoolBusReportManager", 0);
+
+			paramMap.put("clazzIdList", clazzIdList);
+
+			return (Integer) getBaseDao().selectObjectByObject("SchoolBus.getStudentSumAsTeachingStaff", paramMap);
+		}
+
+	}
+
+	/**
+	 * 查询学校当天有多上刷卡 20151209
+	 */
+	public Integer getStudentSwingCard(Map<String, Object> paramMap, User user)
+	{
+		/**
+		 * 校长权限管理员
+		 */
+		if (commonService.hasAdminPermission(user))
+		{
+			return (Integer) getBaseDao().selectObjectByObject("SchoolBus.getStudentSwingCardAsAdminPermission", paramMap);
+		}
+		/**
+		 * 自己管理的班级
+		 */
+		else
+		{
+			List<Integer> clazzIdList = commonService.getIdsByUserIdAndPermissionCode(user.getUserId(), "schoolBusReportManager", 0);
+
+			paramMap.put("clazzIdList", clazzIdList);
+
+			return (Integer) getBaseDao().selectObjectByObject("SchoolBus.getStudentSwingCardAsTeachingStaff", paramMap);
+		}
+
+	}
+
+	/**
+	 * 加载校车已刷卡人员详细信息
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @return 详细信息 20151209
+	 */
+	@SuppressWarnings("unchecked")
+	public List<SchoolBusAbnormalDetail> getSwingCardDetailData(Map<String, Object> paramMap, User user)
+	{
+		List<SchoolBusAbnormalDetail> schoolBusAbnormalDetailList = new ArrayList<SchoolBusAbnormalDetail>();
+
+		/**
+		 * 校长权限管理员
+		 */
+		if (commonService.hasAdminPermission(user))
+		{
+			schoolBusAbnormalDetailList = getBaseDao().selectListByObject("SchoolBus.getSwingCardDetailDataAsAdminPermission", paramMap);
+		}
+		/**
+		 * 自己管理的班级
+		 */
+		else
+		{
+			List<Integer> clazzIdList = commonService.getIdsByUserIdAndPermissionCode(user.getUserId(), "schoolBusReportManager", 0);
+
+			paramMap.put("clazzIdList", clazzIdList);
+
+			schoolBusAbnormalDetailList = getBaseDao().selectListByObject("SchoolBus.getSwingCardDetailDataAsTeachingStaff", paramMap);
+		}
+
+		return schoolBusAbnormalDetailList;
+	}
+
+	/**
+	 * 加载校车未刷卡人员详细信息
+	 * @param paramMap 条件
+	 * @param roleId 权限ID
+	 * @return 详细信息
+	 * 20151210
+	 */
+	@SuppressWarnings("unchecked")
+	public List<SchoolBusAbnormalDetail> getNoSwingCardDetailData(Map<String, Object> paramMap, User user)
+	{
+		List<SchoolBusAbnormalDetail> schoolBusAbnormalDetailList = new ArrayList<SchoolBusAbnormalDetail>();
+
+		/**
+		 * 校长权限管理员
+		 */
+		if (commonService.hasAdminPermission(user))
+		{
+			schoolBusAbnormalDetailList = getBaseDao().selectListByObject("SchoolBus.getNoSwingCardDetailDataAsAdminPermission", paramMap);
+		}
+		/**
+		 * 自己管理的班级
+		 */
+		else
+		{
+			List<Integer> clazzIdList = commonService.getIdsByUserIdAndPermissionCode(user.getUserId(), "schoolBusReportManager", 0);
+
+			paramMap.put("clazzIdList", clazzIdList);
+			schoolBusAbnormalDetailList = getBaseDao().selectListByObject("SchoolBus.getNoSwingCardDetailDataAsTeachingStaff", paramMap);
+		}
+
+		return schoolBusAbnormalDetailList;
+	}
+
+	/**
+	 * 根据条件查询校车记录 /分页查询
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @param roleId
+	 *            权限ID
+	 * @return 校车记录/分页
+	 * 
+	 *         syj 20151208
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages loadSchoolBusOnList(int pageSize, int page, Map<String, Object> paramMap, User user)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<OnSchoolBus> list = new ArrayList<OnSchoolBus>();
+
+		String roleCode = (String)paramMap.get("roleCode");
+		
+		/*
+		 * 用户admin权限的用户,获取所有校车记录
+		 */
+		if(commonService.hasAdminPermission(user)){
+			
+			allRow = this.getBaseDao().getAllRowCountByCondition("SchoolBus.selectSchoolBusAdmin", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			list = this.getBaseDao().queryForPageByCondition("SchoolBus.selectSchoolBusAdmin", paramMap, offset, length);
+			
+		}
+		/*
+		 * 家长看到的校车记录，自己的校车刷卡记录，自己小孩的刷卡记录
+		 */
+		else if(roleCode != null && "parent".equals(roleCode)){
+			allRow = this.getBaseDao().getAllRowCountByCondition("SchoolBus.selectSchoolBusParent", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			list = this.getBaseDao().queryForPageByCondition("SchoolBus.selectSchoolBusParent", paramMap, offset, length);
+			
+		}
+		/*
+		 * 
+		 */
+		else if(roleCode != null && "student".equals(roleCode)){
+			allRow = this.getBaseDao().getAllRowCountByCondition("SchoolBus.selectSchoolBusStudent", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			list = this.getBaseDao().queryForPageByCondition("SchoolBus.selectSchoolBusStudent", paramMap, offset, length);
+			
+		}else{
+			
+			//通过userId和permission  获取clazzId
+			List<Integer> clazzIdList = getBaseDao().selectListByObject("UserPermission.getOptClazzsByUserIdAndPermissionCode", paramMap);
+			paramMap.put("clazzIdList", clazzIdList);
+			
+			allRow = this.getBaseDao().getAllRowCountByCondition("SchoolBus.selectSchoolBusList", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			list = this.getBaseDao().queryForPageByCondition("SchoolBus.selectSchoolBusList", paramMap, offset, length);
+			
+		}
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+	/**
+	 * 根据条件查询校车记录 /分页查询
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @param roleId
+	 *            权限ID
+	 * @return 校车记录/分页
+	 * 
+	 *         syj 20151208
+	 */
+	@SuppressWarnings("unchecked")
+	public List<OnSchoolBus> exportSchoolBusOnList(Map<String, Object> paramMap, User user)
+	{
+		List<OnSchoolBus> list = new ArrayList<OnSchoolBus>();
+
+		String roleCode = (String)paramMap.get("roleCode");
+		
+		/*
+		 * 用户admin权限的用户,获取所有校车记录
+		 */
+		if(commonService.hasAdminPermission(user)){
+			
+			
+			list = this.getBaseDao().selectListByObject("SchoolBus.selectSchoolBusAdmin", paramMap);
+			
+		}
+		/*
+		 * 家长看到的校车记录，自己的校车刷卡记录，自己小孩的刷卡记录
+		 */
+		else if("parent".equals(roleCode)){
+			
+			list = this.getBaseDao().selectListByObject("SchoolBus.selectSchoolBusParent", paramMap);
+			
+		}
+		/*
+		 * 
+		 */
+		else if("student".equals(roleCode)){
+			
+			list = this.getBaseDao().selectListByObject("SchoolBus.selectSchoolBusStudent", paramMap);
+			
+		}else{
+			
+			//通过userId和permission  获取clazzId
+			List<Integer> clazzIdList = getBaseDao().selectListByObject("UserPermission.getOptClazzsByUserIdAndPermissionCode", paramMap);
+			paramMap.put("clazzIdList", clazzIdList);
+			list = this.getBaseDao().selectListByObject("SchoolBus.selectSchoolBusList", paramMap);
+			
+		}
+
+		
+		return list;
+	}
+	
+	
+	/**
+	 * 根据条件查询校车记录 /分页查询(APP)
+	 * @param paramMap  条件
+	 * @param roleId 权限ID
+	 * @return 校车记录/分页
+	 * 
+	 */
+	@SuppressWarnings("unchecked")
+	public List<OnSchoolBus> loadSchoolBusOnListAPP(int pageSize, int page, Map<String, Object> paramMap, User user)
+	{
+		List<OnSchoolBus> list = new ArrayList<OnSchoolBus>();
+
+		String roleCode = (String)paramMap.get("roleCode");
+		
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+
+		// 解决ibatis框架的分页问题
+		// 起始数据坐标
+		paramMap.put("startIndex", offset);
+		// 单页数据量
+		paramMap.put("length", length);
+		
+		/*
+		 * 用户admin权限的用户,获取所有校车记录
+		 */
+		if(commonService.hasAdminPermission(user))
+		{
+			list = this.getBaseDao().selectListByObject("SchoolBus.selectSchoolBusAdminAPP", paramMap);
+		}
+		/*
+		 * 家长看到的校车记录，自己的校车刷卡记录，自己小孩的刷卡记录
+		 */
+		else if("parent".equals(roleCode))
+		{
+			list = this.getBaseDao().selectListByObject("SchoolBus.selectSchoolBusParentAPP", paramMap);
+		}
+		/*
+		 * 
+		 */
+		else if("student".equals(roleCode))
+		{
+			list = this.getBaseDao().selectListByObject("SchoolBus.selectSchoolBusStudentAPP", paramMap);
+			
+		}else{
+			
+			//通过userId和permission  获取clazzId
+			List<Integer> clazzIdList = getBaseDao().selectListByObject("UserPermission.getOptClazzsByUserIdAndPermissionCode", paramMap);
+			
+			paramMap.put("clazzIdList", clazzIdList);
+			
+			list = this.getBaseDao().selectListByObject("SchoolBus.selectSchoolBusListAPP", paramMap);
+			
+		}
+
+		return list;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Pages loadSchoolBusNowPointsList(int pageSize, Integer page,
+			Map<String, Object> paramMap, User user) {
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<PointInfo> list = new ArrayList<PointInfo>();
+
+		String roleCode = (String)paramMap.get("roleCode");
+		String type = "4";
+		/*
+		 * 用户admin权限的用户,获取所有校车记录
+		 */
+		if(commonService.hasAdminPermission(user)){
+			type = "3";
+		}else if(roleCode != null && "parent".equals(roleCode)){
+			type = "1";
+		}
+		else if(roleCode != null && "teacher".equals(roleCode)){
+			type = "2";
+		}else{
+			type = "2";
+		}
+		paramMap.put("type", type);
+		allRow = this.getBaseDao().getAllRowCountByCondition("SchoolBus.selectSchoolBusPositionCount", paramMap);
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		currentPage = Pages.countCurrentPage(page);
+		list = this.getBaseDao().queryForPageByCondition("SchoolBus.selectSchoolBusPosition", paramMap, offset, length);
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+	@SuppressWarnings("unchecked")
+	@Override
+	public Pages loadAllSchoolBusNowPointsList(int pageSize, Integer page,
+			Map<String, Object> paramMap, User user) {
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<PointInfo> list = new ArrayList<PointInfo>();
+		
+		String roleCode = (String)paramMap.get("roleCode");
+		String type = "4";
+		/*
+		 * 用户admin权限的用户,获取所有校车记录
+		 */
+		if(commonService.hasAdminPermission(user)){
+			type = "3";
+		}else if(roleCode != null && "parent".equals(roleCode)){
+			type = "1";
+		}
+		else if(roleCode != null && "teacher".equals(roleCode)){
+			type = "2";
+		}else{
+			type = "2";
+		}
+		paramMap.put("type", type);
+		allRow = this.getBaseDao().getAllRowCountByCondition("SchoolBus.selectSchoolBusPositionCount", paramMap);
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+		
+		final int offset = Pages.countOffset(pageSize, page);
+		currentPage = Pages.countCurrentPage(page);
+		list = this.getBaseDao().queryForPageByCondition("SchoolBus.selectSchoolBusPosition", paramMap, offset, allRow);
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+}

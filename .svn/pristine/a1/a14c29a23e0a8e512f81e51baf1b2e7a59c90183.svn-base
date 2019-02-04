@@ -1,0 +1,203 @@
+package com.guotop.palmschool.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.common.entity.ResultInfo;
+import com.guotop.palmschool.entity.Device;
+import com.guotop.palmschool.entity.DeviceSchool;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.service.DeviceService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+
+/**
+ * 设备管理业务类实现类
+ * 
+ * @author zhou
+ *
+ */
+@Service("deviceService")
+public class DeviceServiceImpl extends BaseService implements DeviceService
+{
+
+	/**
+	 * 添加记录点
+	 * 
+	 * @param position
+	 *            待添加的记录点
+	 */
+	public void addDevice(Device device)
+	{
+		getBaseDao().addObject("Device.addDevice", device);
+	}
+
+	/**
+	 * 添加记录点 同时添加对应的学校对应关系
+	 */
+	public void addDeviceSchool(DeviceSchool deviceSchool)
+	{
+		getBaseDao().addObject("Device.addDeviceSchool", deviceSchool);
+	}
+
+	/**
+	 * 设备修改
+	 **/
+	public void modifyDeviceById(Map<String, Object> paramMap)
+	{
+		getBaseDao().updateObject("Device.modifyDeviceById", paramMap);
+	}
+	
+	/**
+	 * 设备修改(平台库)
+	 **/
+	public void modifyDeviceCodeByCode(Map<String, Object> paramMap)
+	{
+		getBaseDao().updateObject("Device.modifyDeviceCodeByCode", paramMap);
+	}
+
+	/**
+	 * 查出所有设备信息
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Device> selectAllDevice()
+	{
+		return getBaseDao().selectListBySql("Device.selectDeviceList");
+	}
+
+	/**
+	 * 根据设备ID查找到设备bean
+	 * 
+	 * @param deviceId
+	 *            设备ID
+	 * @return 查找到的设备bean
+	 */
+	public Device selectDeviceById(Integer deviceId)
+	{
+		return (Device) getBaseDao().selectObjectByObject("Device.selectDeviceById", deviceId);
+	}
+
+	@SuppressWarnings("unchecked")
+	public Pages selectDeviceByRole(int pageSize, int page, Map<String, Object> paramMap)
+	{
+		int totalPage = 0;
+		List<Device> list = new ArrayList<Device>();
+
+		int allRow = this.getBaseDao().getAllRowCountByCondition("Device.selectDeviceList", paramMap);
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+
+		final int offset = Pages.countOffset(pageSize, page);
+
+		final int length = pageSize;
+
+		int currentPage = Pages.countCurrentPage(page);
+		list = this.getBaseDao().queryForPageByCondition("Device.selectDeviceList", paramMap, offset, length);
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	/**
+	 * 表单校验相关---begin
+	 */
+	/**
+	 * 添加设备时查看记录点编号是否存在
+	 * 
+	 * @param code
+	 *            记录点编号
+	 * @return 返回值
+	 */
+	public ResultInfo selectDeviceListbyCode(String code)
+	{
+		Integer result = (Integer) getBaseDao().selectObjectByObject("Device.selectDeviceListbyCode", code);
+		ResultInfo resultInfo = new ResultInfo();
+		if (ResultInfo.RESULT_EXISTS.equals(result))
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_SUCCESS);
+		} else
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_ERROR);
+		}
+		return resultInfo;
+	}
+	
+	/**
+	 * 修改是设备时查看设备编号是否存在
+	 * @param paramMap 设备号
+	 * @return 返回值
+	 */
+	public ResultInfo  checkCodeByModify(Map<String, Object> paramMap)
+	{
+		Integer result = (Integer) getBaseDao().selectObjectByObject("Device.checkCodeByModify", paramMap);
+		ResultInfo resultInfo = new ResultInfo();
+		if (ResultInfo.RESULT_EXISTS.equals(result))
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_SUCCESS);
+		} else
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_ERROR);
+		}
+		return resultInfo;
+	}
+
+	/**
+	 * 根据设备编码获取学校ID
+	 */
+	@Override
+	public Long getSchoolIdByDeviceCode(String deviceCode)
+	{
+		if(!StringUtil.isEmpty(deviceCode) && !"null".equals(deviceCode)){
+			return (Long) this.getBaseDao().selectObjectByObject("Device.getSchoolIdByDeviceCode", deviceCode);
+		}else{
+			return null;
+		}
+	}
+
+	/**
+	 * 表单校验相关---end
+	 */
+	
+	
+	/**
+	 * 学校库删除divece对应的表
+	 * @param deviceId
+	 */
+	public void deleteDeviceById(Integer deviceId)
+	{
+		getBaseDao().deleteObjectById("Device.deleteDeviceById", deviceId);
+	}
+	
+	/**
+	 * 根据deviceCode删除palm_device表
+	 * @param deviceCode
+	 */
+	public void deleteDeviceByDeviceCodeInSchool(String deviceCode)
+	{
+		 getBaseDao().deleteObject("Device.deleteDeviceByDeviceCodeInSchool", deviceCode);
+	}
+	 
+	/**
+	 * 根据deviceCode删除device_school表
+	 * @param deviceCode
+	 */
+	public void deleteDeviceByDeviceCode(String deviceCode)
+	{
+		getBaseDao().deleteObject("Device.deleteDeviceByDeviceCode", deviceCode);
+	}
+}

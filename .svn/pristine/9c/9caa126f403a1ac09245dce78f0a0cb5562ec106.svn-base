@@ -1,0 +1,151 @@
+package com.guotop.palmschool.personAlbum.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.personAlbum.entity.PersonAlbum;
+import com.guotop.palmschool.personAlbum.entity.PersonPhoto;
+import com.guotop.palmschool.personAlbum.service.PersonAlbumService;
+import com.guotop.palmschool.service.BaseService;
+
+@Service("/personAlbumService")
+public class PersonAlbumServiceImpl extends BaseService implements PersonAlbumService
+{
+
+	/**
+	 * 添加相册
+	 */
+	public Integer addPersonAlbum(PersonAlbum album)
+	{
+		return (Integer)getBaseDao().addObject("PersonAlbum.addPersonAlbum", album);
+	}
+	
+	/**
+	 * 根据userId查询对应的相册
+	 * @param userId
+	 */
+	@SuppressWarnings("unchecked")
+	public List<PersonAlbum> getPersonAlbumListByUserId(Integer userId)
+	{
+		return (List<PersonAlbum>)getBaseDao().selectList("PersonAlbum.getPersonAlbumListByUserId", userId);
+	}
+	
+	/**
+	 * 根据albumId查找相片 取最后一条
+	 */
+	public PersonPhoto getPersonPhotoByAlbumId(Integer albumId)
+	{
+		return (PersonPhoto)getBaseDao().selectObject("PersonAlbum.getPersonPhotoByAlbumId", albumId);
+	}
+	
+	/**
+	 * 根据albumId删除相册
+	 * @param albumId
+	 */
+	public void deletePersonAlbumByAlbumId(Integer albumId)
+	{
+		getBaseDao().deleteObjectById("PersonAlbum.deletePersonAlbumByAlbumId", albumId);
+		
+		deletePersonPhotoByAlbumId(albumId);
+	}
+	/**
+	 * 根据albumId删除相片
+	 * @param albumId
+	 */
+	public void deletePersonPhotoByAlbumId(Integer albumId)
+	{
+		getBaseDao().deleteObjectById("PersonAlbum.deletePersonPhotoByAlbumId", albumId);
+	}
+	
+	/**
+	 * 修改相册
+	 */
+	public void modifyPersonAlbumByAlbumId(PersonAlbum album)
+	{
+		getBaseDao().updateObject("PersonAlbum.modifyPersonAlbumByAlbumId", album);
+	}
+	
+	/**
+	 * 添加相片
+	 */
+	public void addPersonPhoto(PersonPhoto photo)
+	{
+		getBaseDao().addObject("PersonAlbum.addPersonPhoto", photo);
+	}
+	
+	/**
+	 * 根据albumId查找相册
+	 * @param albumId
+	 */
+	public PersonAlbum getPersonAlbumByAlbumId(Integer albumId)
+	{
+		return (PersonAlbum)getBaseDao().selectObject("PersonAlbum.getPersonAlbumByAlbumId", albumId);
+	}
+	
+	/**
+	 * 根据albumId查找相片
+	 * @param albumId
+	 */
+	@SuppressWarnings("unchecked")
+	public List<PersonPhoto> getPersonPhotoDetailByAlbumId(Integer albumId)
+	{
+		return (List<PersonPhoto>)getBaseDao().selectList("PersonAlbum.getPersonPhotoDetailByAlbumId", albumId);
+	}
+	
+	/**
+	 * 设置相册封面
+	 */
+	public void setPersonAlbumCover(Map<String,Object> paramMap)
+	{
+		getBaseDao().updateObject("PersonAlbum.setPersonAlbumCover", paramMap);
+	}
+	
+	/**
+	 * 修改照片
+	 * @param photo
+	 */
+	public void modifyPersonPhotoByPhotoId(PersonPhoto photo)
+	{
+		getBaseDao().updateObject("PersonAlbum.modifyPersonPhotoByPhotoId", photo);
+	}
+	
+	/**
+	 * 删除照片
+	 * @param photoId
+	 */
+	public void deletePersonPhotoByPhotoId(Integer photoId)
+	{
+		getBaseDao().deleteObjectById("PersonAlbum.deletePersonPhotoByPhotoId", photoId);
+	}
+	
+	/**
+	 * 根据相片获取照片信息
+	 * @param photoId
+	 * @return
+	 */
+	public PersonPhoto getPersonPhotoByPhotoId(Integer photoId)
+	{
+		return (PersonPhoto)getBaseDao().selectObject("PersonAlbum.getPersonPhotoByPhotoId", photoId);
+	}
+	
+	/**
+	 * 根据相册名称和userId 查询相册
+	 * @param paramMap
+	 * @return
+	 */
+	public PersonAlbum getPersonAlbumByUserIdAndAlbumName(Map<String,Object> paramMap)
+	{
+		return (PersonAlbum)getBaseDao().selectObjectByObject("PersonAlbum.getPersonAlbumByUserIdAndAlbumName", paramMap);
+	}
+	
+	/**
+	 * 班级相册分享照片
+	 * @param photoList
+	 */
+	public void sharePhoto(List<PersonPhoto> photoList)
+	{
+		getBaseDao().addObject("PersonAlbum.sharePhoto", photoList);
+	}
+}

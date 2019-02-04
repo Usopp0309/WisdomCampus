@@ -1,0 +1,358 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%> 
+<head>
+	<title>巡更地点信息</title>
+  	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+	<!--公共css开始-->
+	<%@ include file="/public_module/app_public_css.jsp"%>
+	<!--公共css结束--> 
+	<style type="text/css">
+	   .header{
+	      background-color: #168ff2;
+          height: 50px;
+          line-height: 50px;
+          width: 100%;
+          font-size: 20px;
+          top: 0px;
+          left: 0px;
+          text-align: center;
+          color: #fff;
+       }
+	 .margin{
+	 	margin-top: 0px !important;
+	 }
+	
+	</style>
+</head>
+<body>
+
+          <div class="header">
+		    <i class="m_icon-return icon_left" ></i>巡更地点信息
+	      </div>  
+			<c:if test="${patrolPlaceSize == 0}">
+				<div class="null_con">
+					<img src="<%=basePath%>assets/global/img/m_img/null.png">
+				</div>
+			</c:if>
+			<c:if test="${patrolPlaceSize > 0}">
+	          <table class="app_table table-striped margin">
+	                     <thead class="app_table_head">
+	                                 <tr>
+	                                     <th class="m_width_20" style="font-size: 12px;width:3%;">编号</th>
+	                                     <th class="m_width_20" style="font-size: 12px;width:10%;">名称</th>
+	                                     <th class="m_width_40" style="font-size: 12px;">经纬度</th>
+	                                     <th class="m_width_20" style="font-size: 12px;">操作</th>
+	                                 </tr>
+	                     </thead>
+	                       <tbody  class="app_table_body" id="tbody">
+	                        	<c:forEach items="${patrolPlaceList}" var="p" varStatus="ls">
+						          <c:choose>
+						              	<c:when test="${ls.index%2==0}">
+						              		<tr style="background-color: #f2f2f2">
+						             	</c:when>
+						              <c:otherwise>
+						                	<tr>
+						              </c:otherwise>
+						          </c:choose>
+						              	<td>${p.code }</td>
+										<td>${p.name }</td>
+										<td>${p.position }</td>
+										<td>
+	                             			<a type="button" class="btn btn-info btn-xs" data-toggle="modal" data-target="#update_info" onclick="setVal(${p.id});">修改</a>
+	                             			<a type="button" style="margin-left: 5px;" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#delete" onclick="setDelVal(${p.id});">删除</a>
+	                             		</td>
+				           		  </tr>
+						      </c:forEach>
+	                      </tbody>
+	         </table>
+	         <c:if test="${patrolPlaceSize >19}">
+				<a href="#" id="op_all_save" class="op_all_save" onclick="loadMoreList()">查看更多</a>
+	 		 </c:if>
+ 		 </c:if>
+         <div class="select_role" style="height:50px;width:50px;"data-toggle="modal" data-target="#add_info" onclick="setVal(0);">
+             <span class="role_img iconfont" style="right:10px;">&#xe600;</span> 
+         </div>
+         
+	       <!-- 删除弹窗 start-->
+		  <div class="modal fade" id="delete" tabindex="-1"
+			role="dialog" aria-labelledby="myModalLabel" style="width: 295px;">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content" style="width: 280px;">
+					<div class="modal-body">
+					<div style="text-align:left;">
+					  <h4 style="padding-bottom:10px;">系统提示</h4>
+					</div>
+					<hr>
+					<div style="text-align: center;">
+					    <i class="layui-layer-ico layui-layer-ico3"></i>
+					    <h4 style="padding-top: 10px;">确定要删除该条信息吗？</h4>
+					</div>
+					 </div>
+					<div class="modal-footer" style="border-top: none; margin-right: 70px;">
+						<button type="button" class="btn btn-success" id="doDelete" attr="" onclick="doDelete();">确定</button>
+						<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--删除弹窗end  -->
+
+	     <!-- 修改弹出框 start-->
+	     <div class="modal fade" id="update_info" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+          <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">×</span>
+                      </button>
+                       <h4 class="modal-title" id="myModalLabel">修改巡更地点信息</h4>
+                  </div>
+                 <form action="<%=basePath%>patrol/doUpdatePatrolPlaceApp.do" id="updatePatrolPlace" method="post">
+                     <div class="modal-body">
+                     
+	                          <div class = "form-group">
+	                              <label for = "update_code">巡更点编号</label>
+	                              <input type = "text" class = "form-control" name="code" id = "update_code" placeholder = "请输入巡更点编号。。。">
+	                          </div>
+	                          
+	                          <div class = "form-group">
+	                              <label for = "update_name">巡更点名称</label>
+	                              <input type="text" class="form-control" name="name" id = "update_name" placeholder = "请输入巡更点名称。。。">
+	                          </div>
+	                          
+	                          <div class = "form-group">
+	                              <label for = "update_attilute">巡更点经纬度(纬度,经度)</label>
+	                               <div>
+		                              <input type="text" class="form-control" name="position" id = "update_position" readonly="readonly" style="width:200px;float: left;">
+		                              <button type="button" class="btn btn-success btn-md" style="float: left;margin-left:5px;" onclick="getLocation();">定位</button>
+	                               </div>
+	                          </div>
+	                          <input type="text" style="display: none" class="form-control" name="placeId" id ="placeId" placeholder = "请输入巡更点经纬度。。。">
+	                   </div>
+	                    <div class="modal-footer" style="clear:left;border-top:none;">
+	                           <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+	                           <button type="button" class="btn btn-primary" onclick="update();">修改</button>
+	                       </div>
+                  </form>
+              </div>
+          </div>
+      </div>
+	 <!-- 修改弹出框 end-->
+	 
+	 <!-- 增加地点弹出框 start-->
+	     <div class="modal fade" id="add_info" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+          <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">×</span>
+                      </button>
+                       <h4 class="modal-title" id="myModalLabel">增加巡更地点信息</h4>
+                  </div>
+                   <form action="<%=basePath%>patrol/doAddPatrolPlaceApp.do" id="addPatrolPlace" method="post">
+                     <div class="modal-body">
+	                          <div class = "form-group">
+	                              <label for = "add_code">巡更点编号</label>
+	                              <input type = "text" class = "form-control" name="code" id = "add_code" placeholder = "请输入巡更点编号。。。">
+	                          </div>
+	                          
+	                          <div class = "form-group">
+	                              <label for = "add_name">巡更点名称</label>
+	                              <input type="text" class="form-control" name="name" id = "add_name" placeholder = "请输入巡更点名称。。。">
+	                          </div>
+	                          
+	                          <div class = "form-group">
+	                              <label for = "add_attilute">巡更点经纬度(纬度,经度)</label>
+	                              <div>
+	                              <input type="text" class="form-control" name="position" id = "add_position" readonly="readonly" style="width:200px;float: left;">
+	                              <button type="button" class="btn btn-success btn-md" style="float: left;margin-left:5px;" onclick="getLocation();">定位</button>
+	                              </div>
+	                          </div>
+	                          
+	                        <div class="modal-footer" style="clear:left;border-top:none;">
+	                           <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+	                           <button type="button" class="btn btn-primary" onclick="commit();">提交</button>
+	                       </div>
+                       
+                   </div>
+                  </form>
+              </div>
+          </div>
+      </div>
+      	<input type="hidden" id="cPage" value="${cPage}">
+      	<input type="hidden" id="longitude" value="">
+      	<input type="hidden" id="latitude" value="">
+	 <!-- 增加地点弹出框 end-->
+	</body>
+	<!--公共js开始-->
+	<%@ include file="/public_module/app_public_js.jsp"%>
+	<!--公共js结束--> 
+	<!-- 百度地图定位API 开始 -->
+	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=MnblP7QGUnaYv50psbrm3Dgt"></script> 
+	<!-- 百度地图定位API 结束--> 
+   <script type="text/javascript">
+
+   $(function(){
+	 
+    $("#delete").css({"margin-top":(($(window).height()-193)/2-130)+"px","margin-left":(($(window).width()-290)/2)+"px"}); 
+  });
+	      //监听窗口变化
+    window.onresize = function(){
+   	 $("#delete").css({"margin-top":(($(window).height()-193)/2-130)+"px","margin-left":(($(window).width()-290)/2)+"px"}); 
+    }
+
+	function loadMoreList()
+	{
+		var cPage = $("#cPage").val();
+		$.ajax({
+			type: "post",
+			url: "<%=basePath%>patrol/getPatrolPlaceListApp.do",
+			data:{
+					type :0,
+					cPage : cPage
+			},
+			success: function(data){
+				var data = eval("(" + data + ")");
+   				$("#cPage").val(data.cPage);
+   				
+				var appendHtml = '';
+				$.each(data.patrolPlaceList, function(n, value) {  
+					appendHtml += '<tr style="background-color: #f2f2f2">';
+					appendHtml += '<td>'+value.code+'</td>';
+					appendHtml += '<td>'+value.name+'</td>';
+					appendHtml += '<td>'+value.position+'</td>';
+					appendHtml += '<td>';
+					appendHtml += '<a type="button" class="btn btn-info btn-xs" data-toggle="modal" data-target="#update_info" onclick="setVal('+value.id+');">修改</a>';
+					appendHtml += '<a type="button" style="margin-left: 5px;" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#delete" onclick="setDelVal('+value.id+');">删除</a>';
+					appendHtml += '</td>';
+					appendHtml += '</tr>';
+      			}); 
+      			
+      			$("#tbody").append(appendHtml);
+      			//解锁UI
+			},
+		});
+	}
+
+	 //增加信息提交
+	 function commit(){
+         var add_code=$("#add_code").val();
+         var add_name=$("#add_name").val();
+         var add_position=$("#add_position").val();
+          if(add_code=='' || add_code=='undefined'){
+                  layer.tips("巡更点编号不能为空","#add_code",{tips:1});
+                  return false;
+          }
+          if(add_name=='' || add_name=='undefined'){
+       	       layer.tips("巡更点名称不能为空","#add_name",{tips:1});
+                  return false;
+          }
+          if(add_position=='' || add_position=='undefined'){
+       	      layer.tips("巡更点名称不能为空","#add_position",{tips:1});
+                  return false;
+          }
+          $("#addPatrolPlace").submit();
+
+    }
+	 //修改信息提交
+	 function update(){
+         var update_code=$("#update_code").val();
+         var update_name=$("#update_name").val();
+         var update_position=$("#update_position").val();
+          if(update_code=='' || update_code=='undefined'){
+                  layer.tips("巡更点编号不能为空","#update_code",{tips:1});
+                  return false;
+          }
+          if(update_name=='' || update_name=='undefined'){
+       	       layer.tips("巡更点名称不能为空","#update_name",{tips:1});
+                  return false;
+          }
+          if(update_position=='' || update_position=='undefined'){
+       	      layer.tips("巡更点经纬度不能为空","#update_position",{tips:1});
+                  return false;
+          }
+          $("#updatePatrolPlace").submit();
+    }
+	    
+	//执行删除
+	function doDelete(){
+		var id= $("#doDelete").attr("attr");
+		$.ajax({
+			type: "post",
+			url: "<%=basePath%>patrol/doDeletePatrolPlace.do",
+			data:{
+				id : id
+				},
+			success: function(data){
+				var isDeleteSuccess = eval("(" + data + ")");
+				if(isDeleteSuccess){
+					var apiKey = $("#apiKey").val();
+					var schoolId = $("#schoolId").val();
+					standardPost('<%=basePath%>patrol/toPatrolPlaceListApp.do',{});
+				}
+			}
+		});
+	}
+
+	//修改的时候设置值
+	function setVal(id){
+		if(id == 0){
+			$("#add_code").val("");
+            $("#add_name").val("");
+            $("#add_position").val("");
+		}else{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>patrol/getPatrolPlaceById.do",
+				data:{
+					id : id
+					},
+				success: function(data){
+					var place = eval("(" + data + ")");
+          			$("#update_code").val(place.code);
+        			$("#update_name").val(place.name);
+        			$("#update_position").val(place.position);
+					$("#placeId").val(place.id);
+				}
+			});
+		}
+	}
+	
+	//删除的时候设置值
+	function setDelVal(id){
+		$("#doDelete").attr("attr",id);
+	}
+
+		//手机端获取定位
+	function getLocation(){
+	    //判断手机浏览器是否支持定位
+	    if(navigator.geolocation){
+	        var geolocation = new BMap.Geolocation();//创建定位实例
+	        geolocation.getCurrentPosition(showLocation,{enableHighAccuracy: true});//enableHighAccuracy 要求浏览器获取最佳结果
+	    }else{
+	        map.addControl(new BMap.GeolocationControl());//添加定位控件 支持定位
+	    }
+	    layer.msg('定位中', {
+			  icon: 16
+			  ,shade: 0.01
+			});
+	}
+		
+	//处理定位后的信息
+	function showLocation(r){
+	    if(this.getStatus() == BMAP_STATUS_SUCCESS){//定位成功
+	        //新建中心点 并将地图中心移动过去
+	        $("#longitude").val(r.longitude);
+	        $("#latitude").val(r.latitude);
+
+	        $("#add_position").val(r.latitude+","+r.longitude);
+	        $("#update_position").val(r.latitude+","+r.longitude);
+	    }
+	    else {
+	        layer.msg("定位失败:"+this.getStatus());//定位失败
+	    }        
+	}
+   </script>
+
+</html>

@@ -1,0 +1,80 @@
+package com.guotop.palmschool.scheduler;
+
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
+import javax.annotation.Resource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.scheduler.entity.SchoolCountInfo;
+import com.guotop.palmschool.scheduler.service.CountService;
+import com.guotop.palmschool.service.ClazzService;
+import com.guotop.palmschool.service.ScheduleService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.thread.BuyServiceFeeThread;
+import com.guotop.palmschool.util.StringUtil;
+import com.qiniu.http.Client;
+
+/**
+ * 定时任务每天提醒未购买的人员购买服务费
+ */
+@Component("BuyServiceFeeNoticeScheduler")
+public class BuyServiceFeeNoticeScheduler
+{
+	private Logger logger = LoggerFactory.getLogger(BuyServiceFeeNoticeScheduler.class);
+
+	@Resource
+	private CountService countService;
+
+	@Resource
+	private ScheduleService scheduleService;
+
+	@Resource
+	private ClazzService clazzService;
+
+	@Resource
+	private UserService userService;
+
+//	@Scheduled(cron = "0 30 08 * * ?")
+	public void buyServiceFeeJob()
+	{
+		// 获取系统中所有的学校
+		List<SchoolCountInfo> list = countService.getSchoolDataSorceList();
+		for (SchoolCountInfo ci : list)
+		{
+			try
+			{
+				Properties pro = new Properties();  
+				
+				pro.load(new InputStreamReader(Client.class.getClassLoader().getResourceAsStream("wisdomcampus.properties"), "UTF-8"));  
+				
+		    	String buyServiceFeeContent = pro.getProperty("buyServiceFeeContent"); //服务费通知内容
+		    	
+		    	//TODO 没有服务费的学校并且没有学校单条套餐不要通知
+		    	if(!StringUtil.isEmpty(buyServiceFeeContent)){
+		    		DBContextHolder.setDBType(String.valueOf(ci.getSchoolId()));
+					// 获取所有未购买短信套餐的学生
+					ArrayList<User> studentList = userService.getNotPurchaseStudentList(String.valueOf(ci.getSchoolId()));
+					if (!CollectionUtils.isEmpty(studentList))
+					{
+						new BuyServiceFeeThread(ci.getSchoolId(), buyServiceFeeContent, studentList);
+						Thread.sleep(2000);
+					}
+		    	}
+				
+			} catch (Exception e)
+			{
+				logger.error("通知购买服务费失败,BuyServiceFeeNotice:" + ci.getSchoolId() + e.getMessage());
+				continue;
+			}
+		}
+	}
+}

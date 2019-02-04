@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="BluetoothBracelet">
+	<typeAlias alias="bluetoothBracelet"
+		type="com.guotop.palmschool.bluetooth.entity.BluetoothBracelet" />
+	<typeAlias alias="bluetoothRouter"
+		type="com.guotop.palmschool.bluetooth.entity.BluetoothRouter" />
+	<typeAlias alias="bluetoothSchool"
+		type="com.guotop.palmschool.bluetooth.entity.BluetoothSchool" />
+	<typeAlias alias="bluetoothCourse"
+		type="com.guotop.palmschool.bluetooth.entity.BluetoothCourse" />
+	<typeAlias alias="bluetoothCourseTime"
+		type="com.guotop.palmschool.bluetooth.entity.BluetoothCourseTime" />
+	<!-- 更具userId获得用户创建的课程时间 -->
+	<select id="getPagesBluetoothCourseTime" resultClass="bluetoothCourseTime">
+		select
+		t.*,c.name as courseName from palm_bluetooth_course_time t inner join
+		palm_bluetooth_course c on c.id=t.bluetoothCourseId where
+		t.userId=#userId# order by createTime DESC limit #startIndex#,
+		#length#
+	</select>
+	<select id="getPagesBluetoothCourseTimeCount" resultClass="integer">
+		select count(*) from palm_bluetooth_course_time t inner join
+		palm_bluetooth_course c on c.id=t.bluetoothCourseId where
+		t.userId=#userId#
+	</select>
+	<!-- 更新蓝牙手环课程时间 -->
+	<update id="updateBluetoothCourseTime" parameterClass="bluetoothCourseTime">
+		update
+		palm_bluetooth_course_time set startTime=#startTime#,
+		bluetoothCourseId=#bluetoothCourseId#,endTime=#endTime#,createTime=NOW(),userId=#userId#
+		where id=#id#
+	</update>
+	<!--获得可用的课程时间设置 -->
+	<select id="getAvailableCourseTime" resultClass="bluetoothCourseTime"
+		parameterClass="integer">
+		select t.*,c.name as courseName ,DATE_FORMAT(t.endTime,'%H:%i:%s') as time from palm_bluetooth_course_time t
+		inner join palm_bluetooth_course c on c.id=t.bluetoothCourseId
+		where DATE_FORMAT(t.endTime,'%Y%d%m%H%i%s')
+		>DATE_FORMAT(NOW(),'%Y%d%m%H%i%s') and t.userId=#userId#
+		order by startTime asc
+	</select>
+
+	<!-- 添加蓝牙手环课程时间 -->
+	<insert id="insertBluetoothCourseTime" parameterClass="bluetoothCourseTime">
+		insert into palm_bluetooth_course_time
+		(bluetoothCourseId,startTime,endTime,userId,createTime)
+		values(#bluetoothCourseId#,#startTime#,#endTime#,#userId#,NOW())
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select
+			LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	<!-- 获得用户自己可用的课程时间 -->
+	<select id="getBluetoothCourseTimeByUserId" parameterClass="Integer"
+		resultClass="bluetoothCourseTime">
+		select p.* from palm_bluetooth_course_time p where
+		userId=#userId# order by
+		createTime ASC
+	</select>
+	<!-- 添加课程 -->
+	<insert id="insertBluetoothCourse" parameterClass="bluetoothCourse">
+		insert into palm_bluetooth_course(name,userId,userName,updateTime)
+		values(#name#,#userId#,#userName#,NOW())
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select
+			LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	<!-- 获得所有的手环使用课程 -->
+	<select id="getAllBluetoothCourse" resultClass="bluetoothCourse">
+		select * from
+		palm_bluetooth_course order by updateTime DESC
+	</select>
+	<!-- 获得使用手环使用中的最大和最小时间 -->
+	<select id="getMaxTimeMinTime" resultClass="bluetoothBracelet">
+		SELECT max(t.endTime)
+		as endTime,MIN(t.startTime) as startTime FROM
+		palm_bluetooth_student s
+		inner join palm_bluetooth_bracelet b ON b.id=s.bluetoothBraceletId
+		inner join palm_bluetooth_course_time t on t.id=s.bluetoothCourseTimeId
+		where b.status=2
+	</select>
+	<!-- 根据学校获得信息 -->
+	<select id="getBluetoothSchoolBySchoolId" parameterClass="String"
+		resultClass="bluetoothSchool">
+		select * from platform.bluetooth_school where
+		schoolId=#schoolId#
+	</select>
+	<!-- 更新表bluetooth_school的数据 -->
+	<update id="updateBluetoothSchoolBySchoolId" parameterClass="bluetoothSchool">
+		update platform.bluetooth_school set
+		startTime=#startTime#,endTime=#endTime#,createTime=NOW() where
+		schoolId=#schoolId#
+	</update>
+	<!-- 添加bluetooth_school数据 -->
+	<insert id="insertBluetoothSchool" parameterClass="bluetoothSchool">
+		insert into
+		platform.bluetooth_school(schoolId,startTime,endTime,createTime,times)
+		values(#schoolId#,#startTime#,#endTime#,NOW(),#times#)
+	</insert>
+	<!-- 获得所有的学校蓝牙手环使用情况 -->
+	<select id="getAllBluetoothSchool" resultClass="bluetoothSchool">
+		select * from
+		platform.bluetooth_school
+	</select>
+	<!-- 根据mac后的蓝牙路由器 -->
+	<select id="getRouterByMac" parameterClass="String" resultClass="bluetoothRouter">
+		select * from palm_bluetooth_router where mac=#mac# limit 1
+	</select>
+	<!-- 根据蓝牙路由器的主键集合删除数据 -->
+	<delete id="deleteByIds" parameterClass="java.util.List">
+		delete from palm_bluetooth_router where id in
+		<iterate conjunction="," open="(" close=")">
+			#[]#
+		</iterate>
+	</delete>
+	<!-- 根据主键获得蓝牙路由器 -->
+	<select id="getBluetoothRouterById" resultClass="bluetoothRouter">
+		select * from
+		palm_bluetooth_router where id=#id#
+	</select>
+
+	<!-- 添加蓝牙路由器 -->
+	<insert id="insertBluetoothRouter" parameterClass="bluetoothRouter">
+		insert into
+		palm_bluetooth_router(mac,code,status,remark,updateTime)values(
+		#mac#,#code#,#status#,#remark#,NOW()
+		)
+	</insert>
+	<!-- 更新蓝牙路由器 -->
+	<update id="updateBluetoothRouter" parameterClass="bluetoothRouter">
+		update
+		palm_bluetooth_router set
+		mac=#mac#,code=#code#,status=#status#,remark=#remark# where id=#id#;
+	</update>
+
+	<!-- 获得所有的蓝牙路由器 -->
+	<select id="getAllBluetoothRouter" resultClass="bluetoothRouter"
+		parameterClass="HashMap">
+		select * from
+		palm_bluetooth_router where 1=1
+		<isNotEmpty property="status">
+			and status=#status#
+		</isNotEmpty>
+
+	</select>
+
+	<!-- 获得可用的学校 -->
+	<select id="getSchoolIds" resultClass="String">
+		select schoolId from
+		platform.bluetooth_school
+	</select>
+	<!-- 批量更新手环的状态 -->
+	<update id="updateStatusByIds" parameterClass="HashMap">
+		update palm_bluetooth_bracelet set
+		status=#status#
+		where id in
+		<iterate open="(" close=")" conjunction="," property="list">
+			#list[]#
+		</iterate>
+	</update>
+	<!-- 修改手环的状态 -->
+	<update id="updateStatusById" parameterClass="HashMap">
+		update
+		palm_bluetooth_bracelet set status=#status# where id=#id#
+	</update>
+	<!-- 根据状态获得手环 -->
+	<select id="getByStatus" parameterClass="Integer" resultClass="bluetoothBracelet">
+		select * from palm_bluetooth_bracelet where status=#status#
+	</select>
+	<!-- 根据主键获得数据 -->
+	<select id="getById" resultClass="bluetoothBracelet"
+		parameterClass="Integer">
+		select * from palm_bluetooth_bracelet where id=#id#
+	</select>
+	<!-- 判断手环是否已存在 -->
+	<select id="getCountByMacOrCode" parameterClass="HashMap"
+		resultClass="Integer">
+		select count(*) from palm_bluetooth_bracelet where 1=1
+		<isNotEmpty property="mac">
+			and mac=#mac#
+		</isNotEmpty>
+		<isNotEmpty property="code">
+			and code=#code#
+		</isNotEmpty>
+	</select>
+	<!-- 批量添加学生使用手环的数据 -->
+	<insert id="insertBathBluetoothBracelet" parameterClass="java.util.List">
+		insert into
+		palm_bluetooth_bracelet(assetId,updateUserId,createTime,code,status,mac
+		)
+		values
+		<iterate conjunction=",">
+			(
+			#bluetoothBracelets[].assetId#,#bluetoothBracelets[].updateUserId#,NOW(),#bluetoothBracelets[].code#
+			,#bluetoothBracelets[].status#,#bluetoothBracelets[].mac#
+			)
+		</iterate>
+	</insert>
+	<!-- 添加学生使用手环的数据 -->
+	<insert id="insertBluetoothBracelet" parameterClass="bluetoothBracelet">
+		insert into
+		palm_bluetooth_bracelet(assetId,updateUserId,createTime,code,status,mac)
+		values
+		(#assetId#,#updateUserId#,NOW(),#code#,#status#,#mac#)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select
+			LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	<!-- 根据主键更新数据 -->
+	<update id="updateById" parameterClass="bluetoothBracelet">
+		update
+		palm_bluetooth_bracelet set
+		updateUserId=#updateUserId#,code=#code#,status=#status#,mac=#mac#
+		where id=#id#
+	</update>
+	<!-- 分页获得学生与手环的关系 -->
+	<select id="getBluetoothBracelet" parameterClass="HashMap"
+		resultClass="bluetoothBracelet">
+		select
+		s.*,st.clazzName,st.clazzId,st.userCode,st.studentName,st.userId,t.startTime,t.endTime,t.id as bluetoothCourseTimeId,(select c.name
+		from palm_bluetooth_course c where c.id=t.bluetoothCourseId) as
+		courseName from
+		palm_bluetooth_bracelet s left join
+		palm_bluetooth_student st on
+		st.bluetoothBraceletId=s.id 
+		left join palm_bluetooth_course_time t on t.id=st.bluetoothCourseTimeId
+		where 1=1 limit #startIndex#, #length#
+	</select>
+	<!-- 分页获得学生与手环的关系 -->
+	<select id="getBluetoothBraceletCount" parameterClass="HashMap"
+		resultClass="Integer">
+		select count(*) from
+		palm_bluetooth_bracelet s left join
+		palm_bluetooth_student st on
+		st.bluetoothBraceletId=s.id 
+		left join palm_bluetooth_course_time t on t.id=st.bluetoothCourseTimeId
+	</select>
+</sqlMap>
+	

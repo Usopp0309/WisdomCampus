@@ -1,0 +1,63 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<div class="page-sidebar-wrapper">
+    <div class="page-sidebar navbar-collapse collapse">
+        <ul class="page-sidebar-menu  page-header-fixed " data-keep-expanded="false" data-auto-scroll="true" data-slide-speed="200" style="padding-top: 20px">
+        </ul>
+    </div>
+</div>
+<script src="<%=basePath%>media/js/jquery-1.10.1.min.js" type="text/javascript"></script>
+
+<script>
+loadAllMainMenu();
+function loadAllMainMenu(){
+	 $.ajax({
+			url: "<%=basePath%>menu/getAllMenu.do",
+			async: false,
+			data:{
+			},
+           success: function(data)
+           {
+               var data = $.parseJSON(data);
+               var appendHtml = '';
+               appendHtml += '<li class="start"><a href=""><i class="icon-bar-chart"></i> <span class="title">首页</span></a></li>';
+   		
+               $.each(data,function(n, value){
+            	   appendHtml += '<li id="'+value.id+'"><a onclick="loadSubMenu(\''+value.id+'\',\''+value.name+'\')"><i class="fa '+value.icon+' fa-lg"></i><span class="title">'+value.name+'</span></a></li>';
+               }) 
+               $(".page-sidebar-menu").html(appendHtml); 
+           }
+	    });
+}
+function loadSubMenu(){
+	
+}
+</script>
+
+    
+    
+    
+    
+   
+    
+   
+    
+   
+    
+    
+   
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+   
+
+
+
+
+

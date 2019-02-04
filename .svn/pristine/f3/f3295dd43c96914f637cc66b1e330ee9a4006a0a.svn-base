@@ -1,0 +1,1336 @@
+package com.guotop.palmschool.imp.controller;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.guotop.palmschool.common.controller.BaseUploadController;
+import com.guotop.palmschool.common.entity.Excel;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.constant.Cons.PUSHTYPE;
+import com.guotop.palmschool.entity.OrderMessageUser;
+import com.guotop.palmschool.entity.OrderUserMessageDetail;
+import com.guotop.palmschool.entity.Score;
+import com.guotop.palmschool.entity.Sms;
+import com.guotop.palmschool.entity.SmsDetail;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.rest.entity.PushItem;
+import com.guotop.palmschool.service.OrderMessageService;
+import com.guotop.palmschool.service.ScoreService;
+import com.guotop.palmschool.service.SmsService;
+import com.guotop.palmschool.service.StudentService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.system.entity.InformationType;
+import com.guotop.palmschool.system.service.InformationTypeService;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+import com.richx.pojo.RichHttpResponse;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 成绩下发控制类
+ * 
+ * @author shengyinjiang
+ */
+@RequestMapping("/scoreSending")
+@Controller
+public class ScoreSendingController extends BaseUploadController
+{
+
+	private Logger log = Logger.getLogger(StudentImportController.class);
+	@Resource
+	private StudentService studentService;
+
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private SmsService smsService;
+
+	@Resource
+	private ScoreService scoreService;
+	@Resource
+	private UserService userService;
+
+	@Resource
+	private InformationTypeService informationTypeService;
+	
+	@Resource
+	private OrderMessageService orderMessageService;
+
+	SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+	@RequestMapping(value = "/doScoreSending.do")
+	public String doScoreSending(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("utf-8");
+		User loginUser = (User) session.getAttribute("user");
+
+		try
+		{
+			List<User> studentList = new ArrayList<User>();
+			Map<String, Object> student_sms = new HashMap<String, Object>();
+			Map<String, String> student_score = new HashMap<String, String>();
+			/**
+			 * 用户ID
+			 */
+			Integer userId = loginUser.getUserId();
+			// 通过userId查找schoolId
+			Long schoolId = Long.valueOf(loginUser.getSchoolId());
+			File file = upload(request, userId);
+			String fullName = file.getCanonicalPath();
+			// 获取上传excel的文件名,
+			String filename = file.getName();
+
+			HashMap<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("schoolId", schoolId);
+
+			Excel excel = new Excel(new File(fullName));
+
+			if (filename == null || filename.trim().equals(""))
+			{
+				modelMap.put("errorMsg", "文件名为空");
+				return "sms/scoreSending";
+			} else if (!(filename.endsWith(".xls") || filename.endsWith(".xlsx")))
+			{
+				modelMap.put("errorMsg", "文件类型必须为excel文件");
+				return "sms/scoreSending";
+			}
+
+			/*
+			 * 开始读取excel数据
+			 */
+			String[] sheets = excel.getSheets(); // sheet名为班级名
+			String[][][] data = excel.getData(); // 内容
+
+			if (sheets == null || sheets.length == 0 || data == null || data.length == 0)
+			{
+				modelMap.put("errorMsg", "数据为空");
+				return "sms/scoreSending";
+			}
+
+			if (sheets.length != data.length)
+			{
+				modelMap.put("errorMsg", "数据异常");
+				return "sms/scoreSending";
+			}
+
+			for (int i = 0; i < sheets.length; i++)
+			{
+				int no = i + 1;
+
+				String sheetName = sheets[i];
+				if (StringUtil.isEmpty(sheetName))
+				{
+					modelMap.put("errorMsg", "第 " + no + " 个sheet名称为空");
+					return "sms/scoreSending";
+				}
+
+				String[][] ds = data[i];
+				if (ds == null || ds.length == 0)
+				{
+					modelMap.put("errorMsg", "第 " + no + " 个sheet数据为空");
+					return "sms/scoreSending";
+				}
+
+				// 第一行获取列名，
+				String[] firstline = ds[0];
+
+				// 行循环，从第二行开始循环，
+				for (int j = 1; j < ds.length; j++)
+				{
+					int ln = j + 1;
+					String[] lineValue = ds[j];
+
+					if (StringUtil.isEmpty(lineValue))
+					{
+						modelMap.put("errorMsg", "第 " + no + " 个sheet第 " + ln + " 行为空");
+						return "sms/scoreSending";
+					}
+
+					// 成绩
+					StringBuffer score = new StringBuffer();
+					// 循环每行的数据开始读取第四列以后(包含第四列)的数据，获取响应的科目1成绩、科目2成绩。。。
+					for (int k = 3; k < lineValue.length; k++)
+					{
+						// 每列的名称
+						String columnName = firstline[k];
+						columnName = columnName.trim();
+						// 每列的值
+						String columnValue = lineValue[k];
+						if (StringUtil.isEmpty(columnValue))
+						{
+							modelMap.put("errorMsg", "第 " + no + " 个sheet第 " + ln + " 行" + columnName + "对应的值为空！");
+							return "sms/scoreSending";
+						}
+						columnValue = columnValue.trim();
+						score.append(columnName + ":" + columnValue + ",");
+					}
+
+					// 获取第一列 学号 ,第二列 姓名的值 以及第三列 考试类型的值
+					String code = lineValue[0];
+					String testType = lineValue[2];
+					// 利用 code 找出学生的相关信息(这里包含学生家长手机号，学生和家长是一对多)
+					paramMap.put("code", code);
+					List<User> studentList_tmp = studentService.getUserByCode(paramMap);
+					if (!CollectionUtils.isEmpty(studentList_tmp))
+					{
+						for (User student : studentList_tmp)
+						{
+							// 用于拼成短信内容
+							StringBuffer sms = new StringBuffer();
+							if (student.getPhone() == null)
+							{
+								modelMap.put("errorMsg", "第 " + no + " 个sheet第 " + ln + " 行学号找不到家长（" + student.getParentname() + "）的电话号码");
+								return "sms/scoreSending";
+							}
+							sms.append("尊敬的" + student.getParentname() + "," + student.getRealName() + "同学" + testType + "的成绩如下:" + score);
+							// 保存所有学生
+							studentList.add(student);
+							// 所有学生家长对应的短信内容
+							student_sms.put(student.getUserId() + "" + student.getParentId(), sms.toString());
+							// 所有学生对应的成绩(使用学生id作为key值，不会受到一个学生多个家长的影响)
+							student_score.put(String.valueOf(student.getUserId()), String.valueOf(score));
+						}
+					} else
+					{
+						modelMap.put("errorMsg", "第 " + no + " 个sheet第 " + ln + " 行学号找不到对应学生");
+						return "sms/scoreSending";
+					}
+				}
+			}
+			sendScore(loginUser, filename, studentList, student_sms, student_score);
+			return "sms/scoreSendingSms_list";
+
+		} catch (Exception ex)
+		{
+			modelMap.put("errorMsg", "系统错误，请联系管理员");
+			log.error("ScoreSendindController.import is error : " + ex.getMessage());
+			return "sms/scoreSending";
+
+		}
+
+	}
+
+	// 发送成绩
+	private void sendScore(User loginUser, String filename, List<User> studentList, Map<String, Object> student_sms, Map<String, String> student_score)
+			throws ParseException
+	{
+		// 保存到sms表中
+		Sms sms = new Sms();
+		sms.setContent(filename);// 使用文件名作为发送内容
+		sms.setSenderId(loginUser.getUserId());
+		sms.setSenderName(loginUser.getRealName());
+		sms.setModule(Cons.MODULE_SCORE); // 学生服务
+		sms.setSmsLength(4); // 短信长度
+		sms.setPhoneCount(studentList.size()); // 发送人数
+		sms.setResult(0);// 短信回执状态
+		sms.setReportAmount(0);
+		sms.setSuccAmount(0);
+		sms.setSentTime(TimeUtil.getInstance().now());
+		sms.setCreateTime(TimeUtil.getInstance().now());
+		sms.setIsRealTime(Cons.SMS_REALTIME);// 是否实时发送 0:定时发送 1:即时发送
+		sms.setType("2"); // 0:教师短信服务 1:学生短信服务 2:成绩下发 3:会议通知
+		String nowDdate = TimeUtil.getInstance().now();// 当前时间
+
+		// 先查找2小时内是否发过该短信,超过可以重发, 要是不超过判断如果是同一个人就发送短信
+		Map<String, Object> paramMap_sms = new HashMap<String, Object>();
+		paramMap_sms.put("content", filename);
+		paramMap_sms.put("time", formatter.format((formatter.parse(sms.getSentTime()).getTime() - 2 * 60 * 60 * 1000)));
+		Integer smsCount = smsService.loadSmsByContent(paramMap_sms);
+
+		// 获取数据库中最新一条数据的短信总数smsSum 和 errorSmsSum
+		Map<String, Object> paramMap_tmp = new HashMap<String, Object>();
+		Sms lastSms = smsService.getLastOneFromSms(paramMap_tmp);
+		int smsSum = 0; // 短信发送总数
+		try
+		{
+			smsSum = lastSms.getSmsSum();
+		} catch (Exception e)
+		{
+
+		}
+		int errorSmsSum = 0; // 短信发送失败总数
+		try
+		{
+			errorSmsSum = lastSms.getErrorSmsSum();
+		} catch (Exception e)
+		{
+
+		}
+		sms.setSmsSum(smsSum);
+		sms.setErrorSmsSum(errorSmsSum);
+		/*
+		 * 保存到数据库, 并且返回smsId
+		 */
+		int smsId = smsService.addSms(sms);
+
+		Map<String, String> studentIdMap = new HashMap<String, String>();
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("loginUser", loginUser);
+		paramMap.put("smsId", smsId);
+		paramMap.put("smsCount", smsCount);
+		paramMap.put("smsSum", smsSum);
+		paramMap.put("errorSmsSum", errorSmsSum);
+
+		InformationType informationType = informationTypeService.getInformationTypeByInformationType(7);
+
+		if (informationType.getType() == 1 || informationType.getType() == 3)// 1只发送短信3短信+推送
+		{
+			paramMap.put("type", informationType.getType());
+			forUser(studentList, student_sms, studentIdMap, student_score, paramMap);
+
+		} else if (informationType.getType() == 2)// 只推送
+		{
+			// 现在是判断所有人信息无误的情况下 才会发送短息
+			for (User student : studentList)
+			{
+				Integer studentId = student.getUserId();
+				Integer parentId = student.getParentId();
+				// 获取家长对应的短信信息
+				String content = (String) student_sms.get(studentId + "" + parentId);
+
+				User parent = (User) commonService.getUserByUserIdForPush(parentId);
+				// 推送手机端消息
+				List<PushItem> list = new ArrayList<PushItem>();
+				PushItem pi = new PushItem();
+				pi.title = PUSHTYPE.SCOREPUSH.getName();
+				pi.PushContent = content;
+				pi.PushType = PUSHTYPE.SCOREPUSH.getType();
+				pi.PushContentType = PUSHTYPE.SCOREPUSH.getContentType();
+				String channelId = parent.getBaiduChannelId();
+				Integer deviceType = parent.getDeviceType();
+				if (!StringUtil.isEmpty(channelId) && deviceType != null && deviceType != 0)
+				{
+					pi.channels = channelId;
+					pi.deviceType = String.valueOf(deviceType);
+				}
+				pi.receiverId = parentId;
+				pi.schoolId = loginUser.getSchoolId();
+				list.add(pi);
+
+				commonService.pushMsg(list, true);
+
+				// 成绩保存， 成绩表palm_achievement
+				// 获取学生对应的成绩
+				if (!studentIdMap.containsKey(String.valueOf(studentId)))
+				{
+					// studentIdMap中不包含userId的情况下就保存学生成绩到数据库
+					String score = student_score.get(String.valueOf(studentId));
+					String testType = StringUtils.substringBetween(content, "同学", "的成绩如下:");
+
+					String[] scoress = score.split("\\,");
+					for (int i = 0; i < scoress.length; i++)
+					{
+						// 获得每个科目对应的成绩 ,例如“语文:90”
+						String subjectScore = scoress[i];
+
+						Score achievement = new Score();
+						achievement.setUserId(studentId);
+						achievement.setTestType(testType);
+						achievement.setSubject(subjectScore.split("\\:")[0]);
+						achievement.setScore(subjectScore.split("\\:")[1]);
+						achievement.setClazzName(student.getClazzName());
+						achievement.setCreateTime(nowDdate);
+						achievement.setCreateUserId(loginUser.getUserId());
+						achievement.setClazzId(student.getClazzId());
+
+						scoreService.addAnnouncement(achievement);
+					}
+
+					studentIdMap.put(String.valueOf(studentId), score);
+				}
+
+			}
+
+		} else if (informationType.getType() == 4)// 不发短信 不推送
+		{
+			// 现在是判断所有人信息无误的情况下 才会发送短息
+			for (User student : studentList)
+			{
+				Integer studentId = student.getUserId();
+				Integer parentId = student.getParentId();
+				// 获取家长对应的短信信息
+				String content = (String) student_sms.get(studentId + "" + parentId);
+
+				// 成绩保存， 成绩表palm_achievement
+				// 获取学生对应的成绩
+				if (!studentIdMap.containsKey(String.valueOf(studentId)))
+				{
+					// studentIdMap中不包含userId的情况下就保存学生成绩到数据库
+					String score = student_score.get(String.valueOf(studentId));
+					String testType = StringUtils.substringBetween(content, "同学", "的成绩如下:");
+
+					String[] scoress = score.split("\\,");
+					for (int i = 0; i < scoress.length; i++)
+					{
+						// 获得每个科目对应的成绩 ,例如“语文:90”
+						String subjectScore = scoress[i];
+
+						Score achievement = new Score();
+						achievement.setUserId(studentId);
+						achievement.setTestType(testType);
+						achievement.setSubject(subjectScore.split("\\:")[0]);
+						achievement.setScore(subjectScore.split("\\:")[1]);
+						achievement.setClazzName(student.getClazzName());
+						achievement.setCreateTime(nowDdate);
+						achievement.setCreateUserId(loginUser.getUserId());
+						achievement.setClazzId(student.getClazzId());
+
+						scoreService.addAnnouncement(achievement);
+					}
+
+					studentIdMap.put(String.valueOf(studentId), score);
+				}
+
+			}
+
+		}
+
+	}
+
+	public void forUser(List<User> studentList, Map<String, Object> student_sms, Map<String, String> studentIdMap, Map<String, String> student_score,
+			Map<String, Object> paramMap)
+	{
+		String nowDdate = TimeUtil.getInstance().now();// 当前时间
+		User loginUser = (User) paramMap.get("loginUser");
+		int smsId = (int) paramMap.get("smsId");
+		int smsCount = (int) paramMap.get("smsCount");
+		int smsSum = (int) paramMap.get("smsSum");
+		int errorSmsSum = (int) paramMap.get("errorSmsSum");
+		Integer type = (Integer) paramMap.get("type");
+
+		boolean schoolHasMessage = (boolean) smsService.getSmsServiceStatus().get("schoolHasMessage");// 学校是否有短信套餐
+
+		boolean isVirtualOpen = (boolean) smsService.getSmsServiceStatus().get("isVirtualOpen");// 学校虚拟套餐是否开启
+
+		boolean isSchoolSingleMsg = (boolean) smsService.getSmsServiceStatus().get("isSchoolSingleMsg");// 是否有学校单条类型套餐
+
+		for (User student : studentList)
+		{
+			Integer studentId = student.getUserId();
+			Integer parentId = student.getParentId();
+			// 获取家长对应的短信信息
+			String content = (String) student_sms.get(studentId + "" + parentId);
+
+			// 保存短信数据到sms_detail
+			SmsDetail smsDetail = new SmsDetail();
+			smsDetail.setContent(content);
+			smsDetail.setSenderId(loginUser.getUserId());
+			smsDetail.setSenderName(loginUser.getRealName());
+			smsDetail.setReceiverId(studentId);
+			smsDetail.setPhone(student.getPhone());
+			smsDetail.setReceiverName(student.getRealName());
+			smsDetail.setSeq("");
+			smsDetail.setReport("");
+			smsDetail.setSmsId(smsId);
+			smsDetail.setReportTime(TimeUtil.getInstance().now());
+			smsDetail.setCreateTime(TimeUtil.getInstance().now());
+			smsDetail.setType("2");
+			smsDetail.setSentTime(TimeUtil.getInstance().now());
+
+			if (smsCount < 1)
+			{
+				if(schoolHasMessage)//学校有短信套餐
+				{
+					if(isVirtualOpen)//虚拟套餐开启直接发送
+					{
+						// 调用短信接口
+						try
+						{
+							boolean flag = commonService.sendSmsByDB(loginUser.getSchoolId(), PUSHTYPE.SCOREPUSH, student.getPhone(), student.getParentId(), content, null, type);
+							if(flag)
+							{
+								smsDetail.setStatus(0);// 发送成功
+								smsSum++;
+							}
+							else
+							{
+								// "0":发送失败 "1":没有缴纳服务费
+								smsDetail.setStatus(1);// 发送失败
+								errorSmsSum++;// 发送失败+1
+							}
+							
+						} catch (Exception e)
+						{
+							smsDetail.setStatus(1);// 发送失败
+							errorSmsSum++;
+						}
+					}
+					else//虚拟套餐关闭
+					{
+						if(isSchoolSingleMsg)//是否有学校单条套餐   有判断条数
+						{
+							//学校条数套餐剩余条数
+							Integer remainCount = orderMessageService.getRemainCountBySchoolIdForSchoolRange(loginUser.getSchoolId());
+							if(null != remainCount && remainCount > 0)//有条数且大于0
+							{
+								// 调用短信接口
+								try
+								{
+									boolean flag = commonService.sendSmsByDB(loginUser.getSchoolId(), PUSHTYPE.SCOREPUSH, student.getPhone(), student.getParentId(), content, null, type);
+									if(flag)
+									{
+										smsDetail.setStatus(0);// 发送成功
+										smsSum++;
+									}
+									else
+									{
+										// "0":发送失败 "1":没有缴纳服务费
+										smsDetail.setStatus(1);// 发送失败
+										errorSmsSum++;// 发送失败+1
+									}
+									
+								} catch (Exception e)
+								{
+									smsDetail.setStatus(1);// 发送失败
+									errorSmsSum++;
+								}
+								orderMessageService.updateOrderMessageSchoolById(loginUser.getSchoolId());
+							}
+							else//没有学校条数套餐 判断学生是否购买短信套餐
+							{
+								// 先判断学生有没有购买过
+								Map<String, Object> map = new HashMap<String, Object>();
+								map.put("userId", studentId);
+								map.put("status", 0);
+								OrderMessageUser messageUser = orderMessageService.getOrderMessageUserByUserId(map);
+								boolean isCharge = false;
+								if (messageUser != null)
+								{
+									if (messageUser.getType() == 0)
+									{
+										TimeUtil.getInstance();
+										if(TimeUtil.nowDateIsBetween(messageUser.getStartTime(),messageUser.getEndTime()))
+										{
+											isCharge = true;
+										}
+										else
+										{
+											isCharge = false;
+										}
+										
+									} else
+									{
+										if(messageUser.getCount()>0)
+										{
+											isCharge = true;
+										}
+										else
+										{
+											isCharge = false;
+										}
+									}
+								}
+								
+								if(isCharge)
+								{
+									// 调用短信接口
+									try
+									{
+										boolean flag = commonService.sendSmsByDB(loginUser.getSchoolId(), PUSHTYPE.SCOREPUSH, student.getPhone(), student.getParentId(), content, null, type);
+										if(flag)
+										{
+											smsDetail.setStatus(0);// 发送成功
+											smsSum++;
+										}
+										else
+										{
+											// "0":发送失败 "1":没有缴纳服务费
+											smsDetail.setStatus(1);// 发送失败
+											errorSmsSum++;// 发送失败+1
+										}
+										
+									} catch (Exception e)
+									{
+										smsDetail.setStatus(1);// 发送失败
+										errorSmsSum++;
+									}
+									int smscount = ((int) content.length() / 65) + 1;
+									int messcount = 0;
+									if (messageUser.getType() == 1)
+									{
+										// 如果短信剩余条数小于本次短信条说 剩余条数为0 如果大于等于本次短信条说
+										// 则本次剩余条数为原剩余条数减本次短信条数
+										if (messageUser.getCount() < smscount)
+										{
+											messcount = 0;
+										} else
+										{
+											messcount = messageUser.getCount() - smscount;
+										}
+										map.put("count", messcount);
+										map.put("id", messageUser.getId());
+										orderMessageService.updateOrederMessageUserCount(map);
+										
+									}
+
+									OrderUserMessageDetail messDetail = new OrderUserMessageDetail();
+									messDetail.setCount(smscount);
+									messDetail.setMessageId(messageUser.getMessageId());
+									messDetail.setMessUserId(messageUser.getId());
+									messDetail.setNowCount(messcount);
+									messDetail.setOrgCount(messageUser.getCount());
+									messDetail.setType(messageUser.getType());
+									messDetail.setUserId(messageUser.getUserId());
+									orderMessageService.addOrderUserMessageDetail(messDetail);
+								}
+								else
+								{
+									// "1":发送失败 "2":没有缴纳服务费
+									smsDetail.setStatus(1);// 发送失败
+									errorSmsSum++;// 发送失败+1
+								}
+							}
+						}
+						else
+						{
+
+							// 先判断学生有没有购买过
+							Map<String, Object> map = new HashMap<String, Object>();
+							map.put("userId", studentId);
+							map.put("status", 0);
+							OrderMessageUser messageUser = orderMessageService.getOrderMessageUserByUserId(map);
+							boolean isCharge = false;
+							if (messageUser != null)
+							{
+								if (messageUser.getType() == 0)
+								{
+									TimeUtil.getInstance();
+									if(TimeUtil.nowDateIsBetween(messageUser.getStartTime(),messageUser.getEndTime()))
+									{
+										isCharge = true;
+									}
+									else
+									{
+										isCharge = false;
+									}
+									
+								} else
+								{
+									if(messageUser.getCount()>0)
+									{
+										isCharge = true;
+									}
+									else
+									{
+										isCharge = false;
+									}
+								}
+							}
+							
+							if(isCharge)
+							{
+								// 调用短信接口
+								try
+								{
+									boolean flag = commonService.sendSmsByDB(loginUser.getSchoolId(), PUSHTYPE.SCOREPUSH, student.getPhone(), student.getParentId(), content, null, type);
+									if(flag)
+									{
+										smsDetail.setStatus(0);// 发送成功
+										smsSum++;
+									}
+									else
+									{
+										// "0":发送失败 "1":没有缴纳服务费
+										smsDetail.setStatus(1);// 发送失败
+										errorSmsSum++;// 发送失败+1
+									}
+									
+								} catch (Exception e)
+								{
+									smsDetail.setStatus(1);// 发送失败
+									errorSmsSum++;
+								}
+								int smscount = ((int) content.length() / 65) + 1;
+								int messcount = 0;
+								if (messageUser.getType() == 1)
+								{
+									// 如果短信剩余条数小于本次短信条说 剩余条数为0 如果大于等于本次短信条说
+									// 则本次剩余条数为原剩余条数减本次短信条数
+									if (messageUser.getCount() < smscount)
+									{
+										messcount = 0;
+									} else
+									{
+										messcount = messageUser.getCount() - smscount;
+									}
+									map.put("count", messcount);
+									map.put("id", messageUser.getId());
+									orderMessageService.updateOrederMessageUserCount(map);
+									
+								}
+
+								OrderUserMessageDetail messDetail = new OrderUserMessageDetail();
+								messDetail.setCount(smscount);
+								messDetail.setMessageId(messageUser.getMessageId());
+								messDetail.setMessUserId(messageUser.getId());
+								messDetail.setNowCount(messcount);
+								messDetail.setOrgCount(messageUser.getCount());
+								messDetail.setType(messageUser.getType());
+								messDetail.setUserId(messageUser.getUserId());
+								orderMessageService.addOrderUserMessageDetail(messDetail);
+							}
+							else
+							{
+								// "1":发送失败 "2":没有缴纳服务费
+								smsDetail.setStatus(1);// 发送失败
+								errorSmsSum++;// 发送失败+1
+							}
+						}
+					}
+				}
+				else
+				{
+					// 调用短信接口
+					try
+					{
+						boolean flag = commonService.sendSmsByDB(loginUser.getSchoolId(), PUSHTYPE.SCOREPUSH, student.getPhone(), student.getParentId(), content, null, type);
+						if(flag)
+						{
+							smsDetail.setStatus(0);// 发送成功
+							smsSum++;
+						}
+						else
+						{
+							// "0":发送失败 "1":没有缴纳服务费
+							smsDetail.setStatus(1);// 发送失败
+							errorSmsSum++;// 发送失败+1
+						}
+						
+					} catch (Exception e)
+					{
+						smsDetail.setStatus(1);// 发送失败
+						errorSmsSum++;
+					}
+				}
+			} else
+			{
+				// 发送短信 如果2小时内已经发送成功， 就不用发送了，
+				Map<String, Object> paramMap_smsDetail = new HashMap<String, Object>();
+				paramMap_smsDetail.put("receiverId", studentId);
+				paramMap_smsDetail.put("content", content);
+				paramMap_smsDetail.put("status", 0);// 查询成功的短信
+				paramMap_smsDetail.put("phone", student.getPhone());// 查询成功的短信
+				Integer smsDetailCount = smsService.loadSmsDetailByReceiverIdAndContentInScoreSending(paramMap_smsDetail);
+				if (smsDetailCount < 1)
+				{
+
+					if(schoolHasMessage)//学校有短信套餐
+					{
+						if(isVirtualOpen)//虚拟套餐开启直接发送
+						{
+							// 调用短信接口
+							try
+							{
+								boolean flag = commonService.sendSmsByDB(loginUser.getSchoolId(), PUSHTYPE.SCOREPUSH, student.getPhone(), student.getParentId(), content, null, type);
+								if(flag)
+								{
+									smsDetail.setStatus(0);// 发送成功
+									smsSum++;
+								}
+								else
+								{
+									// "0":发送失败 "1":没有缴纳服务费
+									smsDetail.setStatus(1);// 发送失败
+									errorSmsSum++;// 发送失败+1
+								}
+								
+							} catch (Exception e)
+							{
+								smsDetail.setStatus(1);// 发送失败
+								errorSmsSum++;
+							}
+						}
+						else//虚拟套餐关闭
+						{
+							if(isSchoolSingleMsg)//是否有学校单条套餐   有判断条数
+							{
+								//学校条数套餐剩余条数
+								Integer remainCount = orderMessageService.getRemainCountBySchoolIdForSchoolRange(loginUser.getSchoolId());
+								if(null != remainCount && remainCount > 0)//有条数且大于0
+								{
+									// 调用短信接口
+									try
+									{
+										boolean flag = commonService.sendSmsByDB(loginUser.getSchoolId(), PUSHTYPE.SCOREPUSH, student.getPhone(), student.getParentId(), content, null, type);
+										if(flag)
+										{
+											smsDetail.setStatus(0);// 发送成功
+											smsSum++;
+										}
+										else
+										{
+											// "0":发送失败 "1":没有缴纳服务费
+											smsDetail.setStatus(1);// 发送失败
+											errorSmsSum++;// 发送失败+1
+										}
+										
+									} catch (Exception e)
+									{
+										smsDetail.setStatus(1);// 发送失败
+										errorSmsSum++;
+									}
+									orderMessageService.updateOrderMessageSchoolById(loginUser.getSchoolId());
+								}
+								else//没有学校条数套餐 判断学生是否购买短信套餐
+								{
+									// 先判断学生有没有购买过
+									Map<String, Object> map = new HashMap<String, Object>();
+									map.put("userId", loginUser.getUserId());
+									map.put("status", 0);
+									OrderMessageUser messageUser = orderMessageService.getOrderMessageUserByUserId(map);
+									boolean isCharge = false;
+									if (messageUser != null)
+									{
+										if (messageUser.getType() == 0)
+										{
+											TimeUtil.getInstance();
+											if(TimeUtil.nowDateIsBetween(messageUser.getStartTime(),messageUser.getEndTime()))
+											{
+												isCharge = true;
+											}
+											else
+											{
+												isCharge = false;
+											}
+											
+										} else
+										{
+											if(messageUser.getCount()>0)
+											{
+												isCharge = true;
+											}
+											else
+											{
+												isCharge = false;
+											}
+										}
+									}
+									
+									if(isCharge)
+									{
+										// 调用短信接口
+										try
+										{
+											boolean flag = commonService.sendSmsByDB(loginUser.getSchoolId(), PUSHTYPE.SCOREPUSH, student.getPhone(), student.getParentId(), content, null, type);
+											if(flag)
+											{
+												smsDetail.setStatus(0);// 发送成功
+												smsSum++;
+											}
+											else
+											{
+												// "0":发送失败 "1":没有缴纳服务费
+												smsDetail.setStatus(1);// 发送失败
+												errorSmsSum++;// 发送失败+1
+											}
+											
+										} catch (Exception e)
+										{
+											smsDetail.setStatus(1);// 发送失败
+											errorSmsSum++;
+										}
+										int smscount = ((int) content.length() / 65) + 1;
+										int messcount = 0;
+										if (messageUser.getType() == 1)
+										{
+											// 如果短信剩余条数小于本次短信条说 剩余条数为0 如果大于等于本次短信条说
+											// 则本次剩余条数为原剩余条数减本次短信条数
+											if (messageUser.getCount() < smscount)
+											{
+												messcount = 0;
+											} else
+											{
+												messcount = messageUser.getCount() - smscount;
+											}
+											map.put("count", messcount);
+											map.put("id", messageUser.getId());
+											orderMessageService.updateOrederMessageUserCount(map);
+											
+										}
+
+										OrderUserMessageDetail messDetail = new OrderUserMessageDetail();
+										messDetail.setCount(smscount);
+										messDetail.setMessageId(messageUser.getMessageId());
+										messDetail.setMessUserId(messageUser.getId());
+										messDetail.setNowCount(messcount);
+										messDetail.setOrgCount(messageUser.getCount());
+										messDetail.setType(messageUser.getType());
+										messDetail.setUserId(messageUser.getUserId());
+										orderMessageService.addOrderUserMessageDetail(messDetail);
+									}
+									else
+									{
+										// "1":发送失败 "2":没有缴纳服务费
+										smsDetail.setStatus(1);// 发送失败
+										errorSmsSum++;// 发送失败+1
+									}
+								}
+							}
+							else
+							{
+
+								// 先判断学生有没有购买过
+								Map<String, Object> map = new HashMap<String, Object>();
+								map.put("userId", loginUser.getUserId());
+								map.put("status", 0);
+								OrderMessageUser messageUser = orderMessageService.getOrderMessageUserByUserId(map);
+								boolean isCharge = false;
+								if (messageUser != null)
+								{
+									if (messageUser.getType() == 0)
+									{
+										TimeUtil.getInstance();
+										if(TimeUtil.nowDateIsBetween(messageUser.getStartTime(),messageUser.getEndTime()))
+										{
+											isCharge = true;
+										}
+										else
+										{
+											isCharge = false;
+										}
+										
+									} else
+									{
+										if(messageUser.getCount()>0)
+										{
+											isCharge = true;
+										}
+										else
+										{
+											isCharge = false;
+										}
+									}
+								}
+								
+								if(isCharge)
+								{
+									// 调用短信接口
+									try
+									{
+										boolean flag = commonService.sendSmsByDB(loginUser.getSchoolId(), PUSHTYPE.SCOREPUSH, student.getPhone(), student.getParentId(), content, null, type);
+										if(flag)
+										{
+											smsDetail.setStatus(0);// 发送成功
+											smsSum++;
+										}
+										else
+										{
+											// "0":发送失败 "1":没有缴纳服务费
+											smsDetail.setStatus(1);// 发送失败
+											errorSmsSum++;// 发送失败+1
+										}
+										
+									} catch (Exception e)
+									{
+										smsDetail.setStatus(1);// 发送失败
+										errorSmsSum++;
+									}
+									int smscount = ((int) content.length() / 65) + 1;
+									int messcount = 0;
+									if (messageUser.getType() == 1)
+									{
+										// 如果短信剩余条数小于本次短信条说 剩余条数为0 如果大于等于本次短信条说
+										// 则本次剩余条数为原剩余条数减本次短信条数
+										if (messageUser.getCount() < smscount)
+										{
+											messcount = 0;
+										} else
+										{
+											messcount = messageUser.getCount() - smscount;
+										}
+										map.put("count", messcount);
+										map.put("id", messageUser.getId());
+										orderMessageService.updateOrederMessageUserCount(map);
+										
+									}
+
+									OrderUserMessageDetail messDetail = new OrderUserMessageDetail();
+									messDetail.setCount(smscount);
+									messDetail.setMessageId(messageUser.getMessageId());
+									messDetail.setMessUserId(messageUser.getId());
+									messDetail.setNowCount(messcount);
+									messDetail.setOrgCount(messageUser.getCount());
+									messDetail.setType(messageUser.getType());
+									messDetail.setUserId(messageUser.getUserId());
+									orderMessageService.addOrderUserMessageDetail(messDetail);
+								}
+								else
+								{
+									// "1":发送失败 "2":没有缴纳服务费
+									smsDetail.setStatus(1);// 发送失败
+									errorSmsSum++;// 发送失败+1
+								}
+							}
+						}
+					}
+					else
+					{
+						// 调用短信接口
+						try
+						{
+							boolean flag = commonService.sendSmsByDB(loginUser.getSchoolId(), PUSHTYPE.SCOREPUSH, student.getPhone(), student.getParentId(), content, null, type);
+							if(flag)
+							{
+								smsDetail.setStatus(0);// 发送成功
+								smsSum++;
+							}
+							else
+							{
+								// "0":发送失败 "1":没有缴纳服务费
+								smsDetail.setStatus(1);// 发送失败
+								errorSmsSum++;// 发送失败+1
+							}
+							
+						} catch (Exception e)
+						{
+							smsDetail.setStatus(1);// 发送失败
+							errorSmsSum++;
+						}
+					}
+
+				} else
+				{
+					smsDetail.setStatus(0);// 发送成功
+				}
+			}
+
+			smsService.addSmsDetail(smsDetail);
+
+			// 更新总共发送条数和发送失败总条数
+			Map<String, Object> paramMap_update = new HashMap<String, Object>();
+			paramMap_update.put("id", smsId);
+			paramMap_update.put("smsSum", smsSum);
+			paramMap_update.put("errorSmsSum", errorSmsSum);
+			smsService.updateSms(paramMap_update);
+
+			// 成绩保存， 成绩表palm_achievement
+			// 获取学生对应的成绩
+			if (!studentIdMap.containsKey(String.valueOf(studentId)))
+			{
+				// studentIdMap中不包含userId的情况下就保存学生成绩到数据库
+				String score = student_score.get(String.valueOf(studentId));
+				String testType = StringUtils.substringBetween(content, "同学", "的成绩如下:");
+
+				String[] scoress = score.split("\\,");
+				for (int i = 0; i < scoress.length; i++)
+				{
+					// 获得每个科目对应的成绩 ,例如“语文:90”
+					String subjectScore = scoress[i];
+
+					Score achievement = new Score();
+					achievement.setUserId(studentId);
+					achievement.setTestType(testType);
+					achievement.setSubject(subjectScore.split("\\:")[0]);
+					achievement.setScore(subjectScore.split("\\:")[1]);
+					achievement.setClazzName(student.getClazzName());
+					achievement.setCreateTime(nowDdate);
+					achievement.setCreateUserId(loginUser.getUserId());
+					achievement.setClazzId(student.getClazzId());
+
+					scoreService.addAnnouncement(achievement);
+				}
+
+				studentIdMap.put(String.valueOf(studentId), score);
+			}
+
+		}
+	}
+
+	/**
+	 * 上传后临时文件前缀
+	 */
+	@Override
+	public String getCommandName()
+	{
+		return "scoreSending";
+	}
+
+	/**
+	 * 通过互信id直接发送成绩
+	 */
+	@RequestMapping(value = "/doSendingScore4App.do")
+	public String doSendingScore4App(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+
+		response.setHeader("Content-type", "text/html;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		// 这边是利用apikey 进行模拟登录
+		User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+		if (loginUser != null)
+		{
+			/*
+			 * 存session
+			 */
+			session.setAttribute("user", loginUser);
+			RichHttpResponse<HashMap<String, Object>> richHttpResponse = new RichHttpResponse<HashMap<String, Object>>();
+
+			try
+			{
+				List<User> studentList = new ArrayList<User>();
+				Map<String, Object> student_sms = new HashMap<String, Object>();
+				Map<String, String> student_score = new HashMap<String, String>();
+				/**
+				 * 用户ID
+				 */
+				Integer userId = loginUser.getUserId();
+				// 通过userId查找schoolId
+				File file = upload(request, userId);
+				String fullName = file.getCanonicalPath();
+				// 获取上传excel的文件名,
+				String filename = file.getName();
+
+				HashMap<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("schoolId", Long.valueOf(schoolId));
+
+				Excel excel = new Excel(new File(fullName));
+
+				if (filename == null || filename.trim().equals(""))
+				{
+					richHttpResponse.ResponseCode = -2;
+					richHttpResponse.ResponseResult = "文件名为空";
+					/**
+					 * flush到客户端
+					 */
+					// String json = gson.toJson(result);
+					String json = GsonHelper.toJson(richHttpResponse);
+					response.getWriter().write(json);
+					response.getWriter().flush();
+					return null;
+				} else if (!(filename.endsWith(".xls") || filename.endsWith(".xlsx")))
+				{
+					richHttpResponse.ResponseCode = -2;
+					richHttpResponse.ResponseResult = "文件类型必须为excel文件";
+					/**
+					 * flush到客户端
+					 */
+					// String json = gson.toJson(result);
+					String json = GsonHelper.toJson(richHttpResponse);
+					response.getWriter().write(json);
+					response.getWriter().flush();
+					return null;
+				}
+
+				/*
+				 * 开始读取excel数据
+				 */
+				String[] sheets = excel.getSheets(); // sheet名为班级名
+				String[][][] data = excel.getData(); // 内容
+
+				if (sheets == null || sheets.length == 0 || data == null || data.length == 0)
+				{
+					richHttpResponse.ResponseCode = -2;
+					richHttpResponse.ResponseResult = "数据为空";
+					/**
+					 * flush到客户端
+					 */
+					// String json = gson.toJson(result);
+					String json = GsonHelper.toJson(richHttpResponse);
+					response.getWriter().write(json);
+					response.getWriter().flush();
+					return null;
+				}
+
+				if (sheets.length != data.length)
+				{
+					richHttpResponse.ResponseCode = -2;
+					richHttpResponse.ResponseResult = "数据异常";
+					/**
+					 * flush到客户端
+					 */
+					// String json = gson.toJson(result);
+					String json = GsonHelper.toJson(richHttpResponse);
+					response.getWriter().write(json);
+					response.getWriter().flush();
+					return null;
+				}
+
+				for (int i = 0; i < sheets.length; i++)
+				{
+					int no = i + 1;
+
+					String sheetName = sheets[i];
+					if (StringUtil.isEmpty(sheetName))
+					{
+						richHttpResponse.ResponseCode = -2;
+						richHttpResponse.ResponseResult = "第 " + no + " 个sheet名称为空";
+						/**
+						 * flush到客户端
+						 */
+						// String json = gson.toJson(result);
+						String json = GsonHelper.toJson(richHttpResponse);
+						response.getWriter().write(json);
+						response.getWriter().flush();
+						return null;
+					}
+
+					String[][] ds = data[i];
+					if (ds == null || ds.length == 0)
+					{
+						richHttpResponse.ResponseCode = -2;
+						richHttpResponse.ResponseResult = "第 " + no + " 个sheet数据为空";
+						/**
+						 * flush到客户端
+						 */
+						// String json = gson.toJson(result);
+						String json = GsonHelper.toJson(richHttpResponse);
+						response.getWriter().write(json);
+						response.getWriter().flush();
+						return null;
+					}
+
+					// 第一行获取列名，
+					String[] firstline = ds[0];
+
+					// 行循环，从第二行开始循环，
+					for (int j = 1; j < ds.length; j++)
+					{
+						int ln = j + 1;
+						String[] lineValue = ds[j];
+
+						if (StringUtil.isEmpty(lineValue))
+						{
+							richHttpResponse.ResponseCode = -2;
+							richHttpResponse.ResponseResult = "第 " + no + " 个sheet第 " + ln + " 行为空";
+							/**
+							 * flush到客户端
+							 */
+							// String json = gson.toJson(result);
+							String json = GsonHelper.toJson(richHttpResponse);
+							response.getWriter().write(json);
+							response.getWriter().flush();
+							return null;
+						}
+
+						// 成绩
+						StringBuffer score = new StringBuffer();
+						// 循环每行的数据开始读取第四列以后(包含第四列)的数据，获取响应的科目1成绩、科目2成绩。。。
+						for (int k = 3; k < lineValue.length; k++)
+						{
+							// 每列的名称
+							String columnName = firstline[k];
+							columnName = columnName.trim();
+							// 每列的值
+							String columnValue = lineValue[k];
+							columnValue = columnValue.trim();
+
+							score.append(columnName + ":" + columnValue + ",");
+						}
+						if (score.length() > 0 && score.toString().endsWith(","))
+						{
+							score.delete(score.length() - 1, score.length());
+						}
+						// 获取第一列 学号 ,第二列 姓名的值 以及第三列 考试类型的值
+						String code = lineValue[0];
+						String testType = lineValue[2];
+						// 利用 code 找出学生的相关信息(这里包含学生家长手机号，学生和家长是一对多)
+						paramMap.put("code", code);
+						List<User> studentList_tmp = studentService.getUserByCode(paramMap);
+						if (studentList_tmp.size() > 0)
+						{
+
+							for (User student : studentList_tmp)
+							{
+								// 用于拼成短信内容
+								StringBuffer sms = new StringBuffer();
+
+								if (student.getPhone() == null)
+								{
+									richHttpResponse.ResponseCode = -2;
+									richHttpResponse.ResponseResult = "第 " + no + " 个sheet第 " + ln + " 行学号找不到家长（" + student.getParentname() + "）的电话号码";
+									/**
+									 * flush到客户端
+									 */
+									// String json = gson.toJson(result);
+									String json = GsonHelper.toJson(richHttpResponse);
+									response.getWriter().write(json);
+									response.getWriter().flush();
+									return null;
+								}
+
+								sms.append("尊敬的" + student.getParentname() + "," + student.getRealName() + "同学" + testType + "的成绩如下:" + score.toString());
+								// 保存所有学生
+								studentList.add(student);
+								// 所有学生家长对应的短信内容
+								student_sms.put(student.getUserId() + "" + student.getParentId(), sms.toString());
+								// 所有学生对应的成绩(使用学生id作为key值，不会受到一个学生多个家长的影响)
+								student_score.put(String.valueOf(student.getUserId()), String.valueOf(score));
+							}
+
+						} else
+						{
+							richHttpResponse.ResponseCode = -2;
+							richHttpResponse.ResponseResult = "第 " + no + " 个sheet第 " + ln + " 行学号找不到对应学生";
+							/**
+							 * flush到客户端
+							 */
+							// String json = gson.toJson(result);
+							String json = GsonHelper.toJson(richHttpResponse);
+							response.getWriter().write(json);
+							response.getWriter().flush();
+							return null;
+						}
+					}
+				}
+
+				sendScore(loginUser, filename, studentList, student_sms, student_score);
+				richHttpResponse.ResponseCode = 0;
+				richHttpResponse.ResponseResult = "发布成功";
+				/**
+				 * flush到客户端
+				 */
+				// String json = gson.toJson(result);
+				String json = GsonHelper.toJson(richHttpResponse);
+				response.getWriter().write(json);
+				response.getWriter().flush();
+
+			} catch (Exception ex)
+			{
+				log.error("ScoreSendindController.import is error : " + ex.getMessage());
+				richHttpResponse.ResponseCode = 2;
+				richHttpResponse.ResponseResult = "系统错误，请联系管理员";
+				/**
+				 * flush到客户端
+				 */
+				// String json = gson.toJson(result);
+				String json = GsonHelper.toJson(richHttpResponse);
+				try
+				{
+					response.getWriter().write(json);
+					response.getWriter().flush();
+				} catch (IOException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+		}
+		return null;
+
+	}
+}

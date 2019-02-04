@@ -1,0 +1,385 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<title>编辑电子课程表</title>
+
+<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+
+<meta content="" name="description" />
+
+<meta content="" name="author" />
+
+<link href="../media/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+
+<link href="../media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+
+<link href="../media/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="../media/css/style-metro.css" rel="stylesheet" type="text/css" />
+
+<link href="../media/css/style.css" rel="stylesheet" type="text/css" />
+
+<link href="../media/css/style-responsive.css" rel="stylesheet" type="text/css" />
+
+<!-- <link href="../media/css/default.css" rel="stylesheet" type="text/css" id="style_color"/> -->
+
+<link href="../media/css/uniform.default.css" rel="stylesheet" type="text/css" />
+
+<link href="../media/css/pricing-tables.css" rel="stylesheet" type="text/css" />
+
+<link rel="stylesheet" type="text/css" href="../media/css/select2_metro.css" />
+
+<link rel="stylesheet" href="../media/css/DT_bootstrap.css" />
+
+<link rel="stylesheet" href="../media/js_m/datetimepicker/jquery.datetimepicker.css" />
+<link href="../media/metronic_css_m/system_m.css" rel="stylesheet" type="text/css" media="screen" />
+
+<link rel="shortcut icon" href="../media/image/favicon.ico" />
+
+</head>
+
+<body class="page-header-fixed" id="body">
+
+	<div class="container-fluid">
+
+		<div class="row-fluid">
+
+			<div class="span12">
+
+				<ul class="breadcrumb">
+					<li><i class="icon-home"></i><a href="#">首页</a><i
+						class="icon-angle-right"></i></li>
+					<li><a href="#">电子课程表</a><i class="icon-angle-right"></i></li>
+					<li><a href="#">编辑电子课程表</a></li>
+				</ul>
+
+			</div>
+
+		</div>
+
+		<div class="row-fluid">
+
+			<div class="span12">
+
+				<div class="tab-content">
+
+					<div id="tab_4" class="tab-pane active">
+
+					<form action="<%=basePath%>curriculum/toUpdateCurriculumTime.do" class="form-horizontal" name="defform" method="post" id="updateCurriculumTime">
+						<div class="portlet box green">
+
+							<div class="portlet-title">
+								<div class="caption">课程表</div>
+								<div class="tools">
+									<a class="collapse" href="javascript:;"></a>
+								</div>
+							</div>
+							
+							<div class="portlet-body search_box" >
+
+									<div class="control-group margin-bottom_null">
+											<div class="public_search_row" >
+												<div class="width_20"id="startDayGroup">
+													<span>开始日期:</span>
+													<div class="input_s">
+														<input type="text" size="16" placeholder="本学期开始日期" class="public_input_s" name="startDay" value="${startDay}" id="startDay"/> 
+													<span class="help-inline" style="display: none;" id="startDayHelp"></span>
+												
+													</div>
+												</div>
+												<div class="width_20" id="endDayGroup">
+													<span>结束日期:</span>
+													<div class="input_s">
+														<input type="text" size="16" placeholder="本学期结束日期" class="public_input_s" name="endDay" value="${endDay}" id="endDay" />
+														<span class="help-inline" style="display: none;" id="endDayHelp"></span>
+													</div>
+												</div>
+												<div class="width_20">
+													<a class="btn blue" id="cancel"><i class="icon-plus"></i>取消</a>
+													<a class="btn blue" id="save" ><i class="icon-plus"></i>保存</a>
+												</div>
+											</div>	
+											
+											
+											
+											
+											
+									</div>
+
+							</div>
+
+						</div>
+
+
+						<div class="portlet-body">
+
+							<table class="table syllabus">
+								<tr>
+									<td class="bg">阶段</td>
+									<td class="bg">开始时间</td>
+									<td class="bg">结束时间</td>
+									<c:forEach items="${weekList}" var="week">
+										<td>${week.weekName}</td>
+									</c:forEach>
+								</tr>
+
+								<c:forEach items="${curriculumMorningTimeList}" var="mt" varStatus="cmt">
+                                      <c:choose>
+                                      	   <c:when test="${cmt.index==0}">
+												<tr >
+													<td rowspan="${fn:length(curriculumMorningTimeList)}" class="bg" align="center" valign="middle">上午</td>
+													<td class="bg">
+													    <input placeholder="上课时间" class="title_input" name="startTime" id="startTimeAm${cmt.index}" value="${mt.beginTime}"/>
+													</td>
+													<td class="bg">
+													    <input placeholder="下课时间" class="title_input" name="endTime" id="endTimeAm${cmt.index}" value="${mt.endTime}"/>
+													</td>
+													
+											        <c:forEach items="${weekList}">
+													 <td></td>
+												    </c:forEach>
+												</tr>
+		                                    </c:when>
+		                                    <c:otherwise>
+		                                       <tr>
+		                                       		<td class="bg">
+													    <input placeholder="上课时间" class="title_input" name="startTime" id="startTimeAm${cmt.index}" value="${mt.beginTime}"/>
+													</td>
+													<td class="bg">
+													    <input placeholder="下课时间" class="title_input" name="endTime" id="endTimeAm${cmt.index}" value="${mt.endTime}"/>
+													</td>
+											        <c:forEach items="${weekList}">
+													 <td></td>
+												    </c:forEach>
+												</tr>
+		                                    </c:otherwise>
+                                      </c:choose>
+                                </c:forEach>
+                                
+                                <c:forEach items="${curriculumAfternoonTimeList}" var="at" varStatus="cat">
+                                       <c:choose>
+                                      	   <c:when test="${cat.index==0}">
+		                                       <tr>
+												<td colspan="10">休息时间</td>
+											   </tr>
+												<tr>
+													<td rowspan="${fn:length(curriculumAfternoonTimeList) }" class="bg" align="center" valign="middle">下午</td>
+													<td class="bg">
+													    <input placeholder="上课时间" class="title_input" name="startTime" id="startTimePm${cat.index}" value="${at.beginTime}"/>
+													</td>
+													<td class="bg">
+													    <input placeholder="下课时间" class="title_input" name="endTime" id="endTimePm${cat.index}" value="${at.endTime}"/>
+													</td>
+													
+											        <c:forEach items="${weekList}">
+													 <td></td>
+												    </c:forEach>
+												</tr>
+		                                    </c:when>
+		                                    <c:otherwise>
+		                                       <tr>
+		                                       		<td class="bg">
+													    <input placeholder="上课时间" class="title_input" name="startTime" id="startTimePm${cat.index}" value="${at.beginTime}"/>
+													</td>
+													<td class="bg">
+													    <input placeholder="下课时间" class="title_input" name="endTime" id="endTimePm${cat.index}" value="${at.endTime}"/>
+													</td>
+											        <c:forEach items="${weekList}">
+													 <td></td>
+												    </c:forEach>
+												</tr>
+		                                    </c:otherwise>
+                                       </c:choose>
+							    </c:forEach>
+							    
+							     <c:forEach items="${curriculumNightTimeList}" var="nt" varStatus="cnt">
+									<c:choose>
+                                      	   <c:when test="${cnt.index==0}">
+		                                       <tr>
+												<td colspan="10">休息时间</td>
+											   </tr>
+												<tr>
+													<td rowspan="${fn:length(curriculumNightTimeList)}" class="bg" align="center" valign="middle">晚上</td>
+													<td class="bg">
+													    <input placeholder="上课时间" name="startTime" id="startTimeN${cnt.index}" value="${nt.beginTime}"
+														onclick="WdatePicker({el:'startTimeN${cnt.index}',dateFmt:'HH:mm',onpicked:function(){$('defform').submit();}})" />
+													</td>
+													<td class="bg">
+													    <input placeholder="下课时间" name="endTime" id="endTimeN${cnt.index}" value="${nt.endTime}"
+														onclick="WdatePicker({el:'endTimeN${cnt.index}',dateFmt:'HH:mm',onpicked:function(){$('defform').submit();}})" />
+													</td>
+													
+											        <c:forEach items="${weekList}">
+													 <td></td>
+												    </c:forEach>
+												</tr>
+		                                    </c:when>
+		                                    
+		                                    <c:otherwise>
+		                                      <tr>
+		                                       		<td class="bg">
+													    <input placeholder="上课时间" name="startTime" id="startTimeN${cnt.index}" value="${nt.beginTime}"
+														onclick="WdatePicker({el:'startTimeN${cnt.index}',dateFmt:'HH:mm',onpicked:function(){$('defform').submit();}})" />
+													</td>
+													<td class="bg">
+													    <input placeholder="下课时间" name="endTime" id="endTimeN${cnt.index}" value="${nt.endTime}"
+														onclick="WdatePicker({el:'endTimeN${cnt.index}',dateFmt:'HH:mm',onpicked:function(){$('defform').submit();}})" />
+													</td>
+											        <c:forEach items="${weekList}">
+													 <td></td>
+												    </c:forEach>
+												</tr>
+		                                    </c:otherwise>
+                                     </c:choose>
+								</c:forEach>
+							</table>
+							
+							<input type="hidden" id="semesterId" name="semesterId" value="${semesterId}"/>
+
+						</div>
+						</form>
+					</div>
+
+				</div>
+
+
+			</div>
+
+		</div>
+
+	</div>
+
+
+
+	<script src="../media/js/jquery-2.1.1.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery-migrate-1.2.1.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/bootstrap.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.slimscroll.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.blockui.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.cookie.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.uniform.min.js" type="text/javascript"></script>
+
+	<script type="text/javascript" src="../media/js/select2.min.js"></script>
+
+	<script type="text/javascript" src="../media/js/jquery.dataTables.min.js"></script>
+
+	<script type="text/javascript" src="../media/js/DT_bootstrap.js"></script>
+
+
+	<script src="../media/js/table-advanced.js"></script>
+
+	<script type="text/javascript" src="../media/js/My97DatePicker/WdatePicker.js"></script>
+	<script type="text/javascript" src="../media/js_m/datetimepicker/jquery.datetimepicker.js"></script>
+	<script type="text/javascript" src="../media/js_m/public_js.js"></script>
+	<script src="../media/js/app.js"></script>
+	<script>
+
+		jQuery(document).ready(function() {    
+			$('#startDay,#endDay').datetimepicker({
+				format:'Y-m-d',
+				timepicker:false
+			});
+			$('.title_input').datetimepicker({
+				datepicker:false,
+				format:'H:i',
+				step:5
+			});
+			App.init();
+
+			//开始日期
+			$("#startDay").blur(function(){
+				var startDay = $("#startDay").val();
+				//未输入开始日期
+				if ("" == startDay)
+				{
+					$("#startDay").addClass("error");
+					$("#startDayHelp").show();
+					$("#startDayHelp").html("开始日期不能为空");
+				}
+				else
+				{
+					$("#startDay").removeClass("error");
+					$("#startDayHelp").hide();
+				}
+			});
+			
+			//结束日期
+			$("#endDay").blur(function(){
+				var endDay = $("#endDay").val();
+
+				var startDay = $("#startDay").val();
+				//未输入结束时间
+				if ("" == endDay)
+				{
+					$("#endDayGroup").addClass("error");
+					$("#endDayHelp").show();
+					$("#endDayHelp").html("结束日期不能为空");
+				}
+				else if(startDay > endDay)
+				{
+					$("#endDayGroup").addClass("error");
+					$("#endDayHelp").show();
+					$("#endDayHelp").html("开始日期不能晚于结束日期");
+				}	
+				else
+				{
+					$("#endDayGroup").removeClass("error");
+					$("#endDayHelp").hide();
+				}
+				
+			});
+
+			
+			//点击确定保存
+		    $("#save").on("click",function()
+		    {
+		    	$("#updateCurriculumTime").submit();
+			})
+			
+			//点击取消
+		    $("#cancel").on("click",function(){
+		    	window.location.href='javascript:history.go(-1);';
+			})
+			
+		});
+	    /* $(".search_box").css({"display":"none"}); */
+	</script>
+
+	<!-- END JAVASCRIPTS -->
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push([ '_setAccount', 'UA-37564768-1' ]);
+		_gaq.push([ '_setDomainName', 'keenthemes.com' ]);
+		_gaq.push([ '_setAllowLinker', true ]);
+		_gaq.push([ '_trackPageview' ]);
+		(function() {
+			var ga = document.createElement('script');
+			ga.type = 'text/javascript';
+			ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://'
+					: 'http://')
+					+ 'stats.g.doubleclick.net/dc.js';
+			var s = document.getElementsByTagName('script')[0];
+			s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+</body>
+
+<!-- END BODY -->
+
+</html>

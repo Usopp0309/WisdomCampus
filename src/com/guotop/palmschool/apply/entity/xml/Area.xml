@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Area">
+	<typeAlias alias="area" type="com.guotop.palmschool.apply.entity.Area"/>
+
+	<resultMap class="com.guotop.palmschool.apply.entity.Area" id="result-area">
+		<result property="areaId" column="areaId"/>
+		<result property="areaName" column="areaName"/>
+		<result property="areaZipcode" column="areaZipcode"/>	
+		<result property="areaCode" column="areaCode"/>
+		<result property="areaLevel" column="areaLevel"/>
+		<result property="parentAreaId" column="parentAreaId"/>
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.apply.entity.Area" id="result-area-province">
+		<result property="areaId" column="areaId"/>
+		<result property="areaName" column="areaName"/>
+	</resultMap>
+	
+	<!-- 查询省-->
+	<select id="getProvince" resultMap="result-area-province">
+		SELECT areaId, areaName FROM platform.area where areaLevel='1'
+	</select>
+	<!-- 根据归属查询下属地区-->
+	<select id="getCityOrCountryByParent" parameterClass="String" resultMap="result-area-province">
+		SELECT areaId, areaName FROM platform.area where parentAreaId=#areaId#
+	</select>
+	
+</sqlMap>

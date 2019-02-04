@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Orders">
+	<typeAlias alias="orders"
+		type="com.guotop.palmschool.shopping.entity.Orders" />
+
+	<resultMap class="com.guotop.palmschool.shopping.entity.Orders"
+		id="result-orders">
+		<result property="id" column="id" />
+		<result property="goodsDetailId" column="goodsDetailId" />
+		<result property="amount" column="amount" />
+		<result property="counts" column="counts" />
+		<result property="receiver" column="receiver" />
+		<result property="address" column="address" />
+		<result property="phone" column="phone" />
+		<result property="createTime" column="createTime" />
+		<result property="status" column="status" />
+		<result property="channel" column="channel" />
+		<result property="remark" column="remark" />
+		<result property="updateTime" column="updateTime" />
+		<result property="userId" column="userId" />
+		<result property="tradeNo" column="tradeNo" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.shopping.entity.Orders"
+		id="result-orderList">
+		<result property="id" column="id" />
+		<result property="goodsName" column="goodsName" />
+		<result property="counts" column="counts" />
+		<result property="receiver" column="receiver" />
+		<result property="address" column="address" />
+		<result property="phone" column="phone" />
+		<result property="imgPath" column="imgPath" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.shopping.entity.Orders"
+		id="result-selfOrderList">
+		<result property="id" column="id" />
+		<result property="goodsName" column="goodsName" />
+		<result property="counts" column="counts" />
+		<result property="receiver" column="receiver" />
+		<result property="address" column="address" />
+		<result property="phone" column="phone" />
+		<result property="imgPath" column="imgPath" />
+		<result property="amount" column="amount" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.shopping.entity.Orders"
+		id="result-selfFinancialStatementList">
+		<result property="amount" column="amount" />
+		<result property="agencyName" column="agencyName" />
+		<result property="schoolName" column="schoolName" />
+		<result property="schoolId" column="schoolId" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.shopping.entity.Orders"
+		id="result-selfFinancialStatementDetailList">
+		<result property="goodsName" column="goodsName" />
+		<result property="counts" column="counts" />
+		<result property="receiver" column="receiver" />
+		<result property="schoolName" column="schoolName" />
+		<result property="createTime" column="createTime" />
+		<result property="amount" column="amount" />
+	</resultMap>
+	<insert id="addOrders" parameterClass="orders">
+		insert into
+		platform.orders(goodsName,goodsDetailId,amount,counts,receiver,address,phone,createTime,status,userId,remark,isVirtual)
+		values(#goodsName#,#goodsDetailId#,#amount#,#counts#,#receiver#,#address#,#phone#,#createTime#,0,#userId#,#remark#,#isVirtual#)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select
+			LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	<select id="getInfoById" parameterClass="Integer" resultClass="orders">
+		select * from platform.orders where id=#id#
+	</select>
+	<update id="updateOrders" parameterClass="orders">
+		update platform.orders
+		set status=#status#
+		<isNotNull property="channel">
+			<isNotEmpty prepend="," property="channel">
+				channel = #channel#
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="tradeNo">
+			<isNotEmpty prepend="," property="tradeNo">
+				tradeNo=#tradeNo#
+			</isNotEmpty>
+		</isNotNull>
+		where id=#id#
+	</update>
+	<select id="getOrdersList" parameterClass="HashMap" resultMap="result-orderList">
+		select o.id,o.counts,o.receiver,o.address,o.phone,g.name
+		goodsName,gd.imgPath from
+		platform.orders o,platform.goodsDetail
+		gd,platform.goods g where
+		o.goodsDetailId = gd.id and gd.goodsId=g.id
+		<isNotNull property="condition">
+			<isNotEmpty prepend="and" property="condition">
+				(o.receiver like
+				concat('%',#condition#,'%') or o.phone like
+				concat('%',#condition#,'%') or g.name like
+				concat('%',#condition#,'%'))
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="status">
+			<isNotEmpty prepend="and" property="status">
+				o.status=#status#
+			</isNotEmpty>
+		</isNotNull>
+	</select>
+	<select id="getSelfOrdersList" parameterClass="HashMap"
+		resultMap="result-selfOrderList">
+		select o.id,o.counts,o.receiver,o.amount,o.address,o.phone,g.name
+		goodsName,gd.imgPath from
+		platform.orders o,platform.goodsDetail
+		gd,platform.goods g where
+		o.goodsDetailId = gd.id and gd.goodsId=g.id
+		and o.userId=#userId#
+		<isNotNull property="queryContent">
+			<isNotEmpty prepend="and" property="queryContent">
+				(o.id=#queryContent# or
+				g.name like concat('%',#queryContent#,'%'))
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="status">
+			<isNotEmpty prepend="and" property="status">
+				o.status=#status#
+			</isNotEmpty>
+		</isNotNull>
+	</select>
+	<delete id="deleteOrders" parameterClass="Integer">
+		delete from
+		platform.orders where id=#orderId#
+	</delete>
+	<select id="getAgencyFinancialStatementsList" parameterClass="HashMap"
+		resultMap="result-selfFinancialStatementList">
+		select sum(amount) amount ,s.schoolId, s.schoolName, a.name agencyName
+		from
+		platform.orders o , platform.user_school us,platform.school s
+		,platform.agency_school ass
+		,platform.agencyinfo a
+		,platform.agency_technicalsupport at
+		where o.status=1 and
+		at.userid=#userId# and o.userid=us.userid and
+		us.schoolid = s.schoolid
+		and s.schoolid=ass.schoolid and
+		ass.agencyId=a.id and a.id =
+		at.agencyId
+		<isNotNull property="queryContent">
+			<isNotEmpty prepend="and" property="queryContent">
+				(s.schoolName like
+				concat('%',#queryContent#,'%') or a.name like
+				concat('%',#queryContent#,'%'))
+			</isNotEmpty>
+		</isNotNull>
+		group by s.schoolid order by amount desc
+
+	</select>
+	<select id="getSelfFinancialStatementsList" parameterClass="HashMap"
+		resultMap="result-selfFinancialStatementList">
+		select sum(amount) amount ,s.schoolId, s.schoolName, a.name agencyName
+		from platform.orders o
+		left join platform.user_school us on o.userid=us.userid
+		left join
+		platform.school s on us.schoolid = s.schoolid
+		left join
+		platform.agency_school ass on s.schoolid=ass.schoolid
+		left join
+		platform.agencyinfo a on ass.agencyId=a.id
+		where o.status=1
+
+		<isNotNull property="queryContent">
+			<isNotEmpty prepend="and" property="queryContent">
+				(s.schoolName like
+				concat('%',#queryContent#,'%') or a.name like
+				concat('%',#queryContent#,'%'))
+			</isNotEmpty>
+		</isNotNull>
+		group by s.schoolid order by amount desc
+
+	</select>
+
+	<select id="getFinancialStatementsDetailListBySchoolId"
+		parameterClass="HashMap" resultMap="result-selfFinancialStatementDetailList">
+		select o.amount,o.counts,o.receiver,o.createTime , s.schoolName,g.name
+		goodsName from	platform.orders o, platform.user_school us, platform.school s,platform.goodsDetail
+		gd,platform.goods g where o.status=1 and
+		o.userid=us.userid and us.schoolid=s.schoolid and o.goodsDetailId = gd.id and gd.goodsId=g.id and s.schoolId=#schoolId#
+		<isNotNull property="queryContent">
+			<isNotEmpty prepend="and" property="queryContent">
+				(o.receiver like
+				concat('%',#queryContent#,'%') or g.name like
+				concat('%',#queryContent#,'%'))
+			</isNotEmpty>
+		</isNotNull>
+	</select>
+</sqlMap>

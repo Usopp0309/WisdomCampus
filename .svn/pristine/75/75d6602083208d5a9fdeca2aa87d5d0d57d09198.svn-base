@@ -1,0 +1,174 @@
+body{background-color:#f2f2f2; font:13px/1.5 "Helvetica Neue",Helvetica,Arial,"Microsoft Yahei","Hiragino Sans GB","Heiti SC","WenQuanYi Micro Hei",sans-serif;margin:0px;}
+ul,li{padding:0px;margin:0px; list-style-type: none;}
+.homepage{max-width:1024px;margin:0px auto;}
+.homepage .web_logo{height:40px}
+.homepage .web_logo img{float:right;margin:2px 20px 0 0;height:98%;}
+.homepage .homepage_header{height:50px;overflow:hidden;width:100%;}
+.homepage .homepage_header .logo{width:50%;float:left;background-color:#48ba89}
+.homepage .homepage_header .logo img{height:50px;display:block;float:left;}
+.homepage .homepage_header .logo span{line-height:50px;font-size:20px;color:#fff;text-indent: 15px;display:inline-block;}
+.homepage .homepage_header .logo span em{font-style: normal;padding:0px 10px;}
+.homepage .homepage_header .time{float:right;line-height:50px;font-size:14px;color:#666;}
+.homepage .homepage_header .time a{color:#666;}
+.homepage .content{height:auto;overflow:hidden;margin:0 auto 15px;}
+.homepage .content .news_show{width:70%;float:left;height:300px;background-color:#48ba89;overflow:hidden;}
+.homepage .content .news_show #school_menu{width:20%;float:left;height:100%;}
+.homepage .content .news_show #school_menu li{height:40px;line-height:40px;color:#fff;text-align:center;font-size:16px;cursor: pointer;}
+.homepage .content .news_show #school_menu .select{color:#48ba89;background-color:#fff;}
+.homepage .content .news_show #school_menu_info{width:80%;float:left;background-color:#fff;height:300px;}
+.homepage .content .news_show #school_menu_info li{display:none;}
+.homepage .content .news_show .school_aboutus{}
+.homepage .content .news_show .school_aboutus img{width:36%;margin:30px 2% 0px;display:block;float:left}
+.homepage .content .news_show .school_aboutus h3{width:59%;display:block;float:left;font-size:18px;text-align: center;}
+.homepage .content .news_show .school_aboutus p{width:59%;display:block;line-height:30px;text-indent:20px; float:left;}
+.homepage .content .news_show .img_news{}
+.homepage .content .news_show .img_news img{width:36%;margin:30px 2% 0px;display:block;float:left}
+.homepage .content .news_show .img_news h3{width:59%;display:block;float:left;font-size:18px;text-align: center;}
+.homepage .content .news_show .img_news p{width:59%;display:block;line-height:30px;text-indent:20px; float:left;}
+.homepage .content .news_show .news{}
+.homepage .content .news_show .news h3{width:99%;margin:0px auto;display:block;font-size:18px;text-align: center;}
+.homepage .content .news_show .news p{width:99%;margin:0px auto;display:block;line-height:30px;text-indent:20px;}
+.homepage .content .news_show .Honor{margin:0px;}
+.homepage .content .news_show .Honor dd{width:31%;float:left;}
+.homepage .content .news_show .Honor dd p{line-height:25px;text-align: center;margin:0px;}
+.homepage .content .word{width:29%;float:right;background-color:#fff;text-align:center;height:300px;}
+.homepage .content .word h3{margin:0px;line-height:30px;font-size:18px;text-indent: 15px;text-align:left;}
+.homepage .content .word img{width:50%;margin:0 auto;display: block;}
+.homepage .content .word span{line-height:30px;}
+.homepage .content .word p{line-height:30px;text-indent: 20px;padding:0px 15px;text-align:left;}
+.homepage .content .my_info_a_4{background-color:#fff;display:block; height:90px; overflow:hidden;width:24.25%;margin:0 1% 0 0;float:left;}
+.homepage .content .my_info_a_4 .count_header{height:60px;}
+.homepage .content .my_info_a_4 .count_header img{height:60px;}
+.homepage .content .my_info_a_4 .count_header span{float:right;font-size:30px; color:#48ba89;margin:20px 5px 0 0;display:block;}
+.homepage .content .my_info_a_4 .count_header span em{color:#333;font-style: normal;font-size:13px;}
+.homepage .content .my_info_a_4 .conut_footer{height:30px;line-height:30px;background-color:#48ba89;margin:0px;color:#fff;text-indent:15px;}
+.homepage .content .my_info_a_4 .conut_footer span{float:right;}
+.homepage .content .my_info_a_3{background-color:#fff;display:block; height:90px; overflow:hidden;width:24.2%;margin:0 1% 0 0;float:left;}
+.homepage .content .my_info_a_3 .count_header{height:60px;}
+.homepage .content .my_info_a_3 .count_header img{height:60px;}
+.homepage .content .my_info_a_3 .count_header span{float:right;font-size:30px; color:#48ba89;margin:20px 5px 0 0;display:block;}
+.homepage .content .my_info_a_3 .count_header span em{color:#333;font-style: normal;font-size:13px;}
+.homepage .content .my_info_a_3 .conut_footer{height:30px;line-height:30px;background-color:#48ba89;margin:0px;color:#fff;text-indent:15px;}
+.homepage .content .my_info_a_3 .conut_footer span{float:right;margin:0 15px 0 0}
+.homepage .contact em{font-style: normal;}
+.homepage .content .public_info{background-color:#fff;margin-left:0px;overflow:hidden;}
+.homepage .content .public_info .info_header{height:315px;width:100%;padding:5px 0px;}
+.homepage .content .public_info .info_footer{line-height:30px;background-color:#48ba89;color:#fff;margin:0px;}
+.homepage .content .contact{background-color:#fff;height:40px;color:#333;}
+.homepage .content .contact li{width:33%;float:left;line-height:40px; text-align: center;}
+.homepage .content .public_info{width:49.5%;float:left;background-color:#fff;}
+.homepage .content .school_news_count{width:49.5%;float:right;}
+.homepage .content .school_news_count .school_news{background-color:#fff;height:240px;}
+.homepage .content .school_news_count .school_news{position: relative;margin:0 auto 15px;}
+.homepage .content .school_news_count .school_news ul{margin:0px;}
+.homepage .content .school_news_count .school_news ul li{height:30px;}
+.homepage .content .school_news_count .school_news ul li span{padding:0 15px;line-height:30px; display:block;float:left}
+.homepage .content .school_news_count .school_news ul li a{display:block;float:left;max-width:50%;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;line-height:30px; color:#333}
+.homepage .content .school_news_count .school_news ul li a:hover{color:#2fa5e2}
+.homepage .content .school_news_count .school_news ul li time{display:block;line-height:30px;float:right;color:#585657;padding:0 15px 0 0}
+.homepage .content .school_news_count .school_news ul li .school{color:#47bb8a}
+.homepage .content .school_news_count .school_news ul li .class{color:#2fa5e2}
+.homepage .content .school_news_count .school_news p{line-height:30px;background-color:#48ba89;color:#fff;margin:0px;padding:0px; text-indent:15px;position: absolute;left:0px;bottom:0px;width:100%;}
+.homepage .content .school_news_count .school_news span{float:right;padding:0 15px 0 0}
+.homepage .system{height: 100px;}
+.homepage .system li{width:49%;float:left;background-color: #fff;}
+.homepage .system li .system_header{height:70px;}
+.homepage .system li .system_header img{height:70px;margin:0 0 0 15px;}
+.homepage .system li .system_header span{float:right;padding:0 15px 0 0;color:#666;font-size:16px;line-height:70px;}
+.homepage .system li .system_header span em{font-style: normal;font-size:14px;color:#48ba89;}
+.homepage .system li .system_footer{line-height:30px;background-color:#48ba89;color:#fff;margin:0px;padding:0px; text-indent:15px;width:100%;float:left;}
+.homepage .system li .system_footer span{float:right;padding:0 15px 0 0}
+.homepage .system li .system_footer{line-height:30px;background-color:#48ba89;color:#fff;margin:0px;padding:0px; text-indent:15px;width:100%;}
+.homepage .system li .system_footer span{float:right;padding:0 15px 0 0}
+.homepage .contact{height:30px;background-color:#fff;}
+.homepage .contact li{width:30%;float:left;line-height:30px;text-align:center;}
+.homepage .footer{max-width:1200px;margin:0px;padding:0px;margin:0px;}
+.homepage .footer ul{text-align:center;}
+.homepage .footer ul li{padding:0px 10px;display:inline-block;}
+.homepage .footer ul li a{color:#666;}
+.homepage .footer em{font-style: normal;}
+.homepage .footer p{text-align:center;color:#999;margin:0px;}
+
+
+/*�οα�*/
+.homepage .public_info .info_header .teachtable{padding:0px 20px;border:1px solid #ebebeb;text-align:center;color:#878787}
+.homepage .public_info .info_header .teachtable tr td{border:1px solid #ebebeb;height:18px;line-height:18px;}
+.homepage .public_info .info_header .teachtable tr td p{margin:0px;}
+.homepage .public_info .info_header .teachtable .td_bj{background-color:#fafafa;}
+.homepage .public_info .info_header .teachtable .text{color:#fff;}
+/*�༶1����ɫ*/
+.homepage .public_info .info_header .teachtable .tb_bg1{background-color:#aed5f4}
+/*�༶2����ɫ*/
+.homepage .public_info .info_header .teachtable .tb_bg2{background-color:#93bfe7}
+/*Ӣ�ﱳ��ɫ*/
+.homepage .public_info .info_header .teachtable .tb_bg3{background-color:#82b99c}
+/*���ֱ���ɫ*/
+.homepage .public_info .info_header .teachtable .tb_bg4{background-color:#d7889b}
+/*����ɫ*/
+.homepage .public_info .info_header .teachtable .tb_bg5{background-color:#fcda9a}
+/*���?��ɫ*/
+.homepage .public_info .info_header .teachtable .tb_bg6{background-color:#fba79c}
+
+/*����*/
+.homepage .public_info .info_header .kaoqin{width:100%;border:1px solid #ebebeb;text-align:center;color:#878787}
+.homepage .public_info .info_header .kaoqin tr td{border:1px solid #ebebeb;}
+.homepage .public_info .info_header .kaoqin .td_bj{background-color:#fafafa;line-height:20px;}
+/*�ٵ�*/
+.homepage .public_info .info_header .kaoqin .state1{color:#e45453}
+
+/*�༶�*/
+.homepage .public_info .info_header .activity{padding:0px 20px;border:1px solid #ebebeb;text-align:center;color:#878787}
+.homepage .public_info .info_header .activity tr td{border:1px solid #ebebeb;height:20px;}
+.homepage .public_info .info_header .activity .td_bj{background-color:#fafafa;}
+.homepage .public_info .info_header .activity .text{color:#fff;}
+/*��ȫ����ɫ*/
+.homepage .public_info .info_header .activity .tb_bg1{background-color:#a7d189}
+/*��������ɫ*/
+.homepage .public_info .info_header .activity .tb_bg2{background-color:#aed5f4}
+/*���ڻ����ɫ*/
+.homepage .public_info .info_header .activity .tb_bg3{background-color:#82b99c}
+/*�Ļ�֪ʶ����ɫ*/
+.homepage .public_info .info_header .activity .tb_bg4{background-color:#fba79c}
+/*��ͯ���±���ɫ*/
+.homepage .public_info .info_header .activity .tb_bg5{background-color:#d7889b}
+/*���?��ɫ*/
+.homepage .public_info .info_header .activity .tb_bg6{background-color:#fba79c}
+/*�γ̱�*/
+.homepage .public_info .info_header .timetable{padding:0px 20px;border:1px solid #ebebeb;text-align:center;color:#878787}
+.homepage .public_info .info_header .timetable tr td{border:1px solid #ebebeb;}
+.homepage .public_info .info_header .timetable .td_bj{background-color:#fafafa;}
+.homepage .public_info .info_header .timetable .text{color:#fff;}
+/*���ı���ɫ*/
+.homepage .public_info .info_header .timetable .tb_bg1{background-color:#aed5f4}
+/*��ѧ����ɫ*/
+.homepage .public_info .info_header .timetable .tb_bg2{background-color:#a6d088}
+/*Ӣ�ﱳ��ɫ*/
+.homepage .public_info .info_header .timetable .tb_bg3{background-color:#82b99c}
+/*���ֱ���ɫ*/
+.homepage .public_info .info_header .timetable .tb_bg4{background-color:#d7889b}
+/*����ɫ*/
+.homepage .public_info .info_header .timetable .tb_bg5{background-color:#fcda9a}
+/*���?��ɫ*/
+.homepage .public_info .info_header .timetable .tb_bg6{background-color:#fba79c}
+.homepage .public_info .info_header img{height:70px;margin:0 0 0 15px;}
+.homepage .public_info .info_header span{float:right;padding:0 15px 0 0;color:#48ba89;font-size:35px;line-height:70px;}
+.homepage .public_info .info_header span em{font-style: normal;font-size:14px;color:#666;}
+.homepage .public_info .info_footer{line-height:30px;background-color:#48ba89;color:#fff;margin:0px;padding:0px; text-indent:15px;width:100%;float:left;}
+.homepage .public_info .info_footer span{float:right;padding:0 15px 0 0}
+@media (max-width: 768px) {
+    .homepage .web_logo{display:none;}
+	.homepage .homepage_header{height:auto}
+	.homepage .homepage_header .logo{width:100%;}
+	.homepage .homepage_header .logo span{font-size:20px;}
+	.homepage .homepage_header .time{width:100%;text-align: left;text-indent: 15px;}
+	.homepage .content .news_show{width:100%;}
+	.homepage .content .word{width:100%;}
+	.homepage .content .my_info_a_3{width:48%;}
+	.homepage .content .school_news_count .school_news{height:auto}
+	.homepage .content .public_info .info_header{min-height:315px;}
+	.homepage .content .public_info{width:100%;margin:0 0 15px 0}
+	.homepage .content .school_news_count{width:100%;}
+	.homepage .system li .system_header img{display:block;margin:0 auto;}
+	.contact{display:none;}
+	.Response{display:none;}
+}

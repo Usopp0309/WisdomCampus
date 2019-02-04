@@ -1,0 +1,19 @@
+package com.guotop.palmschool.service.impl;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.entity.Groupmember;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.service.GroupmemberService;
+
+@Service("groupmemberService")
+public class GroupmemberServiceImpl extends BaseService implements GroupmemberService
+{
+
+	@Override
+	public void addGroupmember(Groupmember groupmember)
+	{
+		getBaseDao().addObject("Groupmember.addGroupmember", groupmember);
+	}
+
+}

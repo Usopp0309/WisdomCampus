@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Groupmember">
+	<typeAlias alias="groupmember" type="com.guotop.palmschool.entity.Groupmember"/>
+	<insert id="addGroupmember" parameterClass="groupmember">
+		insert into platform.groupmember
+		(
+			userId, 
+			groupId, 
+			showName, 
+			phone,
+			type, 
+			modifiable,
+			createtime, 
+			activetime,
+			myGroupCard
+		)
+		values
+		(
+			#userId#, 
+			#groupId#, 
+			#showName#, 
+			#phone#,
+			#type#, 
+			#modifiable#,
+			#createtime#, 
+			#activetime#,
+			#myGroupCard#
+		)
+	</insert>
+
+	<select id="getByGroupIdAndUserId" parameterClass="HashMap" resultClass="groupmember">
+		SELECT gm.* FROM platform.groupmember gm
+		WHERE gm.groupId = #groupId#
+		AND gm.userId = #userId#
+	</select>
+	
+</sqlMap>

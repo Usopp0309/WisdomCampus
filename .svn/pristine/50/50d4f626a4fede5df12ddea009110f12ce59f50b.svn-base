@@ -1,0 +1,344 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<head>
+	<title>宿舍进出记录</title>
+	<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+	<!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+</head>
+<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+    	<input class="themes" type="hidden" value="<%=ThemePath%>">
+        <!-- 公共顶部开始-->
+        <%@ include file="/public_module/public_header.jsp"%> 
+        <!--公共顶部结束-->
+        <div class="clearfix"></div>
+        <!-- 内容页开始 -->
+        <div class="page-container">
+            <!--主菜单开始-->
+           <%@include file="/public_module/public_menu.jsp"%>
+            <!--主菜单结束-->
+            <div class="page-content-wrapper">
+                <div class="page-content m_overflow_hidden m_page_content">
+                	<!-- 二级菜单开始 -->
+                	<div class="col-md-1 col-sm-1 m_padding_0_0_0_15">
+                    <%@include file="/public_module/public_sub_menu.jsp" %>
+                	</div>	
+                	<!-- 二级菜单结束 -->
+                	<!-- 页面内容开始 -->
+                	<div class="col-md-11 col-sm-11 m_page_con">
+                    <div class="page-bar m_margin_0_0_0_0">
+                    <%-- <%@include file="/public_module/public_config.jsp" %> --%>
+                        <ul class="page-breadcrumb">
+							<li><a href="#">首页</a><i class="fa fa-circle"></i></li>
+							<li><a href="#">宿舍管理</a><i class="fa fa-circle"></i></li>
+							<li><a href="#">进出宿舍</a></li>
+						</ul>
+                    </div>
+                    <h3 class="page-title">进出宿舍</h3>
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12">
+                        	<div class="m_margin_0_0_15_0">
+                        		<!-- 角色切换开始 -->
+                        		<ul class="nav nav-tabs" id="userTab">
+                                    <c:forEach items="${sessionScope.user.roleList}" var="roleList">
+										<li><a attr1="${sessionScope.user.userId}" attr2="${roleList.roleCode}" >${sessionScope.user.realName}(${roleList.roleName})</a></li>
+									</c:forEach>	
+                                </ul>
+                        		<!-- 角色切换结束 -->
+                            </div>
+                            <!-- 页面搜索开始 -->
+                            <div class="portlet light form-fit bordered search_box">
+                            	
+	                            <div class="row m_margin_10_auto">
+
+	                            	<div class="col-md-3 col-sm-3">
+	                            		<span class="m_span">师生类型：</span>
+										<select class="form-control m_select" id="tchStuType">
+											   <option value="1">教师</option>
+											   <option value="2" selected="selected">学生</option>
+								        </select>
+	                            	</div>
+	                            	<div class="col-md-3 col-sm-3">
+	                            		<span class="m_span">开始时间：</span>
+										<input type="text" placeholder="开始时间" name="startTime" id="startTime"  class="m_input form-control"/>
+	                            	</div>
+	                            	<div class="col-md-3 col-sm-3">
+	                            		<span class="m_span">结束时间:</span>
+										<input type="text" placeholder="结束时间" name="endTime" id="endTime"  class="m_input form-control"/>
+	                            	</div>
+	                            	<div class="col-md-3 col-sm-3">
+	                            		<span class="m_span" id="tchStuTypeLabel">进出状态:</span>
+										<select class="form-control m_select" id="inoutType">
+											<option value="0" selected="selected">--全部--</option>
+											<option value="1">进</option>
+											<option value="2">出</option>
+										</select>
+	                            	</div>
+	                            </div>
+	                            <div class="row m_margin_10_auto">
+	                            	<div class="col-md-3 col-sm-3">
+	                            		<span class="m_span" id="tchStuTypeLabel">搜索内容:</span>
+										<input type="text" placeholder="卡号、拥有者、地点、部门（班级）……" id="queryContent" class="m_input form-control"/>
+									</div>
+	                            </div>
+	                            <div class="row m_margin_10_auto">
+	                            <div class="col-md-3 col-sm-3 m_float_right m_text_align_right">
+	                            <button type="button" class="btn blue f_right" id="search"><i class="fa fa-search"></i>查找</button>
+	                            </div>
+	                            </div>
+                            </div>
+                           	<div class="portlet box green m_margin_15_auto_0">
+                                <div class="portlet-title">
+                                    <div class="caption">
+                                        <i class="fa fa-list"></i>进出记录列表</div>
+                                </div>
+                                <div class="portlet-body flip-scroll">
+                                    <table class="table table-bordered table-hover" id="sample_1">
+                                        <thead class="flip-content">
+                                            <tr>
+                                            	<th>部门/班级</th><th>卡号</th><th>刷卡人</th><th>进出状态</th><th>地点</th><th>刷卡时间</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody  id="tbody">
+                                            
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                           <!-- 列表展现开始 -->
+                            <!-- 分页开始 -->
+                            <%@include file="/public_module/public_page.jsp" %>
+                            <!-- 分页结束 -->
+                        </div>
+                    </div>
+                    </div>
+                    <!--页面内容结束 -->
+                </div>
+            </div>
+            <!-- 亦信聊天开始 -->
+        	<%@ include file="/public_module/public_QQ.jsp" %>
+            <!-- 亦信聊天结束 -->
+        </div>
+        <!-- 内容页结束 -->
+        <!-- 底部开始 -->
+        <%@ include file="/public_module/public_footer.jsp" %>
+        <!-- 底部结束 -->
+    </body>
+	 <%@ include file="/public_module/public_js.jsp" %>
+    <!-- 公共js结束 -->
+	<script sype="text/javascript">
+		jQuery(document).ready(function() { 
+			$('#startTime,#endTime').datetimepicker({
+				format:'Y-m-d',
+				timepicker:false
+			});
+			//页面初始化时候的数据加载
+			var userId = $("#userTab li.active").find('a').attr("attr1");
+			var roleCode = $("#userTab li.active").find('a').attr("attr2");
+			loadSelect(roleCode);
+			var type = $("#tchStuType").val();
+			//加载初始化数据   
+			loadDormitoryInoutList(null, null,null,null, type, userId, roleCode, null);
+			loadSubMenu("dormitoryManage");
+			//选取当前菜单位置
+			setActive("dormitoryManage","dormitoryInout");
+			//点击tab页加载
+			$("#userTab li a").click(function(){
+				$("#userTab li").removeAttr("class");
+				$(this).parent().addClass("active");
+				//用户ID
+				var userId = $(this).attr("attr1");
+				var roleCode = $(this).attr("attr2");
+				var type = $("#tchStuType").val();
+				loadSelect(roleCode);
+				loadDormitoryInoutList(null, null,null, null,type, userId, roleCode, null);
+			});
+
+			//查找数据
+			$("#search").click(function(){
+				//用户ID
+				var userId = $("#userTab li.active").find('a').attr("attr1");
+				//角色ID
+				var roleCode = $("#userTab li.active").find('a').attr("attr2");
+				//开始时间
+				var startTime = $("#startTime").val();
+				//结束时间
+				var endTime = $("#endTime").val();
+				//查询内容
+				var queryContent = $("#queryContent").val();
+				//进出类型
+				var inoutType = $("#inoutType").val();
+				
+				//师生类型
+				var type = $("#tchStuType").val();
+				
+				loadDormitoryInoutList(startTime, endTime,queryContent,inoutType, type, userId, roleCode, null);
+				
+			});
+			
+			$("#queryContent").keypress(function(event){
+				if(event.which == "13")    
+            	{
+					$("#search").click();
+					return false;
+            	}
+			});
+			
+		});
+
+		//加载进出记录列表
+		function loadDormitoryInoutList(startTime, endTime, queryContent, inoutType,type, userId, roleCode, cPage)
+		{
+		    var body = $("#body");
+			App.blockUI(body);
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>dormitory/loadDormitoryInoutList.do",
+				data:{
+						startTime : startTime,
+						endTime : endTime,
+						queryContent : queryContent, 
+						inoutType : inoutType,
+						type : type,
+						userId : userId,
+						roleCode : roleCode,
+						cPage : cPage
+					},
+				success: function(data){
+					var page = eval("(" + data + ")");
+					$("#currentPage").html(page.currentPage);
+					$("#totalPage").html(page.totalPage);
+					var appendHtml = '';
+					$.each(page.list, function(n, value) {  
+						if (n%2 == 0)
+						{
+							appendHtml += '<tr style="background-color: #ededed">';
+						}
+						else
+						{
+							appendHtml += '<tr>';
+						}	
+
+						if(null == value.itemName || "" == value.itemName)
+           				{
+           					appendHtml += '<td width="15%"></td>';
+                   		}
+           				else
+           				{
+           				    //部门
+           				    appendHtml += '<td width="15%">' + value.itemName + '</td>';
+               			}
+           				
+						//卡号
+           				appendHtml += '<td width="20%">' + value.code + '</td>';
+						//拥有着
+           				appendHtml += '<td width="20%">' + value.realName + '</td>';
+				
+						//进出状态
+           				var status = parseInt(value.status);
+           				switch(status)
+           				{ 
+           					case 1 : 
+           						appendHtml += '<td width="10%">进</td>';
+           						break; 
+           					case 2 : 
+           						appendHtml += '<td width="10%">出</td>';
+           						break; 
+           					default : 
+           						appendHtml += '<td width="10%">进</td>';
+           						break;
+           				}
+						//地点
+           				appendHtml += '<td width="15%">' + value.positionName + '</td>';
+						//创建时间
+           				appendHtml += '<td width="20%">' + value.createTime + '</td>';
+           				appendHtml += '</tr>';
+          			}); 
+          			$("#tbody").html(appendHtml);
+          			/*  new TableSorter("sample_1",0,1,2,3,4,5); */
+          			//解锁UI
+          			App.unblockUI(body);
+				},
+			});
+		}
+
+		//分页相关
+		function jumpPage(type)
+		{
+			var cPage = $("#currentPage").html();
+			var totalPage = $("#totalPage").html();
+
+			var cPageInt = parseInt(cPage);
+			var totalPageInt = parseInt(totalPage);
+						
+			//跳转到首页
+			if (type == 'first')
+			{
+				cPageInt = 1;
+				
+			}
+			//上一页
+			if (type == 'previous')
+			{
+				//不是首页
+				if (cPageInt != 1)
+				{
+					cPageInt = cPageInt - 1;
+				}
+			}
+			//下一页
+			if (type == 'next')
+			{
+				//不是尾页
+				if (cPageInt < totalPageInt)
+				{
+					cPageInt = cPageInt + 1;
+				}
+			}
+			//跳转到尾页
+			if (type == 'last')
+			{
+				cPageInt = totalPageInt;
+			}	
+
+			//开始时间
+			var startTime = $("#startTime").val();
+			//结束时间
+			var endTime = $("#endTime").val();
+			//查询内容
+			var queryContent = $("#queryContent").val();
+			
+			//进出状态
+			var inoutType = $("#inoutType").val();
+			
+			//用户ID
+			var userId = $("#userTab li.active").find('a').attr("attr1");
+			//角色ID
+			var roleCode = $("#userTab li.active").find('a').attr("attr2");
+			
+           //师生类型
+			var type = $("#tchStuType").val();
+			
+		   loadDormitoryInoutList(startTime, endTime,queryContent, inoutType,type, userId, roleCode, cPageInt)
+			
+			$("#currentPage").html(cPageInt);
+		}
+
+		//加载教师学生选择框
+		function loadSelect(roleCode)
+		{
+			if(roleCode=="student" || roleCode=="parent")
+			{
+				$(".s_type").hide();
+				//$("#tchStuType").hide();
+				//$("#tchStuTypeLabel").hide();
+			}else
+			{
+				$("#tchStuType").show();
+				$("#tchStuTypeLabel").show();
+			}
+		}
+</script>
+</html>

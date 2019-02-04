@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Schedule">
+	<typeAlias alias="schedule" type="com.guotop.palmschool.entity.Schedule"/>
+	<typeAlias alias="scheduleTime" type="com.guotop.palmschool.entity.ScheduleTime"/>
+	<typeAlias alias="scheduleTimeRelation" type="com.guotop.palmschool.entity.ScheduleTimeRelation"/>
+	<typeAlias alias="scheduleClazz" type="com.guotop.palmschool.entity.ScheduleClazz"/>
+	<typeAlias alias="scheduleTeacher" type="com.guotop.palmschool.entity.ScheduleTeacher"/>
+
+	<resultMap class="com.guotop.palmschool.entity.Schedule" id="result_schedule">
+		<result property="id" column="Id"/>
+		<result property="status" column="status"/>
+		<result property="amStartTime" column="amStartTime"/>	
+		<result property="amEndTime" column="amEndTime"/>
+		<result property="pmStartTime" column="pmStartTime"/>	
+		<result property="pmEndTime" column="pmEndTime"/>
+		<result property="nightStartTime" column="nightStartTime"/>	
+		<result property="nightEndTime" column="nightEndTime"/>
+		<result property="liveingDate" column="liveingDate"/>
+		<result property="userId" column="userId"/>
+		<result property="type" column="type"/>
+		<result property="beginTime" column="beginTime"/>
+		<result property="endTime" column="endTime"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.Schedule" id="result_scheduleList">
+		<result property="status" column="status"/>
+		<result property="liveingDate" column="liveingDate"/>
+	</resultMap>
+	<!-- 检查作息时间是否有重复 -->
+	<select id="selectWorkingDays" parameterClass="HashMap" resultClass="schedule">
+		SELECT * FROM palm_scheduledetail  WHERE  1=1 and (liveingDate = #startDay# or liveingDate = #endDay#) LIMIT 1
+	</select>	
+	<!-- 查找作息时间表列表 -->	
+	<select id="selectScheduleList" parameterClass="HashMap" resultMap="result_schedule">
+		<![CDATA[
+		 select s.* from palm_scheduledetail s where liveingDate >= #time#
+			order by s.liveingDate ASC 
+		]]>	
+	</select>
+	<!-- 找出最近的五个工作日 -->
+	<select id="selectFiveWorkingDays" parameterClass="HashMap" resultClass="String">
+		<![CDATA[
+		SELECT liveingDate FROM palm_scheduledetail  WHERE STATUS = 0 
+		AND liveingDate >= #starttime# 
+		AND liveingDate < #endtime# 
+		ORDER BY liveingDate 
+		LIMIT 5
+		]]>	
+	</select>	
+	<!-- 添加作息时间表 -->
+	<insert id="addSchedule" parameterClass="schedule">
+		insert into palm_scheduledetail
+		(
+			status, 
+			amstarttime, 
+			amendtime, 
+			pmstarttime, 
+			pmendtime, 
+			nightstarttime, 
+			nightendtime, 
+			liveingDate,
+			userId,
+			beginTime,
+			endTime,
+			type
+		)
+		values
+		(
+			#status#,
+			#amStartTime#, 
+			#amEndTime#, 
+			#pmStartTime#, 
+			#pmEndTime#, 
+			#nightStartTime#, 
+			#nightEndTime#, 
+			#liveingDate#, 
+			#userId#,
+			#beginTime#,
+			#endTime#,
+			#type#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 根据主键查找作息时间表实体类 -->
+	<select id="selectScheduleById" parameterClass="Integer" resultMap="result_schedule">
+		select s.* from palm_scheduledetail s
+			where s.id = #scheduleId#
+	</select>
+	
+	<!-- 根据生效时间查找作息时间表集合 -->
+	<select id="selectScheduleListByLiveingDate" parameterClass="String" resultMap="result_schedule">
+		select s.* from palm_scheduledetail s
+			where s.liveingDate = #liveingDate#
+	</select>
+	
+	<!-- 根据主键修改作息时间表实体类 -->
+	<update id="updateScheduleById" parameterClass="HashMap">
+	  update palm_scheduledetail  
+	  	set 
+	  	    amstarttime = #amStartTime#,
+		   	amendtime = #amEndTime#,
+		   	pmstarttime = #pmStartTime#,
+		   	pmendtime = #pmEndTime#,
+		   	nightstarttime = #nightStartTime#,
+		   	nightendtime = #nightEndTime#,
+		   	status = #status#,
+		   	beginTime = #beginTime#,
+		   	endTime = #endTime#
+		   
+	  	where Id = #scheduleId#	  
+	</update>
+	
+	<!-- 判断今天是否上课 -->
+	<select id="isWorkToday" parameterClass="String" resultMap="result_scheduleList">
+		SELECT DISTINCT liveingDate, STATUS FROM palm_scheduledetail
+			WHERE liveingDate =  #liveingDate#
+	</select>
+	
+	<!-- 以日期删除作息时间表 -->
+	<delete id="deleteScheduleByLiveingDate"  parameterClass="String">
+	     delete from palm_scheduledetail 
+	     	where liveingDate = #liveingDate# 
+	</delete>
+	
+	<!-- 查找作息时间的最后一条数据 （设置作息时间提醒用）  -->
+	<select id="selectSchedule" resultMap="result_schedule">
+		select * from palm_scheduledetail order by  liveingDate desc limit 1
+	</select>
+	
+	<!-- *****************新设置作息时间*************  -->
+	
+	<!-- 添加作息时间段  -->
+	<insert id="saveScheduleTime" parameterClass="scheduleTime">
+		insert into palm_schedule_time
+			(
+				beginTime, 
+				endTime,
+				type,
+				createTime
+			)
+			values
+			(
+				#beginTime#,
+				#endTime#,
+				#type#,
+				#createTime#
+			)
+			<selectKey resultClass="int" type="post" keyProperty="id">
+				select LAST_INSERT_ID() as value
+			</selectKey>
+	</insert>
+	<!-- 添加作息时间段和作息时间的关系  -->
+	<insert id="saveScheduleTimeRelation" parameterClass="scheduleTimeRelation">
+		insert into palm_schedule_time_relation
+			(
+				scheduleId, 
+				timeId,
+				createTime
+			)
+			values
+			(
+				#scheduleId#,
+				#timeId#,
+				#createTime#
+			)
+			<selectKey resultClass="int" type="post" keyProperty="id">
+				select LAST_INSERT_ID() as value
+			</selectKey>
+	</insert>
+	
+	<select id="getScheduleTimeListByStartDayAndEndDay" parameterClass="HashMap" resultClass="scheduleTime">
+		select * from palm_schedule_time st 
+			where st.id in (
+								select timeId from palm_schedule_time_relation 
+									where scheduleId in (
+															select id from palm_scheduledetail where liveingDate>=#startDay# and liveingDate <![CDATA[ <= ]]> #endDay#
+														)
+							)
+							
+							order by type asc
+	</select>
+	
+	<select id="getScheduleTimeById" parameterClass="Integer" resultClass="scheduleTime">
+		select * from palm_schedule_time st where st.id = #timeId# order by st.type asc
+	</select>
+	
+	<!-- 添加班级作息时间  -->
+	<insert id="saveScheduleClazz" parameterClass="scheduleClazz">
+		insert into palm_schedule_clazz
+		(
+			status, 
+			amstarttime, 
+			amendtime, 
+			pmstarttime, 
+			pmendtime, 
+			nightstarttime, 
+			nightendtime, 
+			liveingDate,
+			clazzId,
+			gradeId,
+			beginTime,
+			endTime,
+			type
+		)
+		values
+		(
+			#status#,
+			#amStartTime#, 
+			#amEndTime#, 
+			#pmStartTime#, 
+			#pmEndTime#, 
+			#nightStartTime#, 
+			#nightEndTime#, 
+			#liveingDate#, 
+			#clazzId#,
+			#gradeId#,
+			#beginTime#,
+			#endTime#,
+			#type#
+		)
+			<selectKey resultClass="int" type="post" keyProperty="id">
+				select LAST_INSERT_ID() as value
+			</selectKey>
+	</insert>
+	
+	<!-- 添加教师作息时间  -->
+	<insert id="saveScheduleTeacher" parameterClass="scheduleTeacher">
+		insert into palm_schedule_teacher
+		(
+			status, 
+			amstarttime, 
+			amendtime, 
+			pmstarttime, 
+			pmendtime, 
+			nightstarttime, 
+			nightendtime, 
+			liveingDate,
+			teacherId,
+			beginTime,
+			endTime,
+			type
+		)
+		values
+		(
+			#status#,
+			#amStartTime#, 
+			#amEndTime#, 
+			#pmStartTime#, 
+			#pmEndTime#, 
+			#nightStartTime#, 
+			#nightEndTime#, 
+			#liveingDate#, 
+			#teacherId#,
+			#beginTime#,
+			#endTime#,
+			#type#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 清空当前时间往后的作息时间 -->
+	<delete id="deleteScheduleDetail" parameterClass="String">
+			DELETE s.*, st.*,str.*
+			FROM palm_scheduledetail s, palm_schedule_time st ,palm_schedule_time_relation str
+			WHERE s.id = str.scheduleId
+			AND st.id = str.timeId
+	     	AND s.liveingDate >= #liveingDate# 
+	</delete>
+	<!-- 清空当前时间往后的作息时间 -->
+	<delete id="deleteScheduleClazz" parameterClass="String">
+	     delete from palm_schedule_clazz 
+	     	where liveingDate >= #liveingDate# 
+	</delete>
+	<!-- 清空当前时间往后的作息时间 -->
+	<delete id="deleteScheduleTeacher" parameterClass="String">
+	     delete from palm_schedule_teacher 
+	     	where liveingDate >= #liveingDate# 
+	</delete>
+	
+	<select id="getScheduleListByLiveingAndGradeIdOrClazzId" parameterClass="HashMap" resultClass="scheduleClazz">
+		select tmp1.clazzId AS trueClazzId,tmp1.gradeId AS trueGradeId,tmp1.clazzName,tmp2.* ,(select type from palm_scheduledetail where liveingDate = #liveingDate# limit 1) as trueType from 
+		(select c.id AS clazzId,c.clazzName,c.gradeId
+		from palm_grade g,palm_clazz c 
+		where c.gradeId = g.id
+		and g.state = '0'
+		<isNotEmpty prepend="and" property="gradeId">
+			g.id = #gradeId#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="clazzId">
+			c.id = #clazzId#
+		</isNotEmpty>
+		ORDER BY g.type ASC,g.createYear DESC,c.id ASC
+		)tmp1 left join (select * from palm_schedule_clazz where liveingDate = #liveingDate#)tmp2 on tmp1.clazzId = tmp2.clazzId		
+	</select>	
+	
+	<select id="getScheduleListByLiveingAndDepartmentId" parameterClass="HashMap" resultClass="scheduleTeacher">
+		select tmp1.userId AS trueTeacherId ,tmp1.departmentId AS trueDepartmentId,tmp1.realName,tmp2.*,(select type from palm_scheduledetail where liveingDate = #liveingDate# limit 1) as trueType from 
+		(select MAX(u.userId) userId,MAX(d.id) AS departmentId,MAX(u.realName) realName
+		from palm_department d,palm_user_department ud,platform.user_detail u 
+		where d.id = ud.departmentId
+		and ud.userId = u.userId
+		<isNotEmpty prepend="and" property="departmentId">
+			d.id = #departmentId#
+		</isNotEmpty>
+		group by u.userId
+		order by d.id asc
+		)tmp1 left join (select * from palm_schedule_teacher where liveingDate = #liveingDate#)tmp2 on tmp1.userId = tmp2.teacherId
+	</select>	
+	
+	<!-- 根据生效日期修改上课状态 -->
+	<update id="modifySchedule" parameterClass="HashMap">
+	  update palm_scheduledetail  
+	  	set status = #status#
+	  	where liveingDate = #liveingDate#	  
+	</update>
+	<!-- 根据生效日期修改上课状态 -->
+	<update id="modifyScheduleTeacher" parameterClass="HashMap">
+	  update palm_schedule_teacher  
+	  	set status = #status#
+	  	where liveingDate = #liveingDate#	  
+	</update>
+	<!-- 根据生效日期修改上课状态 -->
+	<update id="modifyScheduleClazz" parameterClass="HashMap">
+	  update palm_schedule_clazz  
+	  	set status = #status#
+	  	where liveingDate = #liveingDate#	  
+	</update>
+	
+	<select id="getScheduleClazzByUserIdAndLiveingDate" parameterClass="HashMap" resultClass="scheduleClazz">
+		select s.* from palm_schedule_clazz s ,palm_student_clazz sc
+		where s.clazzId = sc.clazzId
+		and sc.userId = #userId#
+		and s.liveingDate = #liveingDate# 
+		limit 1
+	</select>	
+	<select id="getScheduleClazzByClazzIdAndLiveingDate" parameterClass="HashMap" resultClass="scheduleClazz">
+		select s.* from palm_schedule_clazz s 
+		where s.clazzId = #clazzId#
+		and s.liveingDate = #liveingDate# 
+		limit 1
+	</select>	
+	<select id="getScheduleTeacherByUserIdAndLiveingDate" parameterClass="HashMap" resultClass="scheduleTeacher">
+		select s.* from palm_schedule_teacher s
+		where s.teacherId = #userId#
+		and s.liveingDate = #liveingDate# 
+		limit 1
+	</select>	
+	
+	<update id="updateScheduleTeacher" parameterClass="scheduleTeacher">
+		update palm_schedule_teacher
+	  	set 
+	  		amstarttime = #amStartTime#,
+	  		amendtime = #amEndTime#,
+	  		pmstarttime = #pmStartTime#,
+	  		pmendtime = #pmEndTime#,
+	  		nightstarttime = #nightStartTime#,
+	  		nightendtime = #nightEndTime#,
+	  		beginTime = #beginTime#,
+	  		endTime = #endTime#
+	  	where liveingDate = #liveingDate# and teacherId = #teacherId#
+	</update>
+	<update id="updateScheduleClazz" parameterClass="scheduleClazz">
+		update palm_schedule_clazz  
+	  	set 
+			amstarttime = #amStartTime#,
+	  		amendtime = #amEndTime#,
+	  		pmstarttime = #pmStartTime#,
+	  		pmendtime = #pmEndTime#,
+	  		nightstarttime = #nightStartTime#,
+	  		nightendtime = #nightEndTime#,
+	  		beginTime = #beginTime#,
+	  		endTime = #endTime#
+	  	where liveingDate = #liveingDate# and clazzId = #clazzId#
+	</update>
+</sqlMap>

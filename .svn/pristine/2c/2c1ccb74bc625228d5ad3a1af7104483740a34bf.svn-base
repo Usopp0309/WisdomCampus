@@ -1,0 +1,52 @@
+package com.guotop.palmschool.scheduler;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import com.guotop.palmschool.scheduler.entity.SchoolCountInfo;
+import com.guotop.palmschool.scheduler.service.CountService;
+import com.guotop.palmschool.thread.CountSchoolInfoThread;
+
+/**
+ * 统计学校人数，短信数等信息
+ * 
+ * @author jfy
+ * @date 2015年12月7日
+ */
+@Component("countScheduler")
+public class CountScheduler
+{
+	@Resource
+	private CountService countService;
+	@Scheduled(cron = "0 30 23 * * ?")
+	public void countJob()
+	{
+		//获取待统计学校列表
+		List<SchoolCountInfo> list = countService.getSchoolList();
+		List<SchoolCountInfo> dataSourcelist = countService.getSchoolDataSorceList();
+		Map<Long,Object> dataSourceMap = new HashMap<Long,Object>();
+		if(!CollectionUtils.isEmpty(dataSourcelist)){
+			for(SchoolCountInfo ci : dataSourcelist){
+				if(!dataSourceMap.containsKey(ci.getSchoolId())){
+					dataSourceMap.put(ci.getSchoolId(), ci);
+				}
+			}
+		}
+		if(!CollectionUtils.isEmpty(list)){
+			for (SchoolCountInfo ci : list)
+			{
+				if(dataSourceMap.containsKey(ci.getSchoolId())){
+					new CountSchoolInfoThread(ci.getSchoolId());
+				}
+				
+			}
+		}
+	}
+}

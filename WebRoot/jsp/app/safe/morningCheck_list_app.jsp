@@ -1,0 +1,183 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<head>
+	<title>晨检列表</title>
+  	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+	<!--公共css开始-->
+	<%@ include file="/public_module/app_public_css.jsp"%>
+	<!--公共css结束--> 
+</head>
+<body id="body">
+
+	<div class="app_head">
+	
+		<i class="  m_icon-return icon_left" onclick="window.richbook.onFinish();"></i>晨检记录
+			
+			<a href="<%=basePath%>jsp/app/safe/morningCheck_search_app.jsp?apiKey=${apiKey}&schoolId=${schoolId}&roleCode=${roleCode}">
+				<i class=" m_icon-search icon_right"></i>
+			</a>							
+	</div>  
+	
+	<c:if test="${morningListSize == 0}">
+		<div class="null_con">
+			<img src="<%=basePath%>assets/global/img/m_img/null.png">
+		</div>
+	</c:if>
+	
+
+	<c:if test="${morningListSize > 0}">
+		<form action=""  id="addForm" class="form-horizontal" method="post">
+			<ul class="inout_list">
+			<c:forEach items="${morningList }" var="morningCheck">
+					<li onclick="showDetail(${morningCheck.id})">
+					<c:if test="${morningCheck.state == 0 }"><em>正</em></c:if>
+					<c:if test="${morningCheck.state == 1 }"><em class="late">异</em></c:if>		
+						<p class="top_p">
+							<span class="span_left">${morningCheck.name}</span>
+							<span class="span_right">${morningCheck.createTime}</span>
+						</p>
+						<p>
+							<span class="span3">${morningCheck.clazzName}</span>
+							<span class="span3">${morningCheck.cardCode}</span>
+							<span class="span3">晨检：${morningCheck.teacherName}</span>
+						</p>
+					</li>
+			</c:forEach>
+			</ul>
+			<input type="hidden" id="roleCode" name="roleCode" value="${roleCode}">
+			<input type="hidden" id="cPage" value="${cPage}">
+			<input type="hidden" id="apiKey" name="apiKey" value="${apiKey}">
+			<input type="hidden" id="schoolId" name="schoolId" value="${schoolId}">
+			<input type="hidden" id="clazzId" value="${clazzId}">
+			<input type="hidden" id="queryContent" value="${queryContent}">
+			<input type="hidden" id="startDate" value="${startDate}">
+			<input type="hidden" id="startTime" value="${startTime}">
+			<input type="hidden" id="endDate" value="${endDate}">
+			<input type="hidden" id="endTime" value="${endTime}">
+			<input type="hidden" id="apiKeyTimeOut" value="${apiKeyTimeOut}">
+			
+		    <c:if test="${inoutListSize >19}">
+			       <a href="javascript:;" id="op_all_save" class="op_all_save" onclick="loadMorningList()">查看更多</a>
+		    </c:if>
+		</form>
+		</c:if>
+		<c:if test="${roleListSize >1}">
+		<div class="select_role">
+			<dl>
+			   <c:forEach items="${roleList}" var="r">
+			       <c:if test="${r.roleCode == 'admin'}">
+				  	 <dd id="${r.roleCode}">校管</dd>
+			       </c:if>
+			       <c:if test="${r.roleCode == 'president'}">
+				  	 <dd id="${r.roleCode}">校长</dd>
+			       </c:if>
+			       <c:if test="${r.roleCode == 'departManager'}">
+				  	 <dd id="${r.roleCode}">部长</dd>
+			       </c:if>
+			       <c:if test="${r.roleCode == 'classLeader'}">
+				  	 <dd id="${r.roleCode}">班</dd>
+			       </c:if>
+			       <c:if test="${r.roleCode == 'teacher'}">
+				  	 <dd id="${r.roleCode}">师</dd>
+			       </c:if>
+			       <c:if test="${r.roleCode == 'student'}">
+				  	 <dd id="${r.roleCode}">学</dd>
+			       </c:if>
+			        <c:if test="${r.roleCode == 'parent'}">
+				  	 <dd id="${r.roleCode}">家</dd>
+			       </c:if>
+			   </c:forEach>
+		    </dl>
+			<span>+</span>
+		</div>
+	</c:if>
+		</body>
+	<!--公共js开始-->
+	<%@ include file="/public_module/app_public_js.jsp"%>
+	<!--公共js结束-->  
+	<script type="text/javascript">
+
+
+	$(function() {    
+	});
+	
+	function loadMorningList(){
+		var apiKey = $("#apiKey").val();
+		var schoolId = $("#schoolId").val();
+		var clazzId = $("#clazzId").val();
+		var queryContent = $("#queryContent").val();
+		var startDate = $("#startDate").val();
+		var startTime = $("#startTime").val();
+		var endDate = $("#endDate").val();
+		var endTime = $("#endTime").val();
+		var cPage = $("#cPage").val();
+		var roleCode = $("#roleCode").val();
+		var body = $("#body");
+		App.blockUI(body);
+		$.ajax({
+			type: "post",
+			url: "<%=basePath%>morningCheck/toLoadMoreMorningList4App.do",
+			data:{
+					apiKey : apiKey,
+					schoolId : schoolId,
+					clazzId : clazzId,
+					queryContent : queryContent,
+					startDate : startDate,
+					startTime : startTime,
+					endDate : endDate,
+					endTime : endTime,
+					roleCode : roleCode,
+					cPage : cPage
+			},
+			success: function(data){
+
+				var data = eval("(" + data + ")");
+				
+   				$("#cPage").val(data.cPage);
+
+   				var listSize = data.listSize;
+   				if(listSize < 19)
+   	   			{
+   					$("#op_all_save").hide();
+   	   	   		}
+   				
+				var appendHtml = '';
+				
+				$.each(data.morningList, function(n, value) {  
+					appendHtml += '<li onclick="showDetail('+value.id+')">';
+					var status = value.status;
+					if(status == 0)
+					{
+       					appendHtml += '<em>正</em>';
+               		}
+       				else
+           			{
+       					appendHtml += '<em  class="late">异</em>';
+               		}
+
+
+					appendHtml += '<p class="top_p">';
+					appendHtml += '<span class="span_left">'+value.name+'</span>';
+					appendHtml += '<span class="span_right">'+value.createTime+'</span>';
+					appendHtml += '</p>';
+					appendHtml += '<p>';
+					appendHtml += '<span class="span3">'+value.clazzName+'</span>';
+					appendHtml += '<span class="span3">'+value.cardCode+'</span>';
+					appendHtml += '<span class="span3">晨检：'+value.teacherName+'</span>';
+					appendHtml += '</p>';
+       				appendHtml += '</li>';
+
+      			}); 
+      			
+      			$(".inout_list").append(appendHtml);
+      			//解锁UI
+      			App.unblockUI(body);
+			},
+		});
+	}
+	function showDetail(id){
+		standardPost('<%=basePath%>morningCheck/showDetail4App.do',{id:id});
+	}
+	</script>
+</html>

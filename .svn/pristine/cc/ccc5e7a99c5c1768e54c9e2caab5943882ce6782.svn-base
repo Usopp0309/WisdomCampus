@@ -1,0 +1,490 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+
+<!DOCTYPE html>
+
+<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+
+<!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+
+<!--[if !IE]><!--> <html lang="en"> <!--<![endif]-->
+
+<!-- BEGIN HEAD -->
+
+<head>
+
+	<title>发送信息</title>
+
+	<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+
+	<meta content="" name="description" />
+
+	<meta content="" name="author" />
+
+	<!-- BEGIN GLOBAL MANDATORY STYLES -->
+
+	<link href="../media/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/style-metro.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/style.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/style-responsive.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/default.css" rel="stylesheet" type="text/css" id="style_color"/>
+
+	<link href="../media/css/uniform.default.css" rel="stylesheet" type="text/css"/>
+
+	<!-- END GLOBAL MANDATORY STYLES -->
+
+	<!-- BEGIN PAGE LEVEL STYLES -->
+
+	<link href="../media/css/pricing-tables.css" rel="stylesheet" type="text/css"/>
+
+	<!-- END PAGE LEVEL STYLES -->
+
+	<link rel="stylesheet" type="text/css" href="../media/css/select2_metro.css" />
+
+	<link rel="stylesheet" href="../media/css/DT_bootstrap.css" />
+
+	<!-- END PAGE LEVEL STYLES -->
+
+	<link rel="shortcut icon" href="../media/image/favicon.ico" />
+
+</head>
+
+<!-- END HEAD -->
+
+<!-- BEGIN BODY -->
+
+<body class="page-header-fixed">
+
+
+	<!-- BEGIN CONTAINER -->
+		<!-- BEGIN PAGE -->
+
+		<div class="page-content">
+
+
+			<!-- BEGIN PAGE CONTAINER-->        
+
+			<div class="container-fluid">
+
+				<!-- BEGIN PAGE HEADER-->
+
+				<div class="row-fluid">
+
+					<div class="span12">
+
+						<!-- BEGIN PAGE TITLE & BREADCRUMB-->
+						<ul class="breadcrumb">
+
+							<li>
+
+								<i class="icon-home"></i>
+
+								<a href="#">首页</a> 
+
+								<i class="icon-angle-right"></i>
+
+							</li>
+
+							<li>
+
+								<a href="#">系统管理</a>
+								<i class="icon-angle-right"></i>
+							</li>
+							
+							<li>
+
+								<a href="#">系统日志</a>
+							</li>
+
+						</ul>
+
+						<!-- END PAGE TITLE & BREADCRUMB-->
+
+					</div>
+
+				</div>
+
+				<!-- END PAGE HEADER-->
+
+				<!-- BEGIN PAGE CONTENT-->
+
+				<div class="row-fluid">
+
+					<div class="span12">
+						<div class="tabbable tabbable-custom boxless">
+						<!-- BEGIN EXAMPLE TABLE PORTLET-->
+						
+						<ul class="nav nav-tabs" id="userTab">
+<%--							<c:forEach items="${sessionScope.user}" var="user">--%>
+<%--								<!-- 班主任,普通教师,学生  为相同权限,看到tab一样-->--%>
+<%--								<c:if test="${user.roleId == 3 || user.roleId == 4 || user.roleId == 5 || user.roleId == 7}">--%>
+<%--									<li class="roleLi">--%>
+<%--										<a href="#tab_4" data-toggle="tab" class="roleTab" attr1="${user.id}" attr2="${user.roleId}">${user.name}(${user.roleName})--%>
+<%--										</a>--%>
+<%--									</li>																						--%>
+<%--								</c:if>--%>
+<%--							</c:forEach>--%>
+						</ul>
+						
+						<div class="tab-content">
+
+							<div class="tab-pane active" id="tab_4">
+								
+								<div class="portlet box blue">
+
+									<div class="portlet-title">
+		
+										<div class="caption">
+											<i class="icon-globe"> 系统日志</i>
+										</div>
+		
+		
+									</div>
+										
+									<div class="portlet-body">
+										
+<%--										<div class="caption">--%>
+<%--											<select class="layout-option form-control " id="tchStuType">--%>
+<%--												<option value="0" selected="selected">全部</option>--%>
+<%--												<option value="1">教师</option>--%>
+<%--												<option value="2">学生</option>--%>
+<%--											</select>--%>
+<%--										</div>--%>
+										
+										
+										<table class="table table-bordered table-hover table-full-width" id="sample_1">
+		
+											<thead>
+		
+												<tr>
+		
+													<th width="15%">用户</th>
+		
+													<th width="15%">操作</th>
+		
+													<th width="40%">操作内容</th>
+													
+													<th width="15%">IP</th>
+													
+													<th width="15%">操作时间</th>
+		
+												</tr>
+												
+											</thead>
+		
+											<tbody id="tbody">
+		
+											</tbody>
+		
+										</table>
+		
+									</div>
+
+								</div>
+								<div class="pagination pagination-right">
+									<ul>
+										<li>
+											<a href="javascript:;" onclick="jumpPage('first')" title="首页">
+												&laquo; 首页
+											</a> 
+										</li>
+										<li>
+											<a href="javascript:;" onclick="jumpPage('previous')" title="上一页">
+												上一页
+											</a>
+										</li>
+											
+										<li>
+											<a>
+												<span id="currentPage"></span>/<span id="totalPage"></span>
+											</a>
+										</li>	
+										<li>
+											<a href="javascript:;" onclick="jumpPage('next')" title="下一页">
+												下一页
+											</a>
+										</li>
+										<li> 
+											<a href="javascript:;" onclick="jumpPage('last')" title="末页">
+												末页&raquo;
+											</a>
+										</li>
+				
+									</ul>
+								</div>
+							</div>
+						
+						</div>
+					
+					</div>
+
+				</div>
+
+				<!-- END PAGE CONTENT-->
+
+			</div>
+
+	<!-- END CONTAINER -->
+
+	<!-- BEGIN JAVASCRIPTS(Load javascripts at bottom, this will reduce page load time) -->
+
+	<!-- BEGIN CORE PLUGINS -->
+	<script src="../media/js/jquery-2.1.1.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery-migrate-1.2.1.min.js" type="text/javascript"></script>
+
+	<!-- IMPORTANT! Load jquery-ui-1.10.1.custom.min.js before bootstrap.min.js to fix bootstrap tooltip conflict with jquery ui tooltip -->
+
+	<script src="../media/js/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>      
+
+	<script src="../media/js/bootstrap.min.js" type="text/javascript"></script>
+
+	<!--[if lt IE 9]>
+
+	<script src="media/js/excanvas.min.js"></script>
+
+	<script src="media/js/respond.min.js"></script>  
+
+	<![endif]-->                    
+
+	<script src="../media/js/jquery.slimscroll.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.blockui.min.js" type="text/javascript"></script>  
+
+	<script src="../media/js/jquery.cookie.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.uniform.min.js" type="text/javascript" ></script>
+
+	<!-- END CORE PLUGINS -->
+
+	<!-- BEGIN PAGE LEVEL PLUGINS -->
+
+	<script type="text/javascript" src="../media/js/select2.min.js"></script>
+
+	<script type="text/javascript" src="../media/js/jquery.dataTables.min.js"></script>
+
+	<script type="text/javascript" src="../media/js/DT_bootstrap.js"></script>
+
+	<!-- END PAGE LEVEL PLUGINS -->
+
+	<!-- BEGIN PAGE LEVEL SCRIPTS -->
+
+
+	<script src="../media/js/table-advanced.js"></script>       
+	<script src="../media/js/app.js"></script>
+
+	<script>
+		jQuery(document).ready(function() {    
+	
+			App.init();
+	
+			//选择第一个tab
+			$("#userTab li:first").addClass("active");
+	
+			//页面初始化时候的数据加载
+			var userId = $("ul li.active").find('a').attr("attr1");
+			var roleId = $("ul li.active").find('a').attr("attr2");
+	
+			//加载初始化数据   
+			loadSystemLogList(null, userId, roleId, null);
+	
+		});
+
+		//加载异常报警列表
+		function loadSystemLogList(userId, roleId, cPage)
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>system/loadSystemLogList.do",
+				data:{
+						userId : userId,
+						roleId : roleId,
+						cPage : cPage
+					},
+				success: function(data){
+					var page = eval("(" + data + ")");
+					$("#currentPage").html(page.currentPage);
+					$("#totalPage").html(page.totalPage);
+					var appendHtml = '';
+					$.each(page.list, function(n, value) {  
+						if (n%2 == 0)
+						{
+							appendHtml += '<tr style="background-color: #ededed">';
+						}
+						else
+						{
+							appendHtml += '<tr>';
+						}	
+						//用户
+           				appendHtml += '<td width="15%">' + value.userName + '</td>';
+						//操作
+           				var operation = parseInt(value.operation);
+           				switch(operation)
+           				{ 
+           					case 0 : 
+           						appendHtml += '<td width="15%">其它</td>';
+           						break; 
+           					case 1 : 
+           						appendHtml += '<td width="15%">增加</td>';
+           						break; 
+           					case 2 : 
+           						appendHtml += '<td width="15%">删除</td>';
+           						break; 
+           					case 3 : 
+           						appendHtml += '<td width="15%">修改</td>';
+           						break; 
+           					case 4 : 
+           						appendHtml += '<td width="15%">导入</td>';
+           						break; 
+           					case 5 : 
+           						appendHtml += '<td width="15%">导出</td>';
+           						break; 
+           					case 6 : 
+           						appendHtml += '<td width="15%">状态变化(审核，冻结等)</td>';
+           						break; 
+           					case 7 : 
+           						appendHtml += '<td width="15%">发送</td>';
+           						break; 
+           					case 8 : 
+           						appendHtml += '<td width="15%">登录</td>';
+           						break; 
+           					case 9 : 
+           						appendHtml += '<td width="15%">退出</td>';
+           						break; 
+           					case 10 : 
+           						appendHtml += '<td width="15%">变</td>';
+           						break; 
+           					default : 
+           						appendHtml += '<td width="15%">其它</td>';
+           						break;
+           				}
+
+           				//操作内容
+           				appendHtml += '<td width="40%">' + value.introduction + '</td>';
+						//IP        				
+           				appendHtml += '<td width="15%">' + value.ip + '</td>';
+						//操作时间
+           				appendHtml += '<td width="15%">' + value.createTime + '</td>';
+           				
+           				appendHtml += '</tr>';
+           				
+          			}); 
+          			$("#tbody").html(appendHtml);
+          			reSetIframeHeight();
+				},
+			});
+		}
+
+		//iframe加载相关
+		var iframeLoaded = function (iframe) 
+		{
+		    if (iframe.src.length > 0) 
+			{
+		        if (!iframe.readyState || iframe.readyState == "complete") 
+			    {
+		            var bHeight = 
+		            iframe.contentWindow.document.body.scrollHeight;
+		            var dHeight = 
+		            iframe.contentWindow.document.documentElement.scrollHeight;
+		            var height = Math.max(bHeight, dHeight);
+		            iframe.height = height;
+		        }
+		    }
+		}
+		//分页时重新设置 iframe 高度 ； 修改后：iframe.name = iframe.id
+		var reSetIframeHeight = function()
+		{
+		    try 
+		    {
+		        var oIframe = parent.document.getElementById(window.name);
+		        oIframe.height = 100;
+		        iframeLoaded(oIframe);
+		    }
+		    catch (err)
+		    {
+		        try 
+		        {
+		        	parent.document.getElementById(window.name).height = 1000;
+		        }
+		        catch (err2) 
+		        {
+			    }
+		    }
+		}
+
+		//分页相关
+		function jumpPage(type)
+		{
+			var cPage = $("#currentPage").html();
+			var totalPage = $("#totalPage").html();
+
+			var cPageInt = parseInt(cPage);
+			var totalPageInt = parseInt(totalPage);
+						
+			var newCPageInt = returnCPageInt(type,cPageInt,totalPageInt);
+			if(newCPageInt < 0){
+				return;
+			}else{
+				cPageInt = newCPageInt;
+			}
+
+			
+			//用户ID
+			var userId = $("ul li.active").find('a').attr("attr1");
+			//角色ID
+			var roleId = $("ul li.active").find('a').attr("attr2");
+			loadSystemLogList(userId, roleId, cPageInt);
+			$("#currentPage").html(cPageInt);
+		}
+
+		//加载师生选择select
+		function loadTchStuSelect(roleId)
+		{
+			//如果是系统管理员，超级管理员，校长，班主任则有发布权限
+			var roleIdInt = parseInt(roleId);
+
+			switch(roleIdInt)
+			{ 
+				case 1 : 
+					$("#tchStuType").show();
+					break; 
+				case 2 : 
+					$("#tchStuType").show(); 
+					break; 
+				case 3 : 
+					$("#tchStuType").show(); 
+					break; 
+				case 4 : 
+					$("#tchStuType").show();
+					break; 
+				case 5 : 
+					$("#tchStuType").hide();
+					break; 
+				case 6 : 
+					$("#tchStuType").hide();
+					break; 
+				case 7 : 
+					$("#tchStuType").hide();
+					break; 
+				default : 
+					$("#tchStuType").hide();
+					break;
+			} 
+		}
+	</script>
+
+	<!-- END JAVASCRIPTS -->
+
+<script type="text/javascript">  var _gaq = _gaq || [];  _gaq.push(['_setAccount', 'UA-37564768-1']);  _gaq.push(['_setDomainName', 'keenthemes.com']);  _gaq.push(['_setAllowLinker', true]);  _gaq.push(['_trackPageview']);  (function() {    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;    ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);  })();</script></body>
+
+<!-- END BODY -->
+
+</html>

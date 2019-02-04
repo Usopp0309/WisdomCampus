@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Pushmessage">
+	<typeAlias alias="pushmessage" type="com.guotop.palmschool.entity.Pushmessage" />
+
+	<insert id="addPushmessage" parameterClass="pushmessage">
+		insert into
+		platform.pushmessage(
+			pushType, pushContentType,pushContent,pushImage,pushSenderId,
+			pushSender,pushGroupId,pushGroupName,pushUrl,createTime,
+			operationapplyId,title,channels,deviceType,receiverId,
+			pushOwnerID,operationResult,pushData,alert,sound,status,
+			schoolId,pushSenderVoipAccount)
+		values(
+			#pushType#, #pushContentType#,#pushContent#,#pushImage#,#pushSenderId#,
+			#pushSender#,#pushGroupId#,#pushGroupName#,#pushUrl#,#createTime#,
+			#operationapplyId#,#title#,#channels#,#deviceType#,#receiverId#,
+			#pushOwnerID#,#operationResult#,#pushData#,#alert#,#sound#,#status#,
+			#schoolId#,#pushSenderVoipAccount#)
+		<selectKey resultClass="int" type="post" keyProperty="pushId">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 通过userid查询刷卡记录 并取最后一条-->
+	<select id="findLatestMessageCountList" parameterClass="Integer" resultClass="Integer" >
+ 		select COUNT(pushId) from platform.Pushmessage model where model.receiverId = #receiverId#		
+	</select>
+	
+	<select id="getPushmessageByDate"  parameterClass="HashMap" resultClass="Integer">
+		SELECT count(*) FROM platform.Pushmessage WHERE createTime <![CDATA[ <= ]]> #startTime# 
+	</select>
+
+	<delete id="deletePushmessageByDate">
+		DELETE FROM platform.Pushmessage WHERE createTime <![CDATA[ <= ]]> #startTime# 
+	</delete>
+</sqlMap>

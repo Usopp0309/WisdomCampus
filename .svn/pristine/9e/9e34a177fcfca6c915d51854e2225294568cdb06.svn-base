@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="SecurityDangerDetail">
+	<typeAlias alias="securityDangerDetail"
+		type="com.guotop.palmschool.securitydanger.entity.SecurityDangerDetail" />
+	<!-- 根据安全隐患获得详细 -->
+	<select id="getByParentId" resultClass="securityDangerDetail"
+		parameterClass="Integer">
+		select d.*,u.realName,u.headImg from palm_security_danger_detail d inner join platform.user_detail u where
+		d.receive=u.userId and parentId=#parentId#
+	</select>
+	<!-- 批量插入安全隐患详细 -->
+	<insert id="insertBachDetail" parameterClass="java.util.List">
+		insert into palm_security_danger_detail(receive,parentId)
+		values
+		<iterate conjunction=",">
+			(
+			#details[].receive#,#details[].parentId#
+			)
+		</iterate>
+	</insert>
+</sqlMap>
+	

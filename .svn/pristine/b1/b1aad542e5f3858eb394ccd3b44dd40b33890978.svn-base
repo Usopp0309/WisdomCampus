@@ -1,0 +1,1179 @@
+package com.guotop.palmschool.curriculum.controller;
+
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.gson.Gson;
+import com.guotop.palmschool.common.entity.ResultInfo;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.controller.BaseController;
+import com.guotop.palmschool.curriculum.entity.Classroom;
+import com.guotop.palmschool.curriculum.entity.Curriculum;
+import com.guotop.palmschool.curriculum.entity.CurriculumSemester;
+import com.guotop.palmschool.curriculum.entity.CurriculumTime;
+import com.guotop.palmschool.curriculum.entity.Week;
+import com.guotop.palmschool.curriculum.service.CurriculumService;
+import com.guotop.palmschool.entity.Clazz;
+import com.guotop.palmschool.entity.Role;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+
+/**
+ * 电子课程表控制类
+ */
+@RequestMapping("/curriculum")
+@Controller
+public class CurriculumController extends BaseController
+{
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private CurriculumService curriculumService;
+
+	@Resource
+	private UserService userService;
+
+	/**
+	 * 进入电子课程表页面
+	 */
+	@RequestMapping(value = "/toSetCurriculum.do")
+	public String toSetCurriculum(HttpServletRequest request, HttpSession session, HttpServletResponse response, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		User loginUser = (User) session.getAttribute("user");
+
+		String roleCode = request.getParameter("roleCode");
+
+		// 用判断是否显示编辑按钮
+		Integer times = 0;
+
+		// 用于是否显示班级课程表按钮（主要针对班主任）
+		Integer schedule = StringUtil.toint(request.getParameter("schedule"));
+
+		Integer clazzId = StringUtil.toint(request.getParameter("clazzId"));
+
+		List<Role> roleList = loginUser.getRoleList();
+
+		if (roleCode == null && roleList != null && roleList.size() > 0)
+		{
+			roleCode = roleList.get(0).getRoleCode();
+		}
+
+		if (clazzId == 0)
+		{
+			HashMap<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("user", loginUser);
+			paramMap.put("userId", loginUser.getUserId());
+			paramMap.put("permissionCode", "curriculumManager");
+			paramMap.put("roleCode", roleCode);
+
+			List<Clazz> clazzList = commonService.getClazzListByRoleCode(paramMap);
+			if (clazzList.size() > 0)
+			{
+				clazzId = clazzList.get(0).getId();
+			}
+		}
+
+		List<Week> weekList = curriculumService.getWeekList();
+
+		// 开始日期
+		String startDate = request.getParameter("startDate");
+
+		// 结束日期
+		String endDate = request.getParameter("endDate");
+
+		CurriculumSemester semester = curriculumService.getCurriculumServiceByDate(TimeUtil.date(), startDate, endDate);
+
+		if (semester != null)
+		{
+			times = 1;
+			// 上午
+			List<CurriculumTime> curriculumMorningTimeList = curriculumService.getCurriculumTimeMorningBySemesterId(semester.getId());
+			modelMap.addAttribute("curriculumMorningTimeList", curriculumMorningTimeList);
+
+			if (curriculumMorningTimeList.size() > 0)
+			{
+				for (CurriculumTime curriculumTime : curriculumMorningTimeList)
+				{
+
+					List<Curriculum> curriculumList = curriculumService.getCurriculumByTimeId(curriculumTime.getId(), roleCode, loginUser, clazzId);
+
+					if (curriculumList != null && curriculumList.size() > 0)
+					{
+						curriculumTime.setCurriculumList(curriculumList);
+					}
+				}
+			}
+
+			// 下午
+			List<CurriculumTime> curriculumAfternoonTimeList = curriculumService.getCurriculumTimeAfternoonBySemesterId(semester.getId());
+			modelMap.addAttribute("curriculumAfternoonTimeList", curriculumAfternoonTimeList);
+
+			if (curriculumAfternoonTimeList.size() > 0)
+			{
+				for (CurriculumTime curriculumTime : curriculumAfternoonTimeList)
+				{
+
+					List<Curriculum> curriculumList = curriculumService.getCurriculumByTimeId(curriculumTime.getId(), roleCode, loginUser, clazzId);
+
+					if (curriculumList != null && curriculumList.size() > 0)
+					{
+						curriculumTime.setCurriculumList(curriculumList);
+					}
+				}
+			}
+
+			// 晚上
+			List<CurriculumTime> curriculumNightTimeList = curriculumService.getCurriculumTimeNightBySemesterId(semester.getId());
+			modelMap.addAttribute("curriculumNightTimeList", curriculumNightTimeList);
+
+			if (curriculumNightTimeList != null && curriculumNightTimeList.size() > 0)
+			{
+				for (CurriculumTime curriculumTime : curriculumNightTimeList)
+				{
+
+					List<Curriculum> curriculumList = curriculumService.getCurriculumByTimeId(curriculumTime.getId(), roleCode, loginUser, clazzId);
+
+					if (curriculumList != null && curriculumList.size() > 0)
+					{
+						curriculumTime.setCurriculumList(curriculumList);
+					}
+				}
+			}
+
+			modelMap.addAttribute("startDay", semester.getBeginDate());
+			modelMap.addAttribute("endDay", semester.getEndDate());
+			modelMap.addAttribute("semesterId", semester.getId());
+
+		}
+
+		modelMap.addAttribute("weekList", weekList);
+		modelMap.addAttribute("times", times);
+		modelMap.addAttribute("schedule", schedule);
+		modelMap.addAttribute("clazzId", clazzId);
+
+		if (commonService.hasAdminPermission(loginUser))
+		{
+			return "curriculum/curriculum_list";
+
+		} else if (roleCode != null && roleCode.equals("classLeader"))
+		{
+			return "curriculum/curriculum_list_classleader";
+
+		} else if (roleCode != null && roleCode.equals("parent"))
+		{
+			return "curriculum/curriculum_list_parent";
+
+		} else if (roleCode != null && roleCode.equals("student"))
+		{
+			return "curriculum/curriculum_list_student";
+
+		} else
+		{
+			return "curriculum/curriculum_list_teacher";
+		}
+	}
+
+	/**
+	 * 成长手册查询课程表
+	 */
+	@RequestMapping(value = "/getCurriculumController.do")
+	public String getCurriculumController(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		String userId = request.getParameter("userId");
+		String nowDateStr = request.getParameter("endDate");
+		Calendar calendar = Calendar.getInstance();  
+		int week = calendar.get(Calendar.DAY_OF_WEEK);
+		week-=1;
+		if(week==6||week==0) week = 5;
+		Curriculum c = new Curriculum();
+		c.setWeekId(week);
+		//createTime用于查找最近学期，借用
+		c.setCreateTime(nowDateStr);
+		c.setUserId(Integer.valueOf(userId));
+		List<CurriculumTime> curriculumMorningTimeList = curriculumService.getCurriculumController(c);
+		Gson gson = new Gson();
+		String json = gson.toJson(curriculumMorningTimeList);
+		try {
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	/**
+	 * 进入创建课程表页面(管理员或者校长)
+	 */
+	@RequestMapping(value = "/toAddCurriculum.do")
+	public String toAddCurriculum(ModelMap modelMap)
+	{
+		List<Week> weekList = curriculumService.getWeekList();
+		modelMap.addAttribute("weekList", weekList);
+		return "curriculum/curriculum_add";
+	}
+
+	/**
+	 * 管理员或者校长 创建课程表时间 和使用的学期
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/toSaveCurriculumTime.do")
+	public String toSaveCurriculumTime(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+
+		response.setCharacterEncoding("UTF-8");
+
+		// 学期开始结束日期
+		String startDay = request.getParameter("startDay");
+		String endDay = request.getParameter("endDay");
+		// 上午开始结束时间
+		String[] startTimeAm = request.getParameterValues("startTimeAm");
+		String[] endTimeAm = request.getParameterValues("endTimeAm");
+		// 下午开始结束时间
+		String[] startTimePm = request.getParameterValues("startTimePm");
+		String[] endTimePm = request.getParameterValues("endTimePm");
+		// 晚上开始结束时间
+		String[] startTimeN = request.getParameterValues("startTimeN");
+		String[] endTimeN = request.getParameterValues("endTimeN");
+
+		CurriculumSemester semester = new CurriculumSemester();
+		semester.setBeginDate(startDay);
+		semester.setEndDate(endDay);
+		semester.setUsable(1);
+		semester.setCreateTime(TimeUtil.getInstance().now());
+		Integer semesterId = curriculumService.saveCurriculumSemester(semester);
+
+		for (int i = 0; i < startTimeAm.length; i++)
+		{
+			CurriculumTime curriculumTime = new CurriculumTime();
+
+			curriculumTime.setSemesterId(semesterId);
+			curriculumTime.setBeginTime(startTimeAm[i]);
+			curriculumTime.setEndTime(endTimeAm[i]);
+			curriculumTime.setNum(1);
+			curriculumTime.setCreateTime(TimeUtil.getInstance().now());
+			curriculumService.saveCurriculumTime(curriculumTime);
+		}
+
+		for (int i = 0; i < startTimePm.length; i++)
+		{
+			CurriculumTime curriculumTime = new CurriculumTime();
+
+			curriculumTime.setSemesterId(semesterId);
+			curriculumTime.setBeginTime(startTimePm[i]);
+			curriculumTime.setEndTime(endTimePm[i]);
+			curriculumTime.setNum(2);
+			curriculumTime.setCreateTime(TimeUtil.getInstance().now());
+			curriculumService.saveCurriculumTime(curriculumTime);
+		}
+
+		for (int i = 0; i < startTimeN.length; i++)
+		{
+			if (!StringUtil.isEmpty(startTimeN[i]))
+			{
+				CurriculumTime curriculumTime = new CurriculumTime();
+
+				curriculumTime.setSemesterId(semesterId);
+				curriculumTime.setBeginTime(startTimeN[i]);
+				curriculumTime.setEndTime(endTimeN[i]);
+				curriculumTime.setNum(3);
+				curriculumTime.setCreateTime(TimeUtil.getInstance().now());
+				curriculumService.saveCurriculumTime(curriculumTime);
+			}
+		}
+
+		return toSetCurriculum(request, session, response, modelMap);
+
+	}
+
+	/**
+	 * 进入编辑课程表页面(管理员或者校长)
+	 */
+	@RequestMapping(value = "/toEditCurriculum.do")
+	public String toEditCurriculum(HttpServletRequest request, ModelMap modelMap)
+	{
+		List<Week> weekList = curriculumService.getWeekList();
+		String startDay = request.getParameter("startDay");
+		String endDay = request.getParameter("endDay");
+		Integer semesterId = StringUtil.toint(request.getParameter("semesterId"));
+
+		// 上午
+		List<CurriculumTime> curriculumMorningTimeList = curriculumService.getCurriculumTimeMorningBySemesterId(semesterId);
+		// 下午
+		List<CurriculumTime> curriculumAfternoonTimeList = curriculumService.getCurriculumTimeAfternoonBySemesterId(semesterId);
+		// 晚上
+		List<CurriculumTime> curriculumNightTimeList = curriculumService.getCurriculumTimeNightBySemesterId(semesterId);
+
+		modelMap.addAttribute("weekList", weekList);
+		modelMap.addAttribute("startDay", startDay);
+		modelMap.addAttribute("endDay", endDay);
+		modelMap.addAttribute("semesterId", semesterId);
+		modelMap.addAttribute("curriculumMorningTimeList", curriculumMorningTimeList);
+		modelMap.addAttribute("curriculumAfternoonTimeList", curriculumAfternoonTimeList);
+		modelMap.addAttribute("curriculumNightTimeList", curriculumNightTimeList);
+
+		return "curriculum/curriculum_edit";
+	}
+
+	/**
+	 * 管理员或者校长修改课程表时间 和使用的日期
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/toUpdateCurriculumTime.do")
+	public String toUpdateCurriculumTime(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+
+		response.setCharacterEncoding("UTF-8");
+
+		String startDay = request.getParameter("startDay");
+		String endDay = request.getParameter("endDay");
+
+		// 开始结束时间
+//		String[] startTime = request.getParameterValues("startTime");
+//		String[] endTime = request.getParameterValues("endTime");
+
+		String[] startTimeAm = request.getParameterValues("startTimeAm");
+		String[] endTimeAm = request.getParameterValues("endTimeAm");
+		// 下午开始结束时间
+		String[] startTimePm = request.getParameterValues("startTimePm");
+		String[] endTimePm = request.getParameterValues("endTimePm");
+		// 晚上开始结束时间
+		String[] startTimeN = request.getParameterValues("startTimeN");
+		String[] endTimeN = request.getParameterValues("endTimeN");
+		
+		Integer semesterId = StringUtil.toint(request.getParameter("semesterId"));
+		CurriculumSemester semester = new CurriculumSemester();
+		semester.setId(semesterId);
+		semester.setBeginDate(startDay);
+		semester.setEndDate(endDay);
+		semester.setUpdateTime(TimeUtil.getInstance().now());
+		curriculumService.modifyCurriculumSemester(semester);
+
+//		List<CurriculumTime> curriculumTimeList = curriculumService.getCurriculumTimeBySemesterId(semesterId);
+		List<CurriculumTime> curriculumTimeMorning =curriculumService.getCurriculumTimeMorningBySemesterId(semesterId);
+		List<CurriculumTime> curriculumTimeAftern = curriculumService.getCurriculumTimeAfternoonBySemesterId(semesterId);
+		List<CurriculumTime> curriculumTimeNight = curriculumService.getCurriculumTimeNightBySemesterId(semesterId);
+		//早
+		if(startTimeAm !=null &&startTimeAm.length > 0){
+			for (int i = 0; i < startTimeAm.length; i++)
+			{
+				CurriculumTime time = new CurriculumTime();
+				//添加时间段 time
+				if(startTimeAm.length > curriculumTimeMorning.size() && curriculumTimeMorning.size() < i+1){
+					time.setSemesterId(semesterId);
+					time.setBeginTime(startTimeAm[i]);
+					time.setEndTime(endTimeAm[i]);
+					time.setNum(1);
+					time.setCreateTime(TimeUtil.getInstance().now());
+					curriculumService.saveCurriculumTime(time);
+				}else{
+					Integer timeId = curriculumTimeMorning.get(i).getId();
+					time.setBeginTime(startTimeAm[i]);
+					time.setEndTime(endTimeAm[i]);
+					time.setId(timeId);
+					time.setUpdateTime(TimeUtil.getInstance().now());
+					curriculumService.modifyCurriculumTime(time);
+				}
+				
+			}
+			//删除操作
+			if(startTimeAm.length < curriculumTimeMorning.size()){
+				Integer timeId = curriculumTimeMorning.get(curriculumTimeMorning.size()-1).getId();
+				curriculumService.deleteCurriculumTimeById(timeId);
+			}
+		}
+		//中
+		if(startTimePm !=null && startTimePm.length > 0){
+			for (int i = 0; i < startTimePm.length; i++)
+			{
+				CurriculumTime time = new CurriculumTime();
+				//添加时间段 time
+				if(startTimePm.length > curriculumTimeAftern.size() && curriculumTimeAftern.size() < i+1){
+					time.setSemesterId(semesterId);
+					time.setBeginTime(startTimePm[i]);
+					time.setEndTime(endTimePm[i]);
+					time.setCreateTime(TimeUtil.getInstance().now());
+					time.setNum(2);//下午
+					curriculumService.saveCurriculumTime(time);
+				}else{
+					Integer timeId = curriculumTimeAftern.get(i).getId();
+					time.setBeginTime(startTimePm[i]);
+					time.setEndTime(endTimePm[i]);
+					time.setId(timeId);
+					time.setUpdateTime(TimeUtil.getInstance().now());
+					curriculumService.modifyCurriculumTime(time);
+				}
+				
+			}
+			//删除时间段 time
+			if(startTimePm.length < curriculumTimeAftern.size()){
+				Integer timeId = curriculumTimeAftern.get(curriculumTimeAftern.size()-1).getId();
+				curriculumService.deleteCurriculumTimeById(timeId);
+			}
+		}
+		//晚
+		if(startTimeN !=null && startTimeN.length > 0){
+			for (int i = 0; i < startTimeN.length; i++)
+			{
+				CurriculumTime time = new CurriculumTime();
+				//添加时间段 time
+				if(startTimeN.length > curriculumTimeNight.size() && curriculumTimeNight.size() < i+1){
+					//qweqweqwe
+					time.setSemesterId(semesterId);
+					time.setBeginTime(startTimeN[i]);
+					time.setEndTime(endTimeN[i]);
+					time.setCreateTime(TimeUtil.getInstance().now());
+					time.setNum(3);//晚上
+					curriculumService.saveCurriculumTime(time);
+				}else{
+					Integer timeId = curriculumTimeNight.get(i).getId();
+					time.setBeginTime(startTimeN[i]);
+					time.setEndTime(endTimeN[i]);
+					time.setId(timeId);
+					time.setUpdateTime(TimeUtil.getInstance().now());
+					curriculumService.modifyCurriculumTime(time);
+				}
+				
+			}
+			//删除	
+			if(startTimeN.length < curriculumTimeNight.size()){
+				Integer timeId = curriculumTimeNight.get(curriculumTimeNight.size()-1).getId();
+				curriculumService.deleteCurriculumTimeById(timeId);
+			}
+		}
+		
+
+		return toSetCurriculum(request, session, response, modelMap);
+
+	}
+
+	/**
+	 * 进入导入课程表页面(班主任)
+	 */
+	@RequestMapping(value = "/toImportCurriculum.do")
+	public String toImportCurriculum(HttpServletRequest request, ModelMap modelMap)
+	{
+		Integer semesterId = StringUtil.toint(request.getParameter("semesterId"));
+		Integer clazzId = StringUtil.toint(request.getParameter("clazzId"));
+
+		modelMap.addAttribute("semesterId", semesterId);
+		modelMap.addAttribute("clazzId", clazzId);
+
+		return "curriculum/curriculum_import";
+	}
+
+	/**
+	 * 进入编辑课程表页面(班主任)
+	 */
+	@RequestMapping(value = "/toClassLeaderEditCurriculum.do")
+	public String toClassLeaderEditCurriculum(HttpServletRequest request, ModelMap modelMap)
+	{
+		Integer semesterId = StringUtil.toint(request.getParameter("semesterId"));
+		Integer clazzId = StringUtil.toint(request.getParameter("clazzId"));
+		List<Week> weekList = curriculumService.getWeekList();
+		List<CurriculumSemester> semesters = null;
+		if(clazzId != null){
+			semesters = curriculumService.getCurriculumSemesterByClazzId(clazzId);
+		}
+		// 上午
+		List<CurriculumTime> curriculumMorningTimeList = curriculumService.getCurriculumTimeMorningBySemesterId(semesterId);
+
+		if (curriculumMorningTimeList.size() > 0)
+		{
+			for (CurriculumTime curriculumTime : curriculumMorningTimeList)
+			{
+
+				List<Curriculum> curriculumList = curriculumService.getCurriculumByTimeIdForEdit(curriculumTime.getId(), clazzId);
+
+				if (curriculumList.size() > 0)
+				{
+					curriculumTime.setCurriculumList(curriculumList);
+				}
+			}
+		}
+		modelMap.addAttribute("curriculumMorningTimeList", curriculumMorningTimeList);
+
+		// 下午
+		List<CurriculumTime> curriculumAfternoonTimeList = curriculumService.getCurriculumTimeAfternoonBySemesterId(semesterId);
+
+		if (curriculumMorningTimeList.size() > 0)
+		{
+			for (CurriculumTime curriculumTime : curriculumAfternoonTimeList)
+			{
+
+				List<Curriculum> curriculumList = curriculumService.getCurriculumByTimeIdForEdit(curriculumTime.getId(), clazzId);
+
+				if (curriculumList.size() > 0)
+				{
+					curriculumTime.setCurriculumList(curriculumList);
+				}
+			}
+		}
+		modelMap.addAttribute("curriculumAfternoonTimeList", curriculumAfternoonTimeList);
+
+		// 晚上
+		List<CurriculumTime> curriculumNightTimeList = curriculumService.getCurriculumTimeNightBySemesterId(semesterId);
+
+		if (curriculumMorningTimeList.size() > 0)
+		{
+			for (CurriculumTime curriculumTime : curriculumNightTimeList)
+			{
+
+				List<Curriculum> curriculumList = curriculumService.getCurriculumByTimeIdForEdit(curriculumTime.getId(), clazzId);
+
+				if (curriculumList.size() > 0)
+				{
+					curriculumTime.setCurriculumList(curriculumList);
+				}
+			}
+		}
+		modelMap.addAttribute("curriculumNightTimeList", curriculumNightTimeList);
+
+		modelMap.addAttribute("weekList", weekList);
+		modelMap.addAttribute("semesterId", semesterId);
+		modelMap.addAttribute("clazzId", clazzId);
+		modelMap.addAttribute("semesters", semesters);
+
+		return "curriculum/curriculum_classleader_edit";
+	}
+
+	
+	@RequestMapping(value = "/deleteCurriculumByClazzIdAndSemesterId.do")
+	public String deleteCurriculumByClazzIdAndSemesterId(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		int retDa=1;
+		try
+		{
+			Integer semesterId = StringUtil.toint(request.getParameter("semesterId"));
+			Integer clazzId = StringUtil.toint(request.getParameter("clazzId"));
+
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("semesterId", semesterId);
+			paramMap.put("clazzId", clazzId);
+			try {
+				curriculumService.deleteCurriculumByClazzIdAndSemesterId(paramMap);
+			} catch (Exception e) {
+				retDa=0;
+			}
+			
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(retDa);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	/**
+	 * 班主任编辑课程表科目
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/toSaveCurriculum.do")
+	public String toSaveCurriculum(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+
+		response.setCharacterEncoding("UTF-8");
+
+		User user = (User) session.getAttribute("user");
+
+		Integer semesterId = StringUtil.toint(request.getParameter("semesterId"));
+		Integer clazzId = StringUtil.toint(request.getParameter("clazzId"));
+		Integer timeId = StringUtil.toint(request.getParameter("timeId"));
+		Integer weekId = StringUtil.toint(request.getParameter("weekId"));
+		Integer id = StringUtil.toint(request.getParameter("id"));
+
+		Integer teacherId = StringUtil.toint(request.getParameter("subjectTeacher"));
+		Integer classroomId = StringUtil.toint(request.getParameter("classroom"));
+		String subjectName = request.getParameter("subjectName");
+
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("semesterId", semesterId);
+		paramMap.put("clazzId", clazzId);
+		paramMap.put("timeId", timeId);
+		paramMap.put("weekId", weekId);
+
+		Curriculum curriculum = curriculumService.getCurriculumByIds(paramMap);
+
+		if (curriculum == null)
+		{
+			for (int i = 1; i < 8; i++)
+			{
+				Curriculum cur = new Curriculum();
+				cur.setClazzId(clazzId);
+				cur.setSemesterId(semesterId);
+				cur.setTimeId(timeId);
+				cur.setUserId(user.getUserId());
+				if (weekId == i)
+				{
+					cur.setSubjectName(subjectName);
+					if (teacherId != 0)
+					{
+						cur.setSubjectsUser(teacherId);
+					}
+					cur.setWeekId(weekId);
+					if (classroomId != 0)
+					{
+						cur.setClassroomId(classroomId);
+					}
+				} else
+				{
+					cur.setWeekId(i);
+				}
+				cur.setCreateTime(TimeUtil.getInstance().now());
+				curriculumService.saveCurriculum(cur);
+				if(subjectName != null)
+				{
+					curriculumService.saveExamSubjectInfo(subjectName,teacherId,clazzId);
+				}
+			}
+
+		} else
+		{
+			Curriculum cur = new Curriculum();
+			cur.setId(id);
+			cur.setSubjectName(subjectName);
+			if (teacherId != 0)
+			{
+				cur.setSubjectsUser(teacherId);
+			}
+			if (classroomId != 0)
+			{
+				cur.setClassroomId(classroomId);
+			}
+			cur.setUpdateTime(TimeUtil.getInstance().now());
+			curriculumService.updateCurriculum(cur);
+			if(subjectName != null)
+			{
+				curriculumService.saveExamSubjectInfo(subjectName,teacherId,clazzId);
+			}
+		}
+
+		return toClassLeaderEditCurriculum(request, modelMap);
+
+	}
+
+	/**
+	 * 加载班级信息 20151207
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/loadClazzList.do")
+	public String loadClazzList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		Gson gson = new Gson();
+
+		/*
+		 * 取出选中的用户
+		 */
+		User user = (User) session.getAttribute("user");
+
+		// 查询传入页面权限编码
+		String permissionCode = request.getParameter("permissionCode");
+		String roleCode = request.getParameter("roleCode");
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("user", user);
+		paramMap.put("userId", user.getUserId());
+		paramMap.put("permissionCode", permissionCode);
+		paramMap.put("roleCode", roleCode);
+
+		List<Clazz> clazzList = commonService.getClazzListByRoleCode(paramMap);
+
+		try
+		{
+			String json = gson.toJson(clazzList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 创建课程表时校验学期日期是否存在 20160120
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/toCheckSemesterCurriculum.do")
+	public String toCheckSemesterCurriculum(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			String startDay = request.getParameter("startDay");
+			String endDay = request.getParameter("endDay");
+
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("startDay", startDay);
+			paramMap.put("endDay", endDay);
+
+			ResultInfo resultInfo = curriculumService.checkSemesterCurriculum(paramMap);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(resultInfo);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 导入课程表时判断课程表是否存在 20160122
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/toCheckCurriculum.do")
+	public String toCheckCurriculum(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			Integer semesterId = StringUtil.toint(request.getParameter("semesterId"));
+			Integer clazzId = StringUtil.toint(request.getParameter("clazzId"));
+
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("semesterId", semesterId);
+			paramMap.put("clazzId", clazzId);
+
+			ResultInfo resultInfo = curriculumService.checkCurriculum(paramMap);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(resultInfo);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 加载代课教师列表 20160122
+	 */
+	@RequestMapping(value = "/getSubjectTeacherList.do")
+	public String getSubjectTeacherList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		Gson gson = new Gson();
+
+		// 姓名
+		String name = request.getParameter("name");
+
+		List<User> teacherList = curriculumService.getSubjectTeacherList(name);
+
+		try
+		{
+			String json = gson.toJson(teacherList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 加载教室列表 20160122
+	 */
+	@RequestMapping(value = "/getclassroomNameList.do")
+	public String getclassroomNameList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		Gson gson = new Gson();
+
+		// 教室名称
+		String name = request.getParameter("name");
+
+		List<Classroom> classroomList = curriculumService.getclassroomNameList(name);
+
+		try
+		{
+			String json = gson.toJson(classroomList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 校验任课教师在此时间是否有代课 20160123
+	 */
+	@RequestMapping(value = "/checkTeacher.do")
+	public String checkTeacher(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			Integer semesterId = StringUtil.toint(request.getParameter("semesterId"));
+			Integer timeId = StringUtil.toint(request.getParameter("timeId"));
+			Integer weekId = StringUtil.toint(request.getParameter("weekId"));
+			Integer teacherId = StringUtil.toint(request.getParameter("teacherId"));
+
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("semesterId", semesterId);
+			paramMap.put("timeId", timeId);
+			paramMap.put("weekId", weekId);
+			paramMap.put("teacherId", teacherId);
+
+			ResultInfo resultInfo = curriculumService.checkTeacher(paramMap);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(resultInfo);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 校验该教室在此时间是否被占用 20160123
+	 */
+	@RequestMapping(value = "/checkClassroom.do")
+	public String checkClassroom(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			Integer semesterId = StringUtil.toint(request.getParameter("semesterId"));
+			Integer timeId = StringUtil.toint(request.getParameter("timeId"));
+			Integer weekId = StringUtil.toint(request.getParameter("weekId"));
+			Integer classroomId = StringUtil.toint(request.getParameter("classroomId"));
+
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("semesterId", semesterId);
+			paramMap.put("timeId", timeId);
+			paramMap.put("weekId", weekId);
+			paramMap.put("classroomId", classroomId);
+
+			ResultInfo resultInfo = curriculumService.checkClassroom(paramMap);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(resultInfo);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 进入电子课程表页面(APP)
+	 */
+	@RequestMapping(value = "/toSetCurriculumHuXin.do")
+	public String toSetCurriculumHuXin(HttpServletRequest request, HttpSession session, HttpServletResponse response, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		
+		modelMap.addAttribute("apiKey", apiKey);
+		modelMap.addAttribute("schoolId", schoolId);
+		
+		User user = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+		
+		if (user == null)
+		{
+
+			user = (User) session.getAttribute("user");
+
+			if (user != null)
+			{
+				modelMap.addAttribute("apiKeyTimeOut", "2");
+			} else
+			{
+				modelMap.addAttribute("apiKeyTimeOut", "1");
+				return "app/curriculum/curriculum_list_app";
+			}
+		} else
+		{
+			modelMap.addAttribute("apiKeyTimeOut", "2");
+		}
+		
+		DBContextHolder.setDBType(user.getSchoolId());
+
+		/*
+		 * 存session
+		 */
+		session.setAttribute("user", user);
+		try
+		{
+
+			/*
+			 * 参数map
+			 */
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+
+			String roleCode = request.getParameter("roleCode");
+
+			// 用判断是否显示编辑按钮
+			Integer times = 0;
+
+			// 用于是否显示班级课程表按钮（主要针对班主任）
+			Integer schedule = StringUtil.toint(request.getParameter("schedule"));
+
+			Integer clazzId = StringUtil.toint(request.getParameter("clazzId"));
+
+			List<Role> roleList = user.getRoleList();
+
+			if (roleCode == null && roleList != null && roleList.size() > 0)
+			{
+				roleCode = user.getRoleList().get(0).getRoleCode();
+			}
+
+			if (clazzId == 0)
+			{
+				paramMap.put("user", user);
+				paramMap.put("userId", user.getUserId());
+				paramMap.put("permissionCode", "curriculumManager");
+				paramMap.put("roleCode", roleCode);
+
+				List<Clazz> clazzList = commonService.getClazzListByRoleCode(paramMap);
+				if (clazzList.size() > 0)
+				{
+					clazzId = clazzList.get(0).getId();
+				}
+			}
+
+			List<Week> weekList = curriculumService.getWeekList();
+
+			// 开始日期
+			String startDate = request.getParameter("startDate");
+
+			// 结束日期
+			String endDate = request.getParameter("endDate");
+
+			CurriculumSemester semester = curriculumService.getCurriculumServiceByDate(TimeUtil.date(), startDate, endDate);
+
+			if (semester != null)
+			{
+				times = 1;
+				// 上午
+				List<CurriculumTime> curriculumMorningTimeList = curriculumService.getCurriculumTimeMorningBySemesterId(semester.getId());
+				modelMap.addAttribute("curriculumMorningTimeList", curriculumMorningTimeList);
+
+				if (curriculumMorningTimeList.size() > 0)
+				{
+					for (CurriculumTime curriculumTime : curriculumMorningTimeList)
+					{
+
+						List<Curriculum> curriculumList = curriculumService.getCurriculumByTimeId(curriculumTime.getId(), roleCode, user, clazzId);
+
+						if (curriculumList != null && curriculumList.size() > 0)
+						{
+							curriculumTime.setCurriculumList(curriculumList);
+						}
+					}
+				}
+
+				// 下午
+				List<CurriculumTime> curriculumAfternoonTimeList = curriculumService.getCurriculumTimeAfternoonBySemesterId(semester.getId());
+				modelMap.addAttribute("curriculumAfternoonTimeList", curriculumAfternoonTimeList);
+
+				if (curriculumAfternoonTimeList.size() > 0)
+				{
+					for (CurriculumTime curriculumTime : curriculumAfternoonTimeList)
+					{
+
+						List<Curriculum> curriculumList = curriculumService.getCurriculumByTimeId(curriculumTime.getId(), roleCode, user, clazzId);
+
+						if (curriculumList != null && curriculumList.size() > 0)
+						{
+							curriculumTime.setCurriculumList(curriculumList);
+						}
+					}
+				}
+
+				// 晚上
+				List<CurriculumTime> curriculumNightTimeList = curriculumService.getCurriculumTimeNightBySemesterId(semester.getId());
+				modelMap.addAttribute("curriculumNightTimeList", curriculumNightTimeList);
+
+				if (curriculumNightTimeList != null && curriculumNightTimeList.size() > 0)
+				{
+					for (CurriculumTime curriculumTime : curriculumNightTimeList)
+					{
+
+						List<Curriculum> curriculumList = curriculumService.getCurriculumByTimeId(curriculumTime.getId(), roleCode, user, clazzId);
+
+						if (curriculumList != null && curriculumList.size() > 0)
+						{
+							curriculumTime.setCurriculumList(curriculumList);
+						}
+					}
+				}
+
+				modelMap.addAttribute("startDay", semester.getBeginDate());
+				modelMap.addAttribute("endDay", semester.getEndDate());
+				modelMap.addAttribute("semesterId", semester.getId());
+
+			}
+
+			modelMap.addAttribute("weekList", weekList);
+			modelMap.addAttribute("times", times);
+			modelMap.addAttribute("schedule", schedule);
+			modelMap.addAttribute("clazzId", clazzId);
+			modelMap.addAttribute("roleCode", roleCode);
+			modelMap.addAttribute("roleListSize", user.getRoleList().size());
+			modelMap.addAttribute("roleList", user.getRoleList());
+			
+
+			if (roleCode != null && (roleCode.equals("admin") || roleCode.equals("president")))
+			{
+				return "app/curriculum/curriculum_list_app";
+
+			} else if (roleCode != null && roleCode.equals("classLeader"))
+			{
+				return "app/curriculum/curriculum_list_classleader_app";
+
+			} else if (roleCode != null && roleCode.equals("parent"))
+			{
+				return "app/curriculum/curriculum_list_parent_app";
+
+			} else if (roleCode != null && roleCode.equals("student"))
+			{
+				return "app/curriculum/curriculum_list_student_app";
+
+			} else
+			{
+				return "app/curriculum/curriculum_list_teacher_app";
+			}
+
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return null;
+
+	}
+	
+	
+	/**
+	 * 进入课程表搜索页面（管理员校长、班主任、家长）
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/toCurriculumListSearchOneAPP.do")
+	public String toCurriculumListSearchOneAPP(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		String roleCode = request.getParameter("roleCode");
+
+		User user = (User) session.getAttribute("user");
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("user", user);
+		paramMap.put("userId", user.getUserId());
+		paramMap.put("permissionCode", "curriculumManager");
+		paramMap.put("roleCode", roleCode);
+
+		List<Clazz> clazzList = commonService.getClazzListByRoleCode(paramMap);
+
+		modelMap.addAttribute("clazzList", clazzList);
+		modelMap.addAttribute("roleCode", roleCode);
+		modelMap.addAttribute("apiKey", apiKey);
+		modelMap.addAttribute("schoolId", schoolId);
+		modelMap.addAttribute("userId", user.getUserId());
+
+		return "app/curriculum/curriculum_list_search_one_app";
+	}
+	
+	/**
+	 * 进入课程表搜索页面（教师、学生）
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/toCurriculumListSearchTwoAPP.do")
+	public String toCurriculumListSearchTwoAPP(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		String roleCode = request.getParameter("roleCode");
+
+		User user = (User) session.getAttribute("user");
+
+		modelMap.addAttribute("roleCode", roleCode);
+		modelMap.addAttribute("apiKey", apiKey);
+		modelMap.addAttribute("schoolId", schoolId);
+		modelMap.addAttribute("userId", user.getUserId());
+
+		return "app/curriculum/curriculum_list_search_two_app";
+	}
+}

@@ -1,0 +1,129 @@
+package com.guotop.palmschool.common.controller;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
+
+import com.guotop.palmschool.listener.StartupListener;
+
+/**
+ * 导入控制基类
+ * @author zhou
+ */
+@Controller
+public abstract class BaseUploadController 
+{
+	public abstract String getCommandName();
+	/**
+	 * 文件上传
+	 * @param request
+	 * @return
+	 */
+	public File upload(HttpServletRequest request, Integer id) 
+	{
+		try 
+		{
+			MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+
+			String fileName = (String) multipartRequest.getFileNames().next();
+
+			CommonsMultipartFile file = (CommonsMultipartFile) multipartRequest
+					.getFile(fileName);
+
+			InputStream stream = file.getInputStream();
+
+			File f = getFile(request, file.getOriginalFilename(), id);
+
+			OutputStream bos = new FileOutputStream(f);
+			int bytesRead = 0;
+			byte[] buffer = new byte[8192];
+
+			while ((bytesRead = stream.read(buffer, 0, 8192)) != -1) 
+			{
+				bos.write(buffer, 0, bytesRead);
+			}
+
+			bos.close();
+			stream.close();
+
+			return f;
+		} 
+		catch (Exception e) 
+		{
+			e.printStackTrace();
+			return null;
+		}
+		
+	}
+	public File getFile(HttpServletRequest request, String fileName, Integer id)
+	{
+		File tempPath = new File(getTempRoot() + "/excel/");
+		if (!tempPath.exists())
+		{
+			tempPath.mkdirs();
+		}
+
+		String ext = null;
+		if (fileName != null)
+		{
+			String fnl = fileName.toLowerCase();
+			if (fnl.endsWith(".xls"))
+			{
+				ext = ".xls";
+			} else if (fnl.endsWith(".xlsx"))
+			{
+				ext = ".xlsx";
+			} else if (fnl.endsWith(".txt"))
+			{
+				ext = ".txt";
+			}
+		}
+		if (ext == null)
+		{
+			ext = ".xls";
+		}
+
+		//String fn = getCommandName() + "-" + getSeq() + "-" + id + ext;
+		File file = new File(tempPath + "/" + fileName);
+		return file;
+	}
+	
+	public String getTempRoot()
+	{
+		String path = null;
+		String os = System.getProperty("os.name");  
+		if(os.toLowerCase().startsWith("win")){  
+			path = "D:/Guolang/WisdomCampus/upload/";  
+		} else{
+			path = "var/Guolang/WisdomCampus/upload/";
+		}
+		return path;
+	}
+	
+	public String getExt(String fileName) 
+	{
+		int p = fileName.lastIndexOf(".");
+		if (p == -1)
+		{
+			return null;
+		}
+		return fileName.substring(p + 1);
+	}
+	
+	public String getDataRoot() 
+	{
+		return StartupListener.getRoot() + "/res/data/";
+	}
+	
+	public String getSeq() 
+	{
+		return StartupListener.getSeq();
+	}
+}

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Import">
+	<typeAlias alias="import" type="com.guotop.palmschool.system.entity.Import"/>
+
+	<resultMap class="com.guotop.palmschool.system.entity.Import" id="result-import">
+		<result property="id" column="id"/>
+		<result property="fileName" column="filename"/>
+		<result property="filePath" column="filepath"/>	
+		<result property="type" column="type"/>
+		<result property="handler" column="handler"/>
+		<result property="total" column="total"/>
+		<result property="result" column="result"/>
+		<result property="resultDescription" column="resultdescription"/>
+		<result property="costTime" column="costtime"/>
+		<result property="updateTime" column="updatetime"/>	
+		<result property="createTime" column="createtime"/>
+	</resultMap>
+
+	<resultMap class="com.guotop.palmschool.system.entity.Import" id="result-import-Score">
+		<result property="id" column="id"/>
+		<result property="fileName" column="filename"/>
+		<result property="result" column="result"/>
+		<result property="createTime" column="createtime"/>
+		<result property="userId" column="userid"/>
+		<result property="userName" column="username"/>
+	</resultMap>
+	
+	<!-- 查找所有导入记录 -->
+	<select id="selectImportList" resultMap="result-import">
+		select *
+			from palm_import
+			order by id desc
+	</select>
+	
+	<!-- 查找本人发送成绩记录 -->
+	<select id="selectImportListByUserid" parameterClass="HashMap" resultMap="result-import-Score">
+		SELECT im.id,im.filename,im.result,im.createtime,im.userid,us.name AS username
+			FROM palm_import im, palm_user us
+			WHERE im.userid=us.id
+			AND im.userid=#userId#
+			ORDER BY id DESC
+	</select>	
+	
+	<!-- 新增导入记录 -->
+	<insert id="addImport" parameterClass="import">
+		insert into palm_import
+		(
+			filename, 
+			filepath, 
+			type, 
+			handler,
+			createTime
+		)
+		values
+		(
+			#fileName#,
+			#filePath#, 
+			#type#, 
+			#handler#,
+			#createTime#
+		)
+	</insert>
+	
+	<!-- 新增导入记录  返回主键-->
+	<insert id="addImportReturnId" parameterClass="import">
+		insert into palm_import
+		(
+			filename, 
+			filepath, 
+			type, 
+			handler,
+			createTime,
+			userid
+		)
+		values
+		(
+			#fileName#,
+			#filePath#, 
+			#type#, 
+			#handler#,
+			#createTime#,
+			#userId#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	<!-- 修改导入记录 -->
+	<update id="updateImport" parameterClass="import">
+		update palm_import
+			set result = #result#
+			<isNotEmpty prepend="," property="resultDescription">
+				resultdescription = #resultDescription#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="costTime">
+				costTime = #costTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="filePath">
+				filepath = #filePath#
+			</isNotEmpty>
+			where id = #id#
+	</update>
+	
+	<!-- 重置import -->
+	<update id="resetErrorImports">
+		update palm_import
+			set result = 0 
+			where result = 1
+	</update>
+	
+	<!-- 查找下个需要导入的导入实体 -->
+	<select id="getNextImport" resultMap="result-import">
+		select *
+			from palm_import
+			where result = 0 
+			order BY id asc
+			limit 1
+	</select>
+</sqlMap>

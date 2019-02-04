@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Ykt">
+
+	<typeAlias alias="ykt" type="com.guotop.palmschool.entity.Ykt" />
+	<typeAlias alias="yktPlace" type="com.guotop.palmschool.entity.YktPlace" />
+
+	<resultMap class="com.guotop.palmschool.entity.YktEmployee" id="result_ykt_total">
+		<result property="id" column="id" />
+		<result property="fCardNo" column="fCardNo" />
+		<result property="cardNoName" column="cardNoName" />
+		<result property="creditNoPlace" column="creditNoPlace" />
+		<result property="creditMoney" column="creditMoney" />
+		<result property="fCardNoBalance" column="fCardNoBalance" />
+		<result property="empTime" column="empTime" />
+		<result property="Operation" column="Operation" />
+		<result property="createtime" column="createtime" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.YktemployeeMoney" id="result_ykt_information">
+		<result property="id" column="id" />
+		<result property="fCardNo" column="fCardNo" />
+		<result property="fName" column="fName" />
+		<result property="fSex" column="fSex" />
+		<result property="fDept" column="fDept" />
+		<result property="fL_Cons" column="fL_Cons" />
+		<result property="smsType" column="smsType" />
+		<result property="fL_Money" column="fL_Money" />
+		<result property="createtime" column="createtime" />
+	</resultMap>
+	
+	
+	<!-- 添加一卡通记录 20160111-->
+	<insert id="addYkt" parameterClass="ykt">
+		insert into palm_ykt
+		(
+			cardCode, 
+			userId, 
+			userName,
+			consMoney,
+			balance,
+			oldMoney, 
+			consTime, 
+			consStatus,
+			consPlace,
+			clazzId,
+			departmentId,
+			createTime
+		)
+		values
+		(
+			#cardCode#,
+			#userId#, 
+			#userName#,
+			#consMoney#,
+			#balance#,
+			#oldMoney#, 
+			#consTime#,
+			#consStatus#,
+			#consPlace#,
+			#clazzId#, 
+			#departmentId#,
+			#createTime#
+			
+		)
+	</insert>
+	
+	<!-- 添加校门出入记录（同步数据是没有通过开号找到对应的用于） 20160117-->
+	<insert id="addYktError" parameterClass="ykt">
+		insert into palm_ykt_error
+		(
+			cardCode, 
+			userId, 
+			userName,
+			consMoney,
+			balance,
+			oldMoney, 
+			consTime, 
+			consStatus,
+			consPlace,
+			clazzId,
+			departmentId,
+			createTime
+		)
+		values
+		(
+			#cardCode#,
+			#userId#, 
+			#userName#,
+			#consMoney#,
+			#balance#,
+			#oldMoney#, 
+			#consTime#,
+			#consStatus#,
+			#consPlace#,
+			#clazzId#, 
+			#departmentId#,
+			#createTime#
+			
+		)
+	</insert>
+	
+	<!-- 添加一卡通消费地点记录  20160112-->
+	<insert id="addYktPlace" parameterClass="yktPlace">
+		insert into palm_ykt_place
+		(
+			consPlace, 
+			updateTime, 
+			createTime
+		)
+		values
+		(
+			#consPlace#,
+			#updateTime#,
+			#createTime#
+			
+		)
+	</insert>
+	
+	<!--根据消费地点 查询一卡通地点是否存在 20160112-->
+	<select id="getYktPlace" parameterClass="String" resultClass="yktPlace">
+		SELECT * FROM  palm_ykt_place WHERE consPlace = #consPlace#
+	</select>
+	
+	<!--查询一卡通地点 20160112-->
+	<select id="getAllYktPlace"  resultClass="yktPlace">
+		SELECT * FROM  palm_ykt_place 
+	</select>
+	
+	
+	<!--查询校园一卡通总览总数 （学校管理员\校长） -->
+	<select id="getYktTotalCountAsAdminPermission" parameterClass="HashMap" resultClass="Integer">
+		<isNotEmpty property="type">
+			  <!-- 教师 -->
+			  <isEqual property="type" compareValue="1">
+				  SELECT COUNT(*) FROM (
+					  SELECT ykt.*, d.departmentName AS itemName FROM palm_ykt ykt,palm_department d
+					      WHERE ykt.departmentId = d.id 
+						      <isNotEmpty prepend="and" property="queryContent">
+									(ykt.cardCode LIKE CONCAT('%',#queryContent#,'%') 
+									 or ykt.userName LIKE CONCAT('%',#queryContent#,'%')
+									 or d.departmentName LIKE CONCAT('%',#queryContent#,'%'))
+						      </isNotEmpty>
+						      <isNotEmpty prepend="and" property="yktPlace">
+									ykt.consPlace LIKE CONCAT('%',#yktPlace#,'%')
+							  </isNotEmpty>
+							  ) t
+			  </isEqual>
+			 <!-- 学生 -->
+			  <isEqual property="type" compareValue="2">
+			      SELECT COUNT(*) FROM ( 
+					SELECT ykt.*,getClazzName(c.id) AS itemName FROM palm_ykt ykt , palm_clazz c,palm_grade g
+				      WHERE ykt.clazzId = c.id 
+				     	AND g.id = c.gradeId
+					    AND g.state = '0'
+					      <isNotEmpty prepend="and" property="queryContent">
+							(ykt.cardCode LIKE CONCAT('%',#queryContent#,'%') 
+							 or ykt.userName LIKE CONCAT('%',#queryContent#,'%')
+							 or getClazzName(c.id) LIKE CONCAT('%',#queryContent#,'%'))
+					      </isNotEmpty>
+					      <isNotEmpty prepend="and" property="yktPlace">
+								ykt.consPlace LIKE CONCAT('%',#yktPlace#,'%')
+						  </isNotEmpty>
+						  ) t
+		      </isEqual>
+	      </isNotEmpty>
+	</select>
+	
+	<!--查询校园一卡通总览（学校管理员\校长） -->
+	<select id="getYktTotalListAsAdminPermission" parameterClass="HashMap" resultClass="ykt">
+		<isNotEmpty property="type">
+			  <!-- 教师 -->
+			  <isEqual property="type" compareValue="1">
+				  SELECT ykt.*, d.departmentName AS itemName FROM palm_ykt ykt,palm_department d
+				      WHERE ykt.departmentId = d.id 
+					      <isNotEmpty prepend="and" property="queryContent">
+								(ykt.cardCode LIKE CONCAT('%',#queryContent#,'%') 
+								or ykt.userName LIKE CONCAT('%',#queryContent#,'%')
+								or d.departmentName LIKE CONCAT('%',#queryContent#,'%'))
+					      </isNotEmpty>
+					      <isNotEmpty prepend="and" property="yktPlace">
+								ykt.consPlace LIKE CONCAT('%',#yktPlace#,'%')
+						  </isNotEmpty>
+						  
+					      ORDER BY createtime DESC
+					    <isNotEmpty property="startIndex">
+							 LIMIT #startIndex#, #length#
+					    </isNotEmpty>
+			  </isEqual>
+			 <!-- 学生 -->
+			  <isEqual property="type" compareValue="2">
+				SELECT ykt.*,getClazzName(c.id) AS itemName FROM palm_ykt ykt , palm_clazz c,palm_grade g
+			      WHERE ykt.clazzId = c.id 
+			     	AND g.id = c.gradeId
+					AND g.state = '0'
+				      <isNotEmpty prepend="and" property="queryContent">
+						(ykt.cardCode LIKE CONCAT('%',#queryContent#,'%') 
+						 or ykt.userName LIKE CONCAT('%',#queryContent#,'%')
+						 or getClazzName(c.id) LIKE CONCAT('%',#queryContent#,'%'))
+				      </isNotEmpty>
+				      <isNotEmpty prepend="and" property="yktPlace">
+							ykt.consPlace LIKE CONCAT('%',#yktPlace#,'%')
+					  </isNotEmpty>
+				      ORDER BY createtime DESC
+				    <isNotEmpty property="startIndex">
+					   LIMIT #startIndex#, #length#
+				    </isNotEmpty>
+		      </isEqual>
+	      </isNotEmpty>
+	</select>
+	
+	<!--查询校园一卡通总览总数 （自己的） -->
+	<select id="getYktTotalCountAsSelf" parameterClass="HashMap" resultClass="Integer">
+		 <isNotEmpty property="type">
+			  <!-- 教师 -->
+			  <isEqual property="type" compareValue="1">
+				  SELECT COUNT(*) FROM (
+					  SELECT ykt.*, d.departmentName AS itemName FROM palm_ykt ykt,palm_department d
+					      WHERE ykt.departmentId = d.id 
+					        AND ykt.userId = #userId#
+						      <isNotEmpty prepend="and" property="queryContent">
+									(ykt.cardCode LIKE CONCAT('%',#queryContent#,'%') or d.departmentName LIKE CONCAT('%',#queryContent#,'%'))
+						      </isNotEmpty>
+						      <isNotEmpty prepend="and" property="yktPlace">
+									ykt.consPlace LIKE CONCAT('%',#yktPlace#,'%')
+							  </isNotEmpty>
+							  ) t
+			  </isEqual>
+			 <!-- 学生 -->
+			  <isEqual property="type" compareValue="2">
+			      SELECT COUNT(*) FROM ( 
+					SELECT ykt.*,getClazzName(c.id) AS itemName FROM palm_ykt ykt , palm_clazz c,palm_grade g
+				      WHERE ykt.clazzId = c.id 
+				        AND ykt.userId = #userId#
+				        AND g.id = c.gradeId
+					    AND g.state = '0'
+					      <isNotEmpty prepend="and" property="queryContent">
+							(ykt.cardCode LIKE CONCAT('%',#queryContent#,'%') or getClazzName(c.id) LIKE CONCAT('%',#queryContent#,'%'))
+					      </isNotEmpty>
+					      <isNotEmpty prepend="and" property="yktPlace">
+								ykt.consPlace LIKE CONCAT('%',#yktPlace#,'%')
+						  </isNotEmpty>
+						  ) t
+		      </isEqual>
+	      </isNotEmpty>
+	</select>
+	
+	<!--查询校园一卡通总览（自己的） -->
+	<select id="getYktTotalListAsSelf" parameterClass="HashMap" resultClass="ykt">
+		<isNotEmpty property="type">
+			  <!-- 教师 -->
+			  <isEqual property="type" compareValue="1">
+				  SELECT ykt.*, d.departmentName AS itemName FROM palm_ykt ykt,palm_department d
+				      WHERE ykt.departmentId = d.id 
+				        AND ykt.userId = #userId# 
+					      <isNotEmpty prepend="and" property="queryContent">
+								(ykt.cardCode LIKE CONCAT('%',#queryContent#,'%') or d.departmentName LIKE CONCAT('%',#queryContent#,'%'))
+					      </isNotEmpty>
+					      <isNotEmpty prepend="and" property="yktPlace">
+								ykt.consPlace LIKE CONCAT('%',#yktPlace#,'%')
+						  </isNotEmpty>
+						  
+					      ORDER BY createtime DESC
+					    <isNotEmpty property="startIndex">
+							 LIMIT #startIndex#, #length#
+					    </isNotEmpty>
+			  </isEqual>
+			 <!-- 学生 -->
+			  <isEqual property="type" compareValue="2">
+				SELECT ykt.*,getClazzName(c.id) AS itemName FROM palm_ykt ykt , palm_clazz c,palm_grade g
+			      WHERE ykt.clazzId = c.id 
+			        AND ykt.userId = #userId# 
+			        AND g.id = c.gradeId
+					AND g.state = '0'
+				      <isNotEmpty prepend="and" property="queryContent">
+						(ykt.cardCode LIKE CONCAT('%',#queryContent#,'%') or getClazzName(c.id) LIKE CONCAT('%',#queryContent#,'%'))
+				      </isNotEmpty>
+				      <isNotEmpty prepend="and" property="yktPlace">
+							ykt.consPlace LIKE CONCAT('%',#yktPlace#,'%')
+					  </isNotEmpty>
+				      ORDER BY createtime DESC
+				    <isNotEmpty property="startIndex">
+					   LIMIT #startIndex#, #length#
+				    </isNotEmpty>
+		      </isEqual>
+	      </isNotEmpty>
+	</select>
+	
+	<!--查询校园一卡通总览总数 （家长） -->
+	<select id="getYktTotalCountAsParent" parameterClass="HashMap" resultClass="Integer">
+		 SELECT COUNT(*)  FROM
+		      (SELECT ykt.*,getClazzName(c.id) AS itemName FROM palm_ykt ykt , palm_clazz c,palm_grade g
+			      WHERE ykt.clazzId = c.id 
+			      	AND g.id = c.gradeId
+					AND g.state = '0'
+			        AND ykt.userId IN ( SELECT userId FROM platform.student_parent WHERE parent_userId = #userId#) 
+			        <isNotEmpty prepend="and" property="queryContent">
+					  (ykt.cardCode LIKE CONCAT('%',#queryContent#,'%') 
+						or ykt.userName LIKE CONCAT('%',#queryContent#,'%')
+						or getClazzName(c.id) LIKE CONCAT('%',#queryContent#,'%'))
+			        </isNotEmpty>
+			        <isNotEmpty prepend="and" property="yktPlace">
+					   ykt.consPlace LIKE CONCAT('%',#yktPlace#,'%')
+				    </isNotEmpty>
+	           ) t
+	</select>
+	
+	<!--查询校园一卡通总览（家长） -->
+	<select id="getYktTotalListAsParent" parameterClass="HashMap" resultClass="ykt">
+		SELECT ykt.*,getClazzName(c.id) AS itemName FROM palm_ykt ykt , palm_clazz c,palm_grade g
+			      WHERE ykt.clazzId = c.id 
+			      	AND g.id = c.gradeId
+					AND g.state = '0'
+			        AND ykt.userId IN ( SELECT userId FROM platform.student_parent WHERE parent_userId = #userId#) 
+			        <isNotEmpty prepend="and" property="queryContent">
+					  (ykt.cardCode LIKE CONCAT('%',#queryContent#,'%') 
+					   or ykt.userName LIKE CONCAT('%',#queryContent#,'%')
+					   or getClazzName(c.id) LIKE CONCAT('%',#queryContent#,'%'))
+			        </isNotEmpty>
+			        <isNotEmpty prepend="and" property="yktPlace">
+					   ykt.consPlace LIKE CONCAT('%',#yktPlace#,'%')
+				    </isNotEmpty>
+			        ORDER BY createtime DESC
+			        <isNotEmpty property="startIndex">
+				         LIMIT #startIndex#, #length#
+			        </isNotEmpty>
+	</select>
+	
+	<!--查询校园一卡通信息总览总数 （学校管理员\校长） -->
+	<select id="getYktTotalInformationCountAsAdminPermission" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM palm_yktemployee_money 
+		      WHERE 1=1  
+		      <isNotEmpty prepend="and" property="queryContent">
+					(fCardNo LIKE CONCAT('%',#queryContent#,'%') or fName LIKE CONCAT('%',#queryContent#,'%'))
+			  </isNotEmpty>
+	</select>
+	
+	<!--查询校园一卡通信息总览（学校管理员\校长） -->
+	<select id="getYktTotalInformationListAsAdminPermission" parameterClass="HashMap" resultMap="result_ykt_information">
+		 SELECT * FROM palm_yktemployee_money  
+		      WHERE 1=1  
+		      <isNotEmpty prepend="and" property="queryContent">
+					(fCardNo LIKE CONCAT('%',#queryContent#,'%') or fName LIKE CONCAT('%',#queryContent#,'%'))
+			  </isNotEmpty>
+		      ORDER BY createtime DESC
+		    <isNotEmpty property="startIndex">
+				 LIMIT #startIndex#, #length#
+			</isNotEmpty>
+	</select>
+	
+	<!--查询校园一卡通信息总览总数 （自己的） -->
+	<select id="getYktTotalInformationCountAsSelf" parameterClass="HashMap" resultClass="Integer">
+		 SELECT COUNT(*) 
+		 FROM (SELECT ykt.* FROM palm_yktemployee_money ykt 
+                   WHERE ykt.fCardNo IN 
+                      ( SELECT c.cardCode FROM palm_card c,palm_user_card uc 
+	                       WHERE c.id = uc.cardId
+	                         AND uc.userId = #userId#
+	                  )
+	                  <isNotEmpty prepend="and" property="queryContent">
+							(ykt.fCardNo LIKE CONCAT('%',#queryContent#,'%') or ykt.fName LIKE CONCAT('%',#queryContent#,'%'))
+					  </isNotEmpty>
+	           ) t
+	</select>
+	
+	<!--查询校园一卡通信息总览（自己的） -->
+	<select id="getYktTotalInformationListAsSelf" parameterClass="HashMap" resultMap="result_ykt_information">
+		SELECT ykt.* FROM palm_yktemployee_money ykt 
+            WHERE ykt.fCardNo IN 
+                 ( SELECT c.cardCode FROM palm_card c,palm_user_card uc 
+	                  WHERE c.id = uc.cardId
+	                    AND uc.userId = #userId#
+	             )
+	             <isNotEmpty prepend="and" property="queryContent">
+						(ykt.fCardNo LIKE CONCAT('%',#queryContent#,'%') or ykt.fName LIKE CONCAT('%',#queryContent#,'%'))
+				  </isNotEmpty>
+	            order by ykt.createtime desc
+			  <isNotEmpty property="startIndex">
+				 LIMIT #startIndex#, #length#
+			  </isNotEmpty>
+	</select>
+	
+	<!--查询校园一卡通信息总览总数 （家长） -->
+	<select id="getYktTotalInformationCountAsParent" parameterClass="HashMap" resultClass="Integer">
+		 SELECT COUNT(*) 
+		 FROM (SELECT ykt.* FROM palm_yktemployee_money ykt 
+                   WHERE ykt.fCardNo IN 
+                      ( SELECT c.cardCode FROM palm_card c,palm_user_card uc 
+	                       WHERE c.id = uc.cardId
+	                         AND uc.userId IN ( SELECT userId FROM platform.student_parent WHERE parent_userId = #userId#)
+	                  )
+	                  <isNotEmpty prepend="and" property="queryContent">
+							(ykt.fCardNo LIKE CONCAT('%',#queryContent#,'%') or ykt.fName LIKE CONCAT('%',#queryContent#,'%'))
+					  </isNotEmpty>
+	           ) t
+	</select>
+	
+	<!--查询校园一卡通信息总览（家长） -->
+	<select id="getYktTotalInformationListAsParent" parameterClass="HashMap" resultMap="result_ykt_information">
+		SELECT ykt.* FROM palm_yktemployee_money ykt 
+            WHERE ykt.fCardNo IN 
+                 ( SELECT c.cardCode FROM palm_card c,palm_user_card uc 
+	                  WHERE c.id = uc.cardId
+	                    AND uc.userId IN ( SELECT userId FROM platform.student_parent WHERE parent_userId = #userId#)
+	             )
+	             <isNotEmpty prepend="and" property="queryContent">
+						(ykt.fCardNo LIKE CONCAT('%',#queryContent#,'%') or ykt.fName LIKE CONCAT('%',#queryContent#,'%'))
+				  </isNotEmpty>
+	            order by ykt.createtime desc
+			  <isNotEmpty property="startIndex">
+				 LIMIT #startIndex#, #length#
+			  </isNotEmpty>
+	</select>
+</sqlMap>

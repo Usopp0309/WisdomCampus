@@ -1,0 +1,105 @@
+package com.guotop.palmschool.scheduler;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
+import javax.annotation.Resource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.scheduler.entity.SchoolCountInfo;
+import com.guotop.palmschool.scheduler.service.CountService;
+import com.guotop.palmschool.service.ClazzService;
+import com.guotop.palmschool.service.OrderMessageService;
+import com.guotop.palmschool.service.ScheduleService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.thread.BuyServiceFeeThread;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+import com.qiniu.http.Client;
+
+/**
+ * 定时任务每天提醒未购买的人员购买服务费
+ */
+@Component("BuyServiceFeeNoticeScheduler")
+public class BuyServiceFeeNoticeScheduler
+{
+	private Logger logger = LoggerFactory.getLogger(BuyServiceFeeNoticeScheduler.class);
+
+	@Resource
+	private CountService countService;
+
+	@Resource
+	private ScheduleService scheduleService;
+
+	@Resource
+	private ClazzService clazzService;
+
+	@Resource
+	private UserService userService;
+	
+	@Resource
+	private OrderMessageService orderMessageService;
+	
+	@Autowired
+	private ThreadPoolTaskExecutor poolTaskExecutor;
+
+	//每个星期三的08:49触发 
+	@Scheduled(cron = "0 49 08 * * WED") 
+	public void buyServiceFeeJob()
+	{
+		try
+		{
+			Properties pro = new Properties(); 
+			pro.load(new InputStreamReader(Client.class.getClassLoader().getResourceAsStream("wisdomcampus.properties"), "UTF-8"));
+			String buyServiceFeeContent = pro.getProperty("buyServiceFeeContent"); //服务费通知内容
+			
+			// 获取系统中所有的学校
+			List<SchoolCountInfo> list = countService.getSchoolDataSorceList();
+			for (SchoolCountInfo ci : list)
+			{
+				try
+				{
+					if(!StringUtil.isEmpty(buyServiceFeeContent))
+					{
+						DBContextHolder.setDBType(String.valueOf(ci.getSchoolId()));
+						Integer status =  orderMessageService.getOrderMessagePaymentNoticeStatus();
+						if(status.intValue() == 0){
+							// 获取所有未购买短信套餐的学生
+							List<User> studentList = userService.getNotPurchaseStudentList(String.valueOf(ci.getSchoolId()));
+							if (!CollectionUtils.isEmpty(studentList))
+							{
+								logger.info(ci.getSchoolId() + "运行服务费订购通知,"+TimeUtil.getInstance().now());
+								poolTaskExecutor.execute(new BuyServiceFeeThread(ci.getSchoolId(), buyServiceFeeContent, studentList));
+								Thread.sleep(5000);
+							}
+						}
+					}
+					
+				} catch (Exception e)
+				{
+					logger.error("通知购买服务费失败,BuyServiceFeeNotice:" + ci.getSchoolId() + e.getMessage());
+					continue;
+				}
+			}
+		} catch (UnsupportedEncodingException e1)
+		{
+			logger.error("通知购买服务费读取配置文件失败: "+ e1.getMessage());
+		} catch (IOException e1)
+		{
+			logger.error("通知购买服务费读取配置文件失败: "+ e1.getMessage());
+		}
+	}
+}

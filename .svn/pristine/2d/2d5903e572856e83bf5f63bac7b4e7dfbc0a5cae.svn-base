@@ -1,0 +1,11 @@
+body{color:#333;background:#e7e8eb;font:13px/1.5 "Microsoft Yahei";line-height:166.6%;padding:50px 0px;}
+.content{max-width:1200px;margin:0px auto;background-color:#fff;padding:20px;}
+.content .red{color:#f00}
+.content .u_b{font-weight:bold; text-decoration:underline;}
+.content .u{font-weight:bold; }
+.content h1{text-align:center;line-height:30px;}
+.content h2,h3{text-indent:30px;line-height:30px;font-size:16px;}
+.content p{text-indent: 30px;}
+.content hr{height:1px;color:#e7e7e7}
+.content .close{display:block;width:200px;height:30px;line-height:30px;border:none;cursor:pointer; background-color:#ccc;margin:0px auto;text-align:center;}
+			

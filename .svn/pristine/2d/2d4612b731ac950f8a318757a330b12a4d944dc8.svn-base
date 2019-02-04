@@ -1,0 +1,296 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+
+<!DOCTYPE html>
+
+<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+
+<!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+
+<!--[if !IE]><!--> <html lang="en"> <!--<![endif]-->
+
+<!-- BEGIN HEAD -->
+
+<head>
+
+	<title>添加老师评价</title>
+
+	<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+
+	<meta content="" name="description" />
+
+	<meta content="" name="author" />
+ 
+	<!-- BEGIN GLOBAL MANDATORY STYLES -->
+	<link href="../media/css/default.css" rel="stylesheet" type="text/css" id="style_color"/>
+	<link href="../media/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css"/>
+	
+	<link href="../media/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/style-metro.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/style.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/style-responsive.css" rel="stylesheet" type="text/css"/>
+
+	
+
+	<link href="../media/css/uniform.default.css" rel="stylesheet" type="text/css"/>
+
+	<!-- END GLOBAL MANDATORY STYLES -->
+
+	<!-- BEGIN PAGE LEVEL STYLES -->
+
+	<link href="../media/css/pricing-tables.css" rel="stylesheet" type="text/css"/>
+
+	<!-- END PAGE LEVEL STYLES -->
+
+	<link rel="stylesheet" type="text/css" href="../media/css/select2_metro.css" />
+
+	<link rel="stylesheet" href="../media/css/DT_bootstrap.css" />
+
+	<!-- END PAGE LEVEL STYLES -->
+	
+	<link href="../media/metronic_css_m/system_m.css" rel="stylesheet" type="text/css" media="screen" />
+
+	<link rel="shortcut icon" href="../media/image/favicon.ico" />
+
+</head>
+
+<!-- END HEAD -->
+
+<!-- BEGIN BODY -->
+
+<body class="page-header-fixed" id="body">
+
+       
+
+			<div class="container-fluid">
+
+				<!-- BEGIN PAGE HEADER-->
+
+				<div class="row-fluid">
+
+					<div class="span12">
+
+						<!-- BEGIN PAGE TITLE & BREADCRUMB-->
+						<ul class="breadcrumb">
+
+							<li>
+
+								<i class="icon-home"></i>
+
+								<a href="#">首页</a> 
+
+								<i class="icon-angle-right"></i>
+
+							</li>
+
+							<li>
+
+								<a href="#">幼儿园评价</a>
+								<i class="icon-angle-right"></i>
+							</li>
+							
+							<li>
+
+								<a href="#">添加老师评价</a>
+							</li>
+
+						</ul>
+
+						<!-- END PAGE TITLE & BREADCRUMB-->
+
+					</div>
+
+				</div>
+
+				<!-- END PAGE HEADER-->
+
+				<!-- BEGIN PAGE CONTENT-->
+
+				<div class="row-fluid">
+
+					<div class="span12">
+						
+						<div class="tabbable tabbable-custom boxless">
+																								
+							<div class="tab-content padding_0">
+								
+								<div class="tab-pane active" id="tab_4">
+
+									<div class="portlet box green">
+			
+										<div class="portlet-title">
+											<div class="caption">添加老师评价</div>
+											<div class="tools">
+
+											<a href="javascript:;" class="collapse"></a>
+
+										    </div>
+
+										</div>
+									</div>
+									
+									<div class="portlet-body">
+										<form action="<%=basePath %>evaluateKindergarten/doAddEvaluation.do" method="post" id="submitForm">
+											
+											<div class="span4" style="margin-top: 15px">
+												<div class="evaluation_header">
+													<img src="<%=basePath%>media/image_m/Photo1.jpg">
+													<div class="header_title">
+														<p><span>姓名：</span>${student.realName }</p>
+														<p><span>班级：</span>${clazzName }</p>
+													</div>
+													<input id="clazzId" name="clazzId" value="${student.clazzId }" style="display: none"/>
+													<input id="studentId" name="studentId" value="${student.userId }" style="display: none"/> 
+												</div>
+											</div>
+											<div class="span8">
+												<ul class="evaluation_list">
+												
+												<li>
+													<div class="num" id="conduct" onclick="changeStar()">
+													<span>思想品德</span>
+													<input id="conductStar" name="conductStar" value="" style="display: none"/> 
+													<span><i class="icon-star"></i><i class="icon-star"></i><i class="icon-star"></i><i class="icon-star"></i><i class="icon-star"></i></span></div>
+													<textarea id="conductText" name="conductText" class="span6 m-wrap"  rows="3" cols="" placeholder="输入评价内容..."></textarea>
+												</li>
+												<li>
+													
+													<div class="num" id="sport" onclick="changeStar()">
+													<span>活泼度</span>
+													<input id="sportStar" name="sportStar" value="" style="display: none"/>
+													<span><i class="icon-star"></i><i class="icon-star"></i><i class="icon-star"></i><i class="icon-star"></i><i class="icon-star"></i>
+													</span></div>
+													<textarea id="sportText" name="sportText" class="span6 m-wrap"  rows="3" cols="" placeholder="输入评价内容..."></textarea>
+												</li>
+												<li>
+													
+													<div class="num" id="study" onclick="changeStar()">
+													<span>学习认识力</span>
+													<input id="studyStar" name="studyStar" value="" style="display: none"/>
+													<span><i class="icon-star"></i><i class="icon-star"></i><i class="icon-star"></i><i class="icon-star"></i><i class="icon-star"></i></span></div>
+													<textarea id="studyText" name="studyText" class="span6 m-wrap"  rows="3" cols="" placeholder="输入评价内容..."></textarea>
+												</li>
+												<li>
+													
+													<div class="num" id="life" onclick="changeStar()">
+													<span>生活自理力</span>
+													<input id="lifeStar" name="lifeStar" value="" style="display: none"/>
+													<span><i class="icon-star"></i><i class="icon-star"></i><i class="icon-star"></i><i class="icon-star"></i><i class="icon-star"></i></span></div>
+													<textarea id="lifeText" name="lifeText" class="span6 m-wrap"  rows="3" cols="" placeholder="输入评价内容..."></textarea>
+												</li>
+												
+											</ul>
+											<button type="button" class="btn blue" id="save" style="margin-left: 36%;">确认提交</button>
+											<button type="button" class="btn blue" id="cancel"  onclick="history.go(-1);">取消</button>
+											</div>
+										</form>
+										
+									</div>
+									
+								</div>
+								
+							</div>
+						</div>
+					</div>
+
+				</div>
+
+			</div>
+		
+	<!-- END CONTAINER -->
+
+	<!-- BEGIN JAVASCRIPTS(Load javascripts at bottom, this will reduce page load time) -->
+
+	<!-- BEGIN CORE PLUGINS -->
+	<script src="../media/js/jquery-2.1.1.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery-migrate-1.2.1.min.js" type="text/javascript"></script>
+
+	<!-- IMPORTANT! Load jquery-ui-1.10.1.custom.min.js before bootstrap.min.js to fix bootstrap tooltip conflict with jquery ui tooltip -->
+
+	<script src="../media/js/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>      
+
+	<script src="../media/js/bootstrap.min.js" type="text/javascript"></script>
+
+	<!--[if lt IE 9]>
+
+	<script src="media/js/excanvas.min.js"></script>
+
+	<script src="media/js/respond.min.js"></script>  
+
+	<![endif]-->                    
+
+	<script src="../media/js/jquery.slimscroll.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.blockui.min.js" type="text/javascript"></script>  
+
+	<script src="../media/js/jquery.cookie.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.uniform.min.js" type="text/javascript" ></script>
+
+	<!-- END CORE PLUGINS -->
+
+	<!-- BEGIN PAGE LEVEL PLUGINS -->
+
+	<script type="text/javascript" src="../media/js/select2.min.js"></script>
+
+	<script type="text/javascript" src="../media/js/jquery.dataTables.min.js"></script>
+
+	<script type="text/javascript" src="../media/js/DT_bootstrap.js"></script>
+
+	<!-- END PAGE LEVEL PLUGINS -->
+
+	<!-- BEGIN PAGE LEVEL SCRIPTS -->
+
+
+	<script src="../media/js/table-advanced.js"></script>      
+	<script src="../media/js/TableSorterV2.js"></script>     
+	<script type="text/javascript" src="../media/js_m/public_js.js"></script> 
+	<script src="../media/js/app.js"></script>
+	<script>
+
+		jQuery(document).ready(function() {
+			var studentId = $("#studentId").val();
+			
+			$("#save").on("click",function(){
+				var conductText = $("#conductText").val().trim();
+				var sportText = $("#sportText").val().trim();
+				var studyText = $("#studyText").val().trim();
+				var lifeText = $("#lifeText").val().trim();
+				if(conductText == '' || sportText == '' || studyText == '' || lifeText == ''){
+					alert("请完全输入评价内容!");
+				}else{
+					submitForm();
+				}
+				
+			});
+
+			$(".num i").on("click",function(){
+				var eq_id=$(this).index()+1;
+				var _this=$(this).parent();
+				_this.find("i").removeAttr("style");
+				_this.find("i:lt("+ eq_id +")").css({"color":"#f96767"});
+				var id = _this.prev().attr("id");
+				$("#"+id).val(eq_id);
+			});
+		});
+
+		function submitForm(){
+			if (confirm("您确认要提交评价吗？")){
+				$("#submitForm").submit();
+			}
+		}
+	</script>
+
+	<!-- END JAVASCRIPTS -->
+
+<script type="text/javascript">  var _gaq = _gaq || [];  _gaq.push(['_setAccount', 'UA-37564768-1']);  _gaq.push(['_setDomainName', 'keenthemes.com']);  _gaq.push(['_setAllowLinker', true]);  _gaq.push(['_trackPageview']);  (function() {    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;    ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);  })();</script></body>
+
+<!-- END BODY -->
+
+</html>

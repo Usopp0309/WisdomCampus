@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Agency">
+	<typeAlias alias="agency" type="com.guotop.palmschool.entity.Agency" />
+
+	<resultMap class="com.guotop.palmschool.entity.Agency" id="result_agencyList">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.Agency" id="result_schoolWithoutAuthentication">
+		<result property="schoolId" column="schoolId" />
+		<result property="schoolName" column="schoolName" />
+		<result property="schoolAddress" column="schoolAddress" />
+	</resultMap>
+
+	<resultMap class="com.guotop.palmschool.entity.Agency" id="result_schoolWithAuthentication">
+		<result property="schoolId" column="schoolId" />
+		<result property="schoolName" column="schoolName" />
+		<result property="schoolAddress" column="schoolAddress" />
+		<result property="id" column="id" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.Agency" id="result_schoolWithoutSupport">
+		<result property="schoolId" column="schoolId" />
+		<result property="schoolName" column="schoolName" />
+		<result property="schoolAddress" column="schoolAddress" />
+		<result property="id" column="id" />
+		<result property="agencyName" column="agencyName" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.Agency" id="result_schoolWithSupport">
+		<result property="schoolId" column="schoolId" />
+		<result property="schoolName" column="schoolName" />
+		<result property="schoolAddress" column="schoolAddress" />
+		<result property="id" column="id" />
+		<result property="agencyName" column="agencyName" />
+		<result property="supportUserId" column="supportUserId" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.Agency" id="result_agency">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="userId" column="userId" />
+		<result property="province" column="province" />
+		<result property="city" column="city" />
+		<result property="country" column="country" />
+		<result property="address" column="address" />
+		<result property="corporation" column="corporation" />
+		<result property="phone" column="phone" />
+		<result property="email" column="email" />
+		<result property="agentType" column="agentType" />
+		<result property="realName" column="realName" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.Agency" id="result_SchoolList">
+		<result property="schoolId" column="schoolId" />
+		<result property="schoolName" column="schoolName" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.Agency" id="result_supportList">
+		<result property="userId" column="userId" />
+		<result property="realName" column="realName" />
+		<result property="phone" column="phone" />
+		<result property="email" column="email" />
+		<result property="name" column="name" />
+		<result property="username" column="username" />
+	</resultMap>
+	<!-- 查询所有代理商 20151214 -->
+	<select id="getAgencyList" resultMap="result_agencyList">
+		select id, name from
+		platform.agencyinfo
+	</select>
+	<!-- 查询学校是否与代理商绑定 20151214 -->
+	<select id="getCountBySchoolIdAndAgencyId" parameterClass="Long"
+		resultClass="Integer">
+		select count(*) from platform.agency_school where schoolId
+		=#schoolId#
+	</select>
+	<!-- 新增学校代理商关系20151214 -->
+	<insert id="addAgencyAndSchoolLink" parameterClass="HashMap">
+		insert into
+		platform.agency_school(schoolid, agencyid)values(#schoolId#,#agencyId#)
+	</insert>
+	<!--修改学校代理商关系 20151214 -->
+	<update id="modifyAgencyAndSchoolLink" parameterClass="HashMap">
+		update
+		platform.agency_school set agencyId=#agencyId# where schoolId = #schoolId#
+	</update>
+	<!-- 获取未绑定代理商学校列表 -->
+	<select id="getAllSchoolWithoutAuthentication" parameterClass="HashMap"
+		resultMap="result_schoolWithoutAuthentication">
+		select
+		s.schoolId,s.schoolName,concat(platform.getAddressByAreaId(sd.schoolAreaId),
+		sd.schoolAddress) schoolAddress from platform.school s,
+		platform.school_detail sd,
+		platform.school_countinfo sc where
+		s.schoolid = sd.schoolid and
+		s.schoolid = sc.schoolid and s.schoolid
+		not in(select distinct schoolId from platform.agency_school where schoolid is
+		not null)
+		<isNotEmpty prepend="and" property="condition">
+			s.schoolName like
+			concat('%',#condition# , '%')
+		</isNotEmpty>
+	</select>
+	<!-- 获取已绑定代理商学校列表 -->
+	<select id="getAllSchoolWithAuthentication" parameterClass="HashMap"
+		resultMap="result_schoolWithAuthentication">
+		select
+		s.schoolId,s.schoolName,concat(platform.getAddressByAreaId(sd.schoolAreaId),
+		sd.schoolAddress) schoolAddress, a.agencyId id from platform.school s,
+		platform.school_detail sd,
+		platform.school_countinfo sc,
+		platform.agency_school a where s.schoolid = sd.schoolid and
+		s.schoolid
+		= sc.schoolid and s.schoolid = a.schoolid
+		<isNotEmpty prepend="and" property="condition">
+			s.schoolName like
+			concat('%',#condition# , '%')
+		</isNotEmpty>
+	</select>
+	<!-- 获取代理商列表 20151214 -->
+	<select id="getAgencyInfoList" parameterClass="HashMap"
+		resultMap="result_agency">
+		select a.id,a.userId,a.name,platform.getAreaName(a.province) province,
+		platform.getAreaName(a.city) city, platform.getAreaName(a.country)
+		country,a.address,a.corporation,a.phone,a.email,a.agentType,ud.realName
+		from
+		platform.agencyInfo a, platform.user_detail ud where a.userId =
+		ud.userId
+		<isNotEmpty prepend="and" property="condition">
+			a.name like
+			concat('%',#condition#,'%')
+		</isNotEmpty>
+	</select>
+	<!-- 获取代理商绑定的学校列表 20151214 -->
+	<select id="getSchoolListByAgencyId" parameterClass="Integer"
+		resultMap="result_SchoolList">
+		select s.schoolId,s.schoolName from platform.agency_school
+		a, platform.school s where a.schoolId = s.schoolId and
+		a.agencyId=#agencyId#
+
+	</select>
+	<!-- 新增代理商 -->
+	<insert id="addAgency" parameterClass="agency">
+		insert into
+		platform.agencyinfo
+		(userId,name,province,city,country,address,corporation,phone,createTime,email,agentType)
+		values
+		(#userId#,#name#,#province#,#city#,#country#,#address#,#corporation#,#phone#,#createTime#,#email#,#agentType#)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select
+			LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	<!-- 修改代理商 -->
+	<update id="modifyAgency" parameterClass="agency">
+		update
+		platform.agencyinfo set name=#name#,address=#address#,phone=#phone#,state=#state#
+		where id=#id#
+	</update>
+	<!-- 获取技术支持人员 -->
+	<select id="getSupportList" parameterClass="HashMap" resultMap="result_supportList">
+		select u.userId,ud.realName, u.phone,ud.email, ai.name ,u.username from
+		platform.userbase u , platform.user_detail ud,
+		platform.agency_technicalsupport ats,platform.agencyinfo ai where
+		u.userid = ud.userid and u.userid = ats.userid and ats.agencyId=ai.id and u.type=3 
+		<isNotEmpty prepend="and" property="condition">
+			ud.realName like concat('%',#condition#,'%')
+		</isNotEmpty>
+		order by ai.id desc
+	</select>
+	<!-- 创建技术支持与代理商关系 -->
+	<insert id="addUserAndAgencyLink" parameterClass="agency">
+		insert into platform.agency_technicalsupport(agencyId, userId) value(#id#,#userId#)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select
+			LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 查询学校是否与代理商绑定 20151215 syj-->
+	<select id="getCountBySchoolIdAndSupportId" parameterClass="HashMap" resultClass="Integer">
+		SELECT count(*) 
+		FROM platform.user_school us, platform.userbase ub
+		WHERE us.userId = ub.userId
+		AND ub.type = 3
+		AND us.schoolId =#schoolId#
+		AND us.userId = #orig_supportUserId#
+	</select>
+	
+	<!-- 新增学校技术支持关系20151215 -->
+	<insert id="addSchoolAndSupport" parameterClass="HashMap">
+		insert into	platform.user_school(userId, schoolId)values(#new_supportUserId#,#schoolId#)
+	</insert>
+	<!--修改学校技术支持关系 20151215 -->
+	<update id="modifySchoolAndSupport" parameterClass="HashMap">
+		update platform.user_school set userId=#new_supportUserId# where schoolId = #schoolId# and userId=#orig_supportUserId#
+	</update>
+
+
+
+	<!-- 获取所有未绑定技术支持的学校列表  syj 20151215-->
+	<select id="getAllSchoolWithoutTechnicalSupport" parameterClass="HashMap" resultMap="result_schoolWithoutSupport">
+		SELECT s.schoolId,s.schoolName,CONCAT(platform.getAddressByAreaId(sd.schoolAreaId), sd.schoolAddress) schoolAddress
+		, a.agencyId id, ag.name agencyName
+		FROM platform.school s, platform.school_detail sd,platform.school_countinfo sc, platform.agency_school a , platform.agencyinfo ag,platform.agency_technicalsupport ath
+		WHERE s.schoolid = sd.schoolid 
+		AND s.schoolid = sc.schoolid 
+		AND s.schoolid = a.schoolid
+		AND a.agencyId = ag.id
+		and a.agencyId = ath.agencyId
+		and  not EXISTS(SELECT DISTINCT userId FROM platform.user_school us  WHERE us.userid = ath.userId and us.schoolId=s.schoolId and us.userId IS NOT NULL)
+		<isNotEmpty prepend="and" property="condition">
+			s.schoolName like concat('%',#condition# , '%')
+		</isNotEmpty>		
+	</select>	
+	
+	<!-- 获取所有绑定技术支持的学校列表  syj 20151215-->
+	<select id="getAllSchoolWithTechnicalSupport" parameterClass="HashMap" resultMap="result_schoolWithSupport">
+		SELECT s.schoolId,s.schoolName,CONCAT(platform.getAddressByAreaId(sd.schoolAreaId),sd.schoolAddress) schoolAddress
+		, a.agencyId id , ag.name agencyName , ats.userId supportUserId
+		FROM platform.school s, platform.school_detail sd,platform.school_countinfo sc, platform.agency_school a , platform.agencyinfo ag
+		, platform.agency_technicalsupport ats,platform.user_school us
+		WHERE s.schoolid = sd.schoolid 
+		AND s.schoolid = sc.schoolid 
+		AND s.schoolid = a.schoolid
+		AND a.agencyId = ag.id
+		AND a.agencyId = ats.agencyId
+		AND s.schoolid = us.schoolId
+		AND us.userId = ats.userId
+		<isNotEmpty prepend="and" property="condition">
+			s.schoolName like concat('%',#condition# , '%')
+		</isNotEmpty>
+	</select>	
+	<!-- 获取财务人员 -->
+	<select id="getAccountantList" parameterClass="HashMap" resultMap="result_supportList">
+		select u.userId,ud.realName, u.phone,u.username,ud.email, ai.name from
+		platform.userbase u , platform.user_detail ud,
+		platform.agency_technicalsupport ats,platform.agencyinfo ai where
+		u.userid = ud.userid and u.userid = ats.userid and ats.agencyId=ai.id and u.type=4
+		<isNotEmpty prepend="and" property="condition">
+			ud.realName like concat('%',#condition#,'%')
+		</isNotEmpty>
+		order by ai.id desc
+	</select>
+	<!-- 查询是否归属代理商 -->
+	<select id="isBelongAgency" parameterClass="Integer" resultClass="Integer">
+		select count(*) from platform.agency_technicalsupport where userid=#userId#
+	</select>
+</sqlMap>

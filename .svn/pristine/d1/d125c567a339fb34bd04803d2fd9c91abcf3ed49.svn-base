@@ -1,0 +1,103 @@
+package com.guotop.palmschool.system.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.entity.Agency;
+import com.guotop.palmschool.entity.School;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.system.service.PersionnerService;
+/**
+ * 代理商及技术支持人员管理实现类
+ * @author jfy
+ * @date 2015年12月14日
+ */
+@Service("persionnerService")
+public class PersionnerServiceImpl extends BaseService implements PersionnerService
+{
+	@Resource
+	private UserService userService;
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Agency> getAgencyList(HashMap<String, Object> map)
+	{
+		List<Agency> list = getBaseDao().selectListByObject("Agency.getAgencyInfoList", map);
+		return list;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<School> getSchoolListByAgencyId(Integer agencyId)
+	{
+		List<School> list = getBaseDao().selectListByObject("Agency.getSchoolListByAgencyId", agencyId);
+		return list;
+	}
+
+	@Override
+	public void addAgency(User user, Agency agency)
+	{
+		//创建用户
+		Integer userId = userService.addUserBase(user);
+		
+		user.setUserId(userId);
+		userService.addUserDetail(user);// userdetail表
+
+		//创建代理商信息
+		agency.setUserId(userId);
+		getBaseDao().addObject("Agency.addAgency", agency);
+	}
+
+	@Override
+	public void modifyAgency(Agency agency)
+	{
+		getBaseDao().updateObject("Agency.modifyAgency", agency);
+		
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Agency> getSupportList(HashMap<String, Object> map)
+	{
+		List<Agency> list = getBaseDao().selectListByObject("Agency.getSupportList", map);
+		return list;
+	}
+
+	@Override
+	public void addSupport(User user, Agency agency)
+	{
+		//创建用户
+		Integer userId = userService.addUserBase(user);
+		
+		user.setUserId(userId);
+		userService.addUserDetail(user);// userdetail表
+		if (agency.getId() != 0)
+		{
+			//创建代理商信息
+			agency.setUserId(userId);
+			getBaseDao().addObject("Agency.addUserAndAgencyLink", agency);
+		}
+		
+	}
+	
+	public void modifySupport(User user)
+	{
+		getBaseDao().addObject("User.modifySupportUserBase", user);
+		getBaseDao().addObject("User.modifySupportUserDetail", user);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Agency> getAccountantList(HashMap<String, Object> map)
+	{
+		// TODO Auto-generated method stub
+		return getBaseDao().selectListByObject("Agency.getAccountantList", map);
+	}
+
+}

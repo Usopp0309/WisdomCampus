@@ -1,0 +1,469 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]-->
+<!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]-->
+<!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>蓝牙手环</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta content="width=device-width, initial-scale=1" name="viewport" />
+<!--公共css开始-->
+<%@ include file="/public_module/public_css_new.jsp"%>
+<!--公共css结束-->
+<style type="text/css">
+.useing {
+	color: #f92d68
+}
+
+.unusing {
+	color: #666
+}
+
+.returned {
+	color: #ff8212
+}
+
+.state input {
+	margin: 15px;
+}
+</style>
+</head>
+<body
+	class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed"
+	id="body">
+	<input class="themes" type="hidden" value="<%=ThemePath%>">
+	<input type="hidden" value="${schoolId}" id=schoolId>
+	<input type="hidden" value="${sessionScope.user.userId}" id="userId">
+	<!-- 公共顶部开始-->
+	<%@ include file="/public_module/public_header.jsp"%>
+	<!--公共顶部结束-->
+	<div class="clearfix"></div>
+	<!-- 内容页开始 -->
+	<div class="page-container">
+		<!--主菜单开始-->
+		<%@include file="/public_module/public_menu.jsp"%>
+		<!--主菜单结束-->
+		<div class="page-content-wrapper">
+			<div class="page-content m_overflow_hidden m_page_content">
+
+				<!-- 页面内容开始 -->
+				<div class="col-md-12 col-sm-12 m_page_con">
+					<div class="page-bar m_margin_0_0_0_0">
+						<ul class="page-breadcrumb">
+							<li><a href="<%=basePath%>user/enterMain.do">首页</a><i
+								class="fa fa-circle"></i></li>
+							<li><a href="<%=basePath%>asset/toAssetInfoList.do">资产管理</a><i
+								class="fa fa-circle"></i></li>
+							<li><span>蓝牙手环</span></li>
+						</ul>
+					</div>
+					<h3 class="page-title">蓝牙手环</h3>
+					<div class="row">
+						<div class="col-md-12 col-sm-12">
+							<div class="m_margin_0_0_15_0">
+								<!-- 角色切换开始 -->
+								<ul class="nav nav-tabs" id="userTab">
+									<c:forEach items="${sessionScope.user.roleList}" var="roleList">
+										<r:right rightCode="assetInfoListManager">
+											<c:if
+												test="${roleList.roleCode ne 'parent' && roleList.roleCode ne 'student'}">
+												<li class="roleLi"><a
+													attr1="${sessionScope.user.userId}"
+													attr2="${roleList.roleCode}"
+													attr3="${sessionScope.user.permissionList}">${sessionScope.user.realName}(${roleList.roleName})
+												</a></li>
+											</c:if>
+										</r:right>
+									</c:forEach>
+								</ul>
+								<!-- 角色切换结束 -->
+							</div>
+
+							<!-- 添加功能菜单开始 -->
+							<div class="portlet light form-fit m_margin_0_0_15_0">
+								<a class="btn btn-default"
+									href="<%=basePath%>asset/toCreateTime.do">创建时间</a> <a
+									class="btn btn-default"
+									href="<%=basePath%>asset/toHistoryRecord.do">历史记录</a>
+							</div>
+							<!-- 添加功能菜单结束 -->
+
+							<div class="portlet box green m_margin_15_auto_0">
+
+								<div class="portlet-title">
+									<div class="caption">
+										<i class="fa fa-list"></i>手环列表
+									</div>
+								</div>
+							</div>
+
+							<div class="portlet light form-fit m_margin_0_0_15_0"
+								style="margin-top: 10px;">
+								<a class="btn btn-default"
+									href="<%=basePath%>asset/toCreateTime.do">删除</a>
+									<a class="btn btn-default" data-toggle="modal" data-target="#update" onclick="addData();">添加</a>
+							</div>
+
+							<div class="portlet-body flip-scroll">
+								<table class="table table-hover table-bordered table-condensed"
+									cellpadding="0" cellspacing="0">
+									<thead>
+										<th><input type="checkbox" name="bluebooth_radio" /></th>
+										<th>蓝牙地址</th>
+										<th>蓝牙编号</th>
+										<th>使用学生</th>
+										<th>所在班级</th>
+										<th>开始使用</th>
+										<th>结束使用</th>
+										<th>状态</th>
+										<th>编辑</th>
+									</thead>
+
+									<tbody id="tbody">
+
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<!-- 分页开始 -->
+						<%@include file="/public_module/public_page.jsp"%>
+						<!-- 分页结束 -->
+
+						<!-- 修改状态弹窗 start-->
+						<div class="modal fade" id="updateState" tabindex="-1"
+							role="dialog" aria-labelledby="myModalLabel">
+							<div class="modal-dialog" role="document">
+								<div class="modal-content">
+									<div class="modal-body">
+										<div style="text-align: center;" class="state">
+											<input type="radio" name="useState" id="useing" /><em
+												class="useing">使用中</em> <input type="radio" name="useState"
+												id="unused" /><em class="unusing">未使用</em> <input
+												type="radio" name="useState" id="returned" /><em
+												class="returned">已归还</em>
+										</div>
+									</div>
+									<div class="modal-footer"
+										style="border-top: none; margin-right: 70px;">
+										<button type="button" class="btn btn-default"
+											data-dismiss="modal">取消修改</button>
+										<button type="button" class="btn btn-success">确认修改</button>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!--修改状态弹窗end  -->
+
+
+						<!-- 修改弹窗 start-->
+						<div class="modal fade" id="update" tabindex="-1" role="dialog"
+							aria-labelledby="myModalLabel">
+							<input type="hidden" id="id_" value="">
+							<div class="modal-dialog" role="document">
+								<div class="modal-content">
+									<div class="modal-body">
+										<form action="#" method="post" id="addForm"
+											class="form-horizontal">
+											<div class="form-body">
+												<div class="form-group">
+													<label class="control-label col-md-3 col-lg-3"
+														for="inputSuccess">领取时间 </label> <input name="startDate"
+														id="startDate" class="m_input form-control" type="text"
+														style="width: 400px;">
+
+												</div>
+												<div class="form-group">
+													<label class="control-label col-md-3 col-lg-3"
+														for="inputSuccess">结束使用时间 </label> <input name="endDate"
+														id="endDate" class="m_input form-control" type="text"
+														style="width: 400px;">
+
+												</div>
+												<div class="form-group">
+													<label class="control-label col-md-3 col-lg-3"
+														for="inputSuccess">蓝牙地址</label> <input id="mac"
+														class="m_input form-control" type="text"
+														style="width: 400px;">
+
+												</div>
+												<div class="form-group">
+													<label class="control-label col-md-3 col-lg-3"
+														for="inputSuccess">蓝牙编号</label> <input id="code"
+														class="m_input form-control" type="text"
+														style="width: 400px;">
+
+												</div>
+												<div class="form-group">
+													<label class="control-label col-md-3 col-lg-3">选择班级</label>
+													<select class="form-control" id="clazzList"
+														style="width: 400px;" onchange="chooseClazz();">
+													</select>
+												</div>
+												<div class="form-group state">
+													<label class="control-label col-md-3 col-lg-3">状态</label> <input
+														type="radio" name="useState" value="0" checked="checked" /><em>未使用</em> <input
+														type="radio" name="useState"  value="1" /><em>停用</em> <input
+														type="radio" name="useState" value="2"  /><em>使用中</em> <input
+														type="radio" name="useState" value="3"  /><em>已归还</em> <input
+														type="radio" name="useState"  value="4" /><em>未归还</em>
+												</div>
+												<div class="form-group">
+													<label class="control-label col-md-3 col-lg-3">使用对象</label>
+													<div class="col-md-4 col-lg-2"
+														style="width:400px; padding: 10px;" id="students">
+														
+													</div>
+												</div>
+											</div>
+										</form>
+									</div>
+									<div class="modal-footer"
+										style="border-top: none; margin-right: 70px;">
+										<button type="button" class="btn btn-default"
+											data-dismiss="modal" id="quxiao">取消</button>
+										<button type="button"  class="btn btn-success" onclick="save();">保存</button>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!--修改弹窗end  -->
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- 底部开始 -->
+	<%@ include file="/public_module/public_footer.jsp"%>
+	<script src="<%=basePath%>assets/global/plugins/map.js" type="text/javascript" ></script>
+	<!-- 底部结束 -->
+</body>
+<!-- 公共js开始 -->
+<%@ include file="/public_module/public_js.jsp"%>
+<!-- 公共js结束 -->
+<script type="text/javascript">
+    var clazzUserMap=new Map();
+    $(function(){
+    	init(1);
+    	initClazz();
+    	$('#startDate,#endDate').datetimepicker({
+			 format:"Y-m-d H:i:00" 
+		});
+    });
+    function save(){
+    	var startDate=$.trim($("#startDate").val());
+    	var endDate=$.trim($("#endDate").val());
+    	var mac=$.trim($("#mac").val());
+    	var code=$.trim($("#code").val());
+    	var clazzList=$.trim($("#clazzList").val());
+    	var useState= $('input:radio[name="useState"]:checked').val();
+    	var clazzId=$("#clazzList").val();
+    	var clazzName=$("#clazzList ").find("option:selected").text();
+    	var id_=$("#id_").val();
+    	var stuUserId;
+    	var stuName;
+    	$("#students").find("a").each(function(){
+    		if($(this).hasClass("btn-success")){
+    			stuUserId=$(this).attr("id");
+    			stuName=$(this).text();
+    		}
+    	});
+    	if(mac==''){
+    	layer.tips("请输入手环的mac地址",$("#mac"));
+    	return;
+    	}else if(code==''){
+    		layer.tips("请输入手环的编号",$("#code"));
+        	return;
+    	}else if(useState==2){
+    		if(startDate==''){
+    			layer.tips("请选择开始使用时间",$("#startDate"));
+            	return;	
+    		}else if(endDate==''){
+    			layer.tips("请选择结束使用时间",$("#endDate"));
+            	return;	
+    		}else if(clazzId==''){
+    			layer.tips("请选择班级",$("#clazzList"));
+            	return;	
+    		}else if(typeof(stuUserId)=="undefined"){
+    			layer.tips("请选择学生",$("#students"));
+            	return;	
+    		}
+    	}
+    	//判断数据是否存在
+    	
+    	
+    	//判断选择的学生是否已有手环
+    	
+    	
+    	var indexlayer = layer.msg('正在保存数据,请稍候。。。',{icon: 16,time:0,shade:0.3});
+    	 $.ajax({
+			type: "post",
+			url: "<%=basePath%>bracelet/save.do",
+			dataType:"json",
+			data:{
+				startTime :startDate,
+				endTime:endDate,
+				mac:mac,
+				code:code,
+				clazzId:clazzList,
+				status:useState,
+				userId:stuUserId,
+				studentName:stuName,
+				clazzName:clazzName,
+				id_:id_
+				},
+			success: function(data){
+				layer.close(indexlayer);
+				if(data==0){
+					layer.msg("保存成功",{icon:1,time:1000});
+					init(1);
+					$("#quxiao").click();
+				}else{
+					layer.msg("保存失败",{icon:2,time:2000});	
+				}
+			}
+		}); 
+    }
+    //获得班级
+     function initClazz(){
+    	var userId=$("#userId").val();
+    	$.ajax({
+			type: "post",
+			url: "<%=basePath%>sms/getAllStudentList.do",
+			dataType:"json",
+			data:{
+					userId :userId,
+					permissionCode : "studentMessageManager"
+				},
+			success: function(data){
+				var clazzList =data.clazzList;
+				var appendHtml = '<option value="">--请选择班级--</option>';
+				$.each(clazzList, function(n, value) {
+					appendHtml += '<option value="' + value.id + '">' + value.clazzName + '</option>';
+       			});  
+       			$("#clazzList").html(appendHtml);
+       			clazzUser(clazzList,data.studentList);
+			}
+		});
+    }
+    function chooseClazz(){
+    	var clazz=$("#clazzList").val();
+    	var userList=clazzUserMap.get(clazz);
+    	if(userList){
+    		var html='';
+    		for(var i=0;i<userList.length;i++){
+    			//
+    			html+='<a onclick="chUser(this);" class="btn btn-default" style="margin-top:5px;" href="javascript:void(0);" id="'+userList[i].userId+'">'+userList[i].realName+'</a>&nbsp;';
+    		}
+    		$("#students").html(html);
+    	}
+    }
+    function chUser(this_){
+    	$("#students").find("a").each(function(){
+    		if($(this).hasClass("btn-success")){
+    			$(this).removeClass("btn-success");
+    			$(this).addClass("btn-default");
+    		}
+    	});
+    	$(this_).addClass("btn-success");
+    }
+  //将学生与班级的关系存入Map中，key:clazzId,value:对应学生数组
+    function clazzUser(classId,studengList){
+   	 for(var i=0;i<classId.length;i++){
+   		 for(var k=0;k<studengList.length;k++){
+       		 if(classId[i].id==studengList[k].clazzId){
+       			 if(clazzUserMap.containsKey(classId[i].id)){
+       				 var userarray=clazzUserMap.get(classId[i].id);
+       				 userarray.push(studengList[k]);
+       			 }else{
+       				 var userarray=[];
+       				 userarray.push(studengList[k]);
+       				 clazzUserMap.put(classId[i].id,userarray);
+       			 }
+       			
+       		 }
+       	 }
+   	 }
+    }
+    function upddate(id){
+      $("#id_").val(id);	
+    }
+    function addData(){
+    	 $("#id_").val("");	
+    }
+    //初始化数据
+    function init(page){
+    	$.ajax({
+    		url:"<%=basePath%>bracelet/getPageBracelet.do",
+    		type:"POST",
+    		dataType:"json",
+    		data:{"page":page,pageSize:50},
+    		success:function(data){
+    		     var html='';
+    		    var list=data.list;
+    			for(var i=0;i<list.length;i++){
+    			 html+='<tr>';
+    			 html+='<td><input type="checkbox" name="bluebooth_radio" id="'+list[i].id+'" /></td>';
+    			 if(list[i].mac){
+    				 html+='<td>'+list[i].mac+'</td>';	 
+    			 }else{
+    				 html+='<td></td>';
+    			 }
+    			 if(list[i].code){
+    				 html+='<td>'+list[i].code+'</td>';	 
+    			 }else{
+    				 html+='<td></td>';
+    			 }
+    			 if(list[i].studentName){
+    				 html+='<td>'+list[i].studentName+'</td>';	 
+    			 }else{
+    				 html+='<td></td>';
+    			 }
+    			 if(list[i].clazzName){
+    				 html+='<td>'+list[i].clazzName+'</td>';	 
+    			 }else{
+    				 html+='<td></td>';
+    			 }
+    			 if(list[i].startTime){
+    				 html+='<td>'+list[i].startTime+'</td>';	 
+    			 }else{
+    				 html+='<td></td>';
+    			 }
+    			 if(list[i].endTime){
+    				 html+='<td>'+list[i].endTime+'</td>';	 
+    			 }else{
+    				 html+='<td></td>';
+    			 }
+    			 if(list[i].status==0){
+    				 html+=' <td><span class="useing">未使用</span></td>';	 
+    			 }else if(list[i].status==1){
+    				 html+=' <td><span class="useing">停用</span></td>';	 
+    			 }else if(list[i].status==2){
+    				 html+=' <td><span class="useing">使用中</span></td>';	 
+    			 }else if(list[i].status==3){
+    				 html+=' <td><span class="useing">已归还</span></td>';	 
+    			 }else if(list[i].status==4){
+    				 html+=' <td><span class="useing">未归还</span></td>';	 
+    			 }else{
+    				 html+=' <td></td>';	 
+    			 }
+    			 html+=' <td>';
+    			 html+='  <a class="btn btn-success btn-sm" data-toggle="modal" data-target="#update" onclick=upddate('+list[i].id+');"">修改</a>';
+    			 html+='<a class="btn btn-success btn-sm" data-toggle="modal" data-target="#updateState">修改状态</a>';
+    			 html+='</td>';
+    			 html+=' </tr>';
+    		 }	
+    		$("#tbody").html(html);
+    		},
+    		error:function(){
+    			
+    		}
+    	});
+    }
+    </script>
+</html>

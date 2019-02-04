@@ -1,0 +1,83 @@
+package com.guotop.palmschool.scheduler;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import com.guotop.palmschool.entity.Clazz;
+import com.guotop.palmschool.entity.Schedule;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.scheduler.entity.SchoolCountInfo;
+import com.guotop.palmschool.scheduler.service.CountService;
+import com.guotop.palmschool.service.ClazzService;
+import com.guotop.palmschool.service.ScheduleService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.thread.StatisticAttendanceThread;
+import com.guotop.palmschool.util.TimeUtil;
+
+/**
+ * 考勤统计定时任务
+ * 
+ * @author syj
+ * @date 2016年11月25日
+ */
+@Component("statisticAttendanceScheduler")
+public class StatisticAttendanceScheduler
+{
+	private Logger logger = LoggerFactory.getLogger(StatisticAttendanceScheduler.class);
+
+	@Resource
+	private CountService countService;
+	@Resource
+	private ScheduleService scheduleService;
+	@Resource
+	private ClazzService clazzService;
+	@Resource
+	private UserService userService;
+
+	@Autowired
+	private ThreadPoolTaskExecutor poolTaskExecutor;
+
+	// 早上7点到晚上10点，每隔30min中执行一次
+	@Scheduled(cron = "0 0/30 7-22 * * ?")
+//	@Scheduled(cron = "0 0/10 7-22 * * ?")
+	public void statisticAttendanceJob()
+	{
+		// 获取待统计学校列表
+		List<SchoolCountInfo> list = countService.getSchoolDataSorceList();
+		for (SchoolCountInfo ci : list)
+		{
+			try
+			{
+				DBContextHolder.setDBType(String.valueOf(ci.getSchoolId()));
+				// 学校有考勤时间方能进行
+				List<Schedule> scheduleList = scheduleService.selectScheduleListByLiveingDate(TimeUtil.date());
+				if (!CollectionUtils.isEmpty(scheduleList))
+				{
+					List<Clazz> clazzList = clazzService.getClazzList();
+					List<User> teacherList = userService.getAllTeacher();
+					if (CollectionUtils.isEmpty(clazzList) && CollectionUtils.isEmpty(teacherList))
+					{
+						continue;
+					}
+					poolTaskExecutor.execute(new StatisticAttendanceThread(ci.getSchoolId(), clazzList, teacherList));
+//					int count = poolTaskExecutor.getActiveCount();
+//					System.out.println("当前线程池中活跃数:" + count);
+				}
+			} catch (Exception e)
+			{
+				logger.error("考勤统计定时任务出路失败,StatisticAttendanceThread:" + ci.getSchoolId());
+				continue;
+			}
+		}
+	}
+}

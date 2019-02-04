@@ -1,0 +1,335 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+
+<!DOCTYPE html>
+
+<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+
+<!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+
+<!--[if !IE]><!--> <html lang="en"> <!--<![endif]-->
+
+<!-- BEGIN HEAD -->
+
+<head>
+
+	<title>留言详情</title>
+
+	<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+
+	<meta content="" name="description" />
+
+	<meta content="" name="author" />
+
+	<!-- BEGIN GLOBAL MANDATORY STYLES -->
+
+	<link href="../media/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/style-metro.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/style.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/style-responsive.css" rel="stylesheet" type="text/css"/>
+
+	<!-- <link href="../media/css/default.css" rel="stylesheet" type="text/css" id="style_color"/> -->
+
+	<link href="../media/css/uniform.default.css" rel="stylesheet" type="text/css"/>
+
+	<!-- END GLOBAL MANDATORY STYLES -->
+
+	<!-- BEGIN PAGE LEVEL STYLES -->
+
+	<link href="../media/css/pricing-tables.css" rel="stylesheet" type="text/css"/>
+	
+	<link href="../media/css/bootstrap-modal.css" rel="stylesheet" type="text/css"/>
+
+	<!-- END PAGE LEVEL STYLES -->
+
+	<link rel="stylesheet" type="text/css" href="../media/css/select2_metro.css" />
+
+	<link rel="stylesheet" href="../media/css/DT_bootstrap.css" />
+	
+	<link rel="stylesheet" href="../media/css/news.css" />
+	
+	<!-- END PAGE LEVEL STYLES -->
+	<link href="../media/metronic_css_m/system_m.css" rel="stylesheet" type="text/css" media="screen" />
+	
+	<link rel="shortcut icon" href="../media/image/favicon.ico" />
+	
+	
+
+</head>
+
+<!-- END HEAD -->
+
+<!-- BEGIN BODY -->
+
+<body class="page-header-fixed">
+      
+
+			<div class="container-fluid">
+
+				<!-- BEGIN PAGE HEADER-->
+
+				<div class="row-fluid">
+
+					<div class="span12">
+
+						<!-- BEGIN PAGE TITLE & BREADCRUMB-->
+						<ul class="breadcrumb">
+
+							<li>
+
+								<i class="icon-home"></i>
+
+								<a href="#">首页</a> 
+
+								<i class="icon-angle-right"></i>
+
+							</li>
+
+							<li>
+
+								<a href="#">信息平台</a>
+								<i class="icon-angle-right"></i>
+							</li>
+							
+							<li>
+
+								<a href="#">发送在线留言查看</a>
+							</li>
+
+						</ul>
+
+						<!-- END PAGE TITLE & BREADCRUMB-->
+
+					</div>
+
+				</div>
+
+				<!-- END PAGE HEADER-->
+
+				<!-- BEGIN PAGE CONTENT-->
+
+				<div class="row-fluid">
+
+					<div class="span12">
+						
+							<div class="tab-content">
+								
+								<div class="tab-pane active" id="tab_4">
+
+									<div class="portlet box green">
+			
+										<div class="portlet-title">
+											<div class="caption">留言详情</div>
+
+										</div>
+										
+										<div class="portlet-body form">
+											
+											<div class="form-horizontal form-view">
+
+												
+												<div class="row-fluid" style="height:10px">
+
+												
+													<h4 class="form-section">	<span  >发件人姓名:</span>
+														<span class="text" id="name"></span></h4>
+
+												</div><br/>
+												<hr>
+
+												<h4 class="form-section" style="height:10px">短信内容:</h4>
+											
+
+												<div class="row-fluid">
+
+													<div class="span12 ">
+
+													
+															<div class="portlet box light-grey">
+
+																<div class="scroller" data-height="100px" id="message" style="max-width:90%;word-break:break-all;text-align:left">
+	
+																	
+	
+																</div>
+															</div>
+
+													</div>
+													
+
+												</div>
+
+												
+											
+												<hr/>
+												<h4 class="form-section">收件人列表:</h4>
+												
+
+												<div class="row-fluid">
+
+													<div class="span12 ">
+          												<div class="portlet box light-grey">	
+															
+								
+															
+								
+																<div class="scroller" id="announcementContent">
+								
+																	
+																</div>
+								
+															
+														</div>
+														
+													</div>
+													
+													<div class="row-fluid" style="height:10px;padding-top:20px">
+	
+													
+														<h4 class="form-section" style="float: right;">	<span class="text" >发件日期:</span>
+															<span class="text" id="date"></span></h4>
+	
+													</div>
+
+												</div>
+												
+											</div>	
+											
+										</div>
+										
+										
+									</div>
+								</div>
+								
+							</div>
+					</div>
+				
+				</div>
+				<input type="hidden" value="${id}" id="messageId">
+				
+				<!-- END PAGE CONTENT-->
+				<div id="portlet-config" class="modal hide">
+					<div class="modal-header">
+						<button data-dismiss="modal" class="close" type="button"></button>
+						<h3>信息平台</h3>
+					</div>
+					<div class="modal-body">
+						<p id="test">Here will be a configuration form</p>
+					</div>
+				</div>
+			</div>
+
+	<!-- END CONTAINER -->
+
+	<!-- BEGIN JAVASCRIPTS(Load javascripts at bottom, this will reduce page load time) -->
+
+	<!-- BEGIN CORE PLUGINS -->
+	<script src="../media/js/jquery-2.1.1.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery-migrate-1.2.1.min.js" type="text/javascript"></script>
+
+	<!-- IMPORTANT! Load jquery-ui-1.10.1.custom.min.js before bootstrap.min.js to fix bootstrap tooltip conflict with jquery ui tooltip -->
+
+	<script src="../media/js/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>      
+
+	<script src="../media/js/bootstrap.min.js" type="text/javascript"></script>
+
+	<!--[if lt IE 9]>
+
+	<script src="media/js/excanvas.min.js"></script>
+
+	<script src="media/js/respond.min.js"></script>  
+
+	<![endif]-->                    
+
+	<script src="../media/js/jquery.slimscroll.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.blockui.min.js" type="text/javascript"></script>  
+
+	<script src="../media/js/jquery.cookie.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.uniform.min.js" type="text/javascript" ></script>
+
+	<!-- END CORE PLUGINS -->
+
+	<!-- BEGIN PAGE LEVEL PLUGINS -->
+
+	<script type="text/javascript" src="../media/js/select2.min.js"></script>
+
+	<script type="text/javascript" src="../media/js/jquery.dataTables.min.js"></script>
+
+	<script type="text/javascript" src="../media/js/DT_bootstrap.js"></script>
+
+	<!-- END PAGE LEVEL PLUGINS -->
+
+	<!-- BEGIN PAGE LEVEL SCRIPTS -->
+
+
+	<script src="../media/js/table-advanced.js"></script>       
+	<script type="text/javascript" src="../media/js_m/public_js.js"></script>
+	<script src="../media/js/app.js"></script>
+	<script>
+
+		jQuery(document).ready(function() {    
+			autoheight();
+			App.init();
+			var messageId = $("#messageId").val();
+			//加载在线留言详细信息
+			loadOnlineMessageInfo(messageId);
+			
+		});
+
+		//加载在线留言详细信息
+		function loadOnlineMessageInfo(messageId)
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>online-message/loadSmsListDetail.do",
+				data:
+				{
+					messageId : messageId
+				},
+		        success:function(data){
+		        	var message = eval("(" + data + ")");
+		        	 
+		        	var messagename='<span></span>' ;
+		        	var messagedate=message[0].sentTime;
+		        	var name=message[0].name;
+		        	var messagedetail=message[0].content;
+		        	
+		        	$.each(message, function(n, value) 
+		        	{   if(0 == value.status)
+		        	    {
+		        	        messagename+='<span>'+value.receiverName+'(已读)&nbsp&nbsp</span>';
+		        	    }
+		        	    else if(1 == value.status)
+		        	    {
+		        	        messagename+='<span>'+value.receiverName+'(未读)&nbsp&nbsp</span>';
+		        	    }
+		        	});
+		        	$("#announcementContent").html(messagename);
+		        	$("#name").html(name);
+		        	$("#message").html(messagedetail);
+		        	$("#date").html(messagedate);
+		        	autoheight();
+		        }
+			});
+		}
+
+
+	</script>
+
+	<!-- END JAVASCRIPTS -->
+
+<script type="text/javascript">  var _gaq = _gaq || [];  _gaq.push(['_setAccount', 'UA-37564768-1']);  _gaq.push(['_setDomainName', 'keenthemes.com']);  _gaq.push(['_setAllowLinker', true]);  _gaq.push(['_trackPageview']);  (function() {    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;    ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);  })();</script></body>
+
+<!-- END BODY -->
+
+</html>

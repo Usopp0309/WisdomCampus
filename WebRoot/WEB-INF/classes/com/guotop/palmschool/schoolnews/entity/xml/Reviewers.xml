@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Reviewers">
+
+	<typeAlias alias="reviewers" type="com.guotop.palmschool.schoolnews.entity.Reviewers"/>
+	
+	<resultMap class="com.guotop.palmschool.schoolnews.entity.Reviewers" id="result-onSchoolNews">
+		<result property="commentId" column="commentId" />
+		<result property="parentId" column="parentId" />
+		<result property="commentType" column="commentType" />
+		<result property="content" column="content" />
+		<result property="commentUserId" column="commentUserId" />
+		<result property="commentUserName" column="commentUserName" />
+		<result property="createTime" column="createTime" />
+		<result property="newsId" column="newsId" />
+		<result property="commentReplyId" column="commentReplyId" />
+		<result property="commentReplyUserId" column="commentReplyUserId" />
+		<result property="commentReplyUserName" column="commentReplyUserName" />
+		<result property="zanCount" column="zanCount" />
+		<result property="replayCount" column="replayCount" />
+		<result property="userHeadPath" column="userHeadPath" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.schoolnews.entity.Reviewers" id="result-myContent">
+		<result property="commentId" column="commentId" />
+		<result property="parentId" column="parentId" />
+		<result property="content" column="content" />
+		<result property="newsId" column="newsId" />
+		<result property="zanCount" column="zanCount" />
+		<result property="replayCount" column="replayCount" />
+		<result property="commentUserName" column="commentUserName" />
+		<result property="commentUserId" column="commentUserId" />
+		<result property="createTime" column="createTime" />
+		<result property="newsTitle" column="newsTitle" />
+	</resultMap>
+	
+	<select id="getCommentsByNewsId" resultMap="result-onSchoolNews" parameterClass="HashMap">
+		select y.*,d.headImg as userHeadPath from palm_school_news_comment y,platform.user_detail d where y.newsId = #newsId# and y.commentUserId = d.userId
+		<isEmpty property="detailComment">
+		and y.parentId =#parentId#
+		</isEmpty>
+		<isNotEmpty property="detailComment">
+		and y.commentId =#parentId#
+		</isNotEmpty>
+		<isNotEmpty property="userId">
+		and y.commentUserId = #userId#
+		</isNotEmpty>
+		<isEqual property="orderType" compareValue="2">
+		order by createTime desc
+		</isEqual>
+		<isEqual property="orderType" compareValue="1">
+		order by zanCount desc
+		</isEqual>
+	</select>
+	<select id="getCommentByContent" resultMap="result-onSchoolNews" parameterClass="HashMap">
+		select y.*,d.headImg as userHeadPath from palm_school_news_comment y,platform.user_detail d where y.newsId = #newsId# and y.commentUserId = d.userId
+		and y.parentId =#parentId# and y.content = #content#
+	</select>
+	<select id="getMyCommentByUserId" resultMap="result-myContent" parameterClass="HashMap">
+		 select aa.*,aaa.newsTitle from (select a.commentId,a.createTime,a.parentId,a.content,a.newsId,a.zanCount,a.replayCount,b.commentUserName,b.commentUserId    
+		 from (select nc.* from palm_school_news_comment nc where nc.commentUserId = #userId#) a    
+		 left join palm_school_news_comment b on a.parentId = b.commentId) aa  
+		 left join palm_school_news aaa on aa.newsId = aaa.newsId where (aa.commentUserId != #userId# or aa.commentUserId is null) order by aa.createTime desc  
+	</select>
+	<select id="getCommentsCountByNewsId" resultClass="Integer" parameterClass="HashMap">
+		select count(*) from palm_school_news_comment where newsId = #newsId# and parentId in 
+		<iterate conjunction="," open="(" close=")" property="ids">
+		  #ids[]#
+		</iterate>
+	</select>
+	<update id="addZan" parameterClass="String">
+		update palm_school_news_comment set zanCount = zanCount + 1 where commentId = #commentId#
+	</update>
+	<update id="addCommentCount" parameterClass="String">
+		update palm_school_news_comment set replayCount = replayCount + 1 where commentId = #commentId#
+	</update>
+	<update id="updateReplayCountsForDelete" parameterClass="String">
+		update palm_school_news_comment a set a.replayCount = a.replayCount-1 where EXISTS(select aaa.* from (select aa.* from palm_school_news_comment aa where aa.commentId = #commentId#) aaa where aaa.parentId = a.commentId )
+	</update>
+	<delete id="deleteComments" parameterClass="String">
+		delete from palm_school_news_comment where commentId = #commentId# or parentId = #commentId#
+	</delete>
+	<insert id="addComment" parameterClass="reviewers">
+		insert into palm_school_news_comment (
+			commentType,
+			content,
+			commentUserId,
+			commentUserName,
+			createTime,
+			newsId,
+			parentId
+		) values (
+			#commentType#,
+			#content#,
+			#commentUserId#,
+			#commentUserName#,
+			now(),
+			#newsId#,
+			#parentId#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="commentId">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	
+	<select id="getCommentByCommentId" resultMap="result-onSchoolNews" parameterClass="Integer">
+		select y.*,d.headImg as userHeadPath from palm_school_news_comment y,platform.user_detail d 
+		where y.commentUserId = d.userId
+		  and y.commentId =#commentId#
+	</select>
+	
+	<select id="getCommentsByParentId" resultMap="result-onSchoolNews" parameterClass="Integer">
+		select y.*,d.headImg as userHeadPath from palm_school_news_comment y,platform.user_detail d where  y.commentUserId = d.userId
+		and y.parentId =#parentId#
+	</select>
+	
+</sqlMap>

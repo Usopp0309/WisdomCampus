@@ -1,0 +1,678 @@
+package com.guotop.palmschool.bluetooth.controller;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.guotop.palmschool.bluetooth.entity.BluetoothBracelet;
+import com.guotop.palmschool.bluetooth.entity.BluetoothCourse;
+import com.guotop.palmschool.bluetooth.entity.BluetoothCourseTime;
+import com.guotop.palmschool.bluetooth.entity.BluetoothRouter;
+import com.guotop.palmschool.bluetooth.entity.BluetoothStudent;
+import com.guotop.palmschool.bluetooth.service.BluetoothStudentService;
+import com.guotop.palmschool.bluetooth.service.BraceletService;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.util.CollectionUtil;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+import com.richx.pojo.RichHttpResponse;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 蓝牙手环
+ * 
+ * @author cehnyong
+ *
+ */
+@RequestMapping("/bracelet")
+@Controller
+public class BraceletController {
+	private Logger logger = LoggerFactory.getLogger(BraceletController.class);
+	@Autowired
+	private BraceletService braceletService;
+
+	@Autowired
+	private BluetoothStudentService bluetoothStudentService;
+
+	/**
+	 * 进入蓝牙手环列表
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月24日 上午10:42:42
+	 */
+	@RequestMapping("/toBracelet.do")
+	public String toBracelet(Model model, HttpSession session) {
+		User user = (User) session.getAttribute("user");
+		model.addAttribute("user", user);
+		List<BluetoothCourse> list = braceletService.getAllBluetoothCourse();
+		List<BluetoothCourseTime> listCourseTime=braceletService.getAvailableCourseTime(user.getUserId());
+		model.addAttribute("bluetoothCourses", list);
+		model.addAttribute("courseTime", listCourseTime);
+		return "asset/bluetooth";
+
+	}
+
+	/**
+	 * 分页获得蓝牙手环数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月21日 下午6:18:39
+	 */
+	@RequestMapping("/getPageBracelet.do")
+	@ResponseBody
+	public void getPageBracelet(HttpServletResponse response, Integer page, Integer pageSize) {
+		Map<String, Object> paramMap = new HashMap<>();
+		Pages<BluetoothBracelet> pages = braceletService.getPageBluetoothBracelet(page, pageSize, paramMap);
+		try {
+			response.setCharacterEncoding("UTF-8");
+			response.getWriter().write(GsonHelper.toJson(pages));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 根据手环的主键删除手环以及与学生的关系数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月25日 下午2:04:15
+	 */
+	@RequestMapping("/deleteBluetoothBraceletByIds.do")
+	@ResponseBody
+	public void deleteBluetoothBraceletByIds(String ids, HttpServletResponse response) {
+		String code = "200";
+		try {
+			String[] idArray = ids.split(",");
+			List<Integer> list = new ArrayList<>();
+			for (String string : idArray) {
+				list.add(Integer.parseInt(string));
+			}
+			if (!CollectionUtil.isEmpty(list)) {
+				braceletService.deleteBluetoothBraceletByIds(list);
+			}
+		} catch (Exception e) {
+			logger.error("根据手环的主键删除与学生的关系数据:" + e.getMessage());
+			code = "500";
+		}
+		response.setCharacterEncoding("UTF-8");
+		try {
+			response.getWriter().write(code);
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 根据手环的主键删除与学生的关系数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月25日 下午2:04:15
+	 */
+	@RequestMapping("/deleteStudentBathIds.do")
+	@ResponseBody
+	public void deleteStudentBathIds(String ids, HttpServletResponse response) {
+		String code = "200";
+		try {
+			String[] idArray = ids.split(",");
+			List<Integer> list = new ArrayList<>();
+			for (String string : idArray) {
+				list.add(Integer.parseInt(string));
+			}
+			if (!CollectionUtil.isEmpty(list)) {
+				bluetoothStudentService.deleteByBbIds(list);
+			}
+		} catch (Exception e) {
+			logger.error("根据手环的主键删除与学生的关系数据:" + e.getMessage());
+			code = "500";
+		}
+		response.setCharacterEncoding("UTF-8");
+		try {
+			response.getWriter().write(code);
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 进入蓝牙课程时间设置
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月5日 下午1:28:28
+	 */
+	@RequestMapping("/toBluetoothCourseTime.do")
+	public String toBluetoothCourseTime(Model model) {
+		List<BluetoothCourse> list = braceletService.getAllBluetoothCourse();
+		model.addAttribute("bluetoothCourses", list);
+
+		return "asset/bluetooth_course_time";
+	}
+
+	/**
+	 * 保存手环课程时间设置
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月5日 下午3:21:30
+	 */
+	@RequestMapping("/saveBluetoothCourseTime.do")
+	@ResponseBody
+	public void saveBluetoothCourseTime(HttpServletResponse response, BluetoothCourseTime bluetoothCourseTime,HttpSession session) {
+		User user=(User) session.getAttribute("user");
+		bluetoothCourseTime.setUserId(user.getUserId());
+		String code = "200";
+		try {
+			if (bluetoothCourseTime.getId() != null) {// 修改
+				braceletService.updateBluetoothCourseTime(bluetoothCourseTime);
+			} else {// 添加
+				braceletService.insertBluetoothCourseTime(bluetoothCourseTime);
+			}
+		} catch (Exception e) {
+			code = "500";
+		}
+		response.setCharacterEncoding("UTF-8");
+		try {
+			response.getWriter().write(GsonHelper.toJson(code));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 分页获得课程时间
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月5日 下午2:21:10
+	 */
+	@RequestMapping("/getPagesBluetoothCourseTime.do")
+	@ResponseBody
+	public void getPagesBluetoothCourseTime(HttpServletResponse response, Integer page, HttpSession sesison) {
+		Map<String, Object> paramMap = new HashMap<>();
+		User user = (User) sesison.getAttribute("user");
+		paramMap.put("userId", user.getUserId());
+		Pages<BluetoothCourseTime> pages = braceletService.getPagesBluetoothCourseTime(page, 50, paramMap);
+		response.setCharacterEncoding("UTF-8");
+		try {
+			response.getWriter().write(GsonHelper.toJson(pages));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+	/**
+	 * 进入手环课程
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月5日 上午11:43:04
+	 */
+	@RequestMapping("/toBluetoothCourse.do")
+	public String toBluetoothCourse(Model model) {
+		List<BluetoothCourse> list = braceletService.getAllBluetoothCourse();
+		model.addAttribute("bluetoothCourses", list);
+		return "asset/bluetooth_course";
+
+	}
+
+	/**
+	 * 获得所有的课程
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月5日 下午1:10:56
+	 */
+	@RequestMapping("/getAllBluetoothCourse.do")
+	@ResponseBody
+	public void getAllBluetoothCourse(HttpServletResponse response) {
+		List<BluetoothCourse> list = braceletService.getAllBluetoothCourse();
+		response.setCharacterEncoding("UTF-8");
+		try {
+			response.getWriter().write(GsonHelper.toJson(list));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	/**
+	 * 保存课程
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月5日 上午11:12:35
+	 */
+	@RequestMapping("/saveCourse.do")
+	@ResponseBody
+	public void saveCourse(HttpServletResponse response, BluetoothCourse bluetoothCourse, HttpSession sesson) {
+		User user = (User) sesson.getAttribute("user");
+		String code = "200";
+		try {
+			bluetoothCourse.setUserId(user.getUserId());
+			bluetoothCourse.setUserName(user.getRealName());
+			braceletService.insertBluetoothCourse(bluetoothCourse);
+		} catch (Exception e) {
+			code = "500";
+		}
+		try {
+			response.setCharacterEncoding("UTF-8");
+			response.getWriter().write(GsonHelper.toJson(code));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 进入蓝牙路由器配置页面
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月26日 下午8:02:45
+	 */
+	@RequestMapping("/toRouter.do")
+	public String toRouter() {
+
+		return "asset/asset_router";
+
+	}
+
+	/**
+	 * 获得所有的路由器
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月26日 下午8:22:23
+	 */
+	@RequestMapping("getAllRouter.do")
+	@ResponseBody
+	public void getAllRouter(HttpServletResponse response) {
+		Map<String, Object> map = new HashMap<>();
+		map.put("status", "");
+		List<BluetoothRouter> list = braceletService.getAllBluetoothRouter(null);
+		response.setCharacterEncoding("UTF-8");
+		try {
+			response.getWriter().write(GsonHelper.toJson(list));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 添加路由器
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月26日 下午8:22:23
+	 */
+	@RequestMapping("/insertBluetoothRouter.do")
+	@ResponseBody
+	public void insertBluetoothRouter(HttpServletResponse response, BluetoothRouter bluetoothRouter) {
+		String code = "200";
+		boolean isexist = false;
+		try {
+			BluetoothRouter oldRouter = braceletService.getRouterByMac(bluetoothRouter.getMac());
+			if (oldRouter != null && oldRouter.getMac().equals(bluetoothRouter.getMac())) {
+				if (bluetoothRouter.getId() != null
+						&& oldRouter.getId().intValue() == bluetoothRouter.getId().intValue()) {// 修改
+
+				} else {
+					isexist = true;// 已存在
+				}
+			}
+			if (!isexist) {
+				if (bluetoothRouter.getId() != null) {
+					braceletService.updateBluetoothRouter(bluetoothRouter);
+				} else {
+					braceletService.insertBluetoothRouter(bluetoothRouter);
+				}
+			} else {
+				code = "1";
+			}
+		} catch (Exception e) {
+			code = "500";
+			logger.error("添加路由器" + e.getMessage());
+		}
+		response.setCharacterEncoding("UTF-8");
+		try {
+			response.getWriter().write(GsonHelper.toJson(code));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 根据蓝牙路由器的主键集合删除数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月27日 上午11:05:22
+	 */
+	@RequestMapping("/deleteRouterByIds.do")
+	@ResponseBody
+	public void deleteRouterByIds(HttpServletResponse response, String ids) {
+		String code = "200";
+		try {
+			if (!StringUtil.isEmpty(ids)) {
+				String[] idArray = ids.split(",");
+				List<Integer> list = new ArrayList<>();
+				for (String string : idArray) {
+					list.add(Integer.parseInt(string));
+				}
+				braceletService.deleteRouterByIds(list);
+			}
+		} catch (Exception e) {
+			code = "500";
+			logger.error("根据蓝牙路由器的主键集合删除数据:" + e.getMessage());
+		}
+		try {
+			response.getWriter().write(GsonHelper.toJson(code));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	/**
+	 * 根据主键获得蓝牙路由器
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月27日 上午10:34:52
+	 */
+	@RequestMapping("/getBluetoothRouterById.do")
+	@ResponseBody
+	public void getBluetoothRouterById(HttpServletResponse response, Integer id) {
+		BluetoothRouter bluetoothRouter = braceletService.getBluetoothRouterById(id);
+		response.setCharacterEncoding("UTF-8");
+		try {
+			response.getWriter().write(GsonHelper.toJson(bluetoothRouter));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 更新路由器
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月26日 下午8:22:23
+	 */
+	@RequestMapping("updateBluetoothRouter.do")
+	@ResponseBody
+	public void updateBluetoothRouter(HttpServletResponse response, BluetoothRouter bluetoothRouter) {
+		String code = "200";
+		try {
+			braceletService.updateBluetoothRouter(bluetoothRouter);
+		} catch (Exception e) {
+			code = "500";
+			logger.error("更新路由器" + e.getMessage());
+		}
+		response.setCharacterEncoding("UTF-8");
+		try {
+			response.getWriter().write(GsonHelper.toJson(code));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 进入批量添加手环页面
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月25日 下午3:42:08
+	 */
+	@RequestMapping("/toBathBracelet.do")
+	public String toBathBracelet(Model model,HttpSession sesison) {
+		User user=(User) sesison.getAttribute("user");
+		List<BluetoothCourseTime> listCourseTime=braceletService.getAvailableCourseTime(user.getUserId());
+		model.addAttribute("courseTime", listCourseTime);
+		return "asset/bluetooth_bathadd";
+	}
+
+	/**
+	 * 修改手环的状态
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月25日 下午7:41:14
+	 */
+	@RequestMapping("/updateStatus.do")
+	@ResponseBody
+	public void updateStatus(HttpServletResponse response, Integer status, Integer id, HttpSession session) {
+		String code = "200";
+		try {
+			User user = (User) session.getAttribute("user");
+			Map<String, Object> map = new HashMap<>();
+			map.put("schoolId", user.getSchoolId());
+			map.put("status", status);
+			map.put("id", id);
+			braceletService.updateStatusById(map, braceletService);
+		} catch (Exception e) {
+			logger.error("修改手环的状态 :" + e.getMessage());
+			code = "500";
+		}
+		try {
+			response.getWriter().write(GsonHelper.toJson(code));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	/**
+	 * 绑定蓝牙手环与学生的关系
+	 * @author chenyong
+	 * @Time 2017年5月6日 下午2:20:07
+	 */
+	@RequestMapping("/savaStudent.do")
+	@ResponseBody
+    public void savaStudent(HttpServletResponse response,String userCode,Integer useState,String studentName,Integer bid,Integer coursesTime,Integer stuUserId,String stuName,Integer clazzId,String clazzName,HttpSession session ){
+        String code="200";
+		try {
+        User user=(User) session.getAttribute("user");
+    	BluetoothStudent bluetoothStudent=new BluetoothStudent();
+    	bluetoothStudent.setBluetoothBraceletId(bid);
+    	bluetoothStudent.setBluetoothCourseTimeId(coursesTime);
+    	bluetoothStudent.setClazzId(clazzId);
+    	bluetoothStudent.setClazzName(clazzName);
+    	bluetoothStudent.setUpdateUserId(user.getUserId());
+    	bluetoothStudent.setStudentName(studentName);
+    	bluetoothStudent.setUserId(stuUserId);
+    	bluetoothStudent.setUserCode(userCode);
+    	Map<String,Object> map=new HashMap<>();
+    	map.put("status", useState);
+    	map.put("id", bluetoothStudent.getBluetoothBraceletId());
+    	map.put("schoolId", user.getSchoolId());
+    	bluetoothStudentService.insertBluetoothStudent(bluetoothStudent,braceletService,map);
+		} catch (Exception e) {
+			code="500";
+		}
+    	response.setCharacterEncoding("UTF-8");
+    	try {
+			response.getWriter().write(GsonHelper.toJson(code));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    }
+	/**
+	 * 批量添手环和人员的关系
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月25日 下午4:44:56
+	 */
+	@RequestMapping("/savaBath.do")
+	@ResponseBody
+	public void savaBath(HttpServletResponse response, String jsonContent,
+			HttpSession session, Integer status, Integer bluetoothCourseTimeId) {
+		String code = "200";
+		try {
+			User loginUser = (User) session.getAttribute("user");
+			List<BluetoothStudent> list = new ArrayList<BluetoothStudent>(); // 选中的人
+			Gson gson = new Gson();
+			list = gson.fromJson(jsonContent, new TypeToken<List<BluetoothStudent>>() {
+			}.getType());
+			// 获取没有人使用的手环
+			// 0:未使用，1：停用，2：使用中，3：未归还
+			List<BluetoothBracelet> listBbt = braceletService.getByStatus(0);
+			List<BluetoothStudent> listNew = new ArrayList<BluetoothStudent>(); // 选中的人
+			List<Integer> listIds = new ArrayList<Integer>(); // 选中的人
+			BluetoothStudent bluetoothStudent = null;
+			for (BluetoothStudent bs : list) {
+				if (!CollectionUtil.isEmpty(listBbt)) {
+					bluetoothStudent = new BluetoothStudent();
+					bluetoothStudent.setBluetoothBraceletId(listBbt.get(0).getId());
+					bluetoothStudent.setUpdateUserId(loginUser.getUserId());
+					bluetoothStudent.setClazzId(bs.getClazzId());
+					bluetoothStudent.setClazzName(bs.getClazzName());
+					bluetoothStudent.setBluetoothCourseTimeId(bluetoothCourseTimeId);
+					bluetoothStudent.setStudentName(bs.getStudentName());
+					bluetoothStudent.setUserId(bs.getUserId());
+					bluetoothStudent.setUserCode(bs.getUserCode());
+					listNew.add(bluetoothStudent);
+					listIds.add(listBbt.get(0).getId());
+					listBbt.remove(0);
+				} else {
+					// 手环分配完了
+					break;
+				}
+			}
+			if (!CollectionUtil.isEmpty(listNew)) {
+				bluetoothStudentService.savaBath(listIds, listNew, loginUser.getSchoolId(), status);
+			}
+		} catch (Exception e) {
+			logger.error("批量添手环和人员的关系:" + e.getMessage());
+			code = "500";
+		}
+		try {
+			response.setCharacterEncoding("UTF-8");
+			response.getWriter().write(GsonHelper.toJson(code));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 获得要修改的数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月25日 上午11:31:06
+	 */
+	@RequestMapping("/getUpdateData.do")
+	@ResponseBody
+	public void getUpdateData(Integer bbId, HttpServletResponse response) {
+		BluetoothStudent bluetoothStudent = bluetoothStudentService.getByBbId(bbId);
+		response.setCharacterEncoding("UTF-8");
+		try {
+			response.getWriter().write(GsonHelper.toJson(bluetoothStudent));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 检查修改添加的信息
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月25日 上午9:44:10
+	 */
+	@RequestMapping("/checkBraceletSave.do")
+	@ResponseBody
+	public void checkBraceletSave(String mac, Integer bbId, String code, HttpServletResponse response) {
+		Map<String, Object> map = new HashMap<>();
+		RichHttpResponse<String> rhr = new RichHttpResponse<String>();
+		BluetoothBracelet bluetoothBracelet = null;
+		rhr.ResponseResult = "获取成功";
+		rhr.ResponseCode = 0;
+		rhr.ResponseObject = "数据没问题";
+		if (bbId == null) {// 添加
+			map.put("mac", mac);
+			boolean flag = braceletService.getCountByMacOrCode(map);
+			if (flag) {
+				rhr.ResponseResult = "获取成功";
+				rhr.ResponseCode = 1;
+				rhr.ResponseObject = "该蓝牙手环的mac已存在";
+			} else if (!flag) {
+				map = new HashMap<>();
+				map.put("code", code);
+				flag = braceletService.getCountByMacOrCode(map);
+				if (flag) {
+					rhr.ResponseResult = "获取成功";
+					rhr.ResponseCode = 2;
+					rhr.ResponseObject = "该蓝牙手环的的编号已存在";
+				} 
+			}
+		} else {// 修改
+			bluetoothBracelet = braceletService.getById(bbId);
+			map.put("mac", mac);
+			boolean flag = braceletService.getCountByMacOrCode(map);
+			if (!mac.equals(bluetoothBracelet.getMac()) && flag) {
+				rhr.ResponseResult = "获取成功";
+				rhr.ResponseCode = 1;
+				rhr.ResponseObject = "该蓝牙手环的mac已存在";
+			} else if (!code.equals(bluetoothBracelet.getCode())) {
+				map = new HashMap<>();
+				map.put("code", code);
+				if (braceletService.getCountByMacOrCode(map)) {
+					rhr.ResponseResult = "获取成功";
+					rhr.ResponseCode = 2;
+					rhr.ResponseObject = "该蓝牙手环的的编号已存在";
+				}
+			}
+		}
+		try {
+			response.setCharacterEncoding("UTF-8");
+			response.getWriter().write(GsonHelper.toJson(rhr));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+
+	/**
+	 * 保存蓝牙手环
+	 * @author chenyong
+	 * @Time 2017年5月5日 下午6:08:11
+	 */
+	  @RequestMapping("/saveBracelet.do")
+	  @ResponseBody
+      public void saveBracelet(HttpServletResponse response,HttpSession session,BluetoothBracelet bracelet){
+		  String code="200";
+		  try {
+			  if(bracelet.getId()!=null){//x修改
+	    		  braceletService.updateById(bracelet);
+	    	  }else{//添加
+	    		  bracelet.setStatus(0);
+	    		  braceletService.insertBluetoothBracelet(bracelet);  
+	    	  }
+		} catch (Exception e) {
+			code="500";
+		}
+    	try {
+    		response.setCharacterEncoding("UTF-8");
+			response.getWriter().write(GsonHelper.toJson(code));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+      }
+	
+}

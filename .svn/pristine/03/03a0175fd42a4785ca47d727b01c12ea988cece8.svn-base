@@ -1,0 +1,37 @@
+<!--题目内容-->
+<div class="selectContent" id="selectModel" style="display: none">
+    <ul class="selectTopics">
+        <div class="selectTopic">
+            <li style="margin-left: 20px">
+                <span><span class="topicNumber"></span></span>
+<!--                 <span class="topicProperty"> -->
+<!--                     该题分数：<input class="integral" size="3" value="2"> -->
+<!--                 </span> -->
+
+                <div class="topicBar">
+                    <button class="topicBarEditButton">保存</button>
+                    <!--<button class="topicBarRemoveButton">删除</button>-->
+                    <input type="hidden" class="exercisesId">
+                </div>
+            </li>
+            <ul>
+                <!--题目内容-->
+                <div class="selectTopicEdit">
+                    <div class="selectTopicUEditor"></div>
+                    <div class="selectTopicUEditorValue" style="display: none;"></div>
+                </div>
+                <!--答题卡-->
+                <div>
+                    <div>选项(分值输入)：</div>
+                    <button class="addOption">添加</button>
+                    <button class="removeOption">删除</button>
+                        <span class="topicOptions">
+                            <input class="topicOptionsNumber" type="hidden" value="0">
+<!--                             <label class="topicOptions"><span class="topicOptionsText">第1处：</span><input type="text"></label> -->
+                        </span>
+                </div>
+            </ul>
+        </div>
+    </ul>
+</div>
+

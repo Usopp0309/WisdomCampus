@@ -1,0 +1,762 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Check">
+	<typeAlias alias="check" type="com.guotop.palmschool.check.entity.Check"/>
+	<typeAlias alias="checkAttendance" type="com.guotop.palmschool.check.entity.CheckAttendance"/>
+
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-user">
+		<result property="id" column="id"/>
+		<result property="code" column="code"/>	
+		<result property="username" column="username"/>
+		<result property="password" column="password"/>
+		<result property="type" column="type"/>
+		<result property="parentname" column="parentname"/>
+		<result property="name" column="name"/>
+		<result property="sex" column="sex"/>
+		<result property="stupic" column="stupic"/>
+		<result property="schoolId" column="schoolId"/>
+		<result property="gradeId" column="gradeId"/>
+		<result property="clazzId" column="clazzId"/>
+		<result property="cardCode" column="cardCode"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-student">
+		<result property="id" column="id"/>
+		<result property="code" column="code"/>	
+		<result property="username" column="username"/>
+		<result property="password" column="password"/>
+		<result property="type" column="type"/>
+		<result property="parentname" column="parentname"/>
+		<result property="name" column="name"/>
+		<result property="sex" column="sex"/>
+		<result property="stupic" column="stupic"/>
+		<result property="schoolId" column="schoolId"/>
+		<result property="gradeId" column="gradeId"/>
+		<result property="clazzId" column="clazzId"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.check.entity.Check" id="result-check">
+		<result property="id" column="id"/>
+		<result property="period" column="period"/>
+		<result property="content" column="content"/>	
+		<result property="checkTime" column="checktime"/>
+		<result property="createTime" column="createtime"/>
+	</resultMap>
+	
+	<!-- 教师考勤 -->
+	<resultMap class="com.guotop.palmschool.check.entity.TeacherCheck" id="result-teachercheck">
+		<result property="gradeName" column="gradeName"/>
+		<result property="code" column="code"/>
+		<result property="name" column="name"/>	
+		<result property="phone" column="username"/>
+		<result property="cardCode" column="cardCode"/>
+		<result property="status" column="status"/>
+		<result property="updateTime" column="updatetime"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.check.entity.TeacherAttendance" id="result-teacherattendance">
+		<result property="gradeName" column="gradeName"/>
+		<result property="uId" column="uId"/>
+		<result property="code" column="code"/>
+		<result property="name" column="name"/>	
+		<result property="remark" column="remark"/>
+		<result property="statusName" column="statusName"/>
+		<result property="status" column="status"/>
+		<result property="createTime" column="createTime"/>
+		<result property="time" column="time"/>
+		<result property="orderStyle" column="orderStyle"/>
+		<result property="inoutTime" column="inoutTime"/>
+	</resultMap>
+	
+	<!-- 学生考勤 -->
+	<resultMap class="com.guotop.palmschool.check.entity.StudentCheck" id="result-studentcheck">
+		<result property="gradeName" column="gradeName"/>
+		<result property="uId" column="uId"/>
+		<result property="code" column="code"/>
+		<result property="name" column="name"/>	
+		<result property="updateTime" column="updatetime"/>
+		<result property="statusName" column="statusName"/>
+		<result property="status" column="status"/>
+		<result property="time" column="time"/>
+		<result property="orderStyle" column="orderStyle"/>
+		<result property="inoutTime" column="inoutTime"/>
+	</resultMap>
+	
+	<!-- 考勤实体 -->
+	<resultMap class="com.guotop.palmschool.check.entity.CheckAttendance" id="result-checkAttendance">
+		<result property="id" column="id"/>
+		<result property="userId" column="userid"/>
+		<result property="departmentId" column="departmentid"/>	
+		<result property="clazzId" column="clazzid"/>
+		<result property="status" column="status"/>
+		<result property="stuTeaType" column="stuTeaType"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createTime" column="createTime"/>
+	</resultMap>
+	
+	<!-- 考勤实体统计相关-->
+	<resultMap class="com.guotop.palmschool.check.entity.CheckAttendance" id="result-attendance">
+		<result property="userId" column="userid"/>
+		<result property="status" column="status"/>
+		<result property="createDate" column="createDate"/>
+		<result property="gradeName" column="gradeName"/>
+		<result property="code" column="code"/>
+		<result property="name" column="name"/>	
+		<result property="statusName" column="statusName"/>
+	</resultMap>
+	
+	<!-- 查询所有的检测记录-->
+	<select id="selectAllCheckForMain" parameterClass="String" resultMap="result-check">
+		SELECT * FROM palm_check
+	</select>
+	
+	<!-- 检测教师未离校 -->
+	<select id="selectTeacherNotLeave" parameterClass="HashMap" resultMap="result-user">
+		<![CDATA[
+			SELECT u.*, ur.roleId , pc.code AS cardCode, ur.gradeId, ur.clazzId
+		     FROM palm_user u, palm_user_role ur ,palm_user_card uc , palm_card pc
+			    WHERE u.id = ur.userId
+			    AND u.id = uc.userId
+			     AND pc.id = uc.cardId
+			      AND ur.roleId IN (4,5,8) 
+				  AND NOT EXISTS
+					(
+					   SELECT u.name,i.* FROM palm_inout i 
+							WHERE u.id = i.userid
+								AND i.createtime >= #beginTime#
+								AND i.createtime <= #endTime#
+								AND i.status = #status#
+					)
+		]]>
+	</select>
+	
+	<!-- 检测教师未到校 -->
+	<select id="selectTeacherNotArrive" parameterClass="HashMap" resultMap="result-user">
+		<![CDATA[
+			SELECT u.*, ur.roleId , pc.code AS cardCode, ur.gradeId, ur.clazzId
+		     FROM palm_user u, palm_user_role ur ,palm_user_card uc , palm_card pc
+			    WHERE u.id = ur.userId
+			    AND u.id = uc.userId
+			     AND pc.id = uc.cardId
+				  AND ur.roleId IN (4,5,8)
+				  AND ur.roleId = r.id
+				  AND io.userid = u.id
+				  AND c.updatetime < #updateTime#
+				  AND io.status = #status#
+		]]>
+	</select>
+	
+	<!-- 检测教师迟到 -->
+	<select id="selectTeacherLate" parameterClass="HashMap" resultMap="result-user">
+		<![CDATA[
+		  SELECT u.*, ur.roleId , pc.code AS cardCode, ur.gradeId, ur.clazzId
+		     FROM palm_user u, palm_user_role ur ,palm_user_card uc , palm_card pc
+			    WHERE u.id = ur.userId
+			    AND u.id = uc.userId
+			     AND pc.id = uc.cardId
+			      AND ur.roleId IN (4,5,8) 
+				   AND NOT EXISTS
+					(
+						select 1 from palm_inout i 
+							where u.id = i.userid
+							  and i.createtime <= #beginTime#
+							  and i.createtime >= #endTime#
+							  and i.status = #status#
+					)
+					AND NOT EXISTS
+					(
+						SELECT 1 FROM palm_leave l 
+							WHERE u.id = l.userId
+							  AND l.startTime LIKE CONCAT('%',#time#,'%')
+							  AND l.auditStatus = 2
+					)			
+		]]>
+	</select>
+	
+	<!-- 检测教师早退 -->
+	<select id="selectTeacherLeave" parameterClass="HashMap" resultMap="result-user">
+		<![CDATA[
+			SELECT u.*, ur.roleId , pc.code AS cardCode, ur.gradeId, ur.clazzId
+		     FROM palm_user u, palm_user_role ur ,palm_user_card uc , palm_card pc
+			    WHERE u.id = ur.userId
+			    AND u.id = uc.userId
+			     AND pc.id = uc.cardId
+			      AND ur.roleId IN (4,5,8) 
+				  AND NOT EXISTS
+					(
+					   SELECT u.name,i.* FROM palm_inout i 
+							WHERE u.id = i.userid
+								AND i.createtime >= #beginTime#
+								AND i.createtime <= #endTime#
+								AND i.status = #status#
+					)
+				  AND NOT EXISTS
+					(
+						SELECT 1 FROM palm_leave l 
+							WHERE u.id = l.userId
+							  AND l.startTime LIKE CONCAT('%',#time#,'%')
+							  AND l.auditStatus = 2
+					)
+		]]>
+	</select>
+	
+	<!-- 检测学生未离校 -->
+	<select id="selectStudentNotLeave" parameterClass="HashMap" resultMap="result-user">
+		<![CDATA[
+			SELECT u.*, ur.roleId , pc.code AS cardCode, ur.gradeId, ur.clazzId
+		     FROM palm_user u, palm_user_role ur ,palm_user_card uc , palm_card pc
+			    WHERE u.id = ur.userId
+			    AND u.id = uc.userId
+			     AND pc.id = uc.cardId
+			      AND ur.roleId = 7
+				  AND NOT EXISTS
+					(
+					   SELECT u.name,i.* FROM palm_inout i 
+							WHERE u.id = i.userid
+								AND i.createtime >= #beginTime#
+								AND i.createtime <= #endTime#
+								AND i.status = #status#
+					)
+		]]>
+	</select>
+	
+	<!-- 检测学生未到校 -->
+	<select id="selectStudentNotArrive" parameterClass="HashMap" resultMap="result-user">
+		<![CDATA[
+		  SELECT u.*, ur.roleId , pc.code AS cardCode, ur.gradeId, ur.clazzId
+		     FROM palm_user u, palm_user_role ur ,palm_user_card uc , palm_card pc
+			    WHERE u.id = ur.userId
+			    AND u.id = uc.userId
+			     AND pc.id = uc.cardId
+			      AND ur.roleId = 7 
+				   AND NOT EXISTS
+					(
+						select 1 from palm_inout i 
+							where u.id = i.userid
+							  and i.createtime <= #beginTime#
+							  and i.createtime >= #endTime#
+							  and i.status = #status#
+					)			
+		]]>
+	</select>
+	
+	<!-- 检测学生迟到 -->
+	<select id="selectStudentLate" parameterClass="HashMap" resultMap="result-user">
+		<![CDATA[
+		  SELECT u.*, ur.roleId , pc.code AS cardCode, ur.gradeId, ur.clazzId
+		     FROM palm_user u, palm_user_role ur ,palm_user_card uc , palm_card pc
+			    WHERE u.id = ur.userId
+			    AND u.id = uc.userId
+			     AND pc.id = uc.cardId
+			      AND ur.roleId = 7 
+				   AND NOT EXISTS
+					(
+						select 1 from palm_inout i 
+							where u.id = i.userid
+							  and i.createtime <= #beginTime#
+							  and i.createtime >= #endTime#
+							  and i.status = #status#
+					)
+				   AND NOT EXISTS
+					(
+						SELECT 1 FROM palm_leave l 
+							WHERE u.id = l.userId
+							  AND l.startTime LIKE CONCAT('%',#time#,'%')
+							  AND l.auditStatus = 2
+					)				
+		]]>
+	</select>
+	
+	<!-- 检测学生早退 -->
+	<select id="selectStudentLeave" parameterClass="HashMap" resultMap="result-user">
+		<![CDATA[
+			SELECT u.*, ur.roleId , pc.code AS cardCode, ur.gradeId, ur.clazzId
+		     FROM palm_user u, palm_user_role ur ,palm_user_card uc , palm_card pc
+			    WHERE u.id = ur.userId
+			    AND u.id = uc.userId
+			     AND pc.id = uc.cardId
+			      AND ur.roleId = 7 
+				  AND NOT EXISTS
+					(
+					   SELECT u.name,i.* FROM palm_inout i 
+							WHERE u.id = i.userid
+								AND i.createtime >= #beginTime#
+								AND i.createtime <= #endTime#
+								AND i.status = #status#
+					)
+				 AND NOT EXISTS
+					(
+						SELECT 1 FROM palm_leave l 
+							WHERE u.id = l.userId
+							  AND l.startTime LIKE CONCAT('%',#time#,'%')
+							  AND l.auditStatus = 2
+					)
+		]]>
+	</select>
+	
+	
+	<!-- 添加考勤 -->
+	<insert id="addCheck" parameterClass="check">
+		insert into palm_check
+		(
+			period, 
+			content, 
+			checktime, 
+			createtime
+		)
+		values
+		(
+			#period#,
+			#content#, 
+			#checkTime#, 
+			#createTime#
+		)
+	</insert>
+	
+	<select id="selectCheckList" parameterClass="HashMap" resultMap="result-check">
+		<![CDATA[
+			select * 
+				from palm_check 
+				where period = #period#
+				and checktime >= #todayBegin#
+				and checktime <= #todayEnd#
+		]]>
+	</select>
+	
+	<select id="loadCheckList"  resultMap="result-check">
+		select * 
+			from palm_check
+			where 1 = 1
+			<isNotEmpty prepend="and" property="period">
+				period = #period#
+			</isNotEmpty>
+	</select>
+	
+	<!-- 加载老师考勤信息  权限校长 2015-12-21-->
+	<select id="getTeacherAttendanceList" parameterClass="HashMap" resultMap="result-teacherattendance">			
+		SELECT DISTINCT c.userid as uId,c.status, cs.statusName,c.remark, c.createDate AS createTime, c.inoutTime,u.realname name, u.code, 
+		d.departmentName AS gradeName,c.createTime time , cs.orderStyle
+			FROM palm_checkAttendance c, platform.user_detail u, palm_department d,palm_checkattendance_order cs
+			WHERE c.userid = u.userid
+			AND c.departmentid = d.id
+			AND c.type = 0
+			AND c.status = cs.id
+			<isNotEmpty prepend="and" property="departmentId">
+					d.id = #departmentId#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="queryContent">
+				(u.code LIKE CONCAT('%',#queryContent#,'%')
+				or  u.realname LIKE CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="startTime">
+				c.createDate >= #startTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="endTime">
+				#endTime# >= c.createDate
+			</isNotEmpty>
+			ORDER BY c.userid ASC, cs.orderStyle ASC,c.createTime DESC
+			<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			</isNotEmpty>		
+	</select>
+	
+	<!-- 加载老师考勤信息的总数  权限校长  2015-12-21-->
+	<select id="getTeacherAttendanceListCount" parameterClass="HashMap" resultClass="Integer">						
+		SELECT COUNT(*)FROM 
+		 (SELECT DISTINCT c.userid as uId, c.status,c.remark, c.createDate AS createTime, u.realname, u.code, d.departmentName AS gradeName
+			FROM palm_checkAttendance c, platform.user_detail u, palm_department d,palm_checkattendance_order cs
+			WHERE c.userid = u.userid
+			AND c.departmentid = d.id
+			AND c.type = 0
+			AND c.status = cs.id
+			<isNotEmpty prepend="and" property="departmentId">
+					d.id = #departmentId#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="queryContent">
+				(u.code LIKE CONCAT('%',#queryContent#,'%')
+				or  u.realname LIKE CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="startTime">
+				c.createDate >= #startTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="endTime">
+				#endTime# >= c.createDate
+			</isNotEmpty>
+			 )t
+						
+	</select>
+	
+	<!-- 加载老师考勤信息  有权限 2015-12-21-->
+	<select id="getNormalTeacherAttendanceList" parameterClass="HashMap" resultMap="result-teacherattendance">			
+		SELECT DISTINCT c.userid as uId, c.status,cs.statusName,c.remark, c.createDate AS createTime, c.inoutTime, u.realname name, 
+		u.code, d.departmentName AS gradeName,c.createTime time, cs.orderStyle
+			FROM palm_checkAttendance c, platform.user_detail u, palm_department d,palm_checkattendance_order cs
+			WHERE c.userid = u.userid
+			AND c.departmentid = d.id
+			AND c.type = 0
+			AND c.status = cs.id
+			and (u.userid = #userId#	
+			<isNotEmpty property="departIdList">
+				or (
+					c.departmentId 
+					IN 
+		            <iterate open="(" close=")" conjunction="," property="departIdList" > 
+		                #departIdList[]# 
+		            </iterate>
+		       	)      
+			</isNotEmpty>	
+			)
+			<isNotEmpty prepend="and" property="departmentId">
+					d.id = #departmentId#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="queryContent">
+				(u.code LIKE CONCAT('%',#queryContent#,'%') or u.realname LIKE CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="startTime">
+				c.createDate >= #startTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="endTime">
+				#endTime# >= c.createDate
+			</isNotEmpty>
+			ORDER BY c.userid ASC, cs.orderStyle ASC,c.createTime DESC
+			<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			</isNotEmpty>
+					
+	</select>
+	
+	<!-- 加载老师考勤信息的总数  有权限 2015-12-21-->
+	<select id="getNormalTeacherAttendanceListCount" parameterClass="HashMap" resultClass="Integer">						
+		SELECT COUNT(*)FROM 
+		 (SELECT DISTINCT c.userid as uId, cs.statusName, c.remark,c.createDate AS createTime, u.realname name, u.code, d.departmentName AS gradeName
+			FROM palm_checkAttendance c, platform.user_detail u, palm_department d,palm_checkattendance_order cs
+			WHERE c.userid = u.userid
+			AND c.departmentid = d.id
+			AND c.type = 0
+			AND c.status = cs.id
+			and (u.userid = #userId#	
+			<isNotEmpty property="departIdList">
+				or (
+					c.departmentId 
+					IN 
+		            <iterate open="(" close=")" conjunction="," property="departIdList" > 
+		                #departIdList[]# 
+		            </iterate>
+		       	)      
+			</isNotEmpty>	
+			)
+			<isNotEmpty prepend="and" property="departmentId">
+					d.id = #departmentId#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="queryContent">
+				(u.code LIKE CONCAT('%',#queryContent#,'%') or u.realname LIKE CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="startTime">
+				c.createDate >= #startTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="endTime">
+				#endTime# >= c.createDate
+			</isNotEmpty>
+			 )t				
+	</select>
+	
+	<!-- 加载学生考勤信息  权限校长 2016-12-1-->
+	<select id="getStudentCheckListCount" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(t.uId)FROM(
+		SELECT DISTINCT c.userid AS uId, c.remark, c.status,c.createDate AS updateTime
+			FROM palm_checkAttendance c, platform.user_detail u, palm_clazz cl,palm_grade g
+			WHERE c.userid = u.userid
+			AND c.clazzid = cl.id
+			AND c.type = 1
+			AND g.id = cl.gradeId
+			AND g.state = '0'
+			<isNotEmpty prepend="and" property="clazzId">
+					cl.id = #clazzId#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="queryContent">
+				(u.code LIKE CONCAT('%',#queryContent#,'%')
+				or  u.realname LIKE CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="startTime">
+				c.createDate >= #startTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="endTime">
+				#endTime# >= c.createDate
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="todayTime">
+			   DATE_FORMAT(c.createDate,'%Y%m%d')= DATE_FORMAT(#todayTime#,'%Y%m%d')
+			</isNotEmpty>
+            
+			)t	
+	</select>
+	<select id="getStudentCheckList" parameterClass="HashMap" resultMap="result-studentcheck">
+		SELECT DISTINCT c.userid as uId, cs.statusName,c.remark, c.status,c.createDate AS updateTime, c.inoutTime, u.realname name, 
+			u.code, getClazzName(cl.id) AS gradeName,c.createTime time, cs.orderStyle
+			FROM palm_checkAttendance c, platform.user_detail u, palm_clazz cl,palm_grade g,palm_checkattendance_order cs
+			WHERE c.userid = u.userid
+			AND c.clazzid = cl.id
+			AND c.type = 1
+			AND g.id = cl.gradeId
+			AND g.state = '0'
+			AND c.status = cs.id
+			<isNotEmpty prepend="and" property="clazzId">
+					cl.id = #clazzId#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="queryContent">
+				(u.code LIKE CONCAT('%',#queryContent#,'%')
+				or  u.realname LIKE CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="startTime">
+				c.createDate >= #startTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="endTime">
+				#endTime# >= c.createDate
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="todayTime">
+			   DATE_FORMAT(c.createDate,'%Y%m%d')= DATE_FORMAT(#todayTime#,'%Y%m%d')
+			</isNotEmpty>
+			ORDER BY c.userid ASC, cs.orderStyle ASC,c.createTime DESC
+			<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			</isNotEmpty>		
+	</select>
+	
+	<!-- 加载学生考勤信息  有权限-->
+	<select id="getStudentCheckListAsHeadMaster" parameterClass="HashMap" resultMap="result-studentcheck">
+			
+		SELECT DISTINCT c.userid as uId, cs.statusName,c.remark,c.status, c.createDate AS updateTime, c.inoutTime, u.realname name, 
+			u.code, getClazzName(cl.id) AS gradeName,c.createTime time , cs.orderStyle
+			FROM palm_checkAttendance c, platform.user_detail u, palm_clazz cl,palm_grade g,palm_checkattendance_order cs
+			WHERE c.userid = u.userid
+			AND c.clazzid = cl.id
+			AND c.type = 1
+			AND g.id = cl.gradeId
+			AND g.state = '0'
+			AND c.status = cs.id
+			and  (cl.id IN 
+					<isNotNull property="clazzIdList">
+			            <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+			                #clazzIdList[]# 
+			            </iterate> 
+		            </isNotNull>
+		            <isNull property="clazzIdList" open="(" close=")">
+		            	-1
+		            </isNull>
+			)
+			<isNotEmpty prepend="and" property="clazzId">
+				cl.id = #clazzId#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="queryContent">
+				(u.code LIKE CONCAT('%',#queryContent#,'%')
+				or  u.realname LIKE CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="startTime">
+				c.createDate >= #startTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="endTime">
+				#endTime# >= c.createDate
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="todayTime">
+			   DATE_FORMAT(c.createDate,'%Y%m%d')= DATE_FORMAT(#todayTime#,'%Y%m%d')
+			</isNotEmpty>
+			ORDER BY c.userid ASC, cs.orderStyle ASC,c.createTime DESC
+			<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			</isNotEmpty>		
+	
+	</select>
+	
+	<!-- 加载学生考勤信息  权限学生 20151221-->
+	<select id="getStudentCheckListAsStudent" parameterClass="HashMap" resultMap="result-studentcheck">
+		SELECT DISTINCT c.userid as uId, cs.statusName,c.remark,c.status, c.createDate AS updateTime, c.inoutTime, u.realname name,
+			 u.code, getClazzName(cl.id) AS gradeName,c.createTime time , '' orderStyle
+			FROM palm_checkAttendance c, platform.user_detail u, palm_clazz cl,palm_grade g,palm_checkattendance_order cs
+			WHERE c.userid = u.userid
+			AND c.clazzid = cl.id
+			AND c.type = 1
+			AND c.status = cs.id
+			AND g.id = cl.gradeId
+			AND g.state = '0'
+			and c.userid=#userId#
+			<isNotEmpty prepend="and" property="todayTime">
+			   DATE_FORMAT(c.createDate,'%Y%m%d')= DATE_FORMAT(#todayTime#,'%Y%m%d')
+			</isNotEmpty>
+			ORDER BY c.userid ASC, cs.orderStyle ASC,c.createTime DESC
+			<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			</isNotEmpty>	
+	</select>
+	<!-- 加载学生考勤信息  权限家长 20151222-->
+	<select id="getStudentCheckListAsParent" parameterClass="HashMap" resultMap="result-studentcheck">
+		SELECT DISTINCT c.userid as uId, cs.statusName,c.remark, c.status,c.createDate AS updateTime, c.inoutTime, u.realname name,
+			 u.code, getClazzName(cl.id) AS gradeName,c.createTime time, cs.orderStyle
+			FROM palm_checkAttendance c, platform.user_detail u, palm_clazz cl,palm_grade g,palm_checkattendance_order cs, platform.student_parent sp
+			WHERE c.userid = u.userid
+			AND c.clazzid = cl.id
+			and c.userid=sp.userId
+			AND c.type = 1
+			AND g.id = cl.gradeId
+			AND g.state = '0'
+			AND c.status = cs.id
+			and sp.parent_userId=#userId#
+			<isNotEmpty prepend="and" property="queryContent">
+				(u.code LIKE CONCAT('%',#queryContent#,'%')
+				or  u.realname LIKE CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="startTime">
+				c.createDate >= #startTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="endTime">
+				#endTime# >= c.createDate
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="todayTime">
+			   DATE_FORMAT(c.createDate,'%Y%m%d')= DATE_FORMAT(#todayTime#,'%Y%m%d')
+			</isNotEmpty>
+			ORDER BY c.userid ASC, cs.orderStyle ASC,c.createTime DESC
+			<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			</isNotEmpty>		
+	</select>
+	
+	
+	<insert id="addCheckAttendance" parameterClass="checkAttendance">
+		insert into palm_checkattendance
+		(
+			userid,
+			departmentid,
+			clazzid,
+			status,
+			stuTeaType,
+			createDate,
+			createTime
+		)
+		values
+		(
+			#userId#,
+			#departmentId#,
+			#clazzId#,
+			#status#,
+			#stuTeaType#,
+			#createDate#,
+			#createTime#
+		)
+	</insert>
+	
+	<update id="updateCheckAttendance" parameterClass="HashMap">
+		update palm_checkattendance
+			set status = #status#
+			where userid = #userId#	
+	</update>
+	
+	<update id="updateStatus" parameterClass="HashMap">
+		update palm_checkattendance
+			set status = #newStatus#,
+			    remark = #remark#
+			where userid = #uId#
+			  and status = #status# 
+			  and createDate = #createDate# 	
+	</update>
+	
+		<!-- 加载老师考勤信息  权限校长（上午）2015-12-22-->
+	<select id="checkAMTeacherAttendance" parameterClass="HashMap" resultMap="result-attendance">
+			
+			SELECT DISTINCT c.userid, c.status, co.statusName, c.createDate, u.realname name, u.code, d.departmentname AS gradeName
+			FROM palm_checkAttendance c, platform.user_detail u, palm_department d, palm_checkattendance_order co 
+			WHERE c.userid = u.userid
+			AND c.status = co.id
+			AND c.departmentid = d.id
+			AND co.statusName like '上午%'
+			AND co.status = 0
+			AND c.type = 0
+			AND c.createDate = #time#
+	
+	</select>
+	
+		<!-- 加载老师考勤信息  权限校长（下午）2015-12-22-->
+	<select id="checkPMTeacherAttendance" parameterClass="HashMap" resultMap="result-attendance">
+			
+		SELECT DISTINCT c.userid, c.status, co.statusName, c.createDate, u.realname name, u.code, d.departmentname AS gradeName
+			FROM palm_checkAttendance c, platform.user_detail u, palm_department d, palm_checkattendance_order co 
+			WHERE c.userid = u.userid
+			AND c.status = co.id
+			AND c.departmentid = d.id
+			AND co.statusName like '下午%'
+			AND co.status = 0
+			AND c.type = 0
+			AND c.createDate = #time#
+			
+	</select>
+		<!-- 加载老师考勤信息  权限老师（上午）2015-12-22-->
+	<select id="checkAMTeacherAttendanceWithTeacher" parameterClass="HashMap" resultMap="result-attendance">
+			
+			SELECT DISTINCT c.userid, c.status, co.statusName, c.createDate, u.realname name, u.code, d.departmentname AS gradeName
+			FROM palm_checkAttendance c, platform.user_detail u, palm_department d, palm_checkattendance_order co 
+			WHERE c.userid = u.userid
+			AND c.status = co.id
+			AND c.departmentid = d.id
+			AND co.statusName like '上午%'
+			AND co.status = 0
+			AND c.type = 0
+			AND c.createDate = #time#
+			<isNotEmpty prepend="and" property="departIdList">
+			c.departmentId in
+					<iterate open="(" close=")" conjunction="," property="departIdList" > 
+		                #departIdList[]# 
+		            </iterate> 
+			</isNotEmpty>
+	
+	</select>
+		<!-- 加载老师考勤信息  权限老师（下午）2015-12-22-->
+	<select id="checkPMTeacherAttendanceWithTeacher" parameterClass="HashMap" resultMap="result-attendance">
+			
+		SELECT DISTINCT c.userid, c.status, co.statusName, c.createDate, u.realname name, u.code, d.departmentname AS gradeName
+			FROM palm_checkAttendance c, platform.user_detail u, palm_department d, palm_checkattendance_order co 
+			WHERE c.userid = u.userid
+			AND c.status = co.id
+			AND c.departmentid = d.id
+			AND co.statusName like '下午%'
+			AND co.status = 0
+			AND c.type = 0
+			AND c.createDate = #time#
+			<isNotEmpty prepend="and" property="departIdList">
+			c.departmentId in
+					<iterate open="(" close=")" conjunction="," property="departIdList" > 
+		                #departIdList[]# 
+		            </iterate> 
+			</isNotEmpty>
+	</select>
+	<!-- 加载老师考勤信息  权限老师（下午）2015-12-31-->
+	<select id="checkTeacherAttendanceWithTeacher" parameterClass="HashMap" resultMap="result-attendance">
+			
+		SELECT DISTINCT c.userid, c.status, co.statusName, c.createDate, u.realname name, u.code, d.departmentname AS gradeName
+			FROM palm_checkAttendance c, platform.user_detail u, palm_department d, palm_checkattendance_order co 
+			WHERE c.userid = u.userid
+			AND c.status = co.id
+			AND c.departmentid = d.id
+			AND co.status = 0
+			AND c.type = 0
+			AND c.createDate = #time#
+			<isNotEmpty prepend="and" property="departIdList">
+			c.departmentId in
+					<iterate open="(" close=")" conjunction="," property="departIdList" > 
+		                #departIdList[]# 
+		            </iterate> 
+			</isNotEmpty>
+	</select>
+	<!-- 加载老师考勤信息  权限校长2015-12-32-->
+	<select id="checkTeacherAttendance" parameterClass="HashMap" resultMap="result-attendance">
+			
+		SELECT DISTINCT c.userid, c.status, co.statusName, c.createDate, u.realname name, u.code, d.departmentname AS gradeName
+			FROM palm_checkAttendance c, platform.user_detail u, palm_department d, palm_checkattendance_order co 
+			WHERE c.userid = u.userid
+			AND c.status = co.id
+			AND c.departmentid = d.id
+			AND co.status = 0
+			AND c.type = 0
+			AND c.createDate = #time#
+			
+	</select>
+	
+</sqlMap>

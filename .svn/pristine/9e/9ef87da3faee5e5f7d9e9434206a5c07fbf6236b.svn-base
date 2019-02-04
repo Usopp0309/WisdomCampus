@@ -1,0 +1,1135 @@
+package com.guotop.palmschool.asset.controller;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import net.sf.json.JSONObject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.guotop.palmschool.asset.entity.Asset;
+import com.guotop.palmschool.asset.entity.AssetRepair;
+import com.guotop.palmschool.asset.entity.AssetRepairImg;
+import com.guotop.palmschool.asset.entity.AssetServiceman;
+import com.guotop.palmschool.asset.service.AssetService;
+import com.guotop.palmschool.asset.tool.AssetType;
+import com.guotop.palmschool.asset.tool.Type;
+import com.guotop.palmschool.asset.tool.Units;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.constant.Cons.PUSHTYPE;
+import com.guotop.palmschool.controller.BaseController;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.rest.entity.PushItem;
+import com.guotop.palmschool.service.DepartmentService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+import com.richx.pojo.RichHttpResponse;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 资产控制类(手机端)
+ */
+@RequestMapping("/assetapp")
+@Controller
+public class AssetAPPController extends BaseController
+{
+	private Logger log = LoggerFactory.getLogger(AssetAPPController.class);
+	
+	@Resource
+	private AssetService assetService;
+
+	@Resource
+	private UserService userService;
+
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private DepartmentService departmentService;
+	
+	
+	/**
+	 * 获取资产类型
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getAssetTypeList.do")
+	public String getAssetTypeList(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<List<Type>> rhr = new RichHttpResponse<List<Type>>();
+		String json;
+		try
+		{
+			List<Type> list = AssetType.getList();
+			rhr.ResponseCode = 0;
+			rhr.ResponseResult = "获取成功";
+			rhr.ResponseObject = list;
+			json = GsonHelper.toJson(rhr);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("获取失败：" + e.getMessage());
+		}
+		return null;
+	}
+	
+	/**
+	 * 获取计量单位
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getUnitsList.do")
+	public String getUnitsList(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<List<String>> rhr = new RichHttpResponse<List<String>>();
+		String json;
+		try
+		{
+			List<String> list = Units.getList();
+			
+			rhr.ResponseCode = 0;
+			rhr.ResponseResult = "获取成功";
+			rhr.ResponseObject = list;
+			json = GsonHelper.toJson(rhr);
+			
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("获取失败：" + e.getMessage());
+		}
+		return null;
+	}
+	
+	/**
+	 * 获取资产列表
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getAssetList.do")
+	public String getAssetList(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<Object> rhr = new RichHttpResponse<Object>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		String json;
+		// 这边是利用apikey 进行模拟登录
+		User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+		try
+		{
+			if (loginUser != null)
+			{
+				Integer personOrschool = StringUtil.toint(request.getParameter("personOrschool"));
+				session.setAttribute("user", loginUser);
+				
+				Integer currentPage = 1;
+				try
+				{
+					currentPage = Integer.valueOf(request.getParameter("currentPage"));
+				} catch (Exception e)
+				{
+					currentPage = 1;
+				}
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+				Map<String, Object> params = new HashMap<String, Object>();
+				params.put("userId", loginUser.getUserId());
+				this.getPages().setPageSize(10);
+				Pages pages = assetService.getAssetList(currentPage, this.getPages().getPageSize(), personOrschool,loginUser, params);
+				String personnelType = assetService.getPersonnelType(loginUser);
+				JSONObject jo = new JSONObject();
+				jo.put("pages", pages);
+				jo.put("personnelType", personnelType);
+				
+				rhr.ResponseCode = 0;
+				rhr.ResponseResult = "获取成功";
+				rhr.ResponseObject = jo;
+				json = GsonHelper.toJson(rhr);
+			} else
+			{
+				rhr.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+			
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("获取失败：" + e.getMessage());
+		}
+		return null;
+	}
+	
+	/**
+	 * 根据资产类型加载相关的维修人员
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getServicemanListByType.do")
+	public String getServicemanListByType(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<List<User>> rhr = new RichHttpResponse<List<User>>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		String json;
+		// 这边是利用apikey 进行模拟登录
+		User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+		try
+		{
+			if (loginUser != null)
+			{
+				Integer type = StringUtil.toint(request.getParameter("type"));
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+				List<AssetServiceman> list = assetService.getAllServicemanListByType(type);
+				List<User> userList = new ArrayList<>();
+				for(AssetServiceman serviceman : list)
+				{
+					User user = new User();
+					user.setUserId(serviceman.getServicemanId());
+					user.setRealName(serviceman.getServiceman());
+					user.setHeadImg(serviceman.getServicemanHeadImg());
+					userList.add(user);
+				}
+				rhr.ResponseCode = 0;
+				rhr.ResponseResult = "获取成功";
+				rhr.ResponseObject = userList;
+				json = GsonHelper.toJsonWithAnnotation(rhr);
+				
+			} else
+			{
+				rhr.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+			
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("获取失败：" + e.getMessage());
+		}
+		return null;
+	}
+	
+	/**
+	 * 根据维修人员获取对应的领导
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getServicemanLeaderByServicemanId.do")
+	public String getServicemanLeaderByServicemanId(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<List<User>> rhr = new RichHttpResponse<List<User>>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		String json;
+		// 这边是利用apikey 进行模拟登录
+		User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+		try
+		{
+			if (loginUser != null)
+			{
+				Integer servicemanId = StringUtil.toint(request.getParameter("servicemanId"));
+				Integer type = StringUtil.toint(request.getParameter("type"));
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+				List<User> list = assetService.getLeaderListByServicemanIdForPush(servicemanId,type);
+				rhr.ResponseCode = 0;
+				rhr.ResponseResult = "获取成功";
+				rhr.ResponseObject = list;
+				json = GsonHelper.toJsonWithAnnotation(rhr);
+				
+			} else
+			{
+				rhr.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+			
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("获取失败：" + e.getMessage());
+		}
+		return null;
+	}
+	
+	/**
+	 * 添加报修单
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return 报修ID
+	 */
+	@RequestMapping(value = "/addAssetRepair.do")
+	public String addAssetRepair(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<Object> rhr = new RichHttpResponse<Object>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		String json;
+		// 这边是利用apikey 进行模拟登录
+		User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+		try
+		{
+			if (loginUser != null)
+			{
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+				
+				Integer assetId = StringUtil.toint(request.getParameter("assetId"));
+				String price = request.getParameter("price");
+				String remark = request.getParameter("remark");
+				Integer servicemanId = StringUtil.toint(request.getParameter("servicemanId"));
+				String imgPathone = request.getParameter("imgPathone");
+				String imgPathtwo = request.getParameter("imgPathtwo");
+				
+				Asset asset = assetService.getAssetDetailById(assetId);//根据资产ID获取对应的资产
+				
+				//获取人员类型
+				String personnelType = assetService.getPersonnelType(loginUser);
+				int status = 0;  //0:待处理  1:已经领取工单  2:已同意维修  3:已拒绝工单 4:维修完成
+				if("leader".equals(personnelType)){
+					status = 2;
+				}else if("serviceman".equals(personnelType)){
+					if(servicemanId.equals(loginUser.getUserId())){
+						//维修人员是登陆人员的话
+						status = 1;
+						if(StringUtil.isEmpty(price))
+						{
+							rhr.ResponseCode = -1;
+							rhr.ResponseResult = "报修失败";
+							json = GsonHelper.toJsonWithAnnotation(rhr);
+							response.getWriter().write(json);
+							response.getWriter().flush();
+							return null;
+						}
+					}else{
+						status = 0;
+					}
+				}else{
+					boolean isLeader = false;
+					List<User> leaderList = assetService.getLeaderListByServicemanIdForPush(servicemanId,asset.getType());
+					for(User user : leaderList)
+					{
+						if(user.getUserId() == loginUser.getUserId())
+						{
+							isLeader = true;
+							break;
+						}
+					}
+					//判断报修人是不是选择的维修人员的领导，是直接通知维修人员维修
+					if(isLeader)
+					{
+						status = 2;
+					}
+					else//不是，通知维修人员，再由维修人员领取工单提交给其领导审核
+					{
+						status = 0;
+					}
+				}
+				String currentTime = TimeUtil.getInstance().now();
+				AssetRepair repair = new AssetRepair();
+				repair.setAssetId(assetId);
+				repair.setRealName(loginUser.getRealName());
+				repair.setType(asset.getType());
+				repair.setUserId(loginUser.getUserId());
+				repair.setPhone(loginUser.getPhone());
+				if(status == 0)//报修人时普通人 填写的报修价格
+				{
+					if(!StringUtil.isEmpty(price)){
+						repair.setPrice(Double.valueOf(price));
+					}else{
+						repair.setPrice(0.0);
+					}
+				}
+				else//报修人是维修人员价格是维修估价
+				{
+					if(!StringUtil.isEmpty(price))
+					{
+						repair.setRepairPrice(Double.valueOf(price));
+					}
+				}
+				repair.setRemark(remark);
+				repair.setServicemanId(servicemanId);
+				repair.setStatus(status);
+				repair.setCreateTime(currentTime);
+				repair.setUpdateTime(currentTime);
+				if(status == 0){
+
+				}else if(status == 1){
+					repair.setReceiveTime(currentTime);
+				}else if(status == 2){
+					repair.setReceiveTime(currentTime);
+					repair.setAuditTime(currentTime);
+				}
+				Integer repairId = assetService.addAssetRepair(repair);
+				if(!StringUtil.isEmpty(imgPathone))
+				{
+					AssetRepairImg repairImg = new AssetRepairImg();
+					repairImg.setCreateTime(TimeUtil.getInstance().now());
+					repairImg.setName(imgPathone.substring(imgPathone.lastIndexOf("/")+1, imgPathone.lastIndexOf(".")));
+					repairImg.setPath(imgPathone);
+					repairImg.setRepairId(repairId);
+					assetService.addAssetRepairImg(repairImg);
+				}
+				if(!StringUtil.isEmpty(imgPathtwo))
+				{
+					AssetRepairImg repairImg = new AssetRepairImg();
+					repairImg.setCreateTime(TimeUtil.getInstance().now());
+					repairImg.setName(imgPathtwo.substring(imgPathtwo.lastIndexOf("/")+1, imgPathtwo.lastIndexOf(".")));
+					repairImg.setPath(imgPathtwo);
+					repairImg.setRepairId(repairId);
+					assetService.addAssetRepairImg(repairImg);
+				}
+				
+				// 推送手机端消息
+				List<PushItem> list = new ArrayList<PushItem>();
+				if( status == 1)//表示报修人是维修人员直接给其领导推消息通知审核
+				{
+					List<User> leaderList = assetService.getLeaderListByServicemanIdForPush(servicemanId,asset.getType());
+					for(User receiver : leaderList)
+					{
+						PushItem pi = new PushItem();
+						pi.receiverId = receiver.getUserId();
+						pi.channels = receiver.getBaiduChannelId();
+						pi.deviceType = String.valueOf(receiver.getDeviceType());
+						pi.PushContent = receiver.getRealName() + "您好，" + loginUser.getRealName() + "已提交资产:"+asset.getName()+"("+asset.getCode()+")报修申请，请及时审核!";
+						pi.PushType = PUSHTYPE.ASSETREPAIR.getType();
+						pi.PushContentType = PUSHTYPE.ASSETREPAIR.getContentType();
+						pi.title = PUSHTYPE.ASSETREPAIR.getName();
+						pi.schoolId = String.valueOf(loginUser.getSchoolId());
+						pi.OperationapplyId = repairId;
+						list.add(pi);
+					}
+				}
+				else if( status == 2)//表示报修人是领导，直接给维修人员推送消息维修
+				{
+					User receiver = commonService.getUserByUserIdForPush(servicemanId);
+					PushItem pi = new PushItem();
+					pi.receiverId = receiver.getUserId();
+					pi.channels = receiver.getBaiduChannelId();
+					pi.deviceType = String.valueOf(receiver.getDeviceType());
+					pi.PushContent = receiver.getRealName() + "您好，"+loginUser.getRealName()+"已提交资产:"+asset.getName()+"("+asset.getCode()+")报修申请，请及时进行维修!";
+					pi.PushType = PUSHTYPE.ASSETREPAIR.getType();
+					pi.PushContentType = PUSHTYPE.ASSETREPAIR.getContentType();
+					pi.title = PUSHTYPE.ASSETREPAIR.getName();
+					pi.schoolId = String.valueOf(loginUser.getSchoolId());
+					pi.OperationapplyId = repairId;
+					list.add(pi);
+				}
+				else//报修人既不是领导也不是维修人员,通知维修人员
+				{
+					User receiver = commonService.getUserByUserIdForPush(servicemanId);
+					PushItem pi = new PushItem();
+					pi.receiverId = receiver.getUserId();
+					pi.channels = receiver.getBaiduChannelId();
+					pi.deviceType = String.valueOf(receiver.getDeviceType());
+					pi.PushContent = receiver.getRealName() + "您好，"+loginUser.getRealName()+"已提交资产:"+asset.getName()+"("+asset.getCode()+")报修申请，请及时领取工单!";
+					pi.PushType = PUSHTYPE.ASSETREPAIR.getType();
+					pi.PushContentType = PUSHTYPE.ASSETREPAIR.getContentType();
+					pi.title = PUSHTYPE.ASSETREPAIR.getName();
+					pi.schoolId = String.valueOf(loginUser.getSchoolId());
+					pi.OperationapplyId = repairId;
+					list.add(pi);
+				}
+				commonService.pushMsg(list, false);
+				rhr.ResponseCode = 0;
+				rhr.ResponseResult = "报修成功";
+				rhr.ResponseObject = repairId;
+				json = GsonHelper.toJsonWithAnnotation(rhr);
+				
+			} else
+			{
+				rhr.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+			
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("获取失败：" + e.getMessage());
+		}
+		return null;
+	}
+	
+	/**
+	 * 根据类型获取对应的学校资产，用于学校资产报修
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getAssetListByType.do")
+	public String getAssetListByType(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<List<Asset>> rhr = new RichHttpResponse<List<Asset>>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		String json;
+		// 这边是利用apikey 进行模拟登录
+		User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+		try
+		{
+			if (loginUser != null)
+			{
+				Integer type = StringUtil.toint(request.getParameter("type"));
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+				Map<String,Object> paramMap = new HashMap<>();
+				paramMap.put("type", type);
+				paramMap.put("property", 0);//0:学校资产  1:个人资产
+				paramMap.put("userId", loginUser.getUserId());
+				List<Asset> list = assetService.getAllAssetListByType(paramMap);
+				rhr.ResponseCode = 0;
+				rhr.ResponseResult = "获取成功";
+				rhr.ResponseObject = list;
+				json = GsonHelper.toJsonWithAnnotation(rhr);
+				
+			} else
+			{
+				rhr.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+			
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("获取失败：" + e.getMessage());
+		}
+		return null;
+	}
+	
+	/**
+	 * 根据报修ID获取对应的报修详情
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getAssetRepairDetailById.do")
+	public String getAssetRepairDetailById(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<AssetRepair> rhr = new RichHttpResponse<AssetRepair>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		String json;
+		// 这边是利用apikey 进行模拟登录
+		User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+		try
+		{
+			if (loginUser != null)
+			{
+				Integer repairId = StringUtil.toint(request.getParameter("repairId"));
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+				
+				AssetRepair repair = assetService.getAssetRepairDetailById(repairId);
+				List<AssetRepairImg> imgList = assetService.getAssetRepairImgListByRepairId(repairId);
+				repair.setImgList(imgList);
+				List<User> list = assetService.getLeaderListByServicemanIdForPush(repair.getServicemanId(),repair.getType());
+				repair.setLeaderList(list);
+				
+				//判断人员类型
+				String personnelType = assetService.getPersonnelType(loginUser);
+				repair.setPersonnelType(personnelType);
+				rhr.ResponseCode = 0;
+				rhr.ResponseResult = "获取成功";
+				rhr.ResponseObject = repair;
+				json = GsonHelper.toJson(rhr);
+				
+			} else
+			{
+				rhr.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+			
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("获取失败：" + e.getMessage());
+		}
+		return null;
+	}
+	
+	/**
+	 * 获取全部报修单
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getAssetRepairList.do")
+	public String getAssetRepairList(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<Pages> rhr = new RichHttpResponse<Pages>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		String json;
+		// 这边是利用apikey 进行模拟登录
+		User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+		try
+		{
+			if (loginUser != null)
+			{
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+				//报修状态 0:未解决 1:已解决
+				String status = request.getParameter("status");
+				
+				/**
+				 * 分页信息
+				 */
+				Integer currentPage = 1;
+				try
+				{
+					currentPage = Integer.valueOf(request.getParameter("currentPage"));
+				} catch (Exception e)
+				{
+					currentPage = 1;
+				}
+
+				//获取维修人员类型
+				String personnelType = assetService.getPersonnelType(loginUser);
+				Map<String, Object> params = new HashMap<String, Object>();
+				List<Integer> statusList = new ArrayList<Integer>();
+				if("0".equals(status)){
+					statusList.add(0);
+					statusList.add(1);
+					statusList.add(2);
+					statusList.add(3);
+				}else{
+					statusList.add(4);
+				}
+				params.put("statusList", statusList);
+				params.put("userId", loginUser.getUserId());
+
+				this.getPages().setPageSize(10);
+				Pages pages = assetService.getAssetRepairList(currentPage, this.getPages().getPageSize(), personnelType, loginUser ,params);
+				
+				rhr.ResponseCode = 0;
+				rhr.ResponseResult = "获取成功";
+				rhr.ResponseObject = pages;
+				json = GsonHelper.toJson(rhr);
+				
+			} else
+			{
+				rhr.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+			
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("获取失败：" + e.getMessage());
+		}
+		return null;
+	}
+	
+	/**
+	 * 催单通知
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/repairReminder.do")
+	public String repairReminder(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<Boolean> rhr = new RichHttpResponse<Boolean>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		String json;
+		// 这边是利用apikey 进行模拟登录
+		User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+		try
+		{
+			if (loginUser != null)
+			{
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+				int repairId = StringUtil.toint(request.getParameter("repairId"));
+				AssetRepair repair = assetService.getAssetRepairDetailById(repairId);
+				Boolean flag = false;
+				if(repair != null){
+					List<PushItem> piList = new ArrayList<>();
+					if (repair.getStatus() == 0)// 待处理状态通知维修人员接单处理
+					{
+						User receiver = commonService.getUserByUserIdForPush(repair.getServicemanId());
+						PushItem pi = new PushItem();
+						pi.receiverId = receiver.getUserId();
+						pi.channels = receiver.getBaiduChannelId();
+						pi.deviceType = String.valueOf(receiver.getDeviceType());
+						pi.PushContent = receiver.getRealName() + "您好，资产：" + repair.getAssetName() + "(" + repair.getAssetCode() + ")维修申请，请及时领取工单！";
+						pi.PushType = PUSHTYPE.ASSETREPAIRREMINDER.getType();
+						pi.PushContentType = PUSHTYPE.ASSETREPAIRREMINDER.getContentType();
+						pi.title = PUSHTYPE.ASSETREPAIRREMINDER.getName();
+						pi.schoolId = String.valueOf(loginUser.getSchoolId());
+						pi.OperationapplyId = repairId;
+						piList.add(pi);
+					} else if (repair.getStatus() == 1)// 待审核状态通知维修人领导审核
+					{
+						List<User> leaderList = assetService.getLeaderListByServicemanIdForPush(repair.getServicemanId(), repair.getType());
+						for (User receiver : leaderList)
+						{
+							PushItem pi = new PushItem();
+							pi.receiverId = receiver.getUserId();
+							pi.channels = receiver.getBaiduChannelId();
+							pi.deviceType = String.valueOf(receiver.getDeviceType());
+							pi.PushContent = receiver.getRealName() + "您好，资产：" + repair.getAssetName() + "(" + repair.getAssetCode() + ")维修申请,请及时审核！";
+							pi.PushType = PUSHTYPE.ASSETREPAIRREMINDER.getType();
+							pi.PushContentType = PUSHTYPE.ASSETREPAIRREMINDER.getContentType();
+							pi.title = PUSHTYPE.ASSETREPAIRREMINDER.getName();
+							pi.schoolId = String.valueOf(loginUser.getSchoolId());
+							pi.OperationapplyId = repairId;
+							piList.add(pi);
+						}
+					} else// 通知维修人进行维修
+					{
+						User receiver = commonService.getUserByUserIdForPush(repair.getServicemanId());
+						PushItem pi = new PushItem();
+						pi.receiverId = receiver.getUserId();
+						pi.channels = receiver.getBaiduChannelId();
+						pi.deviceType = String.valueOf(receiver.getDeviceType());
+						pi.PushContent = receiver.getRealName() + "您好，资产：" + repair.getAssetName() + "(" + repair.getAssetCode() + ")维修申请已审核通过，请及时进行维修！";
+						pi.PushType = PUSHTYPE.ASSETREPAIRREMINDER.getType();
+						pi.PushContentType = PUSHTYPE.ASSETREPAIRREMINDER.getContentType();
+						pi.title = PUSHTYPE.ASSETREPAIRREMINDER.getName();
+						pi.schoolId = String.valueOf(loginUser.getSchoolId());
+						pi.OperationapplyId = repairId;
+						piList.add(pi);
+					}
+					commonService.pushMsg(piList, false);
+					flag = true;
+				}else{
+					flag = false;
+				}
+				rhr.ResponseCode = 0;
+				rhr.ResponseResult = "获取成功";
+				rhr.ResponseObject = flag;
+				json = GsonHelper.toJson(rhr);
+				
+			} else
+			{
+				rhr.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				rhr.ResponseObject = false;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+			
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("手机端催单json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("手机端催单失败：" + e.getMessage());
+		}
+		return null;
+	}
+	
+	/**
+	 * 修改资产维修状态
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/modifyAssetRepair.do")
+	public String modifyAssetRepair(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<Boolean> rhr = new RichHttpResponse<Boolean>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		String json;
+		// 这边是利用apikey 进行模拟登录
+		User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+		try
+		{
+			if (loginUser != null)
+			{
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+				Integer repairId = StringUtil.toint(request.getParameter("repairId"));
+				Integer status = StringUtil.toint(request.getParameter("status"));
+				String auditRemark = request.getParameter("auditRemark");
+				String repairPrice = request.getParameter("repairPrice");
+				String estimatedTime = request.getParameter("estimatedTime");
+
+				AssetRepair repair = new AssetRepair();
+				repair.setId(repairId);
+				repair.setStatus(status);
+				if (!StringUtil.isEmpty(auditRemark))
+				{
+					repair.setAuditRemark(auditRemark);
+				}
+				if (!StringUtil.isEmpty(repairPrice))
+				{
+					repair.setRepairPrice(Double.valueOf(repairPrice));
+				}
+				if (!StringUtil.isEmpty(estimatedTime))
+				{
+					repair.setEstimatedTime(estimatedTime);
+				}
+				if(status == 1){
+					repair.setReceiveTime(TimeUtil.getInstance().now());
+				}else if (status == 2 || status == 3)
+				{
+					repair.setAuditTime(TimeUtil.getInstance().now());
+				}else if (status == 4)
+				{
+					repair.setFinishTime(TimeUtil.getInstance().now());
+				}
+				repair.setUpdateTime(TimeUtil.getInstance().now());
+				assetService.updateAsserRepair(repair);
+
+				repair = assetService.getAssetRepairDetailById(repairId);
+
+				List<PushItem> piList = new ArrayList<>();
+				if (status == 1)// 待审核推消息给维修人员领导
+				{
+					List<User> userList = assetService.getLeaderListByServicemanIdForPush(repair.getServicemanId(), repair.getType());
+					for (User receiver : userList)
+					{
+						PushItem pi = new PushItem();
+						pi.receiverId = receiver.getUserId();
+						pi.channels = receiver.getBaiduChannelId();
+						pi.deviceType = String.valueOf(receiver.getDeviceType());
+						pi.PushContent = receiver.getRealName() + "您好，" + repair.getServiceman() + "已领取资产：" + repair.getAssetName() + "(" + repair.getAssetCode()
+								+ ")维修工单，请及时审核！";
+						pi.PushType = PUSHTYPE.ASSETREPAIRAUDIT.getType();
+						pi.PushContentType = PUSHTYPE.ASSETREPAIRAUDIT.getContentType();
+						pi.title = PUSHTYPE.ASSETREPAIRAUDIT.getName();
+						pi.schoolId = String.valueOf(loginUser.getSchoolId());
+						pi.OperationapplyId = repairId;
+						piList.add(pi);
+					}
+				} else if (status == 2 || status == 3)// 审核后通知维修人员进行维修并推消息给报修人
+				{
+					User receiver = commonService.getUserByUserIdForPush(repair.getServicemanId());
+					PushItem pi = new PushItem();
+					pi.receiverId = receiver.getUserId();
+					pi.channels = receiver.getBaiduChannelId();
+					pi.deviceType = String.valueOf(receiver.getDeviceType());
+					if (status == 2)
+					{
+						pi.PushContent = receiver.getRealName() + "您好，资产：" + repair.getAssetName() + "(" + repair.getAssetCode() + ")维修申请已审核通过，请及时处理！";
+						pi.PushType = PUSHTYPE.ASSETREPAIRAUDITPASS.getType();
+						pi.PushContentType = PUSHTYPE.ASSETREPAIRAUDITPASS.getContentType();
+						pi.title = PUSHTYPE.ASSETREPAIRAUDITPASS.getName();
+					} else
+					{
+						pi.PushContent = receiver.getRealName() + "您好，资产：" + repair.getAssetName() + "(" + repair.getAssetCode() + ")维修申请未通过审核，理由：" + auditRemark;
+						pi.PushType = PUSHTYPE.ASSETREPAIRAUDITREFU.getType();
+						pi.PushContentType = PUSHTYPE.ASSETREPAIRAUDITREFU.getContentType();
+						pi.title = PUSHTYPE.ASSETREPAIRAUDITREFU.getName();
+					}
+
+					pi.schoolId = String.valueOf(loginUser.getSchoolId());
+					pi.OperationapplyId = repairId;
+					piList.add(pi);
+					// 如果报修人员又是维修人员只推送一条
+					if (repair.getServicemanId() != repair.getUserId())
+					{
+						User receiver2 = commonService.getUserByUserIdForPush(repair.getUserId());
+						PushItem pi2 = new PushItem();
+						pi2.receiverId = receiver2.getUserId();
+						pi2.channels = receiver2.getBaiduChannelId();
+						pi2.deviceType = String.valueOf(receiver2.getDeviceType());
+						if (status == 2)
+						{
+							pi2.PushContent = receiver2.getRealName() + "您好，您申报的资产：" + repair.getAssetName() + "(" + repair.getAssetCode()
+									+ ")维修申请已审核通过，已通知维修人员维修，请耐心等候！";
+							pi2.PushType = PUSHTYPE.ASSETREPAIRAUDITPASS.getType();
+							pi2.PushContentType = PUSHTYPE.ASSETREPAIRAUDITPASS.getContentType();
+							pi2.title = PUSHTYPE.ASSETREPAIRAUDITPASS.getName();
+						} else
+						{
+							pi2.PushContent = receiver2.getRealName() + "您好，您申报的资产：" + repair.getAssetName() + "(" + repair.getAssetCode() + "维修申请未通过审核，理由："
+									+ auditRemark;
+							pi2.PushType = PUSHTYPE.ASSETREPAIRAUDITREFU.getType();
+							pi2.PushContentType = PUSHTYPE.ASSETREPAIRAUDITREFU.getContentType();
+							pi2.title = PUSHTYPE.ASSETREPAIRAUDITREFU.getName();
+						}
+						pi2.schoolId = String.valueOf(loginUser.getSchoolId());
+						pi2.OperationapplyId = repairId;
+						piList.add(pi2);
+					}
+				} else if (status == 4)// 维修完成通知报修人
+				{
+					User receiver = commonService.getUserByUserIdForPush(repair.getUserId());
+					PushItem pi = new PushItem();
+					pi.receiverId = receiver.getUserId();
+					pi.channels = receiver.getBaiduChannelId();
+					pi.deviceType = String.valueOf(receiver.getDeviceType());
+					pi.PushContent = receiver.getRealName() + "您好，您报修的资产：" + repair.getAssetName() + "(" + repair.getAssetCode() + ")已维修完成，请知晓！";
+					pi.PushType = PUSHTYPE.ASSETREPAIRFINISH.getType();
+					pi.PushContentType = PUSHTYPE.ASSETREPAIRFINISH.getContentType();
+					pi.title = PUSHTYPE.ASSETREPAIRFINISH.getName();
+					pi.schoolId = String.valueOf(loginUser.getSchoolId());
+					pi.OperationapplyId = repairId;
+					piList.add(pi);
+				}
+				commonService.pushMsg(piList, false);
+				rhr.ResponseCode = 0;
+				rhr.ResponseObject = true;
+				rhr.ResponseResult = "获取成功";
+				json = GsonHelper.toJson(rhr);
+				
+			} else
+			{
+				rhr.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				rhr.ResponseObject = false;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+			
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("手机端修改维修状态json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("手机端修改维修状态失败：" + e.getMessage());
+		}
+		return null;
+	}
+	
+	/**
+	 * 维修人员获取自己看到维修列表/领导看到自己的维修审核列表
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getAssetRepairListByPersonnelType.do")
+	public String getAssetRepairListByPersonnelType(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<Pages> rhr = new RichHttpResponse<Pages>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		String json;
+		// 这边是利用apikey 进行模拟登录
+		User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+		try
+		{
+			if (loginUser != null)
+			{
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+				//报修状态 0:未解决/未审核 1:已解决/已审核   
+				String status = request.getParameter("status");
+				
+				Integer currentPage = 1;
+				try
+				{
+					currentPage = Integer.valueOf(request.getParameter("currentPage"));
+				} catch (Exception e)
+				{
+					currentPage = 1;
+				}
+				String personnelType = request.getParameter("personnelType");
+				Map<String, Object> params = new HashMap<String, Object>();
+				List<Integer> statusList = new ArrayList<Integer>();
+				if("leader".equals(personnelType)){
+					if("0".equals(status)){
+						statusList.add(0);
+						statusList.add(1);
+					}else{
+						statusList.add(2);
+						statusList.add(3);
+						statusList.add(4);
+					}
+				}else if("serviceman".equals(personnelType)){
+					if("0".equals(status)){
+						statusList.add(0);
+						statusList.add(1);
+						statusList.add(2);
+						statusList.add(3);
+					}else{
+						statusList.add(4);
+					}
+				}
+				params.put("statusList", statusList);
+				params.put("userId", loginUser.getUserId());
+
+				this.getPages().setPageSize(10);
+				Pages pages = assetService.getAssetRepairListByPersonnelType(currentPage, this.getPages().getPageSize(), personnelType, loginUser ,params);
+				
+				rhr.ResponseCode = 0;
+				rhr.ResponseResult = "获取成功";
+				rhr.ResponseObject = pages;
+				json = GsonHelper.toJson(rhr);
+				
+			} else
+			{
+				rhr.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+			
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("获取自己的维修json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("获取失败：" + e.getMessage());
+		}
+		return null;
+	}
+	
+	/**
+	 * 获取资产管理中登录用户的人员类型
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getPersonnelType.do")
+	public String getPersonnelType(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<String> rhr = new RichHttpResponse<String>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		String json;
+		// 这边是利用apikey 进行模拟登录
+		User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+		try
+		{
+			if (loginUser != null)
+			{
+
+				String personnelType = assetService.getPersonnelType(loginUser);
+				
+				rhr.ResponseCode = 0;
+				rhr.ResponseResult = "获取成功";
+				rhr.ResponseObject = personnelType;
+				json = GsonHelper.toJson(rhr);
+			} else
+			{
+				rhr.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+			
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("获取失败：" + e.getMessage());
+		}
+		return null;
+	}
+	
+}

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="OFF">
+	<Properties>
+		<Property name="logPath">D:/Guolang/ftp/java_log/wisdomcampus</Property>
+		<Property name="defaultFileName">wisdomcampus</Property>
+	</Properties>
+	<Appenders>
+		<Console name="consoleAppender" target="SYSTEM_OUT">
+			<PatternLayout charset="UTF-8" pattern="%p %d{yyyy-MM-dd HH:mm:ss} %c[%t] %m%n" />
+		</Console>
+		<RollingFile name="defaultAppender" fileName="${logPath}/${defaultFileName}.log" filePattern="${logPath}/${defaultFileName}.%d{yyyy-MM-dd}.log" append="true">
+			<PatternLayout charset="UTF-8" pattern="%p %d{yyyy-MM-dd HH:mm:ss} %c[%t] %m%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy modulate="true" interval="1" />
+			</Policies>
+			<DefaultRolloverStrategy max="180" />
+		</RollingFile>
+		<RollingFile name="errorAppender" fileName="${logPath}/${defaultFileName}_error.log" filePattern="${logPath}/${defaultFileName}_error.%d{yyyy-MM-dd}.log" append="true">
+			<PatternLayout charset="UTF-8" pattern="%p %d{yyyy-MM-dd HH:mm:ss} %c[%t] %m%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy modulate="true" interval="1" />
+			</Policies>
+			<DefaultRolloverStrategy max="180" />
+		</RollingFile>
+	</Appenders>
+	<Loggers>
+		<Root level="INFO" includeLocation="true">
+<!-- 			<AppenderRef ref="consoleAppender" /> -->
+			<AppenderRef ref="defaultAppender" />
+		</Root>
+		<AsyncLogger  name="com.alibaba.druid" level="WARN"></AsyncLogger>
+		<AsyncLogger  name="com.guotop" level="ERROR" includeLocation="true" additivity="false">
+			<AppenderRef ref="errorAppender" />
+			<AppenderRef ref="consoleAppender" />
+		</AsyncLogger >
+	</Loggers>
+</Configuration>

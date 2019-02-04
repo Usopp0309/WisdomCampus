@@ -1,0 +1,218 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+	<title>营养食谱</title>
+
+	<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+	<link rel="stylesheet" type="text/css" href="<%=basePath%>media/Template/archive_public.css" />
+	<link href="" rel="stylesheet" type="text/css" media="screen"  id="cssLink"/>
+
+	
+</head>
+<script type="text/javascript">
+	var path =window.parent.$("#path").val();
+	</script>
+<body class="overflow-y-hidden">
+      <div class="template_bg">
+      <div class="archive_bg">
+					<div class="archive07">
+					<div id="date"></div>
+						<table  border="0" cellspacing="0" cellpadding="0" id="dataTable">
+							<thead id="thead">
+							</thead>
+							<tbody id="tbody">
+							</tbody>
+						</table>
+					</div>
+					</div>
+      <a class="tprev" href="<%=basePath %>jsp/growthArchives/archive06.jsp" target="archive_page"></a>
+	  <a class="tnext" href="<%=basePath %>jsp/growthArchives/archive08.jsp" target="archive_page"></a>
+      </div>
+</body>
+<script src="<%=basePath%>media/js/jquery-2.1.1.min.js" type="text/javascript"></script>
+<script>
+jQuery(document).ready(function(){
+	$("#cssLink").attr("href","<%=basePath%>media/Template/"+ path +"/template.css");
+	$(".archive_bg").prepend("<img class='img_model' src='<%=basePath%>media/Template/"+path+"/07.png'>");
+	
+	loadThisPage();
+	$(".template_bg a").on("click",function(){
+		var val=$(this).attr("href");
+		$("#page_list li",parent.document).each(function(){
+			$(this).find("a").removeAttr("class");
+			$(this).find("a").find("i").remove();
+			if($(this).find("a").attr("href")==val){
+				$(this).find("a").addClass("active"); 
+				$(this).find("a").append("<i></i>");
+			}
+		});
+	});
+	
+})
+Date.prototype.format = function(format){ 
+	var o = { 
+	"M+" : this.getMonth()+1, //month 
+	"d+" : this.getDate(), //day 
+	"h+" : this.getHours(), //hour 
+	"m+" : this.getMinutes(), //minute 
+	"s+" : this.getSeconds(), //second 
+	"q+" : Math.floor((this.getMonth()+3)/3), //quarter 
+	"S" : this.getMilliseconds() //millisecond 
+	} 
+
+	if(/(y+)/.test(format)) { 
+	format = format.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length)); 
+	} 
+
+	for(var k in o) { 
+	if(new RegExp("("+ k +")").test(format)) { 
+	format = format.replace(RegExp.$1, RegExp.$1.length==1 ? o[k] : ("00"+ o[k]).substr((""+ o[k]).length)); 
+	} 
+	} 
+	return format; 
+} 
+function loadThisPage(){
+	$.ajax({
+		type: "post",
+		url: "<%=basePath%>recipe/loadWeekRecipeByOne.do",
+		data:{
+				day : ""
+			},
+		success: function(data){
+			var list = $.parseJSON(data);
+			var appendHtml = '';
+			var theadHtml = '';
+
+			if(list.recipeList.length==0)
+			{
+				$("#thead").html(theadHtml);
+				$("#tbody").html("<div>暂无数据</div>");
+			}else
+			{
+				theadHtml += '<tr><th></th><th>早餐</th><th>午餐</th><th>下午茶</th><th>其他</th></tr>';
+				$("#thead").html(theadHtml);
+				$("#date").text(list.currDay);
+				$.each(list.recipeList, function(n, value) 
+				{
+					appendHtml += '<tr>';
+					appendHtml += '<td>'+value.week+'</td>';
+					appendHtml += '<td>';
+					if(null!=value.breakfastList[0]){
+						if(value.breakfastList[0].picPath=="" && value.breakfastList[0].dishName=="")
+						{
+							appendHtml += '<div class="food">';
+						}else
+						{
+							appendHtml += '<p><span title="';
+							for(var i =0;i<value.breakfastList.length;i++){
+								if(i==value.breakfastList.length-1){
+									appendHtml+=value.breakfastList[i].dishName;
+								}else{
+									appendHtml+=value.breakfastList[i].dishName+"\n";
+								}
+							}
+							appendHtml += '">'+value.breakfastList[0].dishName+'...</span><i class="icon-thumbs-up" id="'+value.breakfastList[0].id+'"></i></p>';
+						}
+						appendHtml += ' </div>';
+					}
+					appendHtml += '</td><td>';
+					if(null!=value.lunchList[0]){
+						if(value.lunchList[0].picPath=="" && value.lunchList[0].dishName=="")
+						{
+							appendHtml += '<div class="food">';
+						}else
+						{
+							appendHtml += '<p><span title="';
+							for(var i =0;i<value.lunchList.length;i++){
+								if(i==value.lunchList.length-1){
+									appendHtml+=value.lunchList[i].dishName;
+								}else{
+									appendHtml+=value.lunchList[i].dishName+"\n";
+								}
+							}
+							appendHtml += '">'+value.lunchList[0].dishName+'...</span><i class="icon-thumbs-up" id="'+value.lunchList[0].id+'"></i></p>';
+						}
+						appendHtml += ' </div>';
+					}
+					appendHtml += '</td><td>';
+					if(null!=value.snackList[0]){
+						if(value.snackList[0].picPath=="" && value.snackList[0].dishName=="")
+						{
+							appendHtml += '<div class="food">';
+						}else
+						{
+							appendHtml += '<p><span title="';
+							for(var i =0;i<value.snackList.length;i++){
+								if(i==value.snackList.length-1){
+									appendHtml+=value.snackList[i].dishName;
+								}else{
+									appendHtml+=value.snackList[i].dishName+"\n";
+								}
+							}
+							appendHtml += '">'+value.snackList[0].dishName+'...</span><i class="icon-thumbs-up" id="'+value.snackList[0].id+'"></i></p>';
+						}
+						appendHtml += ' </div>';
+					}
+					appendHtml += '</td><td>';
+					
+					if(null!=value.otherList[0]){
+						if(value.otherList[0].picPath=="" && value.otherList[0].dishName=="")
+						{
+							appendHtml += '<div class="food">';
+						}else
+						{
+							appendHtml += '<p><span title="';
+							for(var i =0;i<value.otherList.length;i++){
+								if(i==value.otherList.length-1){
+									appendHtml+=value.otherList[i].dishName;
+								}else{
+									appendHtml+=value.otherList[i].dishName+"\n";
+								}
+							}
+							appendHtml += '">'+value.otherList[0].dishName+'...</span><i class="icon-thumbs-up" id="'+value.otherList[0].id+'"></i></p>';
+						}
+						appendHtml += ' </div>';
+					}
+					appendHtml += '</td>';
+					appendHtml += '</tr>';
+      			}); 
+     			$("#tbody").html(appendHtml);
+     			$("#tbody tr:eq('0')").css({"background-color":"#e4f6de"});
+    			$("#tbody tr:eq('1')").css({"background-color":"#dbefee"});
+    			$("#tbody tr:eq('2')").css({"background-color":"#eae6f5"});
+    			$("#tbody tr:eq('3')").css({"background-color":"#fbdfed"});
+    			$("#tbody tr:eq('4')").css({"background-color":"#fcf3e2"});
+    			$("#tbody tr:eq(0) td:eq(0)").css({"background-color":"#fff","color":"#8ac66c"});
+    			$("#tbody tr:eq(1) td:eq(0)").css({"background-color":"#fff","color":"#62bbb7"});
+    			$("#tbody tr:eq(2) td:eq(0)").css({"background-color":"#fff","color":"#a69ac8"});
+    			$("#tbody tr:eq(3) td:eq(0)").css({"background-color":"#fff","color":"#c4437c"});
+    			$("#tbody tr:eq(4) td:eq(0)").css({"background-color":"#fff","color":"#f2bf4c"});
+    			$("#thead th:eq(1)").css({"color":"#62bbb5"});
+    			$("#thead th:eq(2)").css({"color":"#f4bc4b"});
+    			$("#thead th:eq(3)").css({"color":"#8ac66c"});
+    			$("#thead th:eq(4)").css({"color":"#81C9DA"});
+    			
+    			$(".food i").on("click",function(){
+    				var id = $(this).attr("id");
+    				if($(this).attr("style")){
+    					$(this).removeAttr("style");
+    					delPraise(id);
+    				}else{
+    					$(this).css({"color":"#f5bc4b"})
+    					addPraise(id);
+    				}
+    			})
+    			$("#dataTable").after("<a class='archive07_more' href='<%=basePath %>recipe/toRecipeDisplay.do' target='mainPage'>查看更多>></a>");
+     			autoheight();
+			}
+		},
+	});
+}
+</script>
+</html>

@@ -1,0 +1,208 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>RichX智慧校园 - 补卡申请</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+ 	<link href="<%=basePath%>assets/global/css/skin_m.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<%@include file="/public_module/header.jsp" %>
+	<div class="Fill_Card">
+		<div class="header">
+			
+			<div class="pablic_search_box Fill_Card_search_box">
+					<form action="<%=basePath%>cardApply/toCardApplyAuditList.do" method="post" id="searchForm">
+						<button type="submit" class="fa fa-search search_submit"></button>
+						<input class="search_text" type="text" name="condition" placeholder="请输入学校名称..." value="${condition}"></input> 
+						<input type="hidden" name="status" id="status" value="${status}"/> 
+						<input type="hidden" id="rowNum" name="rowNum" value="${rowNum}"/>
+					</form>
+					<input type="hidden" name="lastId" id="lastId" value="${lastId}"/>
+				</div>
+		</div>
+		<div class="con">
+			<h3><a class="type" style="padding-right: 20px;" href="<%=basePath%>cardApply/toCardApplyAuditList.do">学校补办卡</a> <a href="<%=basePath%>cardApply/toCardApplyPerson.do" class="type type_select" style="padding-left:20px;border-left:2px solid #e4e4e4">个人补办卡</a></h3>
+			<div class="tabbable tabbable-custom">
+			<ul class="nav nav-tabs">
+					<li class="active"><a href="#tab_1_1" data-toggle="tab">待审批</a></li>
+					<li style="border-right:none!important"><a  href="#tab_1_2" data-toggle="tab">已审批</a></li>
+			</ul>
+			
+				
+			
+			<p class="Fill_Card_title content">
+				<span>姓名</span><span>补办卡类型</span><span>所属学校</span><span>所属班级</span> <span>学号</span><span>操作</span>
+			</p>
+			<div class="tab-content" style="padding: 0px;">
+					<div class="tab-pane active" id="tab_1_1">
+						<div id="accordion2" class="accordion in collapse" style="height: auto;">
+								<div class="accordion-group">
+									<div class="accordion-heading School_apply">
+										<a id="f1" href="#collapse_2_1"
+											data-parent="#accordion2" data-toggle="collapse"
+											class="accordion-toggle">
+											<p class="Fill_Card_accordion_title">
+												<span>哈哈1</span> <span>补卡</span>
+												<span>南京一中</span> 
+												<span>三年级一班</span> <span>10001</span>
+												<span><i class="fa fa-angle-right"></i></span>
+											</p>
+										</a>
+									</div>
+									<div class="accordion-body collapse Fill_Card_position" id="collapse_2_1" >
+										<p class="School_apply_info">
+											 <table class="table table-hover table-light">
+											 	<tr><td class="m_width_30">姓名：哈哈哈</td><td class="m_width_30">学号：2152151</td><td class="m_width_40" rowspan="4"><img style="height:150px" src="http://pan.xici.com/group5/M03/A4/CC/rBABqVhaIE6EXPDiAAAAAPy9Svc342.jpg/320"></td></tr>
+											 	<tr><td>所属学校：南京一中</td><td>手机号</td></tr>
+											 	<tr><td>所属班级：一年级一班</td><td>提交时间：2016-12-30</td></tr>
+											 	<tr><td>类型：办卡</td><td></td></tr>
+											 </table>
+										</p>
+										<div class="Fill_Card_Operation">
+											<button class="btn dispaly_in" style="background-color: #3aa4f0" onclick="pass(${audit.id}, this)">
+												<i class="icon-ok padding_right_5"></i>通过
+											</button>
+											<button class="btn dispaly_in" onclick="refuse(${audit.id}, this)">
+												<i class="icon-remove padding_right_5"></i>拒绝
+											</button>
+										</div>
+									</div>
+								</div>
+						</div>
+
+					</div>
+					<div class="tab-pane" id="tab_1_2">
+						<div id="accordion1" class="accordion in collapse" style="height:auto">
+								<div class="accordion-group">
+									<div class="accordion-heading School_apply">
+										<a id="f1" href="#collapse_1_1" data-parent="#accordion2" data-toggle="collapse" class="accordion-toggle">
+											<p class="Fill_Card_accordion_title">
+												<span>哈哈2</span> <span>补卡</span>
+												<span>南京一中</span> 
+												<span>三年级一班</span> <span>10001</span>
+												<span><i class="fa fa-angle-right"></i></span>
+											</p>
+										</a>
+									</div>
+									<div class="accordion-body collapse Fill_Card_position" id="collapse_1_1">
+										<p class="School_apply_info">
+											 <table class="table table-hover table-light">
+											 	<tr><td class="m_width_30">姓名：哈哈哈</td><td class="m_width_30">学号：2152151</td><td class="m_width_40" rowspan="4"><img style="height:150px" src="http://pan.xici.com/group5/M03/A4/CC/rBABqVhaIE6EXPDiAAAAAPy9Svc342.jpg/320"></td></tr>
+											 	<tr><td>所属学校：南京一中</td><td>手机号</td></tr>
+											 	<tr><td>所属班级：一年级一班</td><td>提交时间：2016-12-30</td></tr>
+											 	<tr><td>类型：办卡</td><td></td></tr>
+											 </table>
+										</p>
+										<div class="Fill_Card_Operation">
+											<button class="btn dispaly_in" style="background-color: #3aa4f0" onclick="pass(${audit.id}, this)">
+												<i class="icon-ok padding_right_5"></i>通过
+											</button>
+										</div>
+									</div>
+								</div>
+							<div id="passMore"></div>
+							<a class="page_more" onclick="loadMorePass()">加载更多</a>
+						</div>
+					</div>
+			</div>
+
+		</div>
+		</div>
+		
+		
+	</div>
+	<%@include file="/public_module/footer.jsp" %>
+	</body>
+	<%@include file="/public_module/public_js.jsp" %>
+	
+	<script type="text/javascript">
+		$(function() {
+			//导航定位
+			$(".menu_li a").removeClass("hover");
+			$("#menu1").addClass("hover");
+			
+			//点击状态改变
+			$(".accordion-toggle").on("click", function() {
+				if($(this).parent().parent().find(".accordion-body").hasClass("in")){
+					$(this).removeAttr("style");
+					$(this).find("span").removeAttr("style");
+					$(this).find("i").removeClass("icon-chevron-down");
+				}else{
+					$(".accordion").find(".accordion-toggle").removeAttr("style");
+					$(".accordion").find(".accordion-toggle").find("span").removeAttr("style");
+					$(".accordion").find("i").removeClass("icon-chevron-down");
+					$(this).css({"background-color":"#3aa4f1","display":"block"}).find("span").css({"color":"#fff"});
+					$(this).find("i").addClass("icon-chevron-down");
+				};
+				
+			})
+		});
+		
+		//通过
+		function pass(id, obj){
+			$(obj).attr("disabled", "disabled");
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>cardApply/modifyStatus.do",
+				data:{
+					id : id,
+					status : 1
+					 },
+				success: function(data) 
+				{
+				    var data = $.parseJSON(data);
+				    if (data.status != 0){
+				    	alert("提交出错");
+				    }else{
+				    	alert("提交成功");
+				    	window.location.reload();
+				    }
+				   
+				},
+				complete: function(){
+					$(obj).removeAttr("disabled");
+				}
+			});
+		}
+		//拒绝
+		function refuse(id, obj){
+			$(obj).attr("disabled", "disabled");
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>cardApply/modifyStatus.do",
+				data:{
+					id : id,
+					status : 2
+					 },
+				success: function(data) 
+				{
+				    var data = $.parseJSON(data);
+				    if (data.status != 0){
+				    	alert("提交出错");
+				    }else{
+				    	alert("提交成功");
+				    	window.location.reload();
+				    }
+				},
+				complete: function(){
+					$(obj).removeAttr("disabled");
+				}
+			});
+		}
+		function changeShow(obj){
+			$("#status").val(obj);
+			$("#lastId").val("");
+			$("#searchForm").submit();
+		}
+		
+	</script>
+</html>

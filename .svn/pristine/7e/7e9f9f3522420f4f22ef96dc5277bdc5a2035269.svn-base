@@ -1,0 +1,200 @@
+package com.guotop.palmschool.controller;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.gson.Gson;
+import com.guotop.palmschool.entity.Menu;
+import com.guotop.palmschool.entity.School;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.service.MenuService;
+import com.guotop.palmschool.service.SchoolService;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 菜单控制类
+ * 
+ * @author jfy
+ *
+ */
+@RequestMapping("/menu")
+@Controller
+public class MenuController extends BaseController
+{
+	@Resource
+	private MenuService menuService;
+	@Resource
+	private SchoolService schoolService;
+
+	/**
+	 * 获取菜单信息
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping("/getAllMenu.do")
+	public String getAllMenu(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("utf-8");
+		try
+		{
+			User loginUser = (User) session.getAttribute("user");
+			List<Menu> menuList = new ArrayList<Menu>();
+			DBContextHolder.setDBType(loginUser.getSchoolId());
+			if (loginUser.getUserId() == 1)
+			{
+				menuList = menuService.getAllMenuInfoSysadmin(loginUser.getSchoolId(), null);
+			} else
+			{
+				menuList = menuService.getAllMenuInfo(loginUser.getSchoolId(), 0);
+			}
+
+			session.setAttribute("menuList", menuList);
+			Gson gson = new Gson();
+			String json = gson.toJson(menuList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception ex)
+		{
+			ex.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 进入菜单配置页面
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/toMenuConfig.do")
+	public String toMenuConfig(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("utf-8");
+		try
+		{
+			User loginUser = (User) session.getAttribute("user");
+			String schoolId = loginUser.getSchoolId();
+			if (schoolId != null && !"".equals(schoolId))
+			{
+				School school = schoolService.getSchoolInfoBySchoolId(Long.valueOf(schoolId));
+				modelMap.addAttribute("schoolName", school.getSchoolName());
+				if (school.getSchoolCategory().equals("0"))
+				{
+					modelMap.addAttribute("version", "智慧校园幼儿园版");
+				} else if (school.getSchoolCategory().equals("1"))
+				{
+					modelMap.addAttribute("version", "智慧校园中小学版");
+				}
+			}
+
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return "system/menuConfig";
+	}
+
+	/**
+	 * 菜单配置
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/doMenuConfig.do")
+	public String doMenuConfig(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("utf-8");
+		User loginUser = (User) session.getAttribute("user");
+		String schoolId = loginUser.getSchoolId();
+		try
+		{
+			// 解析前台发送过来的选中菜单的id
+			String[] checkMenuId = GsonHelper.fromJson(request.getParameter("checkMenuId"), String[].class);
+			List<String> checkMenuIdList = new ArrayList<String>();
+			// 将数组转换成list
+			Collections.addAll(checkMenuIdList, checkMenuId);
+
+			// 解析前台发送过来的未选中菜单的id
+			String[] notCheckMenuId = GsonHelper.fromJson(request.getParameter("notCheckMenuId"), String[].class);
+			List<String> notCheckMenuIdList = new ArrayList<String>();
+			// 将数组转换成list
+			Collections.addAll(notCheckMenuIdList, notCheckMenuId);
+
+			if (checkMenuIdList.size() > 0)
+			{
+				// 修改所有选择菜单的id未可用状态
+				HashMap<String, Object> param = new HashMap<String, Object>();
+				param.put("checkMenuIdList", checkMenuIdList);
+				param.put("status", 0);
+				menuService.modifyMenuStatus(schoolId, param);
+			}
+			if (notCheckMenuIdList.size() > 0)
+			{
+				// 修改所有未选择菜单的id状态为不可用状态
+				HashMap<String, Object> param2 = new HashMap<String, Object>();
+				param2.put("notCheckMenuIdList", notCheckMenuIdList);
+				param2.put("status", 1);
+				menuService.modifyMenuStatus(schoolId, param2);
+			}
+
+			response.getWriter().write("0");
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 获取所有菜单信息，用于设置菜单
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping("/getMenusInfo.do")
+	public String getMenus(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("utf-8");
+		try
+		{
+			List<Menu> list = menuService.getMenusInfo(null);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(list);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception ex)
+		{
+			ex.printStackTrace();
+		}
+		return null;
+	}
+}

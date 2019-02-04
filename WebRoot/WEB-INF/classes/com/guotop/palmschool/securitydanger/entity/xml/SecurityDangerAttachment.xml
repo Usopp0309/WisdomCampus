@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="SecurityDangerAttachment">
+	<typeAlias alias="securityDangerAttachment"
+		type="com.guotop.palmschool.securitydanger.entity.SecurityDangerAttachment" />
+	<!-- 根据安全隐患获得其附件 -->
+	<select id="getByParentId" resultClass="securityDangerAttachment"
+		parameterClass="Integer">
+		select * from palm_security_danger_attachment where
+		parentId=#parentId#
+	</select>
+	<!-- 批量插入安全隐患的附件 -->
+	<insert  id="insertBachAttachment" parameterClass="java.util.List">
+		insert into palm_security_danger_attachment(parentId,url)
+		values
+		<iterate conjunction=",">
+			(
+			#attachments[].parentId#,#attachments[].url#
+			)
+		</iterate>
+	</insert>
+</sqlMap>

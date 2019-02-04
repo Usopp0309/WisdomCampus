@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Bill">
+  	<typeAlias alias="bill" type="com.guotop.palmschool.common.entity.Bill" />
+  	
+  	<insert id="addBill" parameterClass="bill">
+		insert into platform.public_bill
+		(typeId,tradeNo,channel,userId,goodsId,goodsName,counts,amount,platformCode,createTime,orderId,otherUserId,caption)
+		values
+		(#typeId#,#tradeNo#,#channel#,#userId#,#goodsId#,#goodsName#,#counts#,#amount#,#platformCode#,now(),#orderId#,#otherUserId#,#caption#)
+		<selectKey resultClass="int" type="post" keyProperty="billId">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+</sqlMap>

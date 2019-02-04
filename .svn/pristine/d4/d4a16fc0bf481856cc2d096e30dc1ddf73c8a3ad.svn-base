@@ -1,0 +1,1306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Dormitory">
+
+	<typeAlias alias="dormitoryAbnormal" type="com.guotop.palmschool.dormitory.entity.DormitoryAbnormal"/>
+	<typeAlias alias="dormitoryAbnormalTotal" type="com.guotop.palmschool.dormitory.entity.DormitoryAbnormalTotal"/>
+
+	<resultMap class="com.guotop.palmschool.dormitory.entity.InoutDormitory" id="result-inoutDormitory">
+		<result property="id" column="id" />
+		<result property="code" column="code" />
+		<result property="status" column="status" />
+		<result property="position" column="position" />
+		<result property="userId" column="userId" />
+		<result property="positionName" column="positionName" />
+		<result property="realName" column="realName" />
+		<result property="createTime" column="createTime" />
+		<result property="itemName" column="itemName" />
+		<result property="sync" column="sync" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.dormitory.entity.InoutDormitory" id="result-inout">
+		<result property="id" column="id" />
+		<result property="code" column="code" />
+		<result property="status" column="status" />
+		<result property="position" column="position" />
+		<result property="userId" column="userid" />
+		<result property="createTime" column="createtime" />
+		<result property="sync" column="sync" />
+		<result property="schoolId" column="schoolId" />
+	</resultMap>
+	
+	
+	<resultMap class="com.guotop.palmschool.dormitory.entity.InoutDormitory" id="result-inoutDormitoryAbnormal">
+		<result property="id" column="id" />
+		<result property="code" column="code" />
+		<result property="type" column="type"/>
+        <result property="message" column="message" />
+		<result property="realName" column="realName" />
+		<result property="userId" column="userid" />
+		<result property="createTime" column="createtime" />
+		
+	</resultMap>
+	
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-student">
+		<result property="id" column="id"/>
+		<result property="code" column="code"/>	
+		<result property="username" column="username"/>
+		<result property="password" column="password"/>
+		<result property="type" column="type"/>
+		<result property="parentname" column="parentname"/>
+		<result property="name" column="name"/>
+		<result property="sex" column="sex"/>
+		<result property="stupic" column="stupic"/>
+		<result property="schoolId" column="schoolId"/>
+		<result property="gradeId" column="gradeId"/>
+		<result property="clazzId" column="clazzId"/>
+		<result property="cardCode" column="cardCode"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.dormitory.entity.DormitoryAbnormalTotal" id="result-dormitoryAbnormalTotal">
+		<result property="studentSum" column="studentSum" />
+		<result property="studentAbnormal" column="studentAbnormal" />
+		<result property="itemId" column="itemId" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.dormitory.entity.DormitoryAbnormalTotal" id="result-dormitoryAbnormalGroup">
+		<result property="id" column="id" />
+		<result property="time" column="time" />
+		<result property="type" column="type" />
+		<result property="studentAbnormal" column="studentAbnormal" />
+		<result property="itemName" column="itemName" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.dormitory.entity.DormitoryAbnormal" id="result-dormitoryAbnormalDetail">
+		<result property="id" column="id" />
+		<result property="userId" column="userId" />
+		<result property="time" column="time" />
+		<result property="gradeId" column="gradeId" />
+		<result property="clazzId" column="clazzId" />
+		<result property="type" column="type" />
+		<result property="positionId" column="positionId" />
+		<result property="positionTime" column="positionTime" />
+		<result property="gradeName" column="gradeName" />
+		<result property="clazzName" column="clazzName" />
+		<result property="positionName" column="positionName" />
+	</resultMap>
+	
+	<!-- 查询宿舍异常 -->
+	<resultMap class="com.guotop.palmschool.dormitory.entity.DormitoryAbnormal" id="result-dormitory_abnormal">
+		<result property="code" column="code" />
+		<result property="realName" column="realName" />
+		<result property="cardCode" column="cardCode" />
+		<result property="status" column="status" />
+		<result property="clazzId" column="clazzId" />
+		<result property="clazzName" column="clazzName" />
+	</resultMap>
+	
+	<!-- 通过userid查询刷卡记录 并取最后一条-->
+	<select id="selectInoutDormitoryByUserId" parameterClass="HashMap" resultMap="result-inout" >
+ 		SELECT * FROM palm_dormitory_inout WHERE userid = #userId# AND status = #status#  ORDER BY createtime DESC LIMIT 0,1		
+	</select>
+	
+	<!-- 查询所有的进出宿舍异常记录（校长）-->
+	<select id="selectDormitoryAbnormalInoutList" resultMap="result-inoutDormitoryAbnormal">
+		SELECT ab.*,us.name
+		    FROM  palm_dormitory_abnormal ab, palm_user us,palm_user_role ur
+            WHERE ab.userid=us.id
+            and us.id = ur.userId
+            <isNotEmpty property="type">
+				<!-- 教师 -->
+				<isEqual property="type" compareValue="1">
+					and ur.roleId in (4, 5, 8)
+				</isEqual>
+				<!-- 学生 -->
+				<isEqual property="type" compareValue="2">
+					and ur.roleId in = 7 
+				</isEqual>
+			</isNotEmpty> 
+			<isEmpty property="type">
+				and ur.roleId in(4, 5, 7, 8)
+			</isEmpty>
+		    <isNotEmpty prepend="and" property="queryContent">
+				( ab.message  LIKE CONCAT('%',#queryContent#,'%')
+				  or ab.createtime  LIKE CONCAT('%',#queryContent#,'%')
+				  or us.name  LIKE CONCAT('%',#queryContent#,'%')
+				)
+			</isNotEmpty>
+			order by i.id desc
+	
+	</select>
+	
+	<!-- 查询所有的进出宿舍异常记录（年级组长）-->
+	<select id="selectDormitoryAbnormalInoutListAsGradeLeader" resultMap="result-inoutDormitoryAbnormal">
+		SELECT ab.*,us.name 
+		    FROM  palm_dormitory_abnormal ab, palm_user us,palm_user_role ur
+            WHERE ab.userid=us.id
+            and us.id = ur.userId
+            and ur.gradeId = #gradeId#
+            <isNotEmpty property="type">
+				<!-- 教师 -->
+				<isEqual property="type" compareValue="1">
+					and ur.roleId in (4, 5)
+				</isEqual>
+				<!-- 学生 -->
+				<isEqual property="type" compareValue="2">
+					and ur.roleId = 7
+				</isEqual>
+			</isNotEmpty> 
+			<isEmpty property="type">
+				and ur.roleId in(4, 5, 7)
+			</isEmpty>
+		     <isNotEmpty  property="queryContent">
+				AND (ab.message  LIKE CONCAT('%',#queryContent#,'%')
+				or ab.createtime LIKE CONCAT('%',#queryContent#,'%')
+				or us.name LIKE CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+		    order by ab.createtime desc
+	</select>
+	
+	<!-- 查询所有的进出宿舍异常记录（班主任）-->
+	<select id="selectDormitoryAbnormalInoutListAsHeadTeacher" resultMap="result-inoutDormitoryAbnormal">
+		SELECT ab.*,us.name 
+		    FROM  palm_dormitory_abnormal ab, palm_user us ,palm_user_role ur
+            WHERE ab.userid=us.id
+            and us.id = ur.userId
+            and ur.clazzId = #clazzId#
+            <isNotEmpty  property="queryContent">
+				AND (ab.message  LIKE CONCAT('%',#queryContent#,'%')
+				or ab.createtime LIKE CONCAT('%',#queryContent#,'%')
+				or us.name LIKE CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+		    order by ab.createtime desc
+	</select>
+	
+	<!-- 查询所有的进出宿舍异常记录（教师、学生）-->
+	<select id="selectDormitoryAbnormalInoutListAsTeaAndStu" resultMap="result-inoutDormitoryAbnormal">
+		SELECT ab.*,us.name 
+		    FROM  palm_dormitory_abnormal ab, palm_user us, palm_user_role ur
+            WHERE ab.userid=us.id
+            and us.id = ur.userId
+            and ur.userId = #userId#
+           <isNotEmpty  property="queryContent">
+				AND (ab.message  LIKE CONCAT('%',#queryContent#,'%')
+				or ab.createtime LIKE CONCAT('%',#queryContent#,'%')
+				or us.name LIKE CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+		    order by ab.createtime desc
+	</select>
+	
+	
+	<!-- 检测相关 -->
+	<!-- 检测学生未出宿舍 -->
+	<select id="selectStudentNotLeave" parameterClass="HashMap" resultMap="result-student">
+		<![CDATA[
+			SELECT u.*, ur.roleId, ur.gradeId, ur.clazzId, pc.code AS cardCode
+		     FROM palm_user u, palm_user_role ur ,palm_user_card uc , palm_card pc
+			    WHERE u.id = ur.userId
+			    AND u.id = uc.userId
+			     AND pc.id = uc.cardId
+			      AND ur.roleId = 7
+				  	AND NOT EXISTS
+				  	(
+				  		SELECT 1 FROM palm_dormitory_inout iod
+							WHERE iod.userid = u.id
+							AND iod.createtime >= #dormitoryNotLeaveBeginTime#
+							AND iod.createtime <= #dormitoryNotLeaveEndTime#
+							AND iod.status = #status#
+				  	)
+		]]>
+	</select>
+	
+	<!-- 检测学生未到宿舍 -->
+	<select id="selectStudentNotEnter" parameterClass="HashMap" resultMap="result-student">
+		<![CDATA[
+			SELECT u.*, ur.roleId, ur.gradeId, ur.clazzId, pc.code AS cardCode
+		     FROM palm_user u, palm_user_role ur ,palm_user_card uc , palm_card pc
+			    WHERE u.id = ur.userId
+			    AND u.id = uc.userId
+			     AND pc.id = uc.cardId
+			      AND ur.roleId = 7
+				  	AND NOT EXISTS
+				  	(
+				  		SELECT 1 FROM palm_dormitory_inout iod
+							WHERE iod.userid = u.id
+							AND iod.createtime >= #dormitoryNotEnterBeginTime#
+							AND iod.createtime <= #dormitoryNotEnterEndTime#
+							AND iod.status = #status#
+				  	)
+		]]>
+	</select>
+	
+	<!-- 添加宿舍考勤异常 -->
+	<insert id="addDormitoryAbnormalDetail" parameterClass="dormitoryAbnormal">
+		insert into palm_dormitory_abnormal_detail
+		(
+			userid, 
+			time, 
+			gradeId, 
+			clazzId,
+			type,
+			positionId,
+			positionTime
+		)
+		values
+		(
+			#userId#,
+			#time#, 
+			#gradeId#, 
+			#clazzId#, 
+			#type#, 
+			#positionId#, 
+			#positionTime#
+		)
+	</insert>
+	
+	<!-- 新增异常记录 -->
+	<insert id="addDormitoryAbnormal" parameterClass="dormitoryAbnormal">
+		insert into palm_dormitory_abnormal
+		(
+			code, 
+			type, 
+			message, 
+			senttime,
+			userid,
+			createtime
+		)
+		values
+		(
+			#code#,
+			#type#,
+			#message#,
+			#sentTime#, 
+			#userId#, 
+			#createTime#
+		)
+	</insert>
+	
+	<!-- 查询宿管（学校）异常学生总数 -->
+	<select id="selectDormitoryAbnormalStudentConut" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from palm_dormitory_abnormal_detail 
+			where time = #time#
+			and type = #type#
+	</select>
+	
+	<!-- 查询宿管（年级）异常学生总数 -->
+	<select id="selectDormitoryAbnormalStudentConutByGrade" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from palm_dormitory_abnormal_detail 
+			where time = #time#
+			and type = #type#
+			and gradeId = #gradeId#
+	</select>
+	
+	<!-- 查询宿管（年级）异常学生总数 -->
+	<select id="selectDormitoryAbnormalStudentConutByClazz" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from palm_dormitory_abnormal_detail 
+			where time = #time#
+			and type = #type#
+			and clazzId = #clazzId#
+	</select>
+
+	<!-- 查询详细报表(校长，年级组长权限) -->
+	<select id="selectDetailDataAsHeadMaster" parameterClass="HashMap" resultMap="result-dormitoryAbnormalDetail">
+		select d.*, u.name , g.name as gradeName, c.name as ClazzName, p.name as positionName 
+			from palm_dormitory_abnormal_detail d, palm_user u, palm_grade g, palm_clazz c, palm_position p
+			where d.userid = u.id
+			and d.gradeId = g.id
+			and g.state = '0'
+			and d.clazzId = c.id
+			and d.positionId = p.id
+			and d.time = #time#
+			and d.type = #type#
+			and (g.name = #gradeName# or c.name = #gradeName# )
+	</select>
+	
+	<!-- 查询详细报表(班主任权限) -->
+	<select id="selectDetailDataAsHeadTeacher" parameterClass="HashMap" resultMap="result-dormitoryAbnormalDetail">
+		select d.*, u.name , g.name as gradeName, c.name as ClazzName, p.name as positionName 
+			from palm_dormitory_abnormal_detail d, palm_user u, palm_grade g, palm_clazz c, palm_position p
+			where d.userid = u.id
+			and d.gradeId = g.id
+			and g.state = '0'
+			and d.clazzId = c.id
+			and d.positionId = p.id
+			and d.time = #time#
+			and d.type = #type#
+			and d.clazzId = #clazzId# 
+	</select>
+
+	<!-- 查找所有人员进出记录(校长，管理员) 20151201-->
+	<select id="getDormitoryInoutList" parameterClass="HashMap" resultMap="result-inoutDormitory">
+		<isNotEmpty property="type">
+		   <!-- 教师 -->
+		  <isEqual property="type" compareValue="1">
+			  SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime, 
+			   u.realName, device.name AS positionName, d.departmentName AS itemName
+                 FROM palm_dormitory_inout io, platform.user_detail u, palm_device device,palm_user_department ud, palm_department d
+                   WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId = ud.userId 
+			         AND ud.departmentId = d.id 
+					<isNotEmpty prepend="and" property="queryContent">
+						(u.realName LIKE CONCAT('%',#queryContent#,'%') or d.departmentName LIKE CONCAT('%',#queryContent#,'%'))
+				    </isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						io.status = #inoutType#
+				    </isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime >= #startTime#
+				    </isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						#endTime# >= io.createtime
+				    </isNotEmpty>
+				    ORDER BY io.createtime DESC
+				    <isNotEmpty property="startIndex">
+						LIMIT #startIndex#, #length#
+					</isNotEmpty>
+		  </isEqual>
+		 <!-- 学生 -->
+		  <isEqual property="type" compareValue="2">
+			 SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime, 
+			   u.realName, device.name AS positionName, getClazzName(c.id) itemName
+                FROM palm_dormitory_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc, palm_clazz c,palm_grade g, palm_user_role ur
+			       WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId = sc.userId 
+			         AND sc.clazzId = c.id 
+			         AND g.id = c.gradeId
+			         AND g.state = '0'
+			         AND ur.userId = io.userId 
+					<isNotEmpty prepend="and" property="queryContent">
+					   (u.realName LIKE CONCAT('%',#queryContent#,'%') or c.clazzName LIKE CONCAT('%',#queryContent#,'%'))
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						io.status = #inoutType#
+				    </isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime >= #startTime#
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						#endTime# >= io.createtime
+			    	</isNotEmpty>
+			    	ORDER BY io.createtime DESC
+			    	<isNotEmpty property="startIndex">
+						LIMIT #startIndex#, #length#
+					</isNotEmpty>
+	      </isEqual>
+	  </isNotEmpty>	
+	</select>
+	
+	<!-- 查找所有人员进出记录总数(校长，管理员) 20151201-->
+	<select id="getDormitoryInoutCount" parameterClass="java.util.HashMap" resultClass="Integer">
+		<isNotEmpty property="type">
+		   <!-- 教师 -->
+		  <isEqual property="type" compareValue="1">
+			 SELECT COUNT(*) FROM ( 
+			  SELECT io.*, u.realName, device.name AS positionName, d.departmentName AS itemName
+                 FROM palm_dormitory_inout io, platform.user_detail u, palm_device device,palm_user_department ud, palm_department d
+                   WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId = ud.userId 
+			         AND ud.departmentId = d.id 
+					<isNotEmpty prepend="and" property="queryContent">
+						(u.realName LIKE CONCAT('%',#queryContent#,'%') or d.departmentName LIKE CONCAT('%',#queryContent#,'%'))
+				    </isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						io.status = #inoutType#
+				    </isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime >= #startTime#
+				    </isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						#endTime# >= io.createtime
+				    </isNotEmpty>
+				    )tt
+		  </isEqual>
+		 <!-- 学生 -->
+		  <isEqual property="type" compareValue="2">
+			SELECT COUNT(*) FROM (
+			 SELECT io.*, u.realName, device.name AS positionName, getClazzName(c.id) itemName
+                FROM palm_dormitory_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc,palm_clazz c,palm_grade g, palm_user_role ur
+			       WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId = sc.userId 
+			         AND sc.clazzId = c.id 
+			         AND ur.userId = io.userId 
+			         AND g.id = c.gradeId
+					 AND g.state = '0'
+					<isNotEmpty prepend="and" property="queryContent">
+					   (u.realName LIKE CONCAT('%',#queryContent#,'%') or c.clazzName LIKE CONCAT('%',#queryContent#,'%'))
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						io.status = #inoutType#
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime >= #startTime#
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						#endTime# >= io.createtime
+			    	</isNotEmpty>
+			    	)tt
+	      </isEqual>
+	  </isNotEmpty>	
+	</select>
+	
+	<!-- 查找所有进出记录(教职工：自己或其管理的班级/部门) 的进出记录   20151207-->
+	<select id="getDormitoryInoutListAsTeachingStaff" parameterClass="HashMap" resultMap="result-inoutDormitory">
+		<isNotEmpty property="type">
+		<!-- 教师 -->
+		  <isEqual property="type" compareValue="1">
+		  
+		       SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime, 
+			   u.realName, device.name AS positionName, d.departmentName AS itemName
+	                 FROM palm_dormitory_inout io, platform.user_detail u, palm_device device,palm_user_department ud, palm_department d
+	                   WHERE io.userId = u.userId
+				         AND device.id = io.position
+				         AND io.userId = ud.userId 
+				         AND ud.departmentId = d.id 
+				         AND (io.userId = #userId#
+			            <isNotEmpty prepend="or" property="departmentIdList">
+						    ud.departmentId IN 
+				            <iterate open="(" close=")" conjunction="," property="departmentIdList" > 
+				                #departmentIdList[]# 
+				            </iterate> 
+					     </isNotEmpty>
+					     
+					     <isEmpty prepend="or" property="departmentIdList">
+						      ud.departmentId is null
+					     </isEmpty>
+					     )
+					<isNotEmpty prepend="and" property="queryContent">
+						(u.name LIKE CONCAT('%',#queryContent#,'%') or d.departname LIKE CONCAT('%',#queryContent#,'%'))
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						io.status = #inoutType#
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime >= #startTime#
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						#endTime# >= io.createtime
+			    	</isNotEmpty>
+			    	ORDER BY io.createtime DESC
+			    	<isNotEmpty property="startIndex">
+					LIMIT #startIndex#, #length#
+					</isNotEmpty>
+		  </isEqual>
+		 <!-- 学生 -->
+		  <isEqual property="type" compareValue="2">
+			SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime, 
+			   u.realName, device.name AS positionName, getClazzName(c.id) itemName
+                FROM palm_dormitory_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc,palm_clazz c,palm_grade g, palm_user_role ur
+			       WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId = sc.userId 
+			         AND sc.clazzId = c.id 
+			         AND ur.userId = io.userId
+			         AND g.id = c.gradeId
+					 AND g.state = '0' 
+			         <isNotEmpty prepend="and" property="clazzIdList">
+						sc.clazzId IN 
+				       <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+				           #clazzIdList[]# 
+				       </iterate> 
+				     </isNotEmpty>
+					     
+					 <isEmpty prepend="and" property="clazzIdList">
+						sc.clazzId is null
+					 </isEmpty>
+					 
+			        <isNotEmpty prepend="and" property="queryContent">
+					   (u.name LIKE CONCAT('%',#queryContent#,'%') or c.name LIKE CONCAT('%',#queryContent#,'%'))
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						io.status = #inoutType#
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime >= #startTime#
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						#endTime# >= io.createtime
+			    	</isNotEmpty>
+			    		ORDER BY io.createtime DESC
+			    	<isNotEmpty property="startIndex">
+						LIMIT #startIndex#, #length#
+					</isNotEmpty>	
+		  </isEqual>
+	    </isNotEmpty>	
+				
+	</select>
+	
+	<!-- 查找所有进出记录(教职工：自己或其管理的班级/部门)的进出记录的总数  20151207-->
+	<select id="getDormitoryInoutCountAsTeachingStaff" parameterClass="java.util.HashMap" resultClass="Integer">
+		<isNotEmpty property="type">
+		<!-- 教师 -->
+		<isEqual property="type" compareValue="1">
+	      SELECT COUNT(*) FROM(
+				 SELECT io.*, u.realName, device.name AS positionName, d.departmentName AS itemName
+	                 FROM palm_dormitory_inout io, platform.user_detail u, palm_device device,palm_user_department ud, palm_department d
+	                   WHERE io.userId = u.userId
+				         AND device.id = io.position
+				         AND io.userId = ud.userId 
+				         AND ud.departmentId = d.id 
+				         AND (io.userId = #userId#
+			            <isNotEmpty prepend="or" property="departmentIdList">
+						    ud.departmentId IN 
+				            <iterate open="(" close=")" conjunction="," property="departmentIdList" > 
+				                #departmentIdList[]# 
+				            </iterate> 
+					     </isNotEmpty>
+					     
+					     <isEmpty prepend="or" property="departmentIdList">
+						      ud.departmentId is null
+					     </isEmpty>
+					     )
+					<isNotEmpty prepend="and" property="queryContent">
+						(u.name LIKE CONCAT('%',#queryContent#,'%') or d.departname LIKE CONCAT('%',#queryContent#,'%'))
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						io.status = #inoutType#
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime >= #startTime#
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						#endTime# >= io.createtime
+			    	</isNotEmpty>
+			 )AS TT		
+		  </isEqual>
+		<!-- 学生 -->
+		  <isEqual property="type" compareValue="2">
+		     SELECT COUNT(*) FROM(
+				  SELECT io.*, u.realName, device.name AS positionName, getClazzName(c.id) itemName
+	                FROM palm_dormitory_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc, palm_clazz c, palm_grade g,palm_user_role ur
+				       WHERE io.userId = u.userId
+				         AND device.id = io.position
+				         AND io.userId = sc.userId 
+				         AND sc.clazzId = c.id 
+				         AND ur.userId = io.userId 
+				         AND g.id = c.gradeId
+						 AND g.state = '0'
+				         <isNotEmpty prepend="and" property="clazzIdList">
+						   sc.clazzId IN 
+				           <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+				                #clazzIdList[]# 
+				           </iterate> 
+					     </isNotEmpty>
+						     
+						 <isEmpty prepend="and" property="clazzIdList">
+							     sc.clazzId is null
+						 </isEmpty>
+				        <isNotEmpty prepend="and" property="queryContent">
+						   (u.name LIKE CONCAT('%',#queryContent#,'%') or c.name LIKE CONCAT('%',#queryContent#,'%'))
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="inoutType">
+							io.status = #inoutType#
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="startTime">
+							io.createtime >= #startTime#
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="endTime">
+							#endTime# >= io.createtime
+				    	</isNotEmpty>
+				)AS TT	
+		  </isEqual>
+		</isNotEmpty>	
+	</select>
+	
+	<!-- 查找所有进出记录(权限：家长) 查看(自己孩子)的进出记录   20151207 -->
+	<select id="getDormitoryInoutListAsParent" parameterClass="HashMap" resultMap="result-inoutDormitory">
+			SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime, 
+			   u.realName, device.name AS positionName, getClazzName(c.id) itemName
+                FROM palm_dormitory_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc, palm_clazz c,palm_grade g, palm_user_role ur
+			       WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId = sc.userId 
+			         AND sc.clazzId = c.id 
+			         AND ur.userId = io.userId 
+			         AND g.id = c.gradeId
+					 AND g.state = '0'
+			         AND io.userId in (SELECT sp.userId FROM platform.student_parent sp  WHERE sp.parent_userId = #userId#)
+			        <isNotEmpty prepend="and" property="queryContent">
+					   (u.name LIKE CONCAT('%',#queryContent#,'%') or c.name LIKE CONCAT('%',#queryContent#,'%'))
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						io.status = #inoutType#
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime >= #startTime#
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						#endTime# >= io.createtime
+			    	</isNotEmpty>
+			    		ORDER BY io.createtime DESC
+			    	<isNotEmpty property="startIndex">
+						LIMIT #startIndex#, #length#
+					</isNotEmpty>	
+	</select>
+	
+	<!-- 查找所有进出记录(权限：家长) 查看(自己孩子)的进出记录的总数  20151207-->
+	<select id="getDormitoryInoutCountAsParent" parameterClass="java.util.HashMap" resultClass="Integer">
+		     SELECT COUNT(*) FROM(
+				  SELECT io.*, u.realName, device.name AS positionName,getClazzName(c.id) itemName
+	                FROM palm_dormitory_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc, palm_clazz c,palm_grade g, palm_user_role ur
+				       WHERE io.userId = u.userId
+				         AND device.id = io.position
+				         AND io.userId = sc.userId 
+				         AND sc.clazzId = c.id 
+				         AND ur.userId = io.userId 
+				         AND g.id = c.gradeId
+						 AND g.state = '0'
+				         AND io.userId in (SELECT sp.userId FROM platform.student_parent sp  WHERE sp.parent_userId = #userId#)
+				        <isNotEmpty prepend="and" property="queryContent">
+						   (u.name LIKE CONCAT('%',#queryContent#,'%') or c.name LIKE CONCAT('%',#queryContent#,'%'))
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="inoutType">
+							io.status = #inoutType#
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="startTime">
+							io.createtime >= #startTime#
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="endTime">
+							#endTime# >= io.createtime
+				    	</isNotEmpty>
+				)AS TT	
+		 
+	</select>
+	
+	
+	<!-- 查找所有进出记录(权限：学生) 查看(自己)的进出记录   20151207 -->
+	<select id="getDormitoryInoutListAsStudent" parameterClass="HashMap" resultMap="result-inoutDormitory">
+			SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime, 
+			   u.realName, device.name AS positionName, getClazzName(c.id) itemName
+	              FROM palm_dormitory_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc, palm_clazz c,palm_grade g, palm_user_role ur
+				     WHERE io.userId = u.userId
+				       AND device.id = io.position
+				       AND io.userId = sc.userId 
+				       AND sc.clazzId = c.id 
+				       AND ur.userId = io.userId 
+				       AND g.id = c.gradeId
+					   AND g.state = '0'
+				       AND io.userId = #userId#
+				       <isNotEmpty prepend="and" property="queryContent">
+						   (u.name LIKE CONCAT('%',#queryContent#,'%') or c.name LIKE CONCAT('%',#queryContent#,'%'))
+				       </isNotEmpty>
+					   <isNotEmpty prepend="and" property="inoutType">
+							io.status = #inoutType#
+				       </isNotEmpty>
+					   <isNotEmpty prepend="and" property="startTime">
+							io.createtime >= #startTime#
+				       </isNotEmpty>
+					   <isNotEmpty prepend="and" property="endTime">
+							#endTime# >= io.createtime
+				      </isNotEmpty>	  
+	</select>
+	
+	<!-- 查找所有进出记录(权限：学生) 查看(自己)的进出记录总数 20151207-->
+	<select id="getDormitoryInoutCountAsStudent" parameterClass="java.util.HashMap" resultClass="Integer">
+		     SELECT COUNT(*) FROM(
+				  SELECT io.*, u.realName, device.name AS positionName, getClazzName(c.id) itemName
+	                FROM palm_dormitory_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc, palm_clazz c, palm_grade g,palm_user_role ur
+				       WHERE io.userId = u.userId
+				         AND device.id = io.position
+				         AND io.userId = sc.userId 
+				         AND sc.clazzId = c.id 
+				         AND ur.userId = io.userId 
+				         AND g.id = c.gradeId
+						 AND g.state = '0'
+				         AND io.userId = #userId#
+				        <isNotEmpty prepend="and" property="queryContent">
+						   (u.name LIKE CONCAT('%',#queryContent#,'%') or c.name LIKE CONCAT('%',#queryContent#,'%'))
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="inoutType">
+							io.status = #inoutType#
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="startTime">
+							io.createtime >= #startTime#
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="endTime">
+							#endTime# >= io.createtime
+				    	</isNotEmpty>
+				)AS TT	
+	</select>	
+	
+	<!-- 查询出宿舍已刷卡（校长） 20151207-->
+	<select id="getOutSwingCardAsAdminPermission" parameterClass="HashMap" resultMap="result-dormitory_abnormal">
+		  SELECT tt.*,getClazzName(cl.id) clazzName
+		    FROM (SELECT  u.code ,u.realName,sc.clazzId ,i.code AS cardCode,'出宿舍已刷卡' AS status
+		           FROM platform.user_detail u ,palm_dormitory_inout i , palm_student_clazz sc
+		           WHERE   i.userId = u.userId
+		           AND u.userId = sc.userId
+		           AND i.status = 2
+		           <![CDATA[
+		            AND i.createtime > #startTime#
+		            AND i.createtime < #endTime#
+		           ]]>
+			       <isNotEmpty  property="queryContent">
+					 AND u.realName  LIKE CONCAT('%',#queryContent#,'%')
+				   </isNotEmpty> 
+		          ORDER BY i.createtime DESC
+	        ) tt  LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id 
+	         
+	         <!-- 查询班级 -->	
+		<isNotEmpty property="clazzList">
+			WHERE cl.id = #clazzList#
+		</isNotEmpty>
+		
+		<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+		</isNotEmpty>
+	</select>
+	
+	<!-- 查询出宿舍已刷卡（班主任或者有宿舍异常管理权限的教职工） 20151207 -->
+	<select id="getOutSwingCardTeacher" parameterClass="HashMap" resultMap="result-dormitory_abnormal">
+	     SELECT tt.*,getClazzName(cl.id) clazzName FROM 
+	        (SELECT  u.code ,u.realName,sc.clazzId ,i.code AS cardCode,'出宿舍已刷卡' AS status
+	           FROM platform.user_detail u ,palm_dormitory_inout i , palm_student_clazz sc
+	           WHERE   i.userId = u.userId
+	           AND u.userId = sc.userId
+	           <isNotEmpty prepend="and" property="clazzIdList">
+				  sc.clazzId IN 
+				  <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+				       #clazzIdList[]# 
+				  </iterate>
+			   </isNotEmpty>
+			  <isEmpty prepend="and" property="clazzIdList">
+				  sc.clazzId IS NULL
+			  </isEmpty>
+	           AND i.status = 2
+	           <![CDATA[
+	            AND i.createtime > #startTime#
+	            AND i.createtime < #endTime#
+	           ]]>
+	           <isNotEmpty  property="queryContent">
+				AND u.realName  LIKE CONCAT('%',#queryContent#,'%')
+			   </isNotEmpty>  
+	         
+	          ORDER BY i.createtime DESC
+	        ) tt  LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id 
+	      <isNotEmpty property="clazzList">
+			WHERE cl.id = #clazzList#
+		  </isNotEmpty>    
+		  
+		  <isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+	     </isNotEmpty>   
+	</select>
+	
+	<!-- 查询出宿舍未刷卡（校长） 20151207 -->
+	<select id="getOutNoSwingCardAsAdminPermission" parameterClass="HashMap" resultMap="result-dormitory_abnormal">
+        SELECT tt.*,getClazzName(cl.id) clazzName
+          FROM (SELECT u.code ,u.realName,sc.clazzId ,c.cardCode,'出宿舍未刷卡' AS status
+				     FROM platform.user_detail u, palm_student_clazz sc,palm_user_card uc,palm_card c
+		              WHERE u.userId = sc.userId 
+		                AND uc.userId = u.userId
+		                AND uc.cardId = c.id
+		                AND NOT EXISTS 
+		                 (SELECT i.userId
+		                   FROM palm_dormitory_inout i , palm_user_role ur
+		                    WHERE i.userid = u.userId
+		                      AND u.userId = ur.userId
+		                      AND ur.roleCode = 'student'
+		                      AND i.status = 2
+		                    <![CDATA[
+			                    AND i.createtime > #startTime#
+			                     AND i.createtime < #endTime#
+			                  ]]>
+		                  )
+			            <isNotEmpty  property="queryContent">
+							AND u.realName  LIKE CONCAT('%',#queryContent#,'%')
+						</isNotEmpty>  
+            
+              ) tt LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id
+             
+	        <!-- 查询班级 -->	
+			<isNotEmpty property="clazzList">
+				WHERE cl.id = #clazzList#
+			</isNotEmpty>
+			
+			<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			</isNotEmpty>
+	</select>
+	
+	<!-- 查询出宿舍未刷卡（班主任或者有宿舍异常管理权限的教职工） 20151207 -->
+	<select id="getOutNoSwingCardAsTeacher" parameterClass="HashMap" resultMap="result-dormitory_abnormal">
+        SELECT tt.*,getClazzName(cl.id) clazzName
+          FROM (SELECT u.code ,u.realName,sc.clazzId ,c.cardCode,'出宿舍未刷卡' AS status
+				     FROM platform.user_detail u, palm_student_clazz sc,palm_user_card uc,palm_card c
+		              WHERE u.userId = sc.userId 
+		                AND uc.userId = u.userId
+		                AND uc.cardId = c.id
+		                <isNotEmpty prepend="and" property="clazzIdList">
+						   sc.clazzId IN 
+						   <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+						        #clazzIdList[]# 
+						   </iterate>
+					    </isNotEmpty>
+					    <isEmpty prepend="and" property="clazzIdList">
+						   sc.clazzId IS NULL
+					    </isEmpty>
+					    
+		                AND NOT EXISTS 
+		                 (SELECT i.userId
+		                   FROM palm_dormitory_inout i , palm_user_role ur
+		                    WHERE i.userid = u.userId
+		                      AND u.userId = ur.userId
+		                      AND ur.roleCode = 'student'
+		                      AND i.status = 2
+		                    <![CDATA[
+			                    AND i.createtime > #startTime#
+			                     AND i.createtime < #endTime#
+			                  ]]>
+		                  )
+			            <isNotEmpty  property="queryContent">
+							AND u.realName  LIKE CONCAT('%',#queryContent#,'%')
+						</isNotEmpty>  
+            
+              ) tt LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id
+             
+	        <!-- 查询班级 -->	
+			<isNotEmpty property="clazzList">
+				WHERE cl.id = #clazzList#
+			</isNotEmpty>
+			
+			<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			</isNotEmpty>
+	</select>
+	
+	
+	<!-- 查询进宿舍已刷卡（校长） 20151207-->
+	<select id="getInSwingCardAsAdminPermission" parameterClass="HashMap" resultMap="result-dormitory_abnormal">
+		  SELECT tt.*,getClazzName(cl.id) clazzName
+		    FROM (SELECT  u.code ,u.realName,sc.clazzId ,i.code AS cardCode,'进宿舍已刷卡' AS status
+		           FROM platform.user_detail u ,palm_dormitory_inout i , palm_student_clazz sc
+		           WHERE   i.userId = u.userId
+		           AND u.userId = sc.userId
+		           AND i.status = 1
+		           <![CDATA[
+		            AND i.createtime > #startTime#
+		            AND i.createtime < #endTime#
+		           ]]>
+			       <isNotEmpty  property="queryContent">
+					 AND u.realName  LIKE CONCAT('%',#queryContent#,'%')
+				   </isNotEmpty> 
+		          ORDER BY i.createtime DESC
+	        ) tt  LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id 
+	         <!-- 查询班级 -->	
+		<isNotEmpty property="clazzList">
+			WHERE cl.id = #clazzList#
+		</isNotEmpty>
+		
+		<isNotEmpty property="startIndex">
+			LIMIT #startIndex#, #length#
+		</isNotEmpty>
+	</select>
+	
+	<!-- 查询进宿舍已刷卡（班主任或者有宿舍异常管理权限的教职工） 20151207 -->
+	<select id="getInSwingCardTeacher" parameterClass="HashMap" resultMap="result-dormitory_abnormal">
+	     SELECT tt.*,getClazzName(cl.id) clazzName FROM
+	        (SELECT  u.code ,u.realName,sc.clazzId ,i.code AS cardCode,'进宿舍已刷卡' AS status
+	           FROM platform.user_detail u ,palm_dormitory_inout i , palm_student_clazz sc
+	           WHERE   i.userId = u.userId
+	           AND u.userId = sc.userId
+	           <isNotEmpty prepend="and" property="clazzIdList">
+				  sc.clazzId IN 
+				  <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+				       #clazzIdList[]# 
+				  </iterate>
+			   </isNotEmpty>
+			  <isEmpty prepend="and" property="clazzIdList">
+				  sc.clazzId IS NULL
+			  </isEmpty>
+	           AND i.status = 1
+	           <![CDATA[
+	            AND i.createtime > #startTime#
+	            AND i.createtime < #endTime#
+	           ]]>
+	           <isNotEmpty  property="queryContent">
+				AND u.realName  LIKE CONCAT('%',#queryContent#,'%')
+			   </isNotEmpty>  
+	         
+	          ORDER BY i.createtime DESC
+	        ) tt  LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id 
+	      <isNotEmpty property="clazzList">
+			WHERE cl.id = #clazzList#
+		  </isNotEmpty>  
+		  <isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+		  </isNotEmpty>     
+	</select>
+	
+	<!-- 查询进宿舍未刷卡（校长） 20151207 -->
+	<select id="getInNoSwingCardAsAdminPermission" parameterClass="HashMap" resultMap="result-dormitory_abnormal">
+        SELECT tt.*,getClazzName(cl.id) clazzName
+          FROM (SELECT u.code ,u.realName,sc.clazzId ,c.cardCode,'进宿舍未刷卡' AS status
+				     FROM platform.user_detail u, palm_student_clazz sc,palm_user_card uc,palm_card c
+		              WHERE u.userId = sc.userId 
+		                AND uc.userId = u.userId
+		                AND uc.cardId = c.id
+		                AND NOT EXISTS 
+		                 (SELECT i.userId
+		                   FROM palm_dormitory_inout i , palm_user_role ur
+		                    WHERE i.userid = u.userId
+		                      AND u.userId = ur.userId
+		                      AND ur.roleCode = 'student'
+		                      AND i.status = 1
+		                    <![CDATA[
+			                    AND i.createtime > #startTime#
+			                     AND i.createtime < #endTime#
+			                  ]]>
+		                  )
+			            <isNotEmpty  property="queryContent">
+							AND u.realName  LIKE CONCAT('%',#queryContent#,'%')
+						</isNotEmpty>  
+            
+              ) tt LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id
+             
+	        <!-- 查询班级 -->	
+			<isNotEmpty property="clazzList">
+				WHERE cl.id = #clazzList#
+			</isNotEmpty>
+			
+			<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			</isNotEmpty>
+	</select>
+	
+	<!-- 查询进宿舍未刷卡（班主任或者有宿舍异常管理权限的教职工） 20151207 -->
+	<select id="getInNoSwingCardAsTeacher" parameterClass="HashMap" resultMap="result-dormitory_abnormal">
+        SELECT tt.*,getClazzName(cl.id) clazzName
+          FROM (SELECT u.code ,u.realName,sc.clazzId ,c.cardCode,'进宿舍未刷卡' AS status
+				     FROM platform.user_detail u, palm_student_clazz sc,palm_user_card uc,palm_card c
+		              WHERE u.userId = sc.userId 
+		                AND uc.userId = u.userId
+		                AND uc.cardId = c.id
+		                <isNotEmpty prepend="and" property="clazzIdList">
+						   sc.clazzId IN 
+						   <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+						        #clazzIdList[]# 
+						   </iterate>
+					    </isNotEmpty>
+					    <isEmpty prepend="and" property="clazzIdList">
+						   sc.clazzId IS NULL
+					    </isEmpty>
+					    
+		                AND NOT EXISTS 
+		                 (SELECT i.userId
+		                   FROM palm_dormitory_inout i , palm_user_role ur
+		                    WHERE i.userid = u.userId
+		                      AND u.userId = ur.userId
+		                      AND ur.roleCode = 'student'
+		                      AND i.status = 1
+		                    <![CDATA[
+			                    AND i.createtime > #startTime#
+			                     AND i.createtime < #endTime#
+			                  ]]>
+		                  )
+			            <isNotEmpty  property="queryContent">
+							AND u.realName  LIKE CONCAT('%',#queryContent#,'%')
+						</isNotEmpty>  
+            
+              ) tt LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id
+             
+	        <!-- 查询班级 -->	
+			<isNotEmpty property="clazzList">
+				WHERE cl.id = #clazzList#
+			</isNotEmpty>
+			
+			<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			</isNotEmpty>
+	</select>
+	
+	
+	
+	
+	<!-- 查询出宿舍已刷卡（校长） 20151207-->
+	<select id="getOutSwingCardAsAdminPermissionCount" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM (
+		  SELECT tt.*,getClazzName(cl.id) clazzName
+		    FROM (SELECT  u.code ,u.realName,sc.clazzId ,i.code AS cardCode,'出宿舍已刷卡' AS status
+		           FROM platform.user_detail u ,palm_dormitory_inout i , palm_student_clazz sc
+		           WHERE   i.userId = u.userId
+		           AND u.userId = sc.userId
+		           AND i.status = 2
+		           <![CDATA[
+		            AND i.createtime > #startTime#
+		            AND i.createtime < #endTime#
+		           ]]>
+			       <isNotEmpty  property="queryContent">
+					 AND u.realName  LIKE CONCAT('%',#queryContent#,'%')
+				   </isNotEmpty> 
+		          ORDER BY i.createtime DESC
+	        ) tt  LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id 
+	         
+	         <!-- 查询班级 -->	
+		<isNotEmpty property="clazzList">
+			WHERE cl.id = #clazzList#
+		</isNotEmpty>
+		
+		) a
+	</select>
+	
+	<!-- 查询出宿舍已刷卡（班主任或者有宿舍异常管理权限的教职工） 20151207 -->
+	<select id="getOutSwingCardTeacherCount" parameterClass="HashMap" resultClass="Integer">
+	    SELECT COUNT(*) FROM (
+	     SELECT tt.*,getClazzName(cl.id) clazzName FROM 
+	        (SELECT  u.code ,u.realName,sc.clazzId ,i.code AS cardCode,'出宿舍已刷卡' AS status
+	           FROM platform.user_detail u ,palm_dormitory_inout i , palm_student_clazz sc
+	           WHERE   i.userId = u.userId
+	           AND u.userId = sc.userId
+	           <isNotEmpty prepend="and" property="clazzIdList">
+				  sc.clazzId IN 
+				  <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+				       #clazzIdList[]# 
+				  </iterate>
+			   </isNotEmpty>
+			  <isEmpty prepend="and" property="clazzIdList">
+				  sc.clazzId IS NULL
+			  </isEmpty>
+	           AND i.status = 2
+	           <![CDATA[
+	            AND i.createtime > #startTime#
+	            AND i.createtime < #endTime#
+	           ]]>
+	           <isNotEmpty  property="queryContent">
+				AND u.realName  LIKE CONCAT('%',#queryContent#,'%')
+			   </isNotEmpty>  
+	         
+	          ORDER BY i.createtime DESC
+	        ) tt  LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id 
+	      <isNotEmpty property="clazzList">
+			WHERE cl.id = #clazzList#
+		  </isNotEmpty>    
+		  
+		  ) a
+	</select>
+	
+	<!-- 查询出宿舍未刷卡（校长） 20151207 -->
+	<select id="getOutNoSwingCardAsAdminPermissionCount" parameterClass="HashMap" resultClass="Integer">
+       SELECT COUNT(*) FROM (
+        SELECT tt.*,getClazzName(cl.id) clazzName
+          FROM (SELECT u.code ,u.realName,sc.clazzId ,c.cardCode,'出宿舍未刷卡' AS status
+				     FROM platform.user_detail u, palm_student_clazz sc,palm_user_card uc,palm_card c
+		              WHERE u.userId = sc.userId 
+		                AND uc.userId = u.userId
+		                AND uc.cardId = c.id
+		                AND NOT EXISTS 
+		                 (SELECT i.userId
+		                   FROM palm_dormitory_inout i , palm_user_role ur
+		                    WHERE i.userid = u.userId
+		                      AND u.userId = ur.userId
+		                      AND ur.roleCode = 'student'
+		                      AND i.status = 2
+		                    <![CDATA[
+			                    AND i.createtime > #startTime#
+			                     AND i.createtime < #endTime#
+			                  ]]>
+		                  )
+			            <isNotEmpty  property="queryContent">
+							AND u.realName  LIKE CONCAT('%',#queryContent#,'%')
+						</isNotEmpty>  
+            
+              ) tt LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id
+             
+	        <!-- 查询班级 -->	
+			<isNotEmpty property="clazzList">
+				WHERE cl.id = #clazzList#
+			</isNotEmpty>
+			
+			) a
+			
+
+	</select>
+	
+	<!-- 查询出宿舍未刷卡（班主任或者有宿舍异常管理权限的教职工） 20151207 -->
+	<select id="getOutNoSwingCardAsTeacherCount" parameterClass="HashMap" resultClass="Integer">
+      SELECT COUNT(*) FROM (
+        SELECT tt.*,getClazzName(cl.id) clazzName
+          FROM (SELECT u.code ,u.realName,sc.clazzId ,c.cardCode,'出宿舍未刷卡' AS status
+				     FROM platform.user_detail u, palm_student_clazz sc,palm_user_card uc,palm_card c
+		              WHERE u.userId = sc.userId 
+		                AND uc.userId = u.userId
+		                AND uc.cardId = c.id
+		                <isNotEmpty prepend="and" property="clazzIdList">
+						   sc.clazzId IN 
+						   <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+						        #clazzIdList[]# 
+						   </iterate>
+					    </isNotEmpty>
+					    <isEmpty prepend="and" property="clazzIdList">
+						   sc.clazzId IS NULL
+					    </isEmpty>
+					    
+		                AND NOT EXISTS 
+		                 (SELECT i.userId
+		                   FROM palm_dormitory_inout i , palm_user_role ur
+		                    WHERE i.userid = u.userId
+		                      AND u.userId = ur.userId
+		                      AND ur.roleCode = 'student'
+		                      AND i.status = 2
+		                    <![CDATA[
+			                    AND i.createtime > #startTime#
+			                     AND i.createtime < #endTime#
+			                  ]]>
+		                  )
+			            <isNotEmpty  property="queryContent">
+							AND u.realName  LIKE CONCAT('%',#queryContent#,'%')
+						</isNotEmpty>  
+            
+              ) tt LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id
+             
+	        <!-- 查询班级 -->	
+			<isNotEmpty property="clazzList">
+				WHERE cl.id = #clazzList#
+			</isNotEmpty>
+			
+			) a
+	</select>
+	
+	
+	<!-- 查询进宿舍已刷卡（校长） 20151207-->
+	<select id="getInSwingCardAsAdminPermissionCount" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM (
+		  SELECT tt.*,getClazzName(cl.id) clazzName
+		    FROM (SELECT  u.code ,u.realName,sc.clazzId ,i.code AS cardCode,'进宿舍已刷卡' AS status
+		           FROM platform.user_detail u ,palm_dormitory_inout i , palm_student_clazz sc
+		           WHERE   i.userId = u.userId
+		           AND u.userId = sc.userId
+		           AND i.status = 1
+		           <![CDATA[
+		            AND i.createtime > #startTime#
+		            AND i.createtime < #endTime#
+		           ]]>
+			       <isNotEmpty  property="queryContent">
+					 AND u.realName  LIKE CONCAT('%',#queryContent#,'%')
+				   </isNotEmpty> 
+		          ORDER BY i.createtime DESC
+	        ) tt  LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id 
+	         <!-- 查询班级 -->	
+		<isNotEmpty property="clazzList">
+			WHERE cl.id = #clazzList#
+		</isNotEmpty>
+		
+		) a
+	</select>
+	
+	<!-- 查询进宿舍已刷卡（班主任或者有宿舍异常管理权限的教职工） 20151207 -->
+	<select id="getInSwingCardTeacherCount" parameterClass="HashMap" resultClass="Integer">
+	    SELECT COUNT(*) FROM (
+	      SELECT tt.*,getClazzName(cl.id) clazzName FROM
+	        (SELECT  u.code ,u.realName,sc.clazzId ,i.code AS cardCode,'进宿舍已刷卡' AS status
+	           FROM platform.user_detail u ,palm_dormitory_inout i , palm_student_clazz sc
+	           WHERE   i.userId = u.userId
+	           AND u.userId = sc.userId
+	           <isNotEmpty prepend="and" property="clazzIdList">
+				  sc.clazzId IN 
+				  <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+				       #clazzIdList[]# 
+				  </iterate>
+			   </isNotEmpty>
+			  <isEmpty prepend="and" property="clazzIdList">
+				  sc.clazzId IS NULL
+			  </isEmpty>
+	           AND i.status = 1
+	           <![CDATA[
+	            AND i.createtime > #startTime#
+	            AND i.createtime < #endTime#
+	           ]]>
+	           <isNotEmpty  property="queryContent">
+				AND u.realName  LIKE CONCAT('%',#queryContent#,'%')
+			   </isNotEmpty>  
+	         
+	          ORDER BY i.createtime DESC
+	        ) tt  LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id 
+	      <isNotEmpty property="clazzList">
+			WHERE cl.id = #clazzList#
+		  </isNotEmpty>  
+		  ) a   
+	</select>
+	
+	<!-- 查询进宿舍未刷卡（校长） 20151207 -->
+	<select id="getInNoSwingCardAsAdminPermissionCount" parameterClass="HashMap" resultClass="Integer">
+       SELECT COUNT(*) FROM (
+          SELECT tt.*,getClazzName(cl.id) clazzName
+            FROM (SELECT u.code ,u.realName,sc.clazzId ,c.cardCode,'进宿舍未刷卡' AS status
+				     FROM platform.user_detail u, palm_student_clazz sc,palm_user_card uc,palm_card c
+		              WHERE u.userId = sc.userId 
+		                AND uc.userId = u.userId
+		                AND uc.cardId = c.id
+		                AND NOT EXISTS 
+		                 (SELECT i.userId
+		                   FROM palm_dormitory_inout i , palm_user_role ur
+		                    WHERE i.userid = u.userId
+		                      AND u.userId = ur.userId
+		                      AND ur.roleCode = 'student'
+		                      AND i.status = 1
+		                    <![CDATA[
+			                    AND i.createtime > #startTime#
+			                     AND i.createtime < #endTime#
+			                  ]]>
+		                  )
+			            <isNotEmpty  property="queryContent">
+							AND u.realName  LIKE CONCAT('%',#queryContent#,'%')
+						</isNotEmpty>  
+            
+              ) tt LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id
+             
+	        <!-- 查询班级 -->	
+			<isNotEmpty property="clazzList">
+				WHERE cl.id = #clazzList#
+			</isNotEmpty>
+			) a
+	</select>
+	
+	<!-- 查询进宿舍未刷卡（班主任或者有宿舍异常管理权限的教职工） 20151207 -->
+	<select id="getInNoSwingCardAsTeacherCount" parameterClass="HashMap" resultClass="Integer">
+       SELECT COUNT(*) FROM (
+         SELECT tt.*,getClazzName(cl.id) clazzName
+          FROM (SELECT u.code ,u.realName,sc.clazzId ,c.cardCode,'进宿舍未刷卡' AS status
+				     FROM platform.user_detail u, palm_student_clazz sc,palm_user_card uc,palm_card c
+		              WHERE u.userId = sc.userId 
+		                AND uc.userId = u.userId
+		                AND uc.cardId = c.id
+		                <isNotEmpty prepend="and" property="clazzIdList">
+						   sc.clazzId IN 
+						   <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+						        #clazzIdList[]# 
+						   </iterate>
+					    </isNotEmpty>
+					    <isEmpty prepend="and" property="clazzIdList">
+						   sc.clazzId IS NULL
+					    </isEmpty>
+					    
+		                AND NOT EXISTS 
+		                 (SELECT i.userId
+		                   FROM palm_dormitory_inout i , palm_user_role ur
+		                    WHERE i.userid = u.userId
+		                      AND u.userId = ur.userId
+		                      AND ur.roleCode = 'student'
+		                      AND i.status = 1
+		                    <![CDATA[
+			                    AND i.createtime > #startTime#
+			                     AND i.createtime < #endTime#
+			                  ]]>
+		                  )
+			            <isNotEmpty  property="queryContent">
+							AND u.realName  LIKE CONCAT('%',#queryContent#,'%')
+						</isNotEmpty>  
+            
+              ) tt LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id
+             
+	        <!-- 查询班级 -->	
+			<isNotEmpty property="clazzList">
+				WHERE cl.id = #clazzList#
+			</isNotEmpty>
+			) a
+			
+	</select>
+	
+	
+</sqlMap>

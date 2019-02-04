@@ -1,0 +1,310 @@
+package com.guotop.palmschool.patrol.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.patrol.entity.Patrol;
+import com.guotop.palmschool.patrol.entity.PatrolInout;
+import com.guotop.palmschool.patrol.entity.PatrolPlace;
+import com.guotop.palmschool.patrol.service.PatrolService;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+
+/**
+ * 校务巡查巡检业务实现层
+ * 
+ * @author
+ */
+@Service("patrolService")
+public class PatrolServiceImpl extends BaseService implements PatrolService
+{
+
+	/**
+	 * 日志
+	 */
+	private Log logger = LogFactory.getLog(PatrolServiceImpl.class);
+
+	@Override
+	public Integer addPatrol(Patrol patrol)
+	{
+		return (Integer) this.getBaseDao().addObject("Patrol.addPatrol", patrol);
+	}
+
+	@Override
+	public void batchAddPatrol(List<Patrol> patrolList)
+	{
+		this.getBaseDao().addObject("Patrol.batchAddPatrol", patrolList);
+	}
+
+	@Override
+	public Integer addPatrolInout(PatrolInout patrolInout)
+	{
+		return (Integer) this.getBaseDao().addObject("Patrol.addPatrolInout", patrolInout);
+	}
+
+	@Override
+	public boolean addPatrolInout(PatrolInout inout, String ipSwitch, String position)
+	{
+		if (StringUtil.isEmpty(inout.getInoutTime()))
+		{
+			inout.setInoutTime(TimeUtil.getInstance().now());
+		}
+		boolean result = false;
+//		User user = (User) getBaseDao().selectObjectByObject("User.getUserByCardCode", inout.getCode());
+//		if (null == user)
+//		{
+//			logger.error("卡号:" + inout.getCode() + "查不到关联用户!");
+//			result = false;
+//			return result;
+//		}
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		String[] date = inout.getInoutTime().split(" ");
+		paramMap.put("day", date[0]);// 刷卡的日期
+		paramMap.put("time", date[1]);// 刷卡的时间
+		try
+		{
+			paramMap.put("ipSwitch", ipSwitch);
+			paramMap.put("position", position);
+//			paramMap.put("userId", user.getUserId());
+//			Device deviceEntity = (Device) getBaseDao().selectObjectByObject("Device.getDeviceByIpOrDeviceCode", paramMap);
+//			if (null == deviceEntity)
+//			{
+//				logger.error("ipSwitch:" + ipSwitch + ",position:" + position + "查不到记录点");
+//				result = false;
+//				return result;
+//			}
+
+//			inout.setUserId(user.getUserId());
+//			inout.setDeviceId(Integer.valueOf(deviceEntity.getId()));
+//			if (inout.getStatus() == null)
+//			{
+//				inout.setStatus(Integer.valueOf(deviceEntity.getInoutType()));
+//			}
+//			Integer placeId = deviceEntity.getPlaceId();
+//			inout.setPlaceId(placeId);
+			inout.setInoutDate(TimeUtil.date());
+			addPatrolInout(inout);
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			result = false;
+		}
+		return result;
+
+	}
+
+	@Override
+	public void updatePatrol(Patrol patrol)
+	{
+		this.getBaseDao().updateObject("Patrol.updatePatrol", patrol);
+	}
+
+	@Override
+	public Patrol getPatrolById(Integer id)
+	{
+		Patrol patrol = (Patrol) this.getBaseDao().selectObject("Patrol.getPatrolById", id);
+		return patrol;
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public Pages<Patrol> getPatrolListByCreateDateAndRealName(int pageSize, int page, String createDate, String queryContent)
+	{
+		List<Patrol> list = new ArrayList<Patrol>();
+		Map<String, Object> parmMap = new HashMap<String, Object>();
+		parmMap.put("createDate", createDate);
+		parmMap.put("queryContent", queryContent);
+		list = this.getBaseDao().selectListByObject("Patrol.getPatrolListByCreateDateAndRealName", parmMap);
+
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		allRow = list.size();
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		currentPage = Pages.countCurrentPage(page);
+
+		// 解决ibatis框架的分页问题
+		// 起始数据坐标
+		parmMap.put("startIndex", offset);
+		// 单页数据量
+		parmMap.put("length", length);
+		list = this.getBaseDao().selectListByObject("Patrol.getPatrolListByCreateDateAndRealName", parmMap);
+
+		Pages<Patrol> pages = new Pages<Patrol>();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	/**
+	 * 根据地点id和userId 以及createDate获取打卡记录
+	 * 
+	 * @param createDate
+	 * @param userId
+	 * @param placeId
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<PatrolInout> getInoutList(String createDate, Integer userId, Integer placeId)
+	{
+		Map<String, Object> parmMap = new HashMap<String, Object>();
+		parmMap.put("createDate", createDate);
+		parmMap.put("userId", userId);
+		parmMap.put("placeId", placeId);
+		return this.getBaseDao().selectListByObject("Patrol.getInoutList", parmMap);
+	}
+
+	
+	@SuppressWarnings("unchecked")
+	public List<PatrolInout> getInoutListByCreateDateAndUserId(String createDate, Integer userId)
+	{
+		Map<String, Object> parmMap = new HashMap<String, Object>();
+		parmMap.put("createDate", createDate);
+		parmMap.put("userId", userId);
+		return this.getBaseDao().selectListByObject("Patrol.getInoutListByCreateDateAndUserId", parmMap);
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<Patrol> getPatrolListByCreateDateAndRealNameAPP(int pageSize, int page, String createDate, String queryContent)
+	{
+		List<Patrol> list = new ArrayList<Patrol>();
+		Map<String, Object> parmMap = new HashMap<String, Object>();
+		parmMap.put("createDate", createDate);
+		parmMap.put("queryContent", queryContent);
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+
+		// 解决ibatis框架的分页问题
+		// 起始数据坐标
+		parmMap.put("startIndex", offset);
+		// 单页数据量
+		parmMap.put("length", length);
+		list = this.getBaseDao().selectListByObject("Patrol.getPatrolListByCreateDateAndRealName", parmMap);
+		return list;
+	}
+
+	@Override
+	public void clearPatrol(String currentDate)
+	{
+		this.getBaseDao().deleteObject("Patrol.clearPatrol", currentDate);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public Pages<PatrolPlace> getPatrolPlaceList(int pageSize, int page)
+	{
+		List<PatrolPlace> list = new ArrayList<PatrolPlace>();
+		Map<String, Object> parmMap = new HashMap<String, Object>();
+		list = this.getBaseDao().selectListByObject("Patrol.getPatrolPlaceList", parmMap);
+
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		allRow = list.size();
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		currentPage = Pages.countCurrentPage(page);
+
+		// 解决ibatis框架的分页问题
+		// 起始数据坐标
+		parmMap.put("startIndex", offset);
+		// 单页数据量
+		parmMap.put("length", length);
+		list = this.getBaseDao().selectListByObject("Patrol.getPatrolPlaceList", parmMap);
+
+		Pages<PatrolPlace> pages = new Pages<PatrolPlace>();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<PatrolPlace> getPatrolPlaceList()
+	{
+		List<PatrolPlace> list = new ArrayList<PatrolPlace>();
+		Map<String, Object> parmMap = new HashMap<String, Object>();
+		list = this.getBaseDao().selectListByObject("Patrol.getPatrolPlaceList", parmMap);
+		return list;
+	}
+	
+	@Override
+	public PatrolPlace getPatrolPlaceById(Integer id)
+	{
+		PatrolPlace place = (PatrolPlace) this.getBaseDao().selectObject("Patrol.getPatrolPlaceById", id);
+		return place;
+	}
+	
+	@Override
+	public PatrolPlace getPatrolPlaceByCode(String code)
+	{
+		PatrolPlace place = (PatrolPlace) this.getBaseDao().selectObjectByObject("Patrol.getPatrolPlaceByCode", code);
+		return place;
+	}
+	
+	@Override
+	public Integer addPatrolPlace(PatrolPlace patrolplace)
+	{
+		return (Integer) this.getBaseDao().addObject("Patrol.addPatrolPlace", patrolplace);
+	}
+
+	@Override
+	public void updatePatrolPlace(PatrolPlace patrolplace)
+	{
+		this.getBaseDao().updateObject("Patrol.updatePatrolPlace", patrolplace);
+	}
+
+	@Override
+	public void deletePatrolPlace(Integer id)
+	{
+		this.getBaseDao().deleteObjectById("Patrol.deletePatrolPlace", id);
+	}
+
+	@Override
+	public Patrol getPatrolByPlaceIdUserIdAndStartDate(Integer placeId,Integer userId, String startDate)
+	{
+		Map<String, Object> parmMap = new HashMap<String, Object>();
+		parmMap.put("placeId", placeId);
+		parmMap.put("userId", userId);
+		parmMap.put("startDate", startDate);
+		Patrol patrol = (Patrol) this.getBaseDao().selectObjectByObject("Patrol.getPatrolByPlaceIdUserIdAndStartDate", parmMap);
+		return patrol;
+	}
+
+}

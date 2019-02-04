@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Clazz">
+	<typeAlias alias="clazz" type="com.guotop.palmschool.entity.Clazz" />
+	<typeAlias alias="studentClazz" type="com.guotop.palmschool.entity.StudentClazz"/>
+
+	<!-- update by shengyinjiang 20151124 -->
+	<resultMap class="com.guotop.palmschool.entity.Clazz" id="result_clazz">
+		<result property="id" column="id" />
+		<result property="clazzName" column="clazzName" />
+		<result property="leaderId" column="leaderId" />
+		<result property="updateTime" column="updateTime" />
+		<result property="createTime" column="createTime" />
+		<result property="gradeId" column="gradeId" />
+		<result property="code" column="code" />
+	</resultMap>
+	<!-- update by jfy 20151127 -->
+	<resultMap class="com.guotop.palmschool.entity.Clazz" id="result_clazzSelect">
+		<result property="id" column="id" />
+		<result property="leaderId" column="leaderId" />
+		<result property="clazzName" column="clazzName" />
+		<result property="fullClazzName" column="fullClazzName" />
+	</resultMap>
+	
+	<!-- update by shengyinjiang 20151124 -->	
+	<resultMap class="com.guotop.palmschool.entity.Clazz" id="result_clazz_leaderName">
+		<result property="id" column="id"/>
+		<result property="clazzName" column="clazzName"/>
+		<result property="leaderId" column="leaderId"/>
+		<result property="updateTime" column="updateTime"/>
+		<result property="createTime" column="createTime"/>
+		<result property="gradeId" column="gradeId"/>	
+		<result property="code" column="code"/>
+		<result property="leaderName" column="leaderName"/>
+		<result property="type" column="type"/>
+		<result property="gradeName" column="gradeName"/>
+		<result property="createYear" column="createYear"/>
+		<result property="phone" column="phone"/>
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.User" id="result_getUserIdListByClazzId">
+		<result property="userId" column="userId"/>
+		<result property="baiduChannelId" column="baiduChannelId"/>
+		<result property="deviceType" column="deviceType"/>	
+	</resultMap>
+		
+ 	
+
+	<!-- 根据班级名称查找所有班级信息  update by shengyinjiang 20151124-->
+	<select id="getClazzByNameAndCreateYear" parameterClass="java.util.HashMap" resultMap="result_clazz">
+		SELECT c.* FROM palm_clazz c, palm_grade g WHERE clazzName = #clazzName# and c.gradeId = g.id and g.state = '0' ORDER BY c.id ASC
+	</select>
+
+	<!-- 添加班级 update by shengyinjiang 20151124-->
+	<insert id="addClazz" parameterClass="clazz">
+		insert into palm_clazz
+		(
+		code,
+		clazzName,
+		leaderId,
+		updateTime,
+		createTime,
+		gradeId
+		)
+		values
+		(
+		#code#,
+		#clazzName#,
+		#leaderId#,
+		#updateTime#,
+		#createTime#,
+		#gradeId#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+
+	<insert id="addClazzForFJ" parameterClass="clazz">
+		insert into fjzyyptxx.palm_clazz
+		(
+		code,
+		clazzName,
+		leaderId,
+		updateTime,
+		createTime,
+		gradeId,
+		fjClazzId,
+		fjSchoolId
+		)
+		values
+		(
+		#code#,
+		#clazzName#,
+		#leaderId#,
+		#updateTime#,
+		#createTime#,
+		#gradeId#,
+		#fjClazzId#,
+		#fjSchoolId#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	
+	<!-- 获取所有班级列表  update by shengyinjiang 20151126-->	
+	<select id="getClazzList" parameterClass="java.util.HashMap" resultMap="result_clazz_leaderName">
+		SELECT c.*, ud.realName AS leaderName ,g.name AS gradeName, g.type,g.createYear,ub.phone
+			FROM palm_clazz c 
+			LEFT JOIN palm_grade g ON c.gradeId = g.id
+			LEFT JOIN platform.user_detail ud ON c.leaderId = ud.userId
+			LEFT JOIN platform.userbase ub ON ub.userId = ud.userId
+			WHERE g.state = 0			
+			<isNotEmpty property="queryContent">
+				AND (c.code LIKE CONCAT('%',#queryContent#,'%') OR c.clazzName LIKE CONCAT('%',#queryContent#,'%') OR g.name LIKE CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			ORDER BY g.type ASC,g.createYear DESC,c.id ASC
+	</select>
+	
+	<!-- 根据userId 和permissionCode 找到班级详情列表  -->
+	<select id="getClazzListByUserIdAndPermissionCodeForClazzManager" parameterClass="java.util.HashMap" resultMap="result_clazz_leaderName">
+			SELECT tmp.*, userTmp.realName AS leaderName,userTmp.phone FROM (
+			   SELECT c.* ,g.name AS gradeName, g.type,g.createYear 
+			   FROM palm_clazz c ,palm_grade g
+			   WHERE g.id = c.gradeId
+			   	 AND g.state = '0'
+			     AND c.id IN
+			    (SELECT optClazzId FROM palm_user_permission 
+			         WHERE optClazzId IS NOT NULL 
+			           AND userId=#userId# AND permissionCode=#permissionCode#
+			     )
+			     <isNotEmpty property="queryContent">
+					AND (c.code LIKE CONCAT('%',#queryContent#,'%') OR c.clazzName LIKE CONCAT('%',#queryContent#,'%') OR g.name LIKE CONCAT('%',#queryContent#,'%'))
+				 </isNotEmpty>
+			     UNION 
+			     SELECT c.* ,g.name AS gradeName, g.type,g.createYear  
+			     FROM palm_clazz c ,palm_grade g 
+			     WHERE g.id = c.gradeId AND g.state = '0' AND c.leaderId=#userId#  
+				 <isNotEmpty property="queryContent">
+					AND (c.code LIKE CONCAT('%',#queryContent#,'%') OR c.clazzName LIKE CONCAT('%',#queryContent#,'%') OR g.name LIKE CONCAT('%',#queryContent#,'%'))
+				 </isNotEmpty>
+			     ORDER BY clazzName DESC
+		   ) tmp LEFT JOIN (SELECT ub.userId,ud.realName,ub.phone FROM platform.userbase ub,platform.user_detail ud WHERE ub.userId = ud.userId AND ub.userId=#userId#) userTmp ON tmp.leaderId = userTmp.userId     
+	</select>
+	
+	<!-- 获取所有班级列表 【福建专用】-->	
+	<select id="getClazzListFj" parameterClass="java.util.HashMap" resultMap="result_clazz_leaderName">
+		SELECT c.*, ud.realName AS leaderName ,g.name AS gradeName, g.type,g.createYear,ub.phone
+			FROM palm_clazz c 
+			LEFT JOIN fjzyyptxx.palm_grade g ON c.gradeId = g.id
+			LEFT JOIN fjzyyptxx.user_detail ud ON c.leaderId = ud.userId
+			LEFT JOIN fjzyyptxx.userbase ub ON ub.userId = ud.userId
+			WHERE g.state = 0 
+			and c.fjSchoolId=#fjSchoolId#				
+			<isNotEmpty property="queryContent">
+				AND (c.code LIKE CONCAT('%',#queryContent#,'%') OR c.clazzName LIKE CONCAT('%',#queryContent#,'%') OR g.name LIKE CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			ORDER BY g.type ASC,g.createYear DESC,c.id ASC
+	</select>
+	<!-- 根据Id查找所有班级信息 update by shengyinjiang 20151126 -->	
+	<select id="getClazzById" parameterClass="Integer" resultMap="result_clazz_leaderName">
+		SELECT c.*, ud.realName AS leaderName,g.name AS gradeName, g.type,g.createYear,ub.phone 
+			FROM palm_clazz c
+			LEFT JOIN palm_grade g ON c.gradeId = g.id
+			LEFT JOIN platform.user_detail ud ON c.leaderId = ud.userId
+			LEFT JOIN platform.userbase ub ON ub.userId = ud.userId
+			WHERE g.state = '0' and c.id = #clazzId#	
+	</select>
+	
+	<select id="getClazzIdByFjClazzId" parameterClass="HashMap" resultClass="Integer">
+		SELECT c.id
+			FROM fjzyyptxx.palm_clazz c 
+			WHERE 1=1
+			<isNotEmpty property="fjClazzId">
+				and c.fjClazzId = #fjClazzId#	
+			</isNotEmpty>
+			<isNotEmpty property="clazzName">
+				and c.clazzName = #clazzName#	
+			</isNotEmpty>
+	</select>
+	
+	
+	<!-- 根据Id查找所有班级姓名  syj 20160122 -->
+	<select id="getClazzByIdInRICHBOOK" parameterClass="Integer" resultClass="String">
+		SELECT getClazzName(c.id)
+			FROM palm_clazz c 
+			WHERE c.id = #clazzId#	
+	</select>
+		
+	<!-- 表单校验 修改班级信息时班级编号是否存在 update by shengyinjiang 20151126 -->
+	<select id="checkClazzModifyByCode" parameterClass="HashMap" resultClass="Integer">
+ 		SELECT 1 FROM (SELECT * FROM palm_clazz c WHERE c.code!=#originalcode#) d
+ 				where d.code = #code#
+ 	</select>
+ 	   <!-- 表单校验 添加班级信息时检查班级编号是否存在   update by shengyinjiang 20151129-->
+	<select id="checkClazzByCode" parameterClass="String" resultClass="Integer">
+ 		select 1 from palm_clazz
+ 			where code = #code#
+	</select>
+ 	   <!-- 表单校验 添加班级信息时检查班级名称是否存在   update by shengyinjiang 20151129-->	
+	<select id="checkClazzByClazzName" parameterClass="HashMap" resultClass="Integer">
+ 		select 1 from palm_clazz
+ 			where clazzName = #clazzName#
+ 			and gradeId = #gradeId#
+	</select>
+	 <!-- 表单校验 添加班级信息时检查班级名称是否存在   update by shengyinjiang 20151129-->	
+	<select id="getClazzByClazzName" parameterClass="HashMap" resultClass="clazz">
+ 		select * from palm_clazz
+ 			where clazzName = #clazzName#
+ 			and gradeId = #gradeId#
+	</select>
+	<!-- 修改班级  update by shengyinjiang 20151126-->
+	<update id="modifyClazz" parameterClass="HashMap">
+		 update palm_clazz
+		    set updatetime = NOW()
+		    	<isNotEmpty property="code">
+		    	,code = #code#
+		    	</isNotEmpty>
+		    	<isNotEmpty property="leaderId">
+		    	,leaderId = #leaderId#
+		    	</isNotEmpty>
+		    	<isNotEmpty property="clazzName">
+		    	,clazzName = #clazzName#
+		    	</isNotEmpty>		        
+		    where id = #clazzId#	
+	</update>	
+	<!-- 查找所有班级信息  update by jfy 20151127 -->
+	<select id="getAllClazzList" parameterClass="Integer" resultMap="result_clazzSelect">
+	     select c.id, clazzName,c.leaderId ,getClazzName(c.id) fullClazzName 
+	     from palm_clazz c,palm_grade g 
+	     where g.id = c.gradeId and g.state = '0' 
+		 order by g.type ASC,g.createYear DESC,c.id ASC
+	</select> 
+	
+ 	<!-- 根据班主任ID查找班级信息 update by shengyinjiang 20151201 -->
+	<select id="loadClazzListByLeaderId" parameterClass="Integer" resultMap="result_clazz">
+		select c.* from palm_clazz c,palm_grade g where g.id = c.gradeId and g.state = '0' and c.leaderId = #leaderId#
+	</select>
+	
+	<!-- 根据班主任ID查找班级信息 update by jfy 20151127 -->
+	<select id="getClazzListByUserIdAndPermissionCode" parameterClass="HashMap" resultMap="result_clazzSelect">
+		select c.id,  getClazzName(c.id) clazzName,c.leaderId ,getClazzName(c.id) fullClazzName from palm_clazz c ,palm_grade g
+		   where g.id = c.gradeId
+		   	 and g.state = '0'
+		     and c.id in
+		    (select optClazzId from palm_user_permission 
+		         where optClazzId is not null 
+		           and userId=#userId# and permissionCode=#permissionCode# 
+		     ) union
+		       select c.id,  getClazzName(c.id) clazzName,c.leaderId ,getClazzName(c.id) fullClazzName  from palm_clazz c ,
+               palm_grade g where g.id = c.gradeId and g.state = '0' and c.leaderId=#userId#  order by clazzName DESC
+	</select>
+	<!-- 根据班主任ID查找班级信息 update by jfy 20151127 -->
+	<select id="getClazzListInEvalution" resultMap="result_clazzSelect">
+		select c.id,  getClazzName(c.id) clazzName,c.leaderId ,getClazzName(c.id) fullClazzName 
+		from palm_clazz c,palm_grade g where g.id = c.gradeId and g.state = '0'
+	</select>
+	
+	<!-- 根据家长ID查找班级信息 20160108 tao -->
+	<select id="getClazzListByUserId" parameterClass="HashMap" resultMap="result_clazzSelect">
+		SELECT c.id,  getClazzName(c.id) clazzName,c.leaderId ,getClazzName(c.id) fullClazzName 
+		FROM palm_clazz c,palm_grade g
+		 where g.id = c.gradeId 
+		   and g.state = '0'	
+ 		   and c.id IN
+		     (SELECT sc.clazzId FROM platform.student_parent sp, palm_student_clazz sc
+		         WHERE sp.userId = sc.userId
+		           AND sp.parent_userId = #userId#
+		     ) ORDER BY clazzName ASC
+	</select>
+	
+	<!-- 根据班级名称查找所有班级信息  update by shengyinjiang 20151124-->
+	<select id="getClazzByNameAndGradeId" parameterClass="java.util.HashMap" resultMap="result_clazz">
+		SELECT c.* FROM palm_clazz c,palm_grade g 
+		   where g.id = c.gradeId 
+		     and g.state = '0' 
+		     and c.clazzName = #clazzName# 
+		     and c.gradeId=#gradeId#
+	</select>
+	<!-- 根据班级Id查找所有班级成员ID  update by jfy 20151124-->
+	<select id="getUserIdListByClazzId" resultMap="result_getUserIdListByClazzId" parameterClass="Integer">
+		select u.userId,u.baiduChannelId,u.deviceType from palm_student_clazz sc, platform.userbase u where u.userid = sc.userid and  clazzId = #clazzId# group by sc.userid
+	</select>
+	
+	<!-- 根据userid查询学生的Id -->
+	<select id="getStudentClazzId" parameterClass="Integer" resultClass="studentClazz">
+		select * from palm_student_clazz where userId = #userId#
+	</select>
+	
+	<!-- 根据gradeId 查找所有班级信息  tao 20160114 -->
+	<select id="getClazzListByGradeId" parameterClass="Integer" resultMap="result_clazzSelect">
+	     select c.id, c.clazzName,c.leaderId ,getClazzName(c.id) fullClazzName 
+	     	from palm_clazz c,palm_grade g 
+	     		where g.id = c.gradeId 
+	     		  and g.state = '0' 
+				  and c.gradeId = #gradeId# order by clazzName
+	</select> 
+	<!-- 根据gradeId 查找所有班级信息  tao 20160114 -->
+	<select id="getClazzListByGradeId4App" parameterClass="Integer" resultMap="result_clazzSelect">
+	     select c.id, c.clazzName,c.leaderId ,getClazzName(c.id) fullClazzName 
+	     	from palm_clazz c,palm_grade g 
+	     		where g.id = c.gradeId 
+	     		  and g.state = '0' 
+			      and c.gradeId = #gradeId# 
+			      order by clazzName
+	</select>
+	<!-- 查找所有班级信息  update by jfy 20151127 -->
+	<select id="getAllClazzList4App" parameterClass="Integer" resultMap="result_clazzSelect">
+	     select c.id, c.clazzName,c.leaderId,getClazzName(c.id) fullClazzName 
+	     	from palm_clazz c ,palm_grade g where g.id = c.gradeId and g.state = '0' 
+	     	order by g.type ASC,g.createYear DESC,c.id ASC 
+	</select> 
+	<!-- 根据家长Id找出小孩的班级id add by syj 20160409 -->
+	<select id="getClazzListByParentId" parameterClass="Integer" resultMap="result_clazzSelect">
+	     	SELECT c.id ,getClazzName(c.id) clazzName , c.leaderId , getClazzName(c.id) fullClazzName
+				FROM platform.student_parent sp, palm_student_clazz sc,palm_clazz c ,palm_grade g
+					WHERE sp.userId = sc.userId
+					  AND g.id = c.gradeId 
+				      AND g.state = '0'
+					  AND sc.clazzId = c.id
+					  AND sp.parent_userId = #parentId#
+	</select> 
+	<!-- 根据学生Id找出班级id add by syj 20160409 -->
+	<select id="getClazzListByStudentId" parameterClass="Integer" resultMap="result_clazzSelect">
+	     	SELECT c.id ,getClazzName(c.id) clazzName,c.leaderId , getClazzName(c.id) fullClazzName
+				FROM palm_student_clazz sc, palm_clazz c ,palm_grade g
+					WHERE sc.clazzId = c.id
+					  AND g.id = c.gradeId 
+				      AND g.state = '0'
+					  AND sc.userId = #studentId#
+	</select>
+	<!-- 根据班级获得年级信息 -->
+	<select id="getGradeByClassId" resultClass="com.guotop.palmschool.entity.Clazz" parameterClass="java.lang.Integer">
+	select g.type,g.name as gradeName from palm_clazz c left join palm_grade g on g.id=c.gradeId where g.state='0' and c.id=#classId#
+	</select>
+	
+	<!--  班级相册使用begin  -->
+	<!-- 根据gradeId 查找所有班级信息 (管理员 校长) -->
+	<select id="getClazzListByGradeIdAsAdmin" parameterClass="Integer" resultMap="result_clazzSelect">
+	     select c.id, c.clazzName,c.leaderId , getClazzName(c.id) fullClazzName 
+	     	from palm_clazz c,palm_grade g 
+	     		where g.id = c.gradeId 
+				  and g.state = '0' 
+				  and c.gradeId = #gradeId# 
+				  order by clazzName
+	</select> 
+	
+	<!-- 根据gradeId 和userId 查找所有班级信息(班主任) -->
+	<select id="getClazzListByGradeIdAndUserIdAsClassLeader" parameterClass="HashMap" resultMap="result_clazzSelect">
+	     select c.id, c.clazzName,c.leaderId,getClazzName(c.id) fullClazzName from palm_clazz c ,palm_grade g 
+	     		where g.id = c.gradeId 
+				  and g.state = '0' 
+	              and c.gradeId = #gradeId#  
+	              and c.leaderId=#userId# 
+	     UNION
+	     select c.id, c.clazzName,0 leaderId , getClazzName(c.id) fullClazzName from palm_clazz c,palm_grade g,palm_subjectandteacherlink s 
+	        where g.id = c.gradeId and g.state = '0' and s.clazzId=c.id and c.gradeId = #gradeId#  and s.teacherId=#userId# 
+	     order by clazzName
+	</select> 
+	
+	<!-- 根据gradeId 和userId 查找所有班级信息(家长) -->
+	<select id="getClazzListByGradeIdAndUserIdAsParent" parameterClass="HashMap" resultMap="result_clazzSelect">
+	     SELECT c.id, c.clazzName,c.leaderId ,getClazzName(c.id) fullClazzName FROM palm_clazz c, palm_grade g
+			 WHERE g.id = c.gradeId and g.state = '0' and c.gradeId = #gradeId#  
+			   AND c.id IN( SELECT sc.clazzId FROM palm_student_clazz sc WHERE sc.userId IN  
+			 			      (SELECT sp.userId FROM platform.student_parent sp  WHERE sp.parent_userId = #userId#)
+			 	          )
+			 ORDER BY clazzName
+	</select> 
+ 
+ 	<!-- 根据gradeId 和userId 查找所有班级信息(学生) -->
+	<select id="getClazzListByGradeIdAndUserIdAsStudent" parameterClass="HashMap" resultMap="result_clazzSelect">
+	     SELECT c.id,c.clazzName,c.leaderId ,getClazzName(c.id) fullClazzName FROM palm_clazz c, palm_grade g
+			 WHERE  g.id = c.gradeId and g.state = '0' and c.gradeId = #gradeId#  
+			   AND c.id IN( SELECT sc.clazzId FROM palm_student_clazz sc WHERE sc.userId = #userId# )
+			 ORDER BY clazzName
+	</select> 
+	
+	<!-- 根据gradeId 和userId 查找所有班级信息(教师) -->
+	<select id="getClazzListByGradeIdAndUserIdAsTeacher" parameterClass="HashMap" resultMap="result_clazzSelect">
+	     select c.id,c.clazzName,c.leaderId , getClazzName(c.id) fullClazzName from palm_clazz c, palm_grade g, palm_subjectandteacherlink s 
+	         where  g.id = c.gradeId and g.state = '0' and s.clazzId=c.id and c.gradeId = #gradeId#  and s.teacherId=#userId# 
+	     order by clazzName
+	</select> 
+	
+	<!-- 根据clazzId和userId删除班级和学生的关系 -->
+	<delete id="deleteUserAndClazzLinkByUserId" parameterClass="Integer">
+		delete from palm_student_clazz where userId = #userId#
+	</delete>
+	
+	<!-- 根据clazzId清空班级下面的所有学生 -->
+	<delete id="clearClazzStudent" parameterClass="Integer">
+		delete from palm_student_clazz where clazzId = #clazzId#
+	</delete>
+	<!-- 根据clazzId清空班级下面的所有学生之前先清空学生对应的学号 -->
+	<update id="clearStudentUserCode" parameterClass="Integer">
+		update platform.user_detail 
+		  set code = null
+		where userId in (select userId from palm_student_clazz where clazzId = #clazzId#)
+	</update>
+	<!-- 根据clazzId清空班级下面的所有学生之前先清空学生对应的palmUserName -->
+	<update id="clearStudentPalmUserName" parameterClass="Integer">
+		update platform.userbase 
+		  set palmUserName = null
+		where userId in (select userId from palm_student_clazz where clazzId = #clazzId#)
+	</update>
+	
+	<select id="getClazzListByGradeIdList" resultClass="clazz" parameterClass="java.util.List">
+	    select * from palm_clazz
+	    where gradeId in
+		    <iterate conjunction="," open="(" close=")">
+		     #gradeIdList[]# 
+		   </iterate>
+		   ORDER BY gradeId ASC
+   </select>
+	
+</sqlMap>

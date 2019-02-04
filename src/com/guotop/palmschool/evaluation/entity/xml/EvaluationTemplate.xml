@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="EvaluationTemplate">
+	<typeAlias alias="evaluationTemplate" type="com.guotop.palmschool.evaluation.entity.EvaluationTemplate"/>
+	<typeAlias alias="evaluationExercise" type="com.guotop.palmschool.evaluation.entity.EvaluationExercises"/>
+	<typeAlias alias="evaluationExerciseDetail" type="com.guotop.palmschool.evaluation.entity.EvaluationExercisesDetail"/>
+
+	<resultMap class="com.guotop.palmschool.evaluation.entity.EvaluationTemplate" id="result_evaluationTemplate">
+		<result property="id" column="id"/>
+		<result property="parentId" column="parentId"/>
+		<result property="subjectId" column="subjectId"/>	
+		<result property="name" column="name"/>
+		<result property="contentType" column="contentType"/>
+		<result property="schoolStructureId" column="schoolStructureId"/>
+		<result property="userId" column="userId"/>
+		<result property="createTime" column="createTime"/>
+		<result property="comment" column="comment"/>
+		<result property="type" column="type"/>
+		<result property="limitTime" column="limitTime"/>
+		<result property="updateTime" column="updateTime"/>
+		<result property="status" column="status"/>
+		<result property="totalScore" column="totalScore"/>
+		<result property="semester" column="semester"/>
+		<result property="examSubjectId" column="examSubjectId"/>
+		<result property="stopTime" column="stopTime"/>
+		<result property="startTime" column="startTime"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.evaluation.entity.EvaluationExercises" id="result_evaluationExercies">
+		<result property="id" column="id"/>
+		<result property="paperId" column="paperId"/>
+		<result property="exFolderId" column="exFolderId"/>	
+		<result property="name" column="name"/>
+		<result property="contentType" column="contentType"/>
+		<result property="type" column="type"/>
+		<result property="createTime" column="createTime"/>
+		<result property="comment" column="comment"/>
+		<result property="integral" column="integral"/>
+		<result property="updateTime" column="updateTime"/>
+		<result property="status" column="status"/>
+		<result property="answer" column="answer"/>
+		<result property="score" column="score"/>
+		<result property="html" column="html"/>
+	</resultMap>
+	
+	<!-- 根据parentId 查询对应的试题 -->	
+	<select id="getEvaluationTemplateListByParentId" parameterClass="Integer" resultMap="result_evaluationTemplate">
+		select * from teachingexercisesfolder  where status !=2 and parentId = #parentId#
+	</select>
+	
+	<!-- 根据id 查询对应的模板 -->	
+	<select id="getEvaluationTemplateById" parameterClass="Integer" resultMap="result_evaluationTemplate">
+		select * from teachingexercisesfolder  where id = #id#
+	</select>
+	
+	<!-- 根据paperId 查询对应的题目 -->	
+	<select id="getEvaluationExercisesListByPaperId" parameterClass="Integer" resultMap="result_evaluationExercies">
+		select * from teachingexercises  where paperId = #paperId#
+	</select>
+	
+	<!-- 根据exFolderId 查询对应的题目 -->	
+	<select id="getEvaluationExercisesListByExFolderId" parameterClass="Integer" resultMap="result_evaluationExercies">
+		select * from teachingexercises  where exFolderId = #exFolderId#
+	</select>
+	
+	<!-- 添加模板 -->
+	<insert id="addEvaluationTemplate" parameterClass="evaluationTemplate">
+	     insert into teachingexercisesfolder 
+		(
+			parentId,
+			subjectId,
+			schoolStructureId,
+			userId,
+			type,
+			name,
+			comment,
+			createTime,
+			limitTime,
+			updateTime,
+			status,
+			totalScore,
+			semester,
+			contentType,
+			startTime,
+			stopTime
+		) 
+		values
+		(
+			#parentId#,
+			#subjectId#,
+			#schoolStructureId#,
+			#userId#,
+			#type#,
+			#name#,
+			#comment#,
+			#createTime#,
+			#limitTime#,
+			#updateTime#,
+			#status#,
+			#totalScore#,
+			#semester#,
+			#contentType#,
+			#startTime#,
+			#stopTime#
+		)
+	</insert>
+	
+	<!-- 添加试题 -->
+	<insert id="addEvaluationTestQuestions" parameterClass="evaluationTemplate">
+	     insert into teachingexercisesfolder 
+		(
+			parentId,
+			subjectId,
+			schoolStructureId,
+			userId,
+			type,
+			name,
+			comment,
+			createTime,
+			limitTime,
+			updateTime,
+			status,
+			totalScore,
+			semester,
+			contentType,
+			startTime,
+			stopTime
+		) 
+		values
+		(
+			#parentId#,
+			#subjectId#,
+			#schoolStructureId#,
+			#userId#,
+			#type#,
+			#name#,
+			#comment#,
+			#createTime#,
+			#limitTime#,
+			#updateTime#,
+			#status#,
+			#totalScore#,
+			#semester#,
+			#contentType#,
+			#startTime#,
+			#stopTime#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 禁用评价模板 -->
+	<update id="modifyEvaluationTemplateStatus" parameterClass="Integer">
+	     update teachingexercisesfolder
+		   set status = 2
+		where id = #id#
+	</update>
+	
+	<!-- 根据Id修改试题 -->
+	<update id="updateEvaluationTestQuestionsById" parameterClass="HashMap">
+		update teachingexercisesfolder
+		set comment = #comment#,
+		    updateTime = #updateTime#
+		where id = #id#
+	</update>
+	
+	<!-- 根据Id修改试题 -->
+	<update id="modifyEvaluationTestQuestionsById" parameterClass="HashMap">
+		update teachingexercisesfolder
+		set 
+		 <isNotEmpty property="status">
+		      status = #status#,
+		 </isNotEmpty>
+		 <isNotEmpty property="name">
+		      name = #name#,
+		 </isNotEmpty>
+		 <isNotEmpty property="type">
+		      type = #type#,
+		 </isNotEmpty>
+		 <isNotEmpty property="totalScore">
+		      totalScore = #totalScore#,
+		 </isNotEmpty>
+		 <isNotEmpty property="limitTime">
+		      limitTime = #limitTime#,
+		 </isNotEmpty>
+		 <isNotEmpty property="comment">
+		      comment = #comment#,
+		 </isNotEmpty>
+		 <isNotEmpty property="updateTime">
+		      updateTime = #updateTime#,
+		 </isNotEmpty>
+		 id = #id#
+		where id = #id#
+	</update>
+	
+	
+	
+	<!-- 添加试题对应的内容 -->
+	<insert id="addEvaluationExercise" parameterClass="evaluationExercise">
+	    insert into teachingexercises 
+	    (
+		    paperId,
+		    exFolderId,
+		    name,
+		    contentType,
+		    type,
+		    createTime,
+		    comment,
+		    integral,
+		    updateTime,
+		    status,
+		    answer,
+		    html
+	    ) 
+		values
+		(
+			#paperId#,
+			#exFolderId#,
+			#name#,
+			#contentType#,
+			#type#,
+			#createTime#,
+			#comment#,
+			#integral#,
+			#updateTime#,
+			#status#,
+			#answer#,
+			#html#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 添加题目对应的选项 （ABCD……） -->
+	<insert id="addEvaluationExerciseDetail" parameterClass="evaluationExerciseDetail">
+	    
+	    insert into teachingexercisesdetail 
+	    (
+		   exId,
+		   length,
+		   text,
+		   type,
+		   answer,
+		   comment,
+		   integral,
+		   updateTime,
+		   status
+	    ) 
+		values
+		(
+			#exId#,
+			#length#,
+			#text#,
+			#type#,
+			#answer#,
+			#comment#,
+			#integral#,
+			#updateTime#,
+			#status#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<update id="totalScorePaper" parameterClass="Integer">
+		update teachingexercisesfolder 
+		set totalScore = (select sum(integral) from teachingexercises 
+		where paperId = #id# ) where id = #id#
+	</update>
+	
+	<update id="updateExercisesHtml" parameterClass="HashMap">
+		update teachingexercises 
+		set html = #html#
+		where id = #id#
+	</update>
+	
+	
+	<update id="updateExercisesDetailIntegral" parameterClass="HashMap">
+		update teachingexercisesdetail 
+		set integral = #integral#
+		where id = #id#
+	</update>
+	
+	<delete id="deletePaperBigQuestion" parameterClass="Integer">
+		delete from teachingexercisesfolder where id = #id#
+	</delete>
+	
+	<delete id="deletePaperByParentId" parameterClass="Integer">
+		delete from teachingexercisesfolder where parentId = #parentId#
+	</delete>
+	
+	<delete id="deleteEvaluationExercisesByExFolderId" parameterClass="Integer">
+		delete from teachingexercises where exFolderId = #id#
+	</delete>
+	
+	<delete id="deleteEvaluationExercisesById" parameterClass="Integer">
+		delete from teachingexercises where id = #id#
+	</delete>
+	
+	
+	<delete id="deleteEvaluationExercisesDetailByExId" parameterClass="Integer">
+		delete from teachingexercisesdetail where exId = #exId#
+	</delete>
+	
+	<select id="selectEvaluationExercisesDetailByExId" parameterClass="Integer" resultClass="evaluationExerciseDetail">
+		select * from teachingexercisesdetail where exId = #exId#
+	</select>
+	
+	<delete id="deleteEvaluationExerciseDetail" parameterClass="Integer">
+		delete from teachingexercisesdetail where id = #id#
+	</delete>
+	
+</sqlMap>

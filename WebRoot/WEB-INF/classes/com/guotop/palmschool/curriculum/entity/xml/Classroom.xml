@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Classroom">
+
+	<typeAlias alias="classroom" type="com.guotop.palmschool.curriculum.entity.Classroom"/>
+
+	<resultMap class="com.guotop.palmschool.curriculum.entity.Classroom" id="result-curriculum">
+		
+	</resultMap>
+	
+	<!-- 查询所有的教师 -->
+<!-- 	<select id="getClassroomList" parameterClass="HashMap" resultClass="classroom"> -->
+<!-- 		select * from palm_classroom  -->
+<!-- 	        where 1 = 1 -->
+<!-- 			<isNotEmpty property="queryContent"> -->
+<!-- 				and name LIKE CONCAT('%',#queryContent#,'%') -->
+<!-- 			</isNotEmpty> -->
+<!-- 	</select> -->
+	
+	<!--检测教室是否存在(添加时)-->
+<!-- 	<select id="checkClassroomForAdd" parameterClass="String" resultClass="Integer"> -->
+<!-- 		select count(*) from palm_classroom where name = #name# -->
+<!-- 	</select> -->
+	
+	<!--检测教室是否存在（修改时）-->
+<!-- 	<select id="checkClassroomForModify" parameterClass="HashMap" resultClass="Integer"> -->
+<!-- 		select count(*) from palm_classroom where name = #name# and name != #originalname# -->
+<!-- 	</select> -->
+	
+	<!-- 根据Id查找对应教室 -->
+<!-- 	<select id="getClassroomById" parameterClass="Integer" resultClass="classroom"> -->
+<!-- 		select *  from palm_classroom where id = #classroomId# -->
+<!-- 	</select> -->
+	
+	
+	
+	<!-- 添加学期 -->
+<!-- 	<insert id="saveClassroom" parameterClass="classroom"> -->
+<!-- 		insert into palm_classroom ( code, name ) values ( #code#, #name#) -->
+<!-- 	</insert> -->
+	
+
+	
+	<!-- 修改学期 -->
+<!-- 	<update id="modifyClassroom" parameterClass="classroom"> -->
+<!-- 	    update palm_classroom -->
+<!-- 		 set -->
+<!-- 		    code = #code#, -->
+<!-- 			name = #name# -->
+<!-- 		where id = #id# -->
+<!-- 	</update> -->
+	
+</sqlMap>

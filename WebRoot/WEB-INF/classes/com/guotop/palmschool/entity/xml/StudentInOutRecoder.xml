@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="StudentInOutRecoder">
+
+
+	<resultMap class="com.guotop.palmschool.entity.StudentInOutRecoder"
+		id="result_StudentInOutRecoder">
+		<result property="cardId" column="cardId" />
+		<result property="cardOwner" column="cardOwner" />
+		<result property="cardOwnerClass" column="cardOwnerClass" />
+		<result property="cardStatus" column="cardStatus" />
+		<result property="cardBatteryStatus" column="cardBatteryStatus" />
+		<result property="recorderLocation" column="recorderLocation" />
+		<result property="createTime" column="createTime" />
+	</resultMap>
+
+
+	<!-- 查找所有进出记录 -->
+	<select id="recorder.getAllRecorder" resultMap="result_StudentInOutRecoder">
+		SELECT
+		c.code as cardId,
+		uc.realname as cardOwner,
+		uc.clazzid as cardOwnerClass,
+		c.status as cardStatus,
+		c.battery as cardBatteryStatus,
+		p.name as recorderLocation,
+		c.createtime as createTime
+		FROM
+		palm_card c,
+		palm_userinfo_card uc,
+		palm_position p
+		WHERE c.code = uc.cardcode
+		AND c.position = p.ip
+	</select>
+
+	<!-- 根据条件查询 -->
+	<select id="recorder.getRecorderByObject" parameterClass="java.util.HashMap"
+		resultMap="result_StudentInOutRecoder">
+		SELECT
+			c.code as cardId,
+			uc.realname as cardOwner,
+			uc.clazzid as cardOwnerClass,
+			c.status as cardStatus,
+			c.battery as cardBatteryStatus,
+			p.name as recorderLocation,
+			c.createtime as createTime
+		FROM
+			palm_card c,
+			palm_userinfo_card uc,
+			palm_position p
+		WHERE c.code = uc.cardcode
+			AND c.position = p.ip
+		<isNotEmpty property="cardId" prepend="and">
+			c.code = #cardId#
+		  </isNotEmpty>
+		<isNotEmpty property="cardOwner" prepend="and">
+			uc.realname = #cardOwner#
+		  </isNotEmpty>
+		<isNotEmpty property="cardOwnerClass" prepend="and">
+			uc.clazzid = #cardOwnerClass#
+		  </isNotEmpty>
+		<isNotEmpty property="recorderLocation" prepend="and">
+			p.name = #recorderLocation#
+		  </isNotEmpty>
+	</select>
+
+</sqlMap>

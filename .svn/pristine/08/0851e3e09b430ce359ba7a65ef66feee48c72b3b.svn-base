@@ -1,0 +1,281 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>评价时间设定</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+</head>
+	<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+		<input class="themes" type="hidden" value="<%=ThemePath%>">
+	    <!-- 公共顶部开始-->
+	    <%@ include file="/public_module/public_header.jsp"%>    
+	    <!--公共顶部结束-->
+	    <div class="clearfix"> </div>
+	    <!-- 内容页开始 -->
+	    <div class="page-container">
+	        <!--主菜单开始-->
+	        <%@include file="/public_module/public_menu.jsp"%>
+	        <!--主菜单结束-->
+	        <div class="page-content-wrapper">
+	            <div class="page-content m_overflow_hidden m_page_content">
+	            	<!-- 页面内容开始 -->
+	            	<div class="col-md-12 col-sm-12 m_page_con">
+	                <div class="page-bar m_margin_0_0_0_0">
+	                    <ul class="page-breadcrumb">
+	                        <li><a href="<%=basePath %>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+	                        <li><a href="">教学评价</a><i class="fa fa-circle"></i></li>
+	                        <li><span>评价时间设定</span></li>
+	                    </ul>
+	                </div>
+	                <h3 class="page-title">评价时间设定</h3>
+	                <div class="row">
+	                    <div class="col-md-12 col-sm-12">
+	                    	<div class="m_margin_0_0_15_0">
+	                    		<!-- 角色切换开始 -->
+	                    		<ul class="nav nav-tabs"  id="userTab">
+	                                <c:forEach items="${sessionScope.user.roleList}" var="roleList">
+								     <c:if test="${roleList.roleCode eq 'admin' || roleList.roleCode eq 'president'}">
+										<li class="roleLi">
+											<a attr1="${sessionScope.user.userId}" attr2="${roleList.roleCode}" >${sessionScope.user.realName}(${roleList.roleName})
+											</a>
+										</li>
+								     </c:if>
+								</c:forEach>	
+	                            </ul>
+	                    		<!-- 角色切换结束 -->
+	                        </div>
+	                        <!-- 添加功能菜单开始 -->
+	                        <div class="portlet light form-fit m_margin_0_0_15_0">
+	                        	<c:if test="${sessionScope.user.type != 2}">
+							    	<button class="btn btn-default" type="button" id="addEvaluationTime">添加</button>
+								</c:if>
+	                        </div>
+	                        <!-- 添加功能菜单结束 -->
+	                        <!-- 页面搜索开始 -->
+	                        <div class="portlet light form-fit bordered search_box">
+	                       	<form action="#" class="form-horizontal">
+	                         <div class="row m_margin_10_auto">
+	
+	                         	<div class="col-md-3 col-sm-3">
+	                         		<span class="m_span">开始时间：</span>
+	                         		<input type="text" size="16"  name="startTime" id="startTime"  class="m_input form-control"/>
+													
+	                         	</div>
+	                         	<div class="col-md-3 col-sm-3">
+	                         		<span class="m_span">结束时间：</span>
+	                         		<input type="text" size="16"  name="endTime" id="endTime"  class="m_input form-control"/>
+	                         	</div>
+	                         	<div class="col-md-3 col-sm-3">
+	                         		<span class="m_span">搜索内容：</span>
+	                         		<input type="text" id="queryContent"  class="m_input form-control"/>
+	                         	</div>
+	                         	<div class="col-md-3 col-sm-3">
+	                         		 <button type="submit" class="btn green" id="search">查找</button>
+	                         	</div>
+	                         </div>
+	                         </form>
+	                        </div>
+	                       	<div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption">
+	                                    <i class="fa fa-list"></i>评价时间设定</div>
+	                            </div>
+	                            <div class="portlet-body flip-scroll">
+	                                <table class="table table-bordered table-hover">
+	                                    <thead class="flip-content">
+	                                        <tr>
+	                                            <th>评价开始时间</th>
+												<th>评价结束时间</th>
+												<th>允许评价年级</th>
+												<th>允许评价班级</th>
+												<th>操作</th>
+	                                        </tr>
+	                                    </thead>
+	                                    <tbody id="tbody">
+	                                       
+	                                    </tbody>
+	                                </table>
+	                            </div>
+	                        </div>
+	                       <!-- 列表展现开始 -->
+	                        <!-- 分页开始 -->
+	                        <%@include file="/public_module/public_page.jsp" %>
+	                        <!-- 分页结束 -->
+	                    </div>
+	                </div>
+	                </div>
+	                <!--页面内容结束 -->
+	            </div>
+	        </div>
+	        <!-- 亦信聊天开始 -->
+	    	<%@ include file="/public_module/public_QQ.jsp" %>
+	        <!-- 亦信聊天结束 -->
+	    </div>
+	    <!-- 内容页结束 -->
+	    <!-- 底部开始 -->
+	    <%@ include file="/public_module/public_footer.jsp" %>
+	    <!-- 底部结束 -->
+	</body>
+    <!-- 公共js开始 -->
+    <%@ include file="/public_module/public_js.jsp" %>
+    <!-- 公共js结束 -->
+	<script>
+
+		jQuery(document).ready(function() { 
+			loadSubMenu("evaluationManager"); 
+			//选取当前菜单位置
+			setActive("evaluationManager","setEvaluationTimeManager");  
+			$('#startTime,#endTime').datetimepicker({
+				format:'Y-m-d',
+				timepicker:false
+			});
+			//页面初始化时候的数据加载
+			var userId = $("#userTab li.active").find('a').attr("attr1");
+			var roleCode = $("#userTab li.active").find('a').attr("attr2");
+
+			//加载初始化数据
+			loadEvaluationTimeList(null,null,null,userId, roleCode, null);
+
+			//点击tab页加载
+			$("#userTab li a").click(function(){
+				//用户ID
+				var userId = $(this).attr("attr1");
+				var roleCode = $(this).attr("attr2");
+				
+				loadEvaluationTimeList(null,null,null,userId, roleCode, null);
+			});
+
+			//查找数据
+			$("#search").click(function(){
+				//用户ID
+				var userId = $("#userTab li.active").find('a').attr("attr1");
+				//角色ID
+				var roleCode = $("#userTab li.active").find('a').attr("attr2");
+
+				//开始时间
+				var startTime = $("#startTime").val();
+				//结束时间
+				var endTime = $("#endTime").val();
+				//查询内容
+				var queryContent = $("#queryContent").val();
+				//进出类型
+				
+				loadEvaluationTimeList(startTime,endTime,queryContent,userId, roleCode, null);
+				
+			});
+			
+			//点击进入添加评价时间设定页面
+			$("#addEvaluationTime").click(function(){
+				var userId = $("#userTab li.active").find('a').attr("attr1");	
+				var roleCode = $("#userTab li.active").find('a').attr("attr2");
+				
+				standardPost('<%=basePath%>evaluation/toAddEvaluationTime.do',{userId:userId,roleCode:roleCode});
+			});
+		});
+
+		
+		//加载评价时间列表
+		function loadEvaluationTimeList(startTime,endTime,queryContent,userId, roleCode, cPage)
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>evaluation/getEvaluationTimeList.do",
+				data:{
+						startTime : startTime,
+						endTime : endTime,
+						queryContent : queryContent,
+						userId : userId,
+						roleCode : roleCode,
+						cPage : cPage
+					},
+				success: function(data){
+					var page = eval("(" + data + ")");
+					$("#currentPage").html(page.currentPage);
+					$("#totalPage").html(page.totalPage);
+					var appendHtml = '';
+					$.each(page.list, function(n, value) {  
+						appendHtml += '<tr>';
+           				appendHtml += '<td>' + value.startTime + '</td>';
+           				appendHtml += '<td>' + value.endTime + '</td>';
+           				
+           				if (value.gradeName == null)
+               			{
+           					appendHtml += '<td></td>';
+                   		}else{
+           					appendHtml += '<td>' + value.gradeName + '</td>';
+                       	}
+           				if (value.clazzName == null)
+               			{
+           					appendHtml += '<td></td>';
+                   		}else{
+           					appendHtml += '<td>' + value.clazzName + '</td>';
+                       	}
+           				appendHtml += '<td><c:if test="${sessionScope.user.type != 2}"><a href="javascript:;" class="btn btn-sm green" onclick="modifyEvaluationTimeList(' + value.id + ',\'' + value.startTime + '\')">修改</a></c:if></td>';
+           				appendHtml += '</tr>';
+          			}); 
+          			$("#tbody").html(appendHtml);
+				},
+			});
+		}
+
+		//点击时间设定
+		function modifyEvaluationTimeList(id,startTime)
+		{
+			var start=new Date(startTime.replace("-", "/").replace("-", "/")); 
+			 
+			var nowTime = current();
+			var now=new Date(nowTime.replace("-", "/").replace("-", "/")); 
+			if(start <= now)
+			{
+				alert("评价时间已经开始，无法修改");
+				return ;
+			}
+			var userId = $("#userTab li.active").find('a').attr("attr1");	
+			var roleId = $("#userTab li.active").find('a').attr("attr2");
+			standardPost('<%=basePath%>evaluation/toModifyEvaluationTimeList.do',{id,id});
+		}
+
+		function current()
+		{ 
+			var d=new Date();
+			str=''; 
+			str +=d.getFullYear()+'-'; //获取当前年份 
+			str +=d.getMonth()+1+'-'; //获取当前月份（0——11） 
+			str +=d.getDate(); 
+			return str; 
+		}
+
+		
+		//分页相关
+		function jumpPage(type)
+		{
+			var cPage = $("#currentPage").html();
+			var totalPage = $("#totalPage").html();
+			var cPageInt = parseInt(cPage);
+			var totalPageInt = parseInt(totalPage);
+						
+			var newCPageInt = returnCPageInt(type,cPageInt,totalPageInt);
+			if(newCPageInt < 0){
+				return;
+			}else{
+				cPageInt = newCPageInt;
+			}
+
+			//用户ID
+			var userId = $("#userTab li.active").find('a').attr("attr1");
+			//角色ID
+			var roleCode = $("#userTab li.active").find('a').attr("attr2");
+			loadLeaveList(userId, roleCode, cPageInt);
+			$("#currentPage").html(cPageInt);
+		}
+		
+	</script>
+	</html>

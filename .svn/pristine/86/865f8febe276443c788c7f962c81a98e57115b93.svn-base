@@ -1,0 +1,413 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>RichX智慧校园 - 补卡申请</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+ 	<link href="<%=basePath%>assets/global/css/skin_m.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<%@include file="/public_module/header.jsp" %>
+	<div class="Fill_Card">
+		<div class="header">
+			
+			<div class="pablic_search_box Fill_Card_search_box">
+					<form action="<%=basePath%>cardApply/toCardApplyAuditList.do" method="post" id="searchForm">
+						<button type="submit" class="fa fa-search search_submit"></button>
+						<input class="search_text" type="text" name="condition" placeholder="请输入学校名称..." value="${condition}"></input> 
+						<input type="hidden" name="status" id="status" value="${status}"/> 
+						<input type="hidden" id="rowNum" name="rowNum" value="${rowNum}"/>
+					</form>
+					<input type="hidden" name="lastId" id="lastId" value="${lastId}"/>
+				</div>
+		</div>
+		<div class="con">
+			<h3><a class="type type_select" style="padding-right: 20px;" href="<%=basePath%>cardApply/toCardApplyAuditList.do">学校补办卡</a> <a href="<%=basePath%>cardApply/toCardApplyPerson.do" class="type" style="padding-left:20px;border-left:2px solid #e4e4e4">个人补办卡</a></h3>
+			<div class="tabbable tabbable-custom">
+			<ul class="nav nav-tabs">
+				<c:if test="${status eq '0'}">
+					<li class="active"><a href="javascript:" onclick="changeShow(0)">待审批</a></li>
+					<li><a href="javascript:" onclick="changeShow(1)">已审批</a></li>
+					<li style="border-right:none!important"><a href="javascript:" onclick="changeShow(2)">未通过</a></li>
+				</c:if>
+				<c:if test="${status eq '1'}">
+					<li><a href="javascript:" onclick="changeShow(0)">待审批</a></li>
+					<li class="active"><a href="javascript:" onclick="changeShow(1)">已审批</a></li>
+					<li style="border-right:none!important"><a href="javascript:" onclick="changeShow(2)">未通过</a></li>
+				</c:if>
+				<c:if test="${status eq '2'}">
+					<li><a href="javascript:" onclick="changeShow(0)">待审批</a></li>
+					<li><a href="javascript:" onclick="changeShow(1)">已审批</a></li>
+					<li class="active" style="border-right:none!important"><a href="javascript:" onclick="changeShow(2)">未通过</a></li>
+				</c:if>
+			</ul>
+			
+				
+			
+			<p class="Fill_Card_title content">
+				<span>申请人</span> <span>补办卡类型</span> <span class="Response">申请数量</span>
+				<span class="Response">申请学校</span> <span class="Response">联系电话</span> <span>操作</span>
+			</p>
+			<div class="tab-content" style="padding: 0px;">
+				<c:if test="${status eq '0'}">
+					<div class="tab-pane active" id="tab_1_1">
+
+						<div id="accordion2" class="accordion in collapse" style="height: auto;">
+						
+							<c:forEach items="${auditList}" var="audit" varStatus="status">
+								<div class="accordion-group">
+									<div class="accordion-heading School_apply">
+										<a id="f1" href="#collapse_2_${status.index}"
+											data-parent="#accordion2" data-toggle="collapse"
+											class="accordion-toggle">
+											<p class="Fill_Card_accordion_title">
+												<span>${audit.applyName}</span> <span>${audit.cardtype}</span>
+												<span class="Response">${audit.sumNumber}张</span> 
+												<span class="Response">${audit.schoolName}</span> <span class="Response">${audit.phone}</span>
+												<span><i class="icon-chevron-right"></i>&nbsp</span>
+											</p>
+										</a>
+									</div>
+									<div class="accordion-body collapse Fill_Card_position" id="collapse_2_${status.index}" >
+										<p class="School_apply_info">
+											<span>申请<em class="Response">人</em>：<em>${audit.applyName}</em></span>
+											<span>学校: <em>${audit.schoolName}</em></span> 
+											<span><em class="Response">申请卡</em>类型：<em>${audit.cardtype}</em></span> 
+											<span><em class="Response">申请</em>卡数：<em>${audit.sumNumber}张</em></span> 
+											<span><em class="Response">申请</em>时间：<em>${audit.applyTime}</em></span> 
+											<span><em class="Response">申请</em>理由：<em>${audit.remark}</em></span> 
+											<c:if test="${audit.attachPath != null && not empty audit.attachPath}">
+												<span><a href="<%=Cons.IMGBASEPATH%>${audit.attachPath}" target="_blank"><i class="icon-download-alt padding_right_5"></i>点击下载办卡清单</a></span>
+											</c:if>
+										</p>
+										<c:if test="${audit.userNames != null && fn:length(audit.userNames) > 0}">
+											<ul class="Fill_Card_list">
+												<h3></h3>
+												<c:forEach items="${audit.userNames}" var="name">
+													<li title="${name}">${name}</li>
+												</c:forEach>
+											</ul>
+										</c:if>
+										<div class="Fill_Card_Operation">
+											<button class="btn dispaly_in" style="background-color: #3aa4f0" onclick="pass(${audit.id}, this)">
+												<i class="icon-ok padding_right_5"></i>通过
+											</button>
+											<button class="btn dispaly_in" onclick="refuse(${audit.id}, this)">
+												<i class="icon-remove padding_right_5"></i>拒绝
+											</button>
+										</div>
+									</div>
+								</div>
+							</c:forEach>
+						</div>
+
+					</div>
+				</c:if>
+				<c:if test="${status eq '1'}">
+					<div class="tab-pane active" id="tab_1_2">
+						<div id="accordion1" class="accordion in collapse" style="height:auto">
+							<c:forEach items="${auditList}" var="auditPass" varStatus="status1">
+								<div class="accordion-group">
+									<div class="accordion-heading School_apply">
+										<a id="f1" href="#collapse_1_${status1.index}" data-parent="#accordion2" data-toggle="collapse" class="accordion-toggle">
+											<p class="Fill_Card_accordion_title">
+												<span>${auditPass.applyName}</span>
+												<span>${auditPass.cardtype}</span>
+												<span class="Response">${auditPass.sumNumber}张</span>
+												<span class="Response">${auditPass.schoolName}</span>
+												<span class="Response">${auditPass.phone}</span>
+												<span><i class="icon-chevron-right"></i>&nbsp</span>
+											</p>
+										</a>
+									</div>
+									<div class="accordion-body collapse Fill_Card_position" id="collapse_1_${status1.index}">
+										<p class="School_apply_info">
+											<span>申请<em class="Response">人</em>：<em>${auditPass.applyName}</em></span>
+											<span>学校: <em>${auditPass.schoolName}</em></span>
+											<span><em class="Response">申请卡</em>类型：<em>${auditPass.cardtype}</em></span>
+											<span><em class="Response">申请</em>卡数：<em>${auditPass.sumNumber}张</em></span>
+											<span><em class="Response">申请</em>时间：<em>${auditPass.applyTime}</em></span>
+											<span><em class="Response">申请</em>理由：<em>${auditPass.remark}</em></span>
+											<c:if test="${auditPass.attachPath != null && not empty auditPass.attachPath}">
+											  <span><a href="<%=Cons.IMGBASEPATH%>${auditPass.attachPath}"><i class="icon-download-alt padding_right_5"></i>点击下载办卡清单</a></span>
+											</c:if>
+										</p>
+										<c:if test="${auditPass.userNames != null && fn:length(auditPass.userNames) > 0}">
+											<ul class="Fill_Card_list" style="width: 100%">
+												<h3></h3>
+												<c:forEach items="${auditPass.userNames}" var="passName">
+													<li title="${passName}">${passName}</li>
+												</c:forEach>
+											</ul>
+										</c:if>
+									</div>
+								</div>
+							</c:forEach>
+							<div id="passMore"></div>
+							<a class="page_more" onclick="loadMorePass()">加载更多</a>
+						</div>
+					</div>
+				</c:if>
+				<c:if test="${status eq '2'}">
+					<div class="tab-pane active" id="tab_1_3">
+						<div id="accordion3" class="accordion collapse" style="height:auto">
+							<c:forEach items="${auditList}" var="auditNotPass" varStatus="status2">
+								<div class="accordion-group">
+									<div class="accordion-heading">
+										<a id="f1" href="#collapse_3_${status2.index}" data-parent="#accordion3" data-toggle="collapse" class="accordion-toggle collapsed">
+											<p class="Fill_Card_accordion_title">
+												<span>${auditNotPass.applyName}</span>
+												<span>${auditNotPass.cardtype}</span>
+												<span class="Response">${auditNotPass.sumNumber}张</span>
+												<span class="Response">${auditNotPass.schoolName}</span>
+												<span class="Response">${auditNotPass.phone}</span>
+												<span><i class="icon-chevron-right"></i>&nbsp</span>
+											</p>
+										</a>
+									</div>
+									<div class="accordion-body collapse Fill_Card_position" id="collapse_3_${status2.index}">
+										<p class="School_apply_info">
+											<span>申请<em class="Response">人</em>：<em>${auditNotPass.applyName}</em></span>
+											<span>学校: <em>${auditNotPass.schoolName}</em></span>
+											<span><em class="Response">申请卡</em>类型：<em>${auditNotPass.cardtype}</em></span>
+											<span><em class="Response">申请</em>卡数：<em>${auditNotPass.sumNumber}张</em></span>
+											<span><em class="Response">申请</em>时间：<em>${auditNotPass.applyTime}</em></span>
+											<span><em class="Response">申请</em>理由：<em>${auditNotPass.remark}</em></span>
+											<c:if test="${auditNotPass.attachPath != null && not empty auditNotPass.attachPath}">
+												<span><a href="<%=basePath%>${auditNotPass.attachPath}"><i class="icon-download-alt padding_right_5"></i>点击申请补卡清单</a></span>
+											</c:if>
+										</p>
+										<c:if test="${auditNotPass.userNames != null && fn:length(auditNotPass.userNames) > 0}">
+											<ul class="Fill_Card_list" style="width: 100%">
+												<h3></h3>
+												<c:forEach items="${auditNotPass.userNames}" var="notPassName">
+													<li title="${notPassName}">${notPassName}</li>
+												</c:forEach>
+											</ul>
+										</c:if>
+									</div>
+								</div>
+							</c:forEach>
+							<div id="notPassMore"></div>
+							<a class="page_more" onclick="loadMoreNotPass()">加载更多</a>
+						</div>
+					</div>
+				</c:if>
+			</div>
+
+		</div>
+		</div>
+		
+		
+	</div>
+	<%@include file="/public_module/footer.jsp" %>
+	</body>
+	<%@include file="/public_module/public_js.jsp" %>
+	
+	<script type="text/javascript">
+		$(function() {
+			//导航定位
+			$(".menu_li a").removeClass("hover");
+			$("#menu1").addClass("hover");
+			
+			//点击状态改变
+			$(".accordion-toggle").on("click", function() {
+				if($(this).parent().parent().find(".accordion-body").hasClass("in")){
+					$(this).removeAttr("style");
+					$(this).find("span").removeAttr("style");
+					$(this).find("i").removeClass("icon-chevron-down");
+				}else{
+					$(".accordion").find(".accordion-toggle").removeAttr("style");
+					$(".accordion").find(".accordion-toggle").find("span").removeAttr("style");
+					$(".accordion").find("i").removeClass("icon-chevron-down");
+					$(this).css({"background-color":"#3aa4f1","display":"block"}).find("span").css({"color":"#fff"});
+					$(this).find("i").addClass("icon-chevron-down");
+				};
+				
+			})
+		});
+		
+		//通过
+		function pass(id, obj){
+			$(obj).attr("disabled", "disabled");
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>cardApply/modifyStatus.do",
+				data:{
+					id : id,
+					status : 1
+					 },
+				success: function(data) 
+				{
+				    var data = $.parseJSON(data);
+				    if (data.status != 0){
+				    	alert("提交出错");
+				    }else{
+				    	alert("提交成功");
+				    	window.location.reload();
+				    }
+				   
+				},
+				complete: function(){
+					$(obj).removeAttr("disabled");
+				}
+			});
+		}
+		//拒绝
+		function refuse(id, obj){
+			$(obj).attr("disabled", "disabled");
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>cardApply/modifyStatus.do",
+				data:{
+					id : id,
+					status : 2
+					 },
+				success: function(data) 
+				{
+				    var data = $.parseJSON(data);
+				    if (data.status != 0){
+				    	alert("提交出错");
+				    }else{
+				    	alert("提交成功");
+				    	window.location.reload();
+				    }
+				},
+				complete: function(){
+					$(obj).removeAttr("disabled");
+				}
+			});
+		}
+		function changeShow(obj){
+			$("#status").val(obj);
+			$("#lastId").val("");
+			$("#searchForm").submit();
+		}
+		//加载更多
+		function loadMorePass(){
+			var status = $("#status").val();
+			var lastId = $("#lastId").val();
+			var rowNum = $("#rowNum").val();
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>cardApply/loadMore.do",
+				data:{
+					lastId : $("#lastId").val(),
+					condition : $("#condition").val()
+					 },
+				success: function(data) 
+				{
+				    var data = $.parseJSON(data);
+				    if (data.status != '0'){
+				    	alert("加载出错");
+				    }else{
+				    	var appendHtml = "";
+				    	$.each(data.list,function(i,item){
+				    		rowNum = rowNum + i;
+				    		appendHtml += '<div class="accordion-group">';
+				    		appendHtml += '<div class="accordion-heading School_apply">';
+				    		appendHtml += '	<a id="f1" href="#collapse_1_' + rowNum + '"';
+				    		appendHtml += '		data-parent="#accordion2" data-toggle="collapse"';
+				    		appendHtml += '		class="accordion-toggle">';
+				    		appendHtml += '		<p class="Fill_Card_accordion_title">';
+				    		appendHtml += '			<span>${auditNotPass.applyName}</span> <span>' + item.cardtype + '</span>';
+				    		appendHtml += '			<span class="Response">' + item.sumNumber + '张</span> <span class="Response">' + item.schoolName + '</span> <span>' + item.phone+ '</span>';
+				    		appendHtml += '			<span><i class="icon-chevron-right"></i>&nbsp</span>';
+				    		appendHtml += '		</p>';
+				    		appendHtml += '	</a>';
+				    		appendHtml += '</div>';
+				    		appendHtml += '<div class="accordion-body in collapse Fill_Card_position"';
+				    		appendHtml += '	id="collapse_1_' + rowNum + '" style="height: auto;">';
+				    		appendHtml += '	<p class="School_apply_info">';
+				    		appendHtml += '		<span>申请<em class="Response">人</em>：<em>' + item.applyName + '</em></span>';
+				    		appendHtml += '		<span>学校:<em>' + item.schoolName + '</em></span> <span><em';
+				    		appendHtml += '			class="Response">申请卡</em>类型：<em>' + item.cardtype + '</em></span>';
+				    		appendHtml += '		<span><em class="Response">申请</em>卡数：<em>' + item.sumNumber + '张</em></span>';
+				    		appendHtml += '		<span><em class="Response">申请</em>时间：<em>' + item.applyTime + '</em></span>';
+				    		appendHtml += '		<span><em class="Response">申请</em>理由：<em>' + item.remark + '</em></span>';
+				    		appendHtml += '    <span><a href="<%=basePath%> ' + item.attachPath + '">';
+				    		appendHtml += '	<i class="icon-download-alt padding_right_5"></i>点击申请补卡清单</a></span>';
+				    		appendHtml += '	</p>';
+				    		appendHtml += '</div>';
+				    		appendHtml += '</div>';
+				    	});
+				    	
+				    	$("#passMore").before(appendHtml);
+				    	$("#lastId").val(data.lastId);
+				}
+				},
+				complete: function(){
+				
+				}
+			});
+			$("#rowNum").val(rowNum);
+		}
+		//加载更多
+		function loadMoreNotPass(){
+			var status = $("#status").val();
+			var lastId = $("#lastId").val();
+			var rowNum = $("#rowNum").val();
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>cardApply/loadMore.do",
+				data:{
+					lastId : $("#lastId").val(),
+					condition : $("#condition").val()
+					 },
+				success: function(data) 
+				{
+				    var data = $.parseJSON(data);
+				    if (data.status != '0'){
+				    	alert("加载出错");
+				    }else{
+				    	var appendHtml = "";
+				    	$.each(data.list,function(i,item){
+				    		rowNum = rowNum + i;
+				    		appendHtml += '<div class="accordion-group">';
+				    		appendHtml += '<div class="accordion-heading School_apply">';
+				    		appendHtml += '	<a id="f1" href="#collapse_3_' + rowNum + '"';
+				    		appendHtml += '		data-parent="#accordion2" data-toggle="collapse"';
+				    		appendHtml += '		class="accordion-toggle">';
+				    		appendHtml += '		<p class="Fill_Card_accordion_title">';
+				    		appendHtml += '			<span>${auditNotPass.applyName}</span> <span>' + item.cardtype + '</span>';
+				    		appendHtml += '			<span class="Response">' + item.sumNumber + '张</span> <span class="Response">' + item.schoolName + '</span> <span>' + item.phone+ '</span>';
+				    		appendHtml += '			<span><i class="icon-chevron-right"></i>&nbsp</span>';
+				    		appendHtml += '		</p>';
+				    		appendHtml += '	</a>';
+				    		appendHtml += '</div>';
+				    		appendHtml += '<div class="accordion-body in collapse Fill_Card_position"';
+				    		appendHtml += '	id="collapse_3_' + rowNum + '" style="height: auto;">';
+				    		appendHtml += '	<p class="School_apply_info">';
+				    		appendHtml += '		<span>申请<em class="Response">人</em>：<em>' + item.applyName + '</em></span>';
+				    		appendHtml += '		<span>学校:<em>' + item.schoolName + '</em></span> <span><em';
+				    		appendHtml += '			class="Response">申请卡</em>类型：<em>' + item.cardtype + '</em></span>';
+				    		appendHtml += '		<span><em class="Response">申请</em>卡数：<em>' + item.sumNumber + '张</em></span>';
+				    		appendHtml += '		<span><em class="Response">申请</em>时间：<em>' + item.applyTime + '</em></span>';
+				    		appendHtml += '		<span><em class="Response">申请</em>理由：<em>' + item.remark + '</em></span>';
+				    		appendHtml += '    <span><a href="<%=basePath%> ' + item.attachPath + '">';
+				    		appendHtml += '	<i class="icon-download-alt padding_right_5"></i>点击申请补卡清单</a></span>';
+				    		appendHtml += '	</p>';
+				    		appendHtml += '</div>';
+				    		appendHtml += '</div>';
+				    	});
+				    	
+				    	$("#notPassMore").before(appendHtml);
+				    	$("#lastId").val(data.lastId);
+				}
+				},
+				complete: function(){
+				
+				}
+			});
+			$("#rowNum").val(rowNum);
+		}
+	</script>
+</html>

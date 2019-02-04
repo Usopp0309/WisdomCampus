@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Announcement">
+	<typeAlias alias="announcement" type="com.guotop.palmschool.entity.Announcement" />
+	
+	<!-- update by shengyinjiang 20151130 -->
+	<resultMap class="com.guotop.palmschool.entity.Announcement" id="result-announcement-rest">
+		<result property="id" column="id" />
+		<result property="content" column="content" />
+		<result property="userId" column="userId" />
+		<result property="createTime" column="createTime" />
+		<result property="apic" column="apic" />
+		<result property="clazzId" column="clazzId" />
+		<result property="type" column="type" />
+		<result property="departmentId" column="departmentId" />
+		<result property="typeName" column="typeName" />
+		<result property="realName" column="realName" />
+		<result property="departmentName" column="departmentName" />
+		<result property="clazzName" column="clazzName" />
+	</resultMap>
+
+	<!-- 按照学校管理员或者校长级别查找公告  update by shengyinjiang 20151130-->
+	<select id="getAnnouncementAsSchool" parameterClass="java.util.HashMap" resultMap="result-announcement-rest">
+		SELECT a.*, u.realName AS realName,
+			(
+			    CASE
+			      WHEN a.type = 1 
+			      	THEN '学校公告' 
+			      WHEN a.type = 2
+			      	THEN '部门公告'
+			      WHEN a.type = 3
+			      	THEN '班级公告'
+			      WHEN a.type = 4
+			      	THEN '系统公告'
+			    END
+  			) AS typeName, d.departmentName AS departmentName, c.clazzName AS clazzName   
+			FROM palm_announcement a 
+			LEFT JOIN platform.user_detail u ON a.userId = u.userId
+			LEFT JOIN palm_department d ON a.departmentId = d.id
+			LEFT JOIN palm_clazz c ON a.clazzId = c.id
+			LEFT JOIN palm_grade g ON (g.id = c.gradeId and g.state = '0')
+			WHERE 1 = 1
+			<isNotEmpty prepend="and" property="type">
+				a.type = #type#
+	      	</isNotEmpty>
+			order by a.createTime desc
+	</select>
+	
+	<!-- 按照学校管理员或者校长级别查找公告【福建专用】-->
+	<select id="getAnnouncementAsSchoolFj" parameterClass="java.util.HashMap" resultMap="result-announcement-rest">
+		SELECT a.*, u.realName AS realName,
+			(
+			    CASE
+			      WHEN a.type = 1 
+			      	THEN '学校公告' 
+			      WHEN a.type = 2
+			      	THEN '部门公告'
+			      WHEN a.type = 3
+			      	THEN '班级公告'
+			      WHEN a.type = 4
+			      	THEN '系统公告'
+			    END
+  			) AS typeName, d.departmentName AS departmentName, c.clazzName AS clazzName   
+			FROM palm_announcement a 
+			LEFT JOIN fjzyyptxx.user_detail u ON a.userId = u.userId
+			LEFT JOIN palm_department d ON a.departmentId = d.id
+			LEFT JOIN palm_clazz c ON a.clazzId = c.id
+			LEFT JOIN palm_grade g ON (g.id = c.gradeId and g.state = '0')
+			WHERE d.fjSchoolId=#fjSchoolId#
+			<isNotEmpty prepend="and" property="type">
+				a.type = #type#
+	      	</isNotEmpty>
+			order by a.createTime desc
+	</select>
+	
+	<!-- 按照部门 级别显示的公告  update by shengyinjiang 20151130-->
+	<select id="getAnnouncementAsDepartment" parameterClass="java.util.HashMap" resultMap="result-announcement-rest">
+		SELECT a.*, u.realName AS realName,
+			(
+			    CASE
+			      WHEN a.type = 1 
+			      	THEN '学校公告' 
+			      WHEN a.type = 2
+			      	THEN '部门公告'
+			      WHEN a.type = 3
+			      	THEN '班级公告'
+			      WHEN a.type = 4
+			      	THEN '系统公告'
+			    END
+  			) AS typeName, d.departmentName AS departmentName, c.clazzName AS clazzName   
+			FROM palm_announcement a 
+			LEFT JOIN platform.user_detail u ON a.userId = u.userId
+			LEFT JOIN palm_department d ON a.departmentId = d.id
+			LEFT JOIN palm_clazz c ON a.clazzId = c.id
+			LEFT JOIN palm_grade g ON (g.id = c.gradeId and g.state = '0')
+			WHERE 1 = 1
+			AND a.type != 3
+			AND (
+					<isNotEmpty property="departmentIdList">
+					a.departmentId 
+					IN 
+		            <iterate open="(" close=")" conjunction="," property="departmentIdList" > 
+		                #departmentIdList[]# 
+		            </iterate> 
+					OR
+					</isNotEmpty>
+					a.departmentId is NUll
+				)
+			<isNotEmpty prepend="and" property="type">
+				a.type = #type#
+	      	</isNotEmpty>
+			order by a.createTime desc
+	</select>
+	
+	<!-- 按照班级级别查找公告  update by shengyinjiang 20151130-->
+	<select id="getAnnouncementAsClazz" parameterClass="java.util.HashMap" resultMap="result-announcement-rest">
+		SELECT a.*, u.realName AS realName,
+			(
+			    CASE
+			      WHEN a.type = 1 
+			      	THEN '学校公告' 
+			      WHEN a.type = 2
+			      	THEN '部门公告'
+			      WHEN a.type = 3
+			      	THEN '班级公告'
+			      WHEN a.type = 4
+			      	THEN '系统公告'
+			    END
+  			) AS typeName, d.departmentName AS departmentName, c.clazzName AS clazzName   
+			FROM palm_announcement a 
+			LEFT JOIN platform.user_detail u ON a.userId = u.userId
+			LEFT JOIN palm_department d ON a.departmentId = d.id
+			LEFT JOIN palm_clazz c ON a.clazzId = c.id
+			LEFT JOIN palm_grade g ON (g.id = c.gradeId and g.state = '0')
+			WHERE 1 = 1
+			AND (
+					<isNotEmpty property="departmentIdList">
+					a.departmentId 
+					IN 
+		            <iterate open="(" close=")" conjunction="," property="departmentIdList" > 
+		                #departmentIdList[]# 
+		            </iterate> 
+					OR
+					</isNotEmpty>
+					a.departmentId is NUll
+				)
+			AND (
+					<isNotEmpty property="clazzIdList">
+					a.clazzId
+					IN 
+		            <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+		                #clazzIdList[]# 
+		            </iterate> 
+					OR
+					</isNotEmpty>
+					a.clazzId is NUll
+				)	
+			<isNotEmpty prepend="and" property="type">
+				a.type = #type#
+	      	</isNotEmpty>
+			order by a.createTime desc
+	</select>
+	
+<!-- 按照班级级别查找公告【福建专用】-->
+	<select id="getAnnouncementAsClazzFj" parameterClass="java.util.HashMap" resultMap="result-announcement-rest">
+		SELECT a.*, u.realName AS realName,
+			(
+			    CASE
+			      WHEN a.type = 1 
+			      	THEN '学校公告' 
+			      WHEN a.type = 2
+			      	THEN '部门公告'
+			      WHEN a.type = 3
+			      	THEN '班级公告'
+			      WHEN a.type = 4
+			      	THEN '系统公告'
+			    END
+  			) AS typeName, d.departmentName AS departmentName, c.clazzName AS clazzName   
+			FROM palm_announcement a 
+			LEFT JOIN fjzyyptxx.user_detail u ON a.userId = u.userId
+			LEFT JOIN palm_department d ON a.departmentId = d.id
+			LEFT JOIN palm_clazz c ON a.clazzId = c.id
+			LEFT JOIN palm_grade g ON (g.id = c.gradeId and g.state = '0')
+			WHERE c.fjSchoolId=#fjSchoolId#
+			AND (
+					<isNotEmpty property="departmentIdList">
+					a.departmentId 
+					IN 
+		            <iterate open="(" close=")" conjunction="," property="departmentIdList" > 
+		                #departmentIdList[]# 
+		            </iterate> 
+					OR
+					</isNotEmpty>
+					a.departmentId is NUll
+				)
+			AND (
+					<isNotEmpty property="clazzIdList">
+					a.clazzId
+					IN 
+		            <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+		                #clazzIdList[]# 
+		            </iterate> 
+					OR
+					</isNotEmpty>
+					a.clazzId is NUll
+				)	
+			<isNotEmpty prepend="and" property="type">
+				a.type = #type#
+	      	</isNotEmpty>
+			order by a.createTime desc
+	</select>
+
+	<!-- 按照家长级别查找公告  update by shengyinjiang 20151201-->
+	<select id="getAnnouncementAsParent" parameterClass="java.util.HashMap" resultMap="result-announcement-rest">
+		SELECT a.*, u.realName AS realName,
+			(
+			    CASE
+			      WHEN a.type = 1 
+			      	THEN '学校公告' 
+			      WHEN a.type = 2
+			      	THEN '部门公告'
+			      WHEN a.type = 3
+			      	THEN '班级公告'
+			      WHEN a.type = 4
+			      	THEN '系统公告'
+			    END
+  			) AS typeName, d.departmentName AS departmentName, c.clazzName AS clazzName   
+			FROM palm_announcement a 
+			LEFT JOIN platform.user_detail u ON a.userId = u.userId
+			LEFT JOIN palm_department d ON a.departmentId = d.id
+			LEFT JOIN palm_clazz c ON a.clazzId = c.id
+			LEFT JOIN palm_grade g ON (g.id = c.gradeId and g.state = '0')
+			WHERE 1 = 1
+			AND a.type != 2
+			AND (
+					<isNotEmpty property="clazzIdList">
+					a.clazzId
+					IN 
+		            <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+		                #clazzIdList[]# 
+		            </iterate> 
+					OR
+					</isNotEmpty>
+					a.clazzId is NUll
+				)	
+			<isNotEmpty prepend="and" property="type">
+				a.type = #type#
+	      	</isNotEmpty>
+			order by a.createTime desc
+	</select>
+	
+	<!-- 按照家长级别查找公告  update by shengyinjiang 20151201-->
+	<select id="getAnnouncementAsParentFj" parameterClass="java.util.HashMap" resultMap="result-announcement-rest">
+		SELECT a.*, u.realName AS realName,
+			(
+			    CASE
+			      WHEN a.type = 1 
+			      	THEN '学校公告' 
+			      WHEN a.type = 2
+			      	THEN '部门公告'
+			      WHEN a.type = 3
+			      	THEN '班级公告'
+			      WHEN a.type = 4
+			      	THEN '系统公告'
+			    END
+  			) AS typeName, d.departmentName AS departmentName, c.clazzName AS clazzName   
+			FROM palm_announcement a 
+			LEFT JOIN fjzyyptxx.user_detail u ON a.userId = u.userId
+			LEFT JOIN palm_department d ON a.departmentId = d.id
+			LEFT JOIN palm_clazz c ON a.clazzId = c.id
+			LEFT JOIN palm_grade g ON (g.id = c.gradeId and g.state = '0')
+			WHERE c.fjSchoolId=#fjSchoolId#
+			AND a.type != 2
+			AND (
+					<isNotEmpty property="clazzIdList">
+					a.clazzId
+					IN 
+		            <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+		                #clazzIdList[]# 
+		            </iterate> 
+					OR
+					</isNotEmpty>
+					a.clazzId is NUll
+				)	
+			<isNotEmpty prepend="and" property="type">
+				a.type = #type#
+	      	</isNotEmpty>
+			order by a.createTime desc
+	</select>
+	<!-- 按照学生级别查找公告  update by shengyinjiang 20151201-->
+	<select id="getAnnouncementAsStudent" parameterClass="java.util.HashMap" resultMap="result-announcement-rest">
+		SELECT a.*, u.realName AS realName,
+			(
+			    CASE
+			      WHEN a.type = 1 
+			      	THEN '学校公告' 
+			      WHEN a.type = 2
+			      	THEN '部门公告'
+			      WHEN a.type = 3
+			      	THEN '班级公告'
+			      WHEN a.type = 4
+			      	THEN '系统公告'
+			    END
+  			) AS typeName, d.departmentName AS departmentName, c.clazzName AS clazzName   
+			FROM palm_announcement a 
+			LEFT JOIN platform.user_detail u ON a.userId = u.userId
+			LEFT JOIN palm_department d ON a.departmentId = d.id
+			LEFT JOIN palm_clazz c ON a.clazzId = c.id
+			LEFT JOIN palm_grade g ON (g.id = c.gradeId and g.state = '0')
+			WHERE 1 = 1
+			AND a.type != 2
+			AND (
+					a.clazzId = #clazzId# OR a.clazzId is NUll
+				)	
+			<isNotEmpty prepend="and" property="type">
+				a.type = #type#
+	      	</isNotEmpty>
+			order by a.createTime desc
+	</select>
+	<!-- 按照学生级别查找公告【福建专用】-->
+	<select id="getAnnouncementAsStudentFj" parameterClass="java.util.HashMap" resultMap="result-announcement-rest">
+		SELECT a.*, u.realName AS realName,
+			(
+			    CASE
+			      WHEN a.type = 1 
+			      	THEN '学校公告' 
+			      WHEN a.type = 2
+			      	THEN '部门公告'
+			      WHEN a.type = 3
+			      	THEN '班级公告'
+			      WHEN a.type = 4
+			      	THEN '系统公告'
+			    END
+  			) AS typeName, d.departmentName AS departmentName, c.clazzName AS clazzName   
+			FROM palm_announcement a 
+			LEFT JOIN fjzyyptxx.user_detail u ON a.userId = u.userId
+			LEFT JOIN palm_department d ON a.departmentId = d.id
+			LEFT JOIN palm_clazz c ON a.clazzId = c.id
+			LEFT JOIN palm_grade g ON (g.id = c.gradeId and g.state = '0')
+			WHERE c.fjSchoolId=#fjSchoolId#
+			AND a.type != 2
+			AND (
+					a.clazzId = #clazzId# OR a.clazzId is NUll
+				)	
+			<isNotEmpty prepend="and" property="type">
+				a.type = #type#
+	      	</isNotEmpty>
+			order by a.createTime desc
+	</select>
+	<!-- 添加公告  update by shengyinjiang 20151202-->
+	<insert id="addAnnouncement" parameterClass="announcement">
+		insert into
+		palm_announcement
+		(
+		content,
+		userId,
+		createTime,
+		apic,
+		clazzId,
+		type,
+		departmentId
+		)
+		values
+		(
+		#content#,
+		#userId#,
+		#createTime#,
+		#apic#,
+		#clazzId#,
+		#type#,
+		#departmentId#
+		)
+	</insert>
+	<!-- 根据主键获得数据 -->
+	<select id="getById" parameterClass="java.lang.Integer" resultClass="announcement">
+	select a.*,u.realName from palm_announcement a  left join platform.user_detail u on u.userId=a.userId  where a.id=#key#
+	</select>
+	<!-- 首页加载最新学校公告 20160111 -->
+ 	<select id="getAnnouncementForMain" resultClass="announcement"> 
+ 		SELECT a.* FROM palm_announcement a where a.type=1
+		ORDER BY a.createtime DESC 
+		LIMIT 1 
+ 	</select> 
+ 	<!-- RichCloud最新系统公告  -->
+ 	<select id="getNewAnnouncement" resultClass="announcement" parameterClass="HashMap"> 
+ 		SELECT content,id,createTime FROM palm_announcement a where a.type=#type# ORDER BY a.createTime DESC limit #length# 
+ 	</select> 
+ 	<!-- 分页获得公告 -->
+ 	<select id="getPageAnnouncement" parameterClass="HashMap" resultClass="announcement">
+ 	SELECT a.*,u.realName FROM palm_announcement a left join platform.user_detail u on u.userId=a.userId where a.type=#type# ORDER BY a.createtime DESC  limit #startIndex# , #length#
+ 	</select>
+ 	
+ 	<!-- 分页获得公告 -->
+ 	<select id="getPageAnnouncementCount" parameterClass="HashMap" resultClass="java.lang.Integer">
+ 	SELECT count(*) FROM palm_announcement a where a.type=#type#
+ 	</select>
+</sqlMap>

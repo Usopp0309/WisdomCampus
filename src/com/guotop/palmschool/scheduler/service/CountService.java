@@ -1,0 +1,165 @@
+package com.guotop.palmschool.scheduler.service;
+
+import java.util.List;
+
+import com.guotop.palmschool.scheduler.entity.SchoolCountInfo;
+import com.guotop.palmschool.scheduler.entity.SchoolCountInfoServiceHistory;
+
+/**
+ * 学校统计信息服务接口
+ * @author jfy
+ * @date 2015年12月7日
+ */
+public interface CountService
+{
+	/**
+	 * 获取待统计学校列表
+	 * @return
+	 */
+	public List<SchoolCountInfo> getSchoolList();
+	
+	/**
+	 * 获取待统计学校列表
+	 * @return
+	 */
+	public List<SchoolCountInfo> getSchoolDataSorceList();
+	/**
+	 * 根据学校ID获取学校总用户数
+	 * @param schoolId
+	 * @return
+	 */
+	public Integer getUserCountBySchoolId(Long schoolId);
+	
+	/**
+	 * 根据学校ID获取学校统计数
+	 * @param schoolId
+	 * @return
+	 */
+	public SchoolCountInfo getCountInfoBySchoolId(Long schoolId);
+	
+	/**
+	 * 
+	 * @param schoolId
+	 * @return
+	 */
+	/**
+	 * 根据学校ID已经时间段来获取学校某个时间段内的统计数据
+	 * @param schoolId
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	public SchoolCountInfo getCountInfoBySchoolIdAndStartTimeAndEndTime(Long schoolId,String startTime,String endTime);
+	
+	/**
+	 * 获取学生总数
+	 * @return
+	 */
+	public Integer getStudentCountBySchoolId();
+	/**
+	 * 获取老师总数
+	 * @return
+	 */
+	public Integer getTeacherCountBySchoolId();
+	/**
+	 * 更新统计信息
+	 */
+	public void updateCountInfo(SchoolCountInfo schoolCountInfo);
+	
+	/**
+	 * 保存学校服务费缴纳统计历史表
+	 * @param scis
+	 */
+	public void addSchoolCountInfoServiceHistory(SchoolCountInfoServiceHistory scis);
+	
+	/**
+	 * 添加统计信息
+	 */
+	public void addCountInfoBK(SchoolCountInfo schoolCountInfo);
+
+	/**
+	 * 根据学校Id获取服务费总额
+	 * @param schoolId
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	public Double getServiceTotalAmount(Long schoolId,String startTime,String endTime);
+	
+	/**
+	 * 根据学校Id获取智慧校园卡总数
+	 * @param schoolId
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	public Integer getCardNumber(Long schoolId,String startTime,String endTime);
+	
+	/**
+	 * 根据学校Id获取智慧校园卡押金总额
+	 * @param schoolId
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	public Double getCardTotalDepositAmount(Long schoolId,String startTime,String endTime);
+	/**
+	 * 根据学校Id获取缴纳智慧校园卡押金总人数
+	 * @param schoolId
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	public Integer getCardDepositCount(Long schoolId,String startTime,String endTime);
+	
+	/**
+	 * 根据时间段来获取服务费历史
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	public List<SchoolCountInfoServiceHistory> getServiceHistoryList(Long schoolId,String startTime,String endTime);
+	
+	/**
+	 * 根据schoolId获取时间段段发送短信验证码条数
+	 * @param schoolId
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	public Integer getAuthCodeCountBySchoolIdAndStartTimeAndEndTime(Long schoolId,String startTime,String endTime);
+	
+	/**
+	 * 根据schoolId获取学校内所有用户的账户余额(包含未处理的提现金额)
+	 * @param schoolId
+	 * @return
+	 */
+	public Double getAccountAmountBySchoolId(Long schoolId);
+	
+	/**
+	 * 根据schoolId获取学校内时间段内提现金额
+	 * @param schoolId
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	public Double getApplyCashAmountByStatus(Long schoolId,List<Integer> applyStatusList,String startTime,String endTime);
+	
+	
+	public Integer getPlamInout(String startTime);
+	
+	public void addPalmInoutBack(String startTime);
+	
+	public Integer getSysMessage(String startTime);
+	
+	public void addSysMessageBack(String startTime);
+	
+	public Integer getSmsDetail(String startTime);
+	
+	public void addSmsDetailBack(String startTime);
+	
+	public Integer getCheckattendance(String startTime);
+	
+	public void addCheckattendanceBack(String startTime);
+	
+}

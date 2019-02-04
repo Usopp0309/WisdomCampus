@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Role">
+	<typeAlias alias="role" type="com.guotop.palmschool.entity.Role"/>
+	<typeAlias alias="userRole" type="com.guotop.palmschool.entity.UserRole"/>
+	<!--结果集-->		
+	<resultMap class="com.guotop.palmschool.entity.Role" id="result_role">
+		<result property="roleCode" column="roleCode"/>
+		<result property="roleName" column="roleName"/>	
+	</resultMap>
+	<!--用户角色对应关系结果集-->		
+	<resultMap class="com.guotop.palmschool.entity.UserRole" id="result_userRole">
+		<result property="id" column="id"/>
+		<result property="userId" column="userId"/>
+		<result property="roleCode" column="roleCode"/>	
+		<result property="roleName" column="roleName"/>
+	</resultMap>
+	
+   <!-- 根据用户ID获取对应角色 -->
+	<select id="getRoleInfoByUserId" parameterClass="Integer" resultMap="result_role">
+ 		select r.roleCode,r.roleName from palm_role r, palm_user_role ur
+ 			where ur.roleCode = r.roleCode and ur.userId = #userId#
+	</select>
+	  <!-- 获取角色列表 -->
+	<select id="getRoleInfo" parameterClass="Integer" resultMap="result_role">
+ 		select r.roleCode,r.roleName from palm_role r
+	</select>
+	<!-- 添加角色 -->
+	<insert id="addRole" parameterClass="role">
+		insert into palm_role
+		(
+			roleCode,
+			roleName
+		)
+		values
+		(
+			#roleCode#,
+			#roleName#
+		)
+	</insert>
+	
+	<!-- 修改角色 -->
+	<update id="modifyRole" parameterClass="HashMap">
+		update palm_role
+		set roleName = #roleName#
+		WHERE roleCode = #roleCode#
+	</update>
+	
+	<!-- 根据用户ID删除申请信息 -->
+	<delete id="deleteRole"  parameterClass="String">
+	     delete from palm_role 
+	     	where roleCode = #roleCode# 
+	</delete>
+	
+	<!-- 用户添加角色 -->
+	<insert id="addUserRole" parameterClass="userRole">
+		insert into palm_user_role
+		(
+			userId,
+			roleCode
+		)
+		values
+		(
+			#userId#,
+			#roleCode#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	<!-- 根据用户Id修改角色 20151126-->
+	<update id="modifyRoleByUserId" parameterClass="HashMap">
+		update palm_user_role
+		set roleCode = #roleCodeNow#
+		WHERE userId = #userId# AND roleCode = #roleCode#
+	</update>
+	
+	<!-- 根据用户ID删除申请信息 20151202 -->
+	<delete id="deleteUserRole"  parameterClass="HashMap">
+	     delete from palm_user_role 
+	     	where roleCode = #roleCode#  and userId = #userId#
+	</delete>
+</sqlMap>

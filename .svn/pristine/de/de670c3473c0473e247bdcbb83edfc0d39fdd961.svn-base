@@ -1,0 +1,356 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<html>
+
+<head>
+
+	<title>评价列表管理</title>
+
+		<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+		
+		<meta content="" name="description" />
+		
+		<meta content="" name="author" />
+
+		<link href='../res/styles/css.css' rel="stylesheet" type="text/css" />
+		
+		<link rel="stylesheet" type="text/css" href="../res/styles/opendiv.css" />
+		
+		<link href="../media/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+
+		<link href="../media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+
+		<link href="../media/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+		<link href="../media/css/style-metro.css" rel="stylesheet" type="text/css" />
+
+		<link href="../media/css/style.css" rel="stylesheet" type="text/css" />
+
+		<link href="../media/css/style-responsive.css" rel="stylesheet" type="text/css" />
+
+	<!-- 	<link href="../media/css/default.css" rel="stylesheet" type="text/css" id="style_color" /> -->
+
+		<link href="../media/css/uniform.default.css" rel="stylesheet" type="text/css" />
+			
+		<link href="../media/css/opendiv.css" rel="stylesheet" type="text/css" />	
+
+		<link href="../media/css/pricing-tables.css" rel="stylesheet" type="text/css" />
+
+		<link rel="stylesheet" type="text/css" href="../media/css/select2_metro.css" />
+
+		<link rel="stylesheet" href="../media/css/DT_bootstrap.css" />
+		
+		<link rel="stylesheet" href="../media/css/skin.css" />
+		
+		<link href="../media/metronic_css_m/system_m.css" rel="stylesheet" type="text/css" media="screen" />
+		
+		
+</head>
+
+<body id="evaluateformmodel" class="page-header-fixed" onload="message()">
+
+
+	 <div class="container-fluid">
+
+		<div class="row-fluid">
+
+		   <div class="span12">
+		   
+				<ul class="breadcrumb">
+					<li>
+					  <i class="icon-home"></i><a href="#">首页</a><i class="icon-angle-right"></i>
+					</li>
+					<li>
+					   <a href="#">教学评价</a> <i class="icon-angle-right"></i></li>
+					<li>
+						<a href="#">评价列表</a>
+					</li>
+				</ul>
+
+		   </div>
+
+		</div>
+
+		<div class="row-fluid">
+
+		   <div class="span12">
+
+				<div class="portlet box green">
+
+					<div class="portlet-title Response">
+						<div class="caption">评价详情</div>
+					</div>
+					<div class="portlet-body form">
+						<form action="<%=basePath%>evaluation/doSubmitEvaluation.do" id="evaluatetitle_form" method="post">
+							<div>
+								<input type="hidden" id="extitles" name="extitles"> 
+								<input type="hidden" id="paperid" name="paperid" value="${paperid}">
+								<input type="hidden" id="timeid" name=timeid value="${timeid}">
+								<input type="hidden" id="rlist" name="rlist"> 
+								<input type="hidden" id="tlist" name="tlist"> 
+								<input type="hidden" id="ptext" name="ptext">
+								<input type="hidden" id="span_p" name="span_p"> 
+								<input type="hidden" id="formid" name="formid" value="${formId }"> 
+								<input type="hidden" id="tname1" name="tname1">
+								<table class="EvaluationListDetail">
+									<tr>
+										<td>
+												<c:if test="${times==0 }">
+													<font color="red" size="5">(对不起,因为没有到评价时间!您还不可以评价.)</font>
+												</c:if>
+										</td>
+									</tr>
+								</table>
+								<table class="EvaluationListDetail" >
+									<tr>
+										<c:if test="${roleCode eq 'teacher' || roleCode eq 'classLeader' || roleCode eq 'departManager'}">
+											<td align="right">
+												<span style="color:red" >请先选择学生！</span>
+												学生: 
+												<select class="select" id="stu" name="stu" onchange="showstu(this)">
+													<option value="0">--请选择--</option>
+													<c:forEach var="s" items="${users}">
+														<c:choose>
+															<c:when test="${stuid==s.userId }">
+																<option value="${s.userId }" selected="selected">${s.realName}同学</option>
+															</c:when>
+															<c:otherwise>
+																<option value="${s.userId }">${s.realName }同学</option>
+															</c:otherwise>
+														</c:choose>
+													</c:forEach>
+												</select>
+											</td>
+										</c:if>
+										<c:if test="${roleCode eq 'student'}">
+											<td align="right">
+												<span style="color:red">请先选择老师！</span>
+												科目: 
+												<select class="select" id=teacherId name="teacherId" onchange="showsub(this)">
+													<option value="0">--请选择--</option>
+													<c:forEach var="te" items="${teachers }">
+														<c:choose>
+															<c:when test="${techerId==te.subjectsUser }">
+																<option value="${te.subjectsUser }" selected="selected">${te.subjectName}老师(${te.realName })</option>
+															</c:when>
+															<c:otherwise>
+																<option value="${te.subjectsUser }">${te.subjectName }老师(${te.realName })</option>
+															</c:otherwise>
+														</c:choose>
+													</c:forEach>
+												</select>
+											</td>
+										</c:if>
+									</tr>
+								</table>
+								<table class="EvaluationListDetail" >
+									<tr>
+										
+											<td align="center">
+												  <b>为了促进教与学更和谐的发展，提高学校教学的总体水平。请同学们仔细阅读下列内容，作出客观、公正的评价。</b>
+											</td>
+									</tr>
+									<c:forEach var="t" items="${teachingExercises }" varStatus="start1">
+										<tr>
+											
+											<td>
+												<span id="extitle${start1.index }">${t.html }</span> 
+												<input type="hidden" id="exid" name="exid" value="${t.id }"> 
+												<input type="hidden" id="titletype" name="titletype" value="${t.type }">
+											</td>
+										</tr>
+										<tr>
+											
+											<td>
+												<c:forEach var="d" items="${t.detail }" varStatus="start">
+													<c:if test="${t.type=='评论选项' }">
+														<input type="hidden" id="nums" name="nums" value="${start1.index }">
+														<input type="radio" name="keyMan_${start1.index }" id="keyMan_${start1.index }" value="${d.id }" onclick="radioshow(${start1.index })">
+														<span>${d.text }</span>
+														<input type="hidden" id="rtitleid_${start1.index }" name="rtitleid_${start1.index }" value="${t.id }">
+													</c:if>
+												</c:forEach>
+												<c:if test="${t.type=='填空题' }">
+													<input type="hidden" id="numbers" name="numbers" value="${start1.index }">
+													<input type="hidden" id="ptext" name="ptext_${start1.index }"value="${t.id }" />
+													<textarea  id="text_${t.id }" name="text_${t.id  }" cols="88" rows="11"> </textarea>
+												</c:if>
+											</td>
+										</tr>
+									</c:forEach>
+									<tr>
+										
+										<td align="center">
+											<c:choose>
+												<c:when test="${empty models }">
+													<c:if test="${times==0 }">
+														<font color="red" size="5">(对不起，评价时间未到！您不可以评价!)</font>
+													</c:if>
+													<c:if test="${times!=0 }">
+														<a href="#" id="op_all_save" onclick="show(${exsize})">确定</a>
+													</c:if>
+												</c:when>
+												<c:otherwise>
+													<span class="red">对不起！您已评价过了，请勿重复评价！</span>
+												</c:otherwise>
+											</c:choose>
+										</td>
+									</tr>
+								</table>
+							</div>
+						</form>
+					</div>
+				</div>
+		   </div>
+		</div>
+	 </div>
+	
+	<script type="text/javascript" src="../res/scripts/jquery/jquery-1.3.2.min.js"></script>
+	<script type="text/javascript" src="../res/scripts/jquery/jquery-ui-1.7.2.custom.min.js"></script>
+	<script type="text/javascript" src="../res/scripts/jquery/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="../res/scripts/jquery/jquery.form.js"></script>
+	<script type="text/javascript" src="../res/scripts/jquery/jquery-hcheckbox.js"></script>
+	<script type="text/javascript" src="../res/scripts/jquery/jquery-1.4.2.js"></script>
+	<script src="../res/scripts/opendiv.js" type="text/javascript"></script>
+	<script src="../media/js/jquery-2.1.1.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery-migrate-1.2.1.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>      
+
+	<script src="../media/js/bootstrap.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.slimscroll.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.blockui.min.js" type="text/javascript"></script>  
+
+	<script src="../media/js/jquery.cookie.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.uniform.min.js" type="text/javascript" ></script>
+
+	<script type="text/javascript" src="../media/js/select2.min.js"></script>
+
+	<script type="text/javascript" src="../media/js/jquery.dataTables.min.js"></script>
+
+	<script type="text/javascript" src="../media/js/DT_bootstrap.js"></script>
+
+
+	<script src="../media/js/table-advanced.js"></script>
+	
+	<script type="text/javascript" src="../media/js/My97DatePicker/WdatePicker.js"></script>    
+	<script src="../media/js/app.js"></script>
+	
+	<script type="text/javascript">
+		function show(exsize){
+			//获取第一个对象循环的长度
+			var nums=document.getElementsByName("nums");
+			
+			var numbers=document.getElementsByName("numbers");
+			
+			var rlist="";
+			var clist="";
+			var ptexts="";
+			var ptextareas="";
+			var idstatus=0;
+			if(nums.length!=0){
+				//获取这个循环最末尾的值
+				var num=nums[nums.length-1].value;
+				for(var i=0;i<=num;i++){
+					var radiolist=document.getElementsByName("keyMan_"+i);
+					var rtitleId=document.getElementsByName("rtitleid_"+i);
+						for(var j=0;j<radiolist.length;j++){
+							if(radiolist[j].checked == true){
+								rlist+=radiolist[j].value+","+rtitleId[j].value+";";
+								idstatus=i;
+							}
+						}
+				}
+				if(idstatus!=num){
+					alert("单选题未全部选择!");
+					return false;
+				}
+				//单选
+				document.getElementById("rlist").value=rlist;
+				if(numbers.length!=0){
+					var number=numbers[numbers.length-1].value;
+					for(var m=numbers.length;m<=number;m++){
+						var ptext=document.getElementsByName("ptext_"+m);
+						var ptextarea=document.getElementsByName('text_'+m);
+						for(var j=0;j<ptext.length;j++){
+							ptexts+=ptext[j].value+",";
+						}
+					}
+					//用户录入短语的titleId
+					document.getElementById("ptext").value=ptexts;
+				}
+			}else{
+				if(numbers.length!=0){
+					var number=numbers[numbers.length-1].value;
+					for(var m=0;m<numbers.length;m++){
+						var ptext=document.getElementsByName("ptext_"+m);
+						var ptextarea=document.getElementsByName('text_'+m);
+						for(var j=0;j<ptext.length;j++){
+							ptexts+=ptext[j].value+",";
+						}
+					}
+					//用户录入短语的titleId
+					document.getElementById("ptext").value=ptexts;
+				}
+			}
+			
+			var roleCode=${roleCode == 'student'};
+			if(roleCode){
+
+				var selectlist1=document.getElementById("teacherId");
+				for(var i = 0;i<selectlist1.options.length;i++){
+					if(selectlist1.options[i].selected){
+						if(selectlist1.options[i].value==0){
+							alert("请选择教师！");
+							return false;
+						}
+					}
+				}
+			}else{
+				var selectlist2=document.getElementById("stu");
+				for(var i = 0;i<selectlist2.options.length;i++){
+					if(selectlist2.options[i].selected){
+						if(selectlist2.options[i].value==0){
+							alert("请选择学生！");
+							return false;
+						}
+					}
+				}
+				
+			}
+			
+			var extitles="";
+			for(var i=0;i<exsize;i++){
+				var extitle=document.getElementById("extitle"+i);
+				var obj=extitle.innerHTML;
+				result=obj.replace(/<.*?>/g,"");
+				result=result.replace(/&nbsp;/g,"");
+				extitles+=result+";";
+			}
+			document.getElementById("extitles").value=extitles;
+			var s=document.getElementById("evaluatetitle_form");
+			s.submit();
+		}
+		function showsub(a){
+			standardPost('<%=basePath%>evaluation/toEvaluationListDetail.do',{techerId:'+a.value+',paperid:'+${paperid}+',timeid:'+${timeid}+'});
+		}
+		function showstu(a){
+			standardPost('<%=basePath%>evaluation/toEvaluationListDetail.do',{stuid:'+a.value+',paperid:'+${paperid}+',timeid:'+${timeid}+'});
+		}
+
+		function message()
+		{
+			var msg=${msg != null};
+			 if(msg)
+			 {	
+				alert('${msg}');
+			}
+		}
+
+	</script>
+</body>
+</html>

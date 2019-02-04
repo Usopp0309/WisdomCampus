@@ -1,0 +1,65 @@
+package com.guotop.palmschool.scheduler;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.scheduler.entity.SchoolCountInfo;
+import com.guotop.palmschool.scheduler.service.CountService;
+
+/**
+ * 统计学校人数，短信数等信息
+ * 
+ * @author jfy
+ * @date 2015年12月7日
+ */
+@Component("countScheduler")
+public class CountScheduler
+{
+	private Logger logger = LoggerFactory.getLogger(CountScheduler.class);
+	
+	@Resource
+	private CountService countService;
+	
+	@Autowired
+	private ThreadPoolTaskExecutor poolTaskExecutor;
+	
+	@Scheduled(cron = "0 30 23 * * ?")
+	public void countJob()
+	{
+		//获取待统计学校列表
+		List<SchoolCountInfo> dataSourcelist = countService.getSchoolDataSorceList();
+		if(!CollectionUtils.isEmpty(dataSourcelist)){
+			for (SchoolCountInfo ci : dataSourcelist)
+			{
+				try{	
+						DBContextHolder.setDBType(String.valueOf(ci.getSchoolId()));
+						SchoolCountInfo schoolCountInfo = new SchoolCountInfo();
+						//获取统计数据
+						Integer userCount = countService.getUserCountBySchoolId(ci.getSchoolId());
+						Integer studentCount = countService.getStudentCountBySchoolId();
+						Integer teacherCount = countService.getTeacherCountBySchoolId();
+						//更新统计数据
+						schoolCountInfo.setUserCount(userCount);
+						schoolCountInfo.setStudentCount(studentCount);
+						schoolCountInfo.setTeacherCount(teacherCount);
+						schoolCountInfo.setSchoolId(ci.getSchoolId());
+						
+						countService.updateCountInfo(schoolCountInfo);	
+				}catch(Exception e){
+					logger.error("统计学校人数失败,CountScheduler:" + ci.getSchoolId());
+					continue;
+				}
+			}
+		}
+	}
+}

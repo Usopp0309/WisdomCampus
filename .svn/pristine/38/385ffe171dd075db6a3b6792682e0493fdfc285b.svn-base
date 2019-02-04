@@ -1,0 +1,20 @@
+.wwActionToolBar li.firstToolBarItem{
+    color: #0000ff !important;
+    height: 20px !important;
+    background: #cacaca;
+    text-shadow: #dcdcdc 0 1px 0;
+    border: 1px solid #000000 !important;
+    border-radius: 2px;
+}
+.wwActionToolBar li.firstToolBarItem a{
+    color: #0000ff;
+    padding-top: 3px !important;
+}
+
+.wwActionToolBar li.firstToolBarItem a:hover{
+    padding-top: 3px !important;
+}
+
+.wwActionToolBar li.firstToolBarItem:hover{
+    background: #808080;
+}

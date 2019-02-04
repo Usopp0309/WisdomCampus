@@ -1,0 +1,761 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<head>
+        <meta charset="utf-8" />
+        <title>作息时间添加</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta content="width=device-width, initial-scale=1" name="viewport" />
+         <!--公共css开始-->
+		<%@ include file="/public_module/public_css_new.jsp"%>
+	 	<!--公共css结束--> 
+        </head>
+    <body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed">
+    	<input class="themes" type="hidden" value="<%=basePath%>">
+        <!-- 公共顶部开始-->
+        <%@ include file="/public_module/public_header.jsp"%>    
+        <!--公共顶部结束-->
+        <div class="clearfix"> </div>
+        <!-- 内容页开始 -->
+        <div class="page-container">
+            <!--主菜单开始-->
+            <%@include file="/public_module/public_menu.jsp"%>
+            <!--主菜单结束-->
+            <div class="page-content-wrapper">
+                <div class="page-content m_overflow_hidden m_page_content">
+                	<div class="col-md-1 col-sm-1 m_padding_0_0_0_15">
+                    <%@include file="/public_module/public_sub_menu.jsp" %>
+                	</div>
+                	<div class="col-md-11 col-sm-11 m_page_con">
+                    <div class="page-bar m_margin_0_0_0_0">
+                        <ul class="page-breadcrumb">
+                            <li><a href="<%=basePath %>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+                            <li><a href="">学校管理</a><i class="fa fa-circle"></i></li>
+                            <li><span>作息时间添加</span></li>
+                        </ul>
+                    </div>
+                    <h3 class="page-title">作息时间添加</h3>
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="portlet light portlet-fit portlet-form bordered m_margin_15_auto_0" >
+                                <div class="portlet-title">
+                                    <div class="caption">
+                                        <i class=" icon-layers font-green"></i>
+                                        <span class="caption-subject font-green sbold uppercase">作息时间添加</span>
+                                    </div>
+                                </div>
+                                <div class="portlet-body">
+                                    <form action="<%=basePath%>schedule/doAddSchedule.do" id="addForm" class="form-horizontal" method="post">
+                                        <div class="form-body">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">开始日期：</label>
+                                                <div class="col-md-4">
+	                                                <input type="text"  name="startTime" id="startTime"  class="form-control"/>
+													<span class="help-block" style="display: none;" id="startTimeHelp"></span> 
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">结束时间：</label>
+                                                <div class="col-md-4">
+                                                    <input type="text" name="endTime" id="endTime"  class="form-control "/>
+													<span class="help-block" style="display: none;" id="endTimeHelp"></span> 
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">选择类型：</label>
+                                                <div class="col-md-4">
+                                                    <select name="type" id="typeSel" onchange="typeChane()" class="form-control ">
+														<option value="0">分段</option>
+														<option value="1">整天</option>
+													</select>
+                                                </div>
+                                            </div>
+                                            
+                                            <h3 class="form-section">设定时间：</h3>
+                                            <div id="firstSet">
+                                            <div class="form-group" id="morningBeginGroup">
+                                                <label class="control-label col-md-3">上午起始时间：</label>
+                                                <div class="col-md-4">
+                                                    <input class="form-control" type="text" id="morningBegin" name="morningBegin"/>
+													<span class="add-on"><i class="icon-time"></i></span>
+											    	<span class="help-block" id="morningBeginHelp"></span>
+											    </div>
+                                            </div>
+                                            <div class="form-group" id="morningEndGroup">
+                                                <label class="control-label col-md-3">上午结束时间：</label>
+                                                <div class="col-md-4">
+                                                    <input class="form-control" type="text" name="morningEnd" id="morningEnd"/>
+													<span class="add-on"><i class="icon-time"></i></span>
+											    	<span class="help-block" id="morningEndHelp"></span>
+											    </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">下午起始时间：</label>
+                                                <div class="col-md-4">
+                                                    <input class="form-control" type="text" id="afternoonBegin" name="afternoonBegin"/>
+													<span class="add-on"><i class="icon-time"></i></span>
+												</div>
+                                            </div>
+                                            <div class="form-group" id="afternoonBeginGroup">
+                                                <label class="control-label col-md-3">下午起始时间：</label>
+                                                <div class="col-md-4">
+                                                    <input class="form-control" type="text" id="afternoonBegin" name="afternoonBegin"/>
+													<span class="add-on"><i class="icon-time"></i></span>
+													<span class="help-block" id="afternoonBeginHelp"></span>
+												</div>
+                                            </div>
+											<div class="form-group" id="nightBeginGroup" >
+                                                <label class="control-label col-md-3">晚上起始时间：</label>
+                                                <div class="col-md-4">
+                                                    <input class="form-control" type="text" id="nightBegin" name="nightBegin"/>
+													<span class="add-on"><i class="icon-time"></i></span>
+													<span class="help-block" id="nightBeginHelp"></span>
+												</div>
+                                            </div>
+											<div class="form-group" id="nightEndGroup">
+                                                <label class="control-label col-md-3">晚上结束时间：</label>
+                                                <div class="col-md-4">
+                                                    <input class="form-control" type="text" id="nightEnd" name="nightEnd"/>
+													<span class="add-on"><i class="icon-time"></i></span>
+											    	<span class="help-block" id="nightEndHelp"></span>
+												</div>
+                                            </div>
+									</div>
+                                     <div id="secondSet" style="display:none">
+                                     	<div class="form-group" id="beginGroup">
+                                                <label class="control-label col-md-3">起始时间：</label>
+                                                <div class="col-md-4">
+                                                    <input class="form-control" type="text" id="begin" name="beginTime"/>
+													<span class="add-on"><i class="icon-time"></i></span>
+											    	<span class="help-block" id="beginHelp"></span>
+												</div>
+                                          </div>
+                                          <div class="form-group" id="endGroup">
+                                                <label class="control-label col-md-3">结束时间：</label>
+                                                <div class="col-md-4">
+                                                   <input class="form-control" type="text" id="end" name="end"/>
+													<span class="add-on"><i class="icon-time"></i></span>
+											    	<span class="help-block" id="endHelp"></span>
+												</div>
+                                          </div>
+									</div>       
+                                    <input type="hidden" value="${user.userId}" name="userId"/>      
+                                     </div>
+                                     <div class="form-actions">
+                                         <div class="row">
+                                             <div class="col-md-offset-3 col-md-9">
+                                                 <button type="button" class="btn green" id="save">确定</button>
+                                             </div>
+                                         </div>
+                                     </div>
+                                    </form>
+                                </div>
+                            </div>
+                                </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 亦信聊天开始 -->
+        	<%@ include file="/public_module/public_QQ.jsp" %>
+            <!-- 亦信聊天结束 -->
+        </div>
+        <!-- 内容页结束 -->
+        <!-- 底部开始 -->
+        <%@ include file="/public_module/public_footer.jsp" %>
+        <!-- 底部结束 -->
+    </body>
+        <!-- 公共js开始 -->
+        <%@ include file="/public_module/public_js.jsp" %>
+        <!-- 公共js结束 -->
+	<script>
+		$(document).ready(function() {
+			loadSubMenu("schoolManager"); 
+			//选取当前菜单位置
+			setActive("schoolManager","scheduleManage"); 
+			$('#startTime,#endTime').datetimepicker({
+				format:'Y-m-d',
+				timepicker:false
+			}); 
+			$('#begin,#end,#morningBegin,#morningEnd,#afternoonBegin,#afternoonEnd,#nightBegin,#nightEnd').datetimepicker({
+				datepicker:false,
+				format:'H:i',
+				step:5
+			});   
+			$("#cancel").click(function(){
+				 window.location.href='javascript:history.go(-1);';
+			});
+			//开始时间
+			$("#startTime").blur(function(){
+				var startTime = $("#startTime").val();
+				if ("" == startTime)
+				{
+					$("#startTimeGroup").addClass("error");
+					$("#startTimeHelp").show();
+					$("#startTimeHelp").html("起始时间不能为空");
+				}
+				else
+				{
+					$("#startTimeGroup").removeClass("error");
+					$("#startTimeHelp").hide();
+				}
+				
+			});  
+
+
+			//结束时间
+			$("#endTime").blur(function(){
+				var endTime = $("#endTime").val();
+				//未输入结束时间
+				var startTime = $("#startTime").val();
+				if ("" == endTime)
+				{
+					$("#endTimeGroup").addClass("error");
+					$("#endTimeHelp").show();
+					$("#endTimeHelp").html("结束时间不能为空");
+				}
+				else if("" != endTime && "" != startTime)
+				{
+                    if(!checkTimeLegal(startTime, endTime))
+                    {
+                    	$("#endTimeGroup").addClass("error");
+    					$("#endTimeHelp").show();
+    					$("#endTimeHelp").html("开始时间不能大于结束时间");
+    					
+                    }   
+                    else
+                    {
+                    	$("#endTimeGroup").removeClass("error");
+    					$("#endTimeHelp").hide();
+                            
+                    }     
+
+				}	
+				
+				
+				autoheight();
+			}); 
+			 
+            //上午开始
+			$("#morningBegin").blur(function()
+			{
+				var morningBegin = $("#morningBegin").val();
+				//未输入结束时间
+				
+				if ("" == morningBegin)
+				{
+					$("#morningBeginGroup").addClass("error");
+					$("#morningBeginHelp").show();
+					$("#morningBeginHelp").html("请选择上午起始时间");
+				}
+				else
+				{
+					$("#morningBeginGroup").removeClass("error");
+					$("#morningBeginHelp").hide();
+				}
+				
+			});  
+
+			//上午结束
+			$("#morningEnd").blur(function(){
+				var morningEnd = $("#morningEnd").val();
+				//未输入结束时间
+				
+				if ("" == morningEnd)
+				{
+					$("#morningEndGroup").addClass("error");
+					$("#morningEndHelp").show();
+					$("#morningEndHelp").html("请选择上午结束时间");
+				}
+				else
+				{
+					$("#morningEndGroup").removeClass("error");
+					$("#morningEndHelp").hide();
+				}
+				
+			});  
+
+			//下午开始
+			$("#afternoonBegin").blur(function(){
+				var afternoonBegin = $("#afternoonBegin").val();
+				//未输入结束时间
+				
+				if ("" == afternoonBegin)
+				{
+					$("#afternoonBeginGroup").addClass("error");
+					$("#afternoonBegindHelp").show();
+					$("#afternoonBeginHelp").html("请选择下午起始时间");
+				}
+				else
+				{
+					$("#afternoonBeginGroup").removeClass("error");
+					$("#afternoonBeginHelp").hide();
+				}
+				
+			}); 
+
+			//下午结束
+			$("#afternoonEnd").blur(function(){
+				var afternoonEnd = $("#afternoonEnd").val();
+				//未输入结束时间
+				
+				if ("" == afternoonEnd)
+				{
+					$("#afternoonEndGroup").addClass("error");
+					$("#afternoonEndHelp").show();
+					$("#afternoonEndHelp").html("请选择下午结束时间");
+				}
+				else
+				{
+					$("#afternoonEndGroup").removeClass("error");
+					$("#afternoonEndHelp").hide();
+				}
+				
+			}); 
+
+			//晚上开始
+			$("#nightBegin").blur(function(){
+				var nightBegin = $("#nightBegin").val();
+				//未输入结束时间
+				
+				if ("" == nightBegin)
+				{
+					$("#nightBeginGroup").addClass("error");
+					$("#nightBeginHelp").show();
+					$("#nightBeginHelp").html("请选择晚上起始时间");
+				}
+				else
+				{
+					$("#nightBeginGroup").removeClass("error");
+					$("#nightBeginHelp").hide();
+				}
+				
+			}); 
+
+			//晚上结束
+			$("#nightEnd").blur(function(){
+				var nightEnd = $("#nightEnd").val();
+				//未输入结束时间
+				
+				if ("" == nightEnd)
+				{
+					$("#nightEndGroup").addClass("error");
+					$("#nightEndHelp").show();
+					$("#nightEndHelp").html("请选择晚上结束时间");
+				}
+				else
+				{
+					$("#nightEndGroup").removeClass("error");
+					$("#nightEndHelp").hide();
+				}
+				
+			}); 
+			
+
+			
+			//监听上午
+			$('#morning').click(function() {
+				if($(this).attr("checked"))
+			   	{
+				   	$("#morningBeginGroup").show();
+				   	$("#morningEndGroup").show();
+			   	}
+				else
+				{
+					$("#morningBeginGroup").hide();
+				   	$("#morningEndGroup").hide();
+				}
+			}); 
+			
+			//监听下午
+			$('#afternoon').click(function() { 
+				if($(this).attr("checked"))
+			   	{
+				   	$("#afternoonBeginGroup").show();
+				   	$("#afternoonEndGroup").show();
+			   	}
+				else
+				{
+					$("#afternoonBeginGroup").hide();
+				   	$("#afternoonEndGroup").hide();
+				}
+			});
+			
+			//监听晚上
+			$('#night').click(function() { 
+				if($(this).attr("checked"))
+			   	{
+				   	$("#nightBeginGroup").show();
+				   	$("#nightEndGroup").show();
+			   	}
+				else
+				{
+					$("#nightBeginGroup").hide();
+				   	$("#nightEndGroup").hide();
+				}
+			});
+			//表单提交
+			$("#save").click(function(){
+				if (checkForm())
+				{
+					$("#addForm").submit();
+				}
+			});
+			
+		});
+
+		function checkTimeLegal(startTime, endTime)
+		{
+
+			var flg = false;
+			var startDate = new Date(startTime);
+			var endDate = new Date(endTime);
+
+			if (startDate > endDate)
+			{
+				flg = false;
+			}
+			else
+			{
+                flg = true
+			}	
+			return flg;
+		}
+		//验证相关的时间比较
+		function checkTime(startTime, endTime) {
+			var flg = false;
+			if (startTime > endTime || startTime > endTime) {
+				flg = false;
+			} else {
+				flg = true;
+			}
+			return flg;
+		}
+		function checkForm()
+		{
+            //验证常量
+            var startTimeFlag = false;
+            var endTimeFlag = false;
+            var morningBeginFlag = true;
+            var afternoonBeginFlag = true; 
+            var morningEndFlag = true;
+            var afternoonEndFlag = true;
+            var nightBeginFlag = true;
+            var nightEndFlag = true;
+            var beginFlag = true;
+            var endFlag = true;
+            var typeSel=$("#typeSel").val();
+            var beginTime_=$.trim($("#begin").val());
+            var end_=$.trim($("#end").val());
+            if(typeSel==1){
+               if(beginTime_==""){
+            	$("#beginGroup").addClass("error");
+   				$("#beginHelp").show();
+   				$("#beginHelp").html("起始时间不能为空");
+   				return false;
+               }else if(end_==""){
+            	$("#endGroup").addClass("error");
+      			$("#endHelp").show();
+      			$("#endHelp").html("结束时间不能为空");
+      			return false;
+               }else if(parseInt(beginTime_.replace(":",""))>=parseInt(end_.replace(":",""))){
+            	$("#endGroup").addClass("error");
+         		$("#endHelp").show();
+         		$("#endHelp").html("结束时间不能小于等于开始时间");
+         		return false;
+               }else{
+            	$("#beginGroup").removeClass("error");
+   				$("#beginHelp").hide();
+   				$("#endGroup").removeClass("error");
+				$("#endHelp").hide();
+              }
+            }else if(typeSel==0){
+              if(!$("#morning").attr("checked") && !$("#afternoon").attr("checked") && !$("#night").attr("checked")){
+                  alert("请选择上午,下午，晚上");
+                  return false;
+                  }
+
+            }
+            //开始时间
+			var startTime = $("#startTime").val();
+			//未输开始时间
+			
+			if ("" == startTime)
+			{
+				$("#startTimeGroup").addClass("error");
+				$("#startTimeHelp").show();
+				$("#startTimeHelp").html("起始时间不能为空");
+				startTimeFlag = false;
+			}
+			else
+			{
+				$("#startTimeGroup").removeClass("error");
+				$("#startTimeHelp").hide();
+				startTimeFlag = true;
+			}
+            //结束时间
+			var endTime = $("#endTime").val();
+			//未输入结束时间
+			if ("" == endTime)
+			{
+				$("#endTimeGroup").addClass("error");
+				$("#endTimeHelp").show();
+				$("#endTimeHelp").html("结束时间不能为空");
+				endTimeFlag = false;
+			}
+			else if(!checkTimeLegal(startTime, endTime))
+			{
+               	$("#endTimeGroup").addClass("error");
+				$("#endTimeHelp").show();
+				$("#endTimeHelp").html("开始时间不能大于结束时间");
+			    endTimeFlag = false;
+			}	
+			else
+            {
+               	$("#endTimeGroup").removeClass("error");
+				$("#endTimeHelp").hide();
+				endTimeFlag = true;    
+             } 
+			//上午时间
+			if($("#morning").attr("checked"))
+			{
+				var morningBegin = $("#morningBegin").val();
+				//未输入结束时间
+				if ("" == morningBegin)
+				{
+					$("#morningBeginGroup").addClass("error");
+					$("#morningBeginHelp").show();
+					$("#morningBeginHelp").html("请选择上午起始时间");
+					morningBeginFlag = false;
+				}
+				else
+				{
+					$("#morningBeginGroup").removeClass("error");
+					$("#morningBeginHelp").hide();
+					morningBeginFlag = true;
+				}
+				var morningEnd = $("#morningEnd").val();
+				//未输入结束时间
+				if ("" == morningEnd)
+				{
+					$("#morningEndGroup").addClass("error");
+					$("#morningEndHelp").show();
+					$("#morningEndHelp").html("请选择上午结束时间");
+					morningEndFlag = false;
+				}
+				else
+				{
+					$("#morningEndGroup").removeClass("error");
+					$("#morningEndHelp").hide();
+
+					morningEndFlag = true;
+				}
+				if(morningBegin!="" && morningEnd!=""){
+					if (!checkTime(morningBegin, morningEnd)) {
+						$("#morningEndGroup").addClass("error");
+						$("#morningEndHelp").show();
+						$("#morningEndHelp").html("上午开始时间不能大于结束时间");
+						morningEndFlag = false;
+					} else {
+						$("#morningEndGroup").removeClass("error");
+						$("#morningEndHelp").hide();
+						morningEndFlag = true;
+					}
+				}
+			}	
+			//下午时间
+			if($("#afternoon").attr("checked"))
+			{
+				var afternoonBegin = $("#afternoonBegin").val();
+				//未输入结束时间
+				if ("" == afternoonBegin)
+				{
+					$("#afternoonBeginGroup").addClass("error");
+					$("#afternoonBegindHelp").show();
+					$("#afternoonBeginHelp").html("请选择下午起始时间");
+
+					afternoonBeginFlag = false;
+				}
+				else
+				{
+					$("#afternoonBeginGroup").removeClass("error");
+					$("#afternoonBeginHelp").hide();
+
+					afternoonBeginFlag = true;
+				}
+
+				var afternoonEnd = $("#afternoonEnd").val();
+				//未输入结束时间
+				
+				if ("" == afternoonEnd)
+				{
+					$("#afternoonEndGroup").addClass("error");
+					$("#afternoonEndHelp").show();
+					$("#afternoonEndHelp").html("请选择下午结束时间");
+
+					afternoonEndFlag = false;
+				}
+				else
+				{
+					$("#afternoonEndGroup").removeClass("error");
+					$("#afternoonEndHelp").hide();
+
+					afternoonEndFlag = true;
+				}
+				if (!checkTime(afternoonBegin, afternoonEnd)) {
+					$("#afternoonEndGroup").addClass("error");
+					$("#afternoonEndHelp").show();
+					$("#afternoonEndHelp").html("下午开始时间不能大于结束时间");
+					afternoonEndFlag = false;
+				} else {
+					$("#afternoonEndGroup").removeClass("error");
+					$("#afternoonEndHelp").hide();
+					afternoonEndFlag = true;
+				}
+				if(!checkTime(morningEnd, afternoonBegin)){
+					$("#afternoonBeginGroup").addClass("error");
+					$("#afternoonBeginHelp").show();
+					$("#afternoonBeginHelp").html("下午开始时间不能小于上午结束时间");
+					afternoonBeginFlag = false;
+				}else{
+					$("#afternoonBeginGroup").removeClass("error");
+					$("#afternoonBeginHelp").hide();
+					afternoonBeginFlag=true;
+				}
+			}	
+
+			//晚上时间
+			if($("#night").attr("checked"))
+			{
+
+				var nightBegin = $("#nightBegin").val();
+				//未输入结束时间
+				
+				if ("" == nightBegin)
+				{
+					$("#nightBeginGroup").addClass("error");
+					$("#nightBeginHelp").show();
+					$("#nightBeginHelp").html("请选择晚上起始时间");
+
+					nightBeginFlag = false;
+				}
+				else
+				{
+					$("#nightBeginGroup").removeClass("error");
+					$("#nightBeginHelp").hide();
+
+					nightBeginFlag = true;
+				}
+
+				var nightEnd = $("#nightEnd").val();
+				//未输入结束时间
+				
+				if ("" == nightEnd)
+				{
+					$("#nightEndGroup").addClass("error");
+					$("#nightEndHelp").show();
+					$("#nightEndHelp").html("请选择晚上结束时间");
+
+					nightEndFlag = false;
+				}
+				else
+				{
+					$("#nightEndGroup").removeClass("error");
+					$("#nightEndHelp").hide();
+
+					nightEndFlag = true;
+				}
+				var type = $("#typeSel").val();
+				if (type == 1){
+					var begin = $("#begin").val();
+					var end = $("#end").val();
+					if ("" == begin){
+						$("#beginGroup").addClass("error");
+						$("#beginHelp").show();
+						$("#beginHelp").html("请选择开始时间");
+						beginFlag = false;
+					}
+					if("" == end){
+						$("#endGroup").addClass("error");
+						$("#endHelp").show();
+						$("#endHelp").html("请选择结束时间");
+
+						endFlag = false;
+					}
+					
+				}
+				if (!checkTime(nightBegin, nightEnd)) {
+					$("#nightEndGroup").addClass("error");
+					$("#nightEndHelp").show();
+					$("#nightEndHelp").html("晚上开始时间不能大于结束时间");
+					nightEndFlag = false;
+				} else {
+					$("#nightEndGroup").removeClass("error");
+					$("#nightEndHelp").hide();
+					nightEndFlag = true;
+				}
+				if(!checkTime(afternoonEnd, nightBegin)){
+					$("#nightBeginGroup").addClass("error");
+					$("#nightBeginHelp").show();
+					$("#nightBeginHelp").html("晚上开始时间不能小于下午结束时间");
+					afternoonBeginFlag = false;
+				}else{
+					$("#nightBeginGroup").removeClass("error");
+					$("#nightBeginHelp").hide();
+					afternoonBeginFlag=true;
+				}
+		    }
+			var m=checkSchedule();
+			if(m.flag=="1"){
+				$("#startTimeGroup").addClass("error");
+				$("#startTimeHelp").show();
+				$("#startTimeHelp").html(m.msg);
+				return;
+			}else{
+				$("#startTimeGroup").removeClass("error");
+				$("#startTimeHelp").hide();
+				}	
+			autoheight();
+	        if(startTimeFlag && endTimeFlag && morningBeginFlag && afternoonBeginFlag 
+	    	    && morningEndFlag && afternoonEndFlag && nightBeginFlag && nightEndFlag && beginFlag && endFlag) 
+	        {
+                return true;
+		    }
+	        else
+	        {
+                return false;
+			}   
+
+	         
+
+
+		}
+		function typeChane(){
+			var type = $("#typeSel").val();
+			if (type == 0){
+				$("#firstSet").show();
+				$("#secondSet").hide();
+			}else{
+				$("#firstSet").hide();
+				$("#secondSet").show();
+			}
+		}
+	function checkSchedule(){
+		var m="";
+		var s=$("#startTime").val();
+		var e=$("#endTime").val();
+		$.ajax({
+            url:"<%=basePath%>schedule/checkScheule.do",
+            type:"post",
+            async: false,
+            dataType:"json",
+            data:{"beginTime":s,"endTime":e},
+            error:function(){},
+            success:function(data){
+               m=data;
+             }
+			});
+		return m;
+		}
+	</script>
+</html>

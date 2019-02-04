@@ -1,0 +1,762 @@
+package com.guotop.palmschool.thread;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import com.guotop.palmschool.check.entity.CheckAttendance;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.StartupListener;
+
+/**
+ * 教师或者学生进出校迟到早退
+ * 
+ * @author zhou
+ * 
+ */
+public class AbnormalChecker extends Thread
+{
+	private boolean flag = true;
+
+	/**
+	 * 上午---begin
+	 * 
+	 */
+
+	/**
+	 * 上班正常
+	 */
+	private static final int AM_TEACHERNORMAL_START = 805; // 开始时间
+	private static final int AM_TEACHERNORMAL_END = 825; // 结束时间
+	private static boolean AM_TEACHERNORMAL = false; // 当天是否已检测
+
+	/**
+	 * 上班迟到
+	 */
+	private static final int AM_TEACHERLATE_START = 1120; // 开始时间
+	private static final int AM_TEACHERLATE_END = 1140; // 结束时间
+	private static boolean AM_TEACHER_ISLATE = false; // 当天是否已检测
+
+	/**
+	 * 上班早退
+	 */
+	private static final int AM_TEACHERLEAVE_START = 1120; // 开始时间
+	private static final int AM_TEACHERLEAVE_END = 1140; // 结束时间
+	private static boolean AM_TEACHERLEAVE_ISLEAVE = false; // 当天是否已检测
+
+	/**
+	 * 下班正常
+	 */
+	private static final int AM_TEACHERLEAVENOR_START = 1300; // 开始时间
+	private static final int AM_TEACHERLEAVENOR_END = 1320; // 结束时间
+	private static boolean AM_TEACHERLEAVENOR = false; // 当天是否已检测
+
+	/**
+	 * 上午旷工
+	 */
+	private static final int AM_TEACHERKG_START = 1300; // 开始时间
+	private static final int AM_TEACHERKG_END = 1320; // 结束时间
+	private static boolean AM_TEACHERKG = false; // 当天是否已检测
+	
+	/**
+	 * 上午非正常进校
+	 */
+	private static final int AM_TEACHERABNORMALIN_START = 1320; // 开始时间
+	private static final int AM_TEACHERABNORMALIN_END = 1340; // 结束时间
+	private static boolean AM_TEACHERABNORMALIN = false; // 当天是否已检测
+	
+	/**
+	 * 上午非正常出校
+	 */
+	private static final int AM_TEACHERABNORMALOUT_START = 1310; // 开始时间
+	private static final int AM_TEACHERABNORMALOUT_END = 1330; // 结束时间
+	private static boolean AM_TEACHERABNORMALOUT = false; // 当天是否已检测
+
+	/**
+	 * 上午---end
+	 */
+
+	
+	/**
+	 * 下午---begin
+	 * 
+	 */
+
+	/**
+	 * 上班正常
+	 */
+	private static final int PM_TEACHERNORMAL_START = 1405; // 开始时间
+	private static final int PM_TEACHERNORMAL_END = 1425; // 结束时间
+	private static boolean PM_TEACHERNORMAL = false; // 当天是否已检测
+
+	/**
+	 * 上班迟到
+	 */
+	private static final int PM_TEACHERLATE_START = 1600; // 开始时间
+	private static final int PM_TEACHERLATE_END = 1620; // 结束时间
+	private static boolean PM_TEACHER_ISLATE = false; // 当天是否已检测
+
+	/**
+	 * 上班早退
+	 */
+	private static final int PM_TEACHERLEAVE_START = 1600; // 开始时间
+	private static final int PM_TEACHERLEAVE_END = 1620; // 结束时间
+	private static boolean PM_TEACHERLEAVE_ISLEAVE = false; // 当天是否已检测
+
+	/**
+	 * 下班正常（下）
+	 */
+	private static final int PM_TEACHERLEAVENOR_START = 2200; // 开始时间
+	private static final int PM_TEACHERLEAVENOR_END = 2220; // 结束时间
+	private static boolean PM_TEACHERLEAVENOR = false; // 当天是否已检测
+
+	/**
+	 * 下午旷工
+	 */
+	private static final int PM_TEACHERKG_START = 2200; // 开始时间
+	private static final int PM_TEACHERKG_END = 2220; // 结束时间
+	private static boolean PM_TEACHERKG = false; // 当天是否已检测
+	
+	/**
+	 * 下午非正常进校
+	 */
+	private static final int PM_TEACHERABNORMALIN_START = 2220; // 开始时间
+	private static final int PM_TEACHERABNORMALIN_END = 2220; // 结束时间
+	private static boolean PM_TEACHERABNORMALIN = false; // 当天是否已检测
+	
+	/**
+	 * 下午非正常出校
+	 */
+	private static final int PM_TEACHERABNORMALOUT_START = 2200; // 开始时间
+	private static final int PM_TEACHERABNORMALOUT_END = 2220; // 结束时间
+	private static boolean PM_TEACHERABNORMALOUT = false; // 当天是否已检测
+
+	/**
+	 * 下午---end
+	 */
+	public AbnormalChecker()
+	{
+		init();
+		this.start();
+	}
+
+	/**
+	 * 线程执行
+	 */
+	@Override
+	public void run()
+	{
+		while (flag)
+		{
+			/**
+			 * 当前时间
+			 */
+			Calendar cal = Calendar.getInstance();
+			int hour = cal.get(Calendar.HOUR_OF_DAY);
+			int minute = cal.get(Calendar.MINUTE);
+			int currentTime = hour * 100 + minute;
+
+			try
+			{
+				if (StartupListener.scheduleService.isWorkToday())
+				{
+					
+					/**
+					 * 上午---begin
+					 */
+					
+					/**
+					 * 正常上班
+					 */
+					if (!AM_TEACHERNORMAL && currentTime >= AM_TEACHERNORMAL_START && currentTime < AM_TEACHERNORMAL_END)
+					{
+						amTeacherNormal();
+						AM_TEACHERNORMAL = true;
+					} else if (AM_TEACHERNORMAL && currentTime >= AM_TEACHERNORMAL_END)
+					{
+						AM_TEACHERNORMAL = false;
+					}
+					
+					/**
+					 * 迟到
+					 */
+					if (!AM_TEACHER_ISLATE && currentTime >= AM_TEACHERLATE_START && currentTime < AM_TEACHERLATE_END)
+					{
+						amTeacherLate();
+						AM_TEACHER_ISLATE = true;
+					} else if (AM_TEACHER_ISLATE && currentTime >= AM_TEACHERLATE_END)
+					{
+						AM_TEACHER_ISLATE = false;
+					}
+					
+					/**
+					 * 早退
+					 */
+					if (!AM_TEACHERLEAVE_ISLEAVE && currentTime >= AM_TEACHERLEAVE_START && currentTime < AM_TEACHERLEAVE_END)
+					{
+						amTeacherLeave();
+						AM_TEACHERLEAVE_ISLEAVE = true;
+					} else if (AM_TEACHERLEAVE_ISLEAVE && currentTime >= AM_TEACHERLEAVE_END)
+					{
+						AM_TEACHERLEAVE_ISLEAVE = false;
+					}
+					
+					/**
+					 * 正常下班
+					 */
+					if (!AM_TEACHERLEAVENOR && currentTime >= AM_TEACHERLEAVENOR_START && currentTime < AM_TEACHERLEAVENOR_END)
+					{
+						amTeacherLeaveNormal();
+						AM_TEACHERLEAVENOR = true;
+					} else if (AM_TEACHERLEAVENOR && currentTime >= AM_TEACHERLEAVENOR_END)
+					{
+						AM_TEACHERLEAVENOR = false;
+					}
+					
+					/**
+					 * 旷工（上）
+					 */
+					if (!AM_TEACHERKG && currentTime >= AM_TEACHERKG_START && currentTime < AM_TEACHERKG_END)
+					{
+						amTeacherKG();
+						AM_TEACHERKG = true;
+					} else if (AM_TEACHERKG && currentTime >= AM_TEACHERKG_END)
+					{
+						AM_TEACHERKG = false;
+					}
+					
+					/**
+					 * 非正常进校（上）
+					 */
+					if (!AM_TEACHERABNORMALIN && currentTime >= AM_TEACHERABNORMALIN_START && currentTime < AM_TEACHERABNORMALIN_END)
+					{
+						amTeacherAbnormalIn();
+						AM_TEACHERABNORMALIN = true;
+					} else if (AM_TEACHERABNORMALIN && currentTime >= AM_TEACHERABNORMALIN_END)
+					{
+						AM_TEACHERABNORMALIN = false;
+					}
+					
+					/**
+					 * 非正常出校（上）
+					 */
+					if (!AM_TEACHERABNORMALOUT && currentTime >= AM_TEACHERABNORMALOUT_START && currentTime < AM_TEACHERABNORMALOUT_END)
+					{
+						amTeacherAbnormalOut();
+						AM_TEACHERABNORMALOUT = true;
+					} else if (AM_TEACHERABNORMALOUT && currentTime >= AM_TEACHERABNORMALOUT_END)
+					{
+						AM_TEACHERABNORMALOUT = false;
+					}
+					
+					/**
+					 * 上午---end
+					 */
+					
+					/**
+					 * 下午---begin
+					 */
+					
+					/**
+					 * 下午正常上班
+					 */
+					if (!PM_TEACHERNORMAL && currentTime >= PM_TEACHERNORMAL_START && currentTime < PM_TEACHERNORMAL_END)
+					{
+						pmTeacherNormal();
+						PM_TEACHERNORMAL = true;
+					} else if (PM_TEACHERNORMAL && currentTime >= PM_TEACHERNORMAL_END)
+					{
+						PM_TEACHERNORMAL = false;
+					}
+					
+					/**
+					 * 下午迟到
+					 */
+					if (!PM_TEACHER_ISLATE && currentTime >= PM_TEACHERLATE_START && currentTime < PM_TEACHERLATE_END)
+					{
+						pmTeacherLate();
+						PM_TEACHER_ISLATE = true;
+					} else if (PM_TEACHER_ISLATE && currentTime >= PM_TEACHERLATE_END)
+					{
+						PM_TEACHER_ISLATE = false;
+					}
+					
+					/**
+					 * 下午早退
+					 */
+					if (!PM_TEACHERLEAVE_ISLEAVE && currentTime >= PM_TEACHERLEAVE_START && currentTime < PM_TEACHERLEAVE_END)
+					{
+						pmTeacherLeave();
+						PM_TEACHERLEAVE_ISLEAVE = true;
+					} else if (PM_TEACHERLEAVE_ISLEAVE && currentTime >= PM_TEACHERLEAVE_END)
+					{
+						PM_TEACHERLEAVE_ISLEAVE = false;
+					}
+					
+					/**
+					 * 下午正常下班
+					 */
+					if (!PM_TEACHERLEAVENOR && currentTime >= PM_TEACHERLEAVENOR_START && currentTime < PM_TEACHERLEAVENOR_END)
+					{
+						pmTeacherLeaveNormal();
+						PM_TEACHERLEAVENOR = true;
+					} else if (PM_TEACHERLEAVENOR && currentTime >= PM_TEACHERLEAVENOR_END)
+					{
+						PM_TEACHERLEAVENOR = false;
+					}
+					
+					/**
+					 * 下午旷工
+					 */
+					if (!PM_TEACHERKG && currentTime >= PM_TEACHERKG_START && currentTime < PM_TEACHERKG_END)
+					{
+						pmTeacherKG();
+						PM_TEACHERKG = true;
+					} else if (PM_TEACHERKG && currentTime >= PM_TEACHERKG_END)
+					{
+						PM_TEACHERKG = false;
+					}
+					
+					/**
+					 * 非正常进校（下）
+					 */
+					if (!PM_TEACHERABNORMALIN && currentTime >= PM_TEACHERABNORMALIN_START && currentTime < PM_TEACHERABNORMALIN_END)
+					{
+						pmTeacherAbnormalIn();
+						PM_TEACHERABNORMALIN = true;
+					} else if (PM_TEACHERABNORMALIN && currentTime >= PM_TEACHERABNORMALIN_END)
+					{
+						PM_TEACHERABNORMALIN = false;
+					}
+					
+					/**
+					 * 非正常出校（下）
+					 */
+					if (!PM_TEACHERABNORMALOUT && currentTime >= PM_TEACHERABNORMALOUT_START && currentTime < PM_TEACHERABNORMALOUT_END)
+					{
+						pmTeacherAbnormalOut();
+						PM_TEACHERABNORMALOUT = true;
+					} else if (PM_TEACHERABNORMALOUT && currentTime >= PM_TEACHERABNORMALOUT_END)
+					{
+						PM_TEACHERABNORMALOUT = false;
+					}
+					
+					/**
+					 * 下午---end
+					 */		
+				}
+				
+				sleep(1200000); // 每20分检查一下
+			} catch (Exception e)
+			{
+				
+				e.printStackTrace();
+				try 
+				{
+					sleep(60000); // 出错1分钟后重试
+				}
+				catch (InterruptedException ie) 
+				{
+					break;
+				}
+			}
+		}
+	}
+
+	/**
+	 * 老师相关---begin
+	 */
+
+	/**
+	 * 上午---begin
+	 */
+	/*
+	 * 正常上班
+	 */
+	public void amTeacherNormal()
+	{
+		List<User> teacherList = StartupListener.commonService.selectAmTeacherNormal();
+		
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat timeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		
+		for (User user : teacherList)
+		{
+			CheckAttendance checkAttendance = new CheckAttendance();
+			checkAttendance.setUserId(user.getUserId());
+			checkAttendance.setDepartmentId(user.getDepartmentId());
+			checkAttendance.setClazzId(user.getClazzId());
+			checkAttendance.setStatus(0);
+			checkAttendance.setStuTeaType(0);
+			checkAttendance.setCreateDate(dateFormatter.format(new Date()));
+			checkAttendance.setCreateTime(timeFormatter.format(new Date()));
+			
+			StartupListener.checkService.addCheckAttendance(checkAttendance);
+		}
+		
+	}
+
+	/*
+	 * 迟到
+	 */
+	public void amTeacherLate()
+	{
+		
+
+		List<User> teacherList = StartupListener.commonService.selectAmTeacherLate();
+
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat timeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		for (User user : teacherList)
+		{
+			CheckAttendance checkAttendance = new CheckAttendance();
+			checkAttendance.setUserId(user.getUserId());
+			checkAttendance.setDepartmentId(user.getDepartmentId());
+			checkAttendance.setClazzId(user.getClazzId());
+			checkAttendance.setStatus(1);
+			checkAttendance.setStuTeaType(0);
+			checkAttendance.setCreateDate(dateFormatter.format(new Date()));
+			checkAttendance.setCreateTime(timeFormatter.format(new Date()));
+
+			StartupListener.checkService.addCheckAttendance(checkAttendance);
+		}
+
+	}
+
+	/*
+	 * 早退
+	 */
+	public void amTeacherLeave()
+	{
+		List<User> teacherList = StartupListener.commonService.selectAmTeacherLeave();
+
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat timeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		for (User user : teacherList)
+		{
+			CheckAttendance checkAttendance = new CheckAttendance();
+			checkAttendance.setUserId(user.getUserId());
+			checkAttendance.setDepartmentId(user.getDepartmentId());
+			checkAttendance.setClazzId(user.getClazzId());
+			checkAttendance.setStatus(2);
+			checkAttendance.setStuTeaType(0);
+			checkAttendance.setCreateDate(dateFormatter.format(new Date()));
+			checkAttendance.setCreateTime(timeFormatter.format(new Date()));
+
+			StartupListener.checkService.addCheckAttendance(checkAttendance);
+		}
+
+	}
+	
+	/*
+	 * 正常下班
+	 */
+	public void amTeacherLeaveNormal()
+	{
+		List<User> teacherList = StartupListener.commonService.selectAmTeacherLeaveNormal();
+
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat timeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		for (User user : teacherList)
+		{
+			CheckAttendance checkAttendance = new CheckAttendance();
+			checkAttendance.setUserId(user.getUserId());
+			checkAttendance.setDepartmentId(user.getDepartmentId());
+			checkAttendance.setClazzId(user.getClazzId());
+			checkAttendance.setStatus(3);
+			checkAttendance.setStuTeaType(0);
+			checkAttendance.setCreateDate(dateFormatter.format(new Date()));
+			checkAttendance.setCreateTime(timeFormatter.format(new Date()));
+
+			StartupListener.checkService.addCheckAttendance(checkAttendance);
+		}
+	}
+
+	/*
+	 * 旷工（上）
+	 */
+	public void amTeacherKG()
+	{
+		List<User> teacherList = StartupListener.commonService.selectAmTeacherKG();
+
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat timeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		for (User user : teacherList)
+		{
+			CheckAttendance checkAttendance = new CheckAttendance();
+			checkAttendance.setUserId(user.getUserId());
+			checkAttendance.setDepartmentId(user.getDepartmentId());
+			checkAttendance.setClazzId(user.getClazzId());
+			checkAttendance.setStatus(4);
+			checkAttendance.setStuTeaType(0);
+			checkAttendance.setCreateDate(dateFormatter.format(new Date()));
+			checkAttendance.setCreateTime(timeFormatter.format(new Date()));
+
+			StartupListener.checkService.addCheckAttendance(checkAttendance);
+		}
+	}	
+	
+	/*
+	 * 非正常进校（上）
+	 */
+	public void amTeacherAbnormalIn()
+	{
+		List<User> teacherList = StartupListener.commonService.selectAmAbnormalIn();
+
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat timeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		for (User user : teacherList)
+		{
+			CheckAttendance checkAttendance = new CheckAttendance();
+			checkAttendance.setUserId(user.getUserId());
+			checkAttendance.setDepartmentId(user.getDepartmentId());
+			checkAttendance.setClazzId(user.getClazzId());
+			checkAttendance.setStatus(10);
+			checkAttendance.setStuTeaType(0);
+			checkAttendance.setCreateDate(dateFormatter.format(new Date()));
+			checkAttendance.setCreateTime(timeFormatter.format(new Date()));
+
+			StartupListener.checkService.addCheckAttendance(checkAttendance);
+		}
+	}	
+	
+	/*
+	 * 非正常出校（上）
+	 */
+	public void amTeacherAbnormalOut()
+	{
+		List<User> teacherList = StartupListener.commonService.selectAmAbnormalOut();
+
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat timeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		for (User user : teacherList)
+		{
+			CheckAttendance checkAttendance = new CheckAttendance();
+			checkAttendance.setUserId(user.getUserId());
+			checkAttendance.setDepartmentId(user.getDepartmentId());
+			checkAttendance.setClazzId(user.getClazzId());
+			checkAttendance.setStatus(11);
+			checkAttendance.setStuTeaType(0);
+			checkAttendance.setCreateDate(dateFormatter.format(new Date()));
+			checkAttendance.setCreateTime(timeFormatter.format(new Date()));
+
+			StartupListener.checkService.addCheckAttendance(checkAttendance);
+		}
+	}	
+	/**
+	 * 上午---end
+	 */
+	
+	
+	/**
+	 * 下午---begin
+	 */
+	/*
+	 * 正常上班
+	 */
+	public void pmTeacherNormal()
+	{
+
+		List<User> teacherList = StartupListener.commonService.selectPmTeacherNormal();
+
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat timeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		for (User user : teacherList)
+		{
+			CheckAttendance checkAttendance = new CheckAttendance();
+			checkAttendance.setUserId(user.getUserId());
+			checkAttendance.setDepartmentId(user.getDepartmentId());
+			checkAttendance.setClazzId(user.getClazzId());
+			checkAttendance.setStatus(5);
+			checkAttendance.setStuTeaType(0);
+			checkAttendance.setCreateDate(dateFormatter.format(new Date()));
+			checkAttendance.setCreateTime(timeFormatter.format(new Date()));
+
+			StartupListener.checkService.addCheckAttendance(checkAttendance);
+		}
+	}
+
+	/*
+	 * 迟到
+	 */
+	public void pmTeacherLate()
+	{
+		List<User> teacherList = StartupListener.commonService.selectPmTeacherLate();
+
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat timeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		for (User user : teacherList)
+		{
+			CheckAttendance checkAttendance = new CheckAttendance();
+			checkAttendance.setUserId(user.getUserId());
+			checkAttendance.setDepartmentId(user.getDepartmentId());
+			checkAttendance.setClazzId(user.getClazzId());
+			checkAttendance.setStatus(6);
+			checkAttendance.setStuTeaType(0);
+			checkAttendance.setCreateDate(dateFormatter.format(new Date()));
+			checkAttendance.setCreateTime(timeFormatter.format(new Date()));
+
+			StartupListener.checkService.addCheckAttendance(checkAttendance);
+		}
+	}
+
+	/*
+	 * 早退
+	 */
+	public void pmTeacherLeave()
+	{
+		List<User> teacherList = StartupListener.commonService.selectPmTeacherLeave();
+
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat timeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		for (User user : teacherList)
+		{
+			CheckAttendance checkAttendance = new CheckAttendance();
+			checkAttendance.setUserId(user.getUserId());
+			checkAttendance.setDepartmentId(user.getDepartmentId());
+			checkAttendance.setClazzId(user.getClazzId());
+			checkAttendance.setStatus(7);
+			checkAttendance.setStuTeaType(0);
+			checkAttendance.setCreateDate(dateFormatter.format(new Date()));
+			checkAttendance.setCreateTime(timeFormatter.format(new Date()));
+
+			StartupListener.checkService.addCheckAttendance(checkAttendance);
+		}
+	}
+	
+	/*
+	 * 正常下班
+	 */
+	public void pmTeacherLeaveNormal()
+	{
+		List<User> teacherList = StartupListener.commonService.selectPmTeacherLeaveNormal();
+
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat timeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		for (User user : teacherList)
+		{
+			CheckAttendance checkAttendance = new CheckAttendance();
+			checkAttendance.setUserId(user.getUserId());
+			checkAttendance.setDepartmentId(user.getDepartmentId());
+			checkAttendance.setClazzId(user.getClazzId());
+			checkAttendance.setStatus(8);
+			checkAttendance.setStuTeaType(0);
+			checkAttendance.setCreateDate(dateFormatter.format(new Date()));
+			checkAttendance.setCreateTime(timeFormatter.format(new Date()));
+
+			StartupListener.checkService.addCheckAttendance(checkAttendance);
+		}
+	}
+
+	/*
+	 * 旷工（下）
+	 */
+	public void pmTeacherKG()
+	{
+		List<User> teacherList = StartupListener.commonService.selectPmTeacherKG();
+
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat timeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		for (User user : teacherList)
+		{
+			CheckAttendance checkAttendance = new CheckAttendance();
+			checkAttendance.setUserId(user.getUserId());
+			checkAttendance.setDepartmentId(user.getDepartmentId());
+			checkAttendance.setClazzId(user.getClazzId());
+			checkAttendance.setStatus(9);
+			checkAttendance.setStuTeaType(0);
+			checkAttendance.setCreateDate(dateFormatter.format(new Date()));
+			checkAttendance.setCreateTime(timeFormatter.format(new Date()));
+
+			StartupListener.checkService.addCheckAttendance(checkAttendance);
+		}
+	}	
+	
+	/*
+	 * 非正常进校（上）
+	 */
+	public void pmTeacherAbnormalIn()
+	{
+		List<User> teacherList = StartupListener.commonService.selectPmAbnormalIn();
+
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat timeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		for (User user : teacherList)
+		{
+			CheckAttendance checkAttendance = new CheckAttendance();
+			checkAttendance.setUserId(user.getUserId());
+			checkAttendance.setDepartmentId(user.getDepartmentId());
+			checkAttendance.setClazzId(user.getClazzId());
+			checkAttendance.setStatus(10);
+			checkAttendance.setStuTeaType(0);
+			checkAttendance.setCreateDate(dateFormatter.format(new Date()));
+			checkAttendance.setCreateTime(timeFormatter.format(new Date()));
+
+			StartupListener.checkService.addCheckAttendance(checkAttendance);
+		}
+	}	
+	
+	/*
+	 * 非正常出校（上）
+	 */
+	public void pmTeacherAbnormalOut()
+	{
+		List<User> teacherList = StartupListener.commonService.selectPmAbnormalOut();
+
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat timeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		for (User user : teacherList)
+		{
+			CheckAttendance checkAttendance = new CheckAttendance();
+			checkAttendance.setUserId(user.getUserId());
+			checkAttendance.setDepartmentId(user.getDepartmentId());
+			checkAttendance.setClazzId(user.getClazzId());
+			checkAttendance.setStatus(11);
+			checkAttendance.setStuTeaType(0);
+			checkAttendance.setCreateDate(dateFormatter.format(new Date()));
+			checkAttendance.setCreateTime(timeFormatter.format(new Date()));
+
+			StartupListener.checkService.addCheckAttendance(checkAttendance);
+		}
+	}	
+	
+	/**
+	 * 下午---end
+	 */
+	
+
+	/**
+	 * 老师相关---end
+	 */
+
+	/**
+	 * 线程初始化
+	 */
+	public void init()
+	{
+
+	}
+
+	/**
+	 * 关闭线程
+	 */
+	public void close()
+	{
+		flag = false;
+	}
+}

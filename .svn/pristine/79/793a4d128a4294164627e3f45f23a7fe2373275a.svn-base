@@ -1,0 +1,404 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="utf-8" />
+
+<title>修改评价时间</title>
+
+<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+
+<meta content="" name="description" />
+
+<meta content="" name="author" />
+
+<!-- BEGIN GLOBAL MANDATORY STYLES -->
+
+<link href="../media/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+
+<link href="../media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+
+<link href="../media/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="../media/css/style-metro.css" rel="stylesheet" type="text/css" />
+
+<link href="../media/css/style.css" rel="stylesheet" type="text/css" />
+
+<link href="../media/css/style-responsive.css" rel="stylesheet" type="text/css" />
+
+<!-- <link href="../media/css/default.css" rel="stylesheet" type="text/css" id="style_color" /> -->
+
+<link href="../media/css/uniform.default.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="../media/js_m/datetimepicker/jquery.datetimepicker.css" />
+<link href="../media/metronic_css_m/system_m.css" rel="stylesheet" type="text/css" media="screen" />
+
+<link rel="shortcut icon" href="../media/image/favicon.ico" />
+
+</head>
+
+<body class="page-header-fixed">
+		<div class="container-fluid">
+
+			<div class="row-fluid">
+
+				<div class="span12">
+
+					<ul class="breadcrumb">
+
+						<li><i class="icon-home"></i> <a href="#">首页</a> <i class="icon-angle-right"></i></li>
+
+						<li><a href="#">教学评价</a> <i class="icon-angle-right"></i></li>
+
+						<li><a href="#">修改评价时间</a></li>
+
+					</ul>
+
+				</div>
+
+			</div>
+
+			<div class="row-fluid">
+
+				<div class="span12">
+
+					<div class="portlet box green">
+
+						<div class="portlet-title">
+
+							<div class="caption">修改评价时间 </div>
+
+						</div>
+
+						<div class="portlet-body form">
+
+							<form action="<%=basePath%>evaluation/doModifyEvaluationTime.do" id="submitForm" class="form-horizontal" method="post">
+
+								<div class="control-group" id="startTimeGroup">
+
+									<label class="control-label"> 开始时间： </label>
+
+									<div class="controls">
+
+										<div class="input-append date form_datetime">
+
+											<input type="text" size="16" name="startTime"
+												onclick="WdatePicker({el:'startTime',dateFmt:'yyyy-MM-dd',onpicked:function(){$('defform').submit();}})"
+												id="startTime" class="m-wrap" value="${startTime}" /> 
+											<span class="add-on"> <i class="icon-calendar"></i> </span>
+										</div>
+
+										<span class="help-block" style="display: none;" id="startTimeHelp"></span>
+
+									</div>
+
+								</div>
+
+								<div class="control-group" id="endTimeGroup">
+
+									<label class="control-label"> 结束时间： </label>
+
+									<div class="controls">
+
+										<div class="input-append date form_datetime">
+
+											<input type="text" size="16" name="endTime"
+												onclick="WdatePicker({el:'endTime',dateFmt:'yyyy-MM-dd',onpicked:function(){$('defform').submit();}})"
+												id="endTime" class="m-wrap" value="${endTime}"/> 
+											<span class="add-on"> <i class="icon-calendar"></i> </span>
+										</div>
+
+										<span class="help-block" style="display: none;" id="endTimeHelp"></span>
+
+									</div>
+
+								</div>
+
+								<div class="control-group" id="selectDepartment">
+
+									<label class="control-label">允许评价年级:</label>
+
+									<div class="controls">
+
+										<select tabindex="1" name="gradeName" id="gradeSelect" class="medium m-wrap">
+										</select>
+
+									</div>
+
+								</div>
+
+								<div class="control-group" id="selectDepartment">
+
+									<label class="control-label">允许评价班级:</label>
+
+									<div class="controls">
+
+										<select class="medium m-wrap" name="clazzName" tabindex="1" id="clazzSelect">
+
+										</select>
+
+									</div>
+
+								</div> 
+
+								<div class="control-group">
+
+									<label class="control-label"> 评价类型: </label>
+									
+									<c:choose>
+										<c:when test="${userType==1 }">
+											<div class="controls"  >
+												<label class="radio"> <input type="radio" name="type" value="1" checked="checked"/> 用于评论老师 </label> 
+												<label class="radio"> <input type="radio" name="type" value="2" /> 用于评论学生</label>
+											</div>
+										</c:when>
+										<c:when test="${userType==2 }">
+											<div class="controls" >
+												<label class="radio"> <input type="radio" name="type" value="1" /> 用于评论老师 </label> 
+												<label class="radio"> <input type="radio" name="type" value="2" checked="checked" /> 用于评论学生</label>
+											</div>
+										</c:when>
+										<c:otherwise>
+											<div class="controls"  >
+												<label class="radio"> <input type="radio" name="type" value="1" /> 用于评论老师 </label> 
+												<label class="radio"> <input type="radio" name="type" value="2" /> 用于评论学生</label>
+										   </div>
+										</c:otherwise>
+									</c:choose>
+								</div>
+
+								<div class="control-group">
+														
+
+									<label class="control-label"> 选择评价模板: </label>
+
+									<table>
+										<tr height="50">
+												<c:if test="${evaluationClazzModelListSize > 0 }">
+													<c:forEach var="e" items="${evaluationTemplates}" varStatus="status">
+														<c:if test="${status.index>3&&status.index<5 }"><tr></c:if>
+														<td align="center">
+															<c:if test="${e.param == 1}">
+																 <input type="checkbox" name="teachingfolderId" id="tt${e.id }" value="${e.id }" checked="checked" >选择模板<br>
+															</c:if>
+															<c:if test="${e.param == 0}">
+																 <input type="checkbox" name="teachingfolderId" id="t${e.id }" value="${e.id }">选择模板<br>
+															</c:if>
+															<img alt="" src="../media/image/disk.png" style="cursor: pointer;"><br>
+															<c:if test="${e.semester==1 }">
+																  <span >上学期${e.name }</span>
+															</c:if>
+															<c:if test="${e.semester==2 }">
+																 <span>下学期${e.name }</span>
+															</c:if>
+														</td>
+													</c:forEach>
+												</c:if>
+												
+												<c:if test="${evaluationClazzModelListSize == 0 }">
+													<c:forEach var="e" items="${evaluationTemplates }" varStatus="status">
+														<c:if test="${status.index>3&&status.index<5 }"><tr></c:if>
+														<td align="center">
+															<input type="checkbox" name="teachingfolderId" id="t${e.id }" value="${e.id }" >选择模板<br>
+															<img alt="" src="../media/image/disk.png" style="cursor: pointer;"><br>
+															<c:if test="${e.semester==1 }">
+															   <span >上学期${e.name }</span>
+															</c:if>
+															<c:if test="${e.semester==2 }">
+															  <span>下学期${e.name }</span>
+															</c:if>
+														</td>
+													</c:forEach>
+												</c:if>
+										</tr>
+									</table>
+								</div>
+
+								<div class="form-actions">
+
+									<button type="button" id="submitButton" class="btn blue" id="submitButton"> <i class="icon-ok"></i>保存 </button>
+									<button type="button" class="btn" id="cancel">取消</button>
+								</div>
+								
+								<input type="hidden" value="${user.userId}" name="userId" />
+								<input type="hidden" value="${timeId}" name="timeId" />
+								<input type="hidden" value="" name="teachingfolderIds" id="teachingfolderIds"/>
+								<input type="hidden" value="${gradeId}" name="gradeId" id="gradeId"/>
+								<input type="hidden" value="${clazzId}" name="clazzId" id="clazzId"/>
+							</form>
+						</div>
+					</div>
+
+					<!-- END EXAMPLE TABLE PORTLET-->
+
+				</div>
+
+			</div>
+			<!-- END PAGE CONTENT-->
+
+		</div>
+
+
+	<script src="../media/js/jquery-2.1.1.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery-migrate-1.2.1.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/bootstrap.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.slimscroll.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.blockui.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.cookie.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.uniform.min.js" type="text/javascript"></script>
+
+	<script type="text/javascript" src="../media/js/select2.min.js"></script>
+
+	<script type="text/javascript" src="../media/js/jquery.dataTables.min.js"></script>
+
+	<script type="text/javascript" src="../media/js/DT_bootstrap.js"></script>
+
+
+	<script src="../media/js/table-advanced.js"></script>
+
+	<script type="text/javascript" src="../media/js/My97DatePicker/WdatePicker.js"></script>
+	<script src="../media/js/app.js"></script>
+
+	<script>
+
+		jQuery(document).ready(function() {  
+           
+
+			App.init();
+
+			loadAllClazzList();
+
+			loadAllGradeList();
+			
+			$("#cancel").click(function(){
+				 window.location.href='javascript:history.go(-1);';
+			});
+
+			//表单提交
+			$("#submitButton").click(function()
+			{
+				var status="";
+				var checks=document.getElementsByName("teachingfolderId");
+			 	for (var i=0; i<checks.length; i++) {
+			 		if(checks[i].checked){ 
+			        	 status+=checks[i].value+",";
+			 		}
+				 } 
+				document.getElementById("teachingfolderIds").value=status;
+
+				var teachingfolderIds = $("#teachingfolderIds").val();
+				if(teachingfolderIds==""||teachingfolderIds=="undefind")
+				{
+					alert("请选择模板！如果没有可选模板，请去模板设定中添加……");
+                }else{
+					$("#submitForm").submit();
+                }
+			
+			});	
+
+		});
+		
+
+		//加载班级信息
+		function loadAllClazzList()
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>baseData/loadClazzList.do",
+				success: function(data)
+				{
+					var clazzList = $.parseJSON(data);
+
+					//年级select页面html
+					var clazzSelectHtml = '<option value="0">--请选择--</option>';
+					
+					$.each(clazzList, function(n, value)
+					 {  
+						clazzSelectHtml += '<option value="' + value.id + '">' +value.clazzName + '</option>';
+          			 });
+					$("#clazzSelect").html(clazzSelectHtml);
+
+            		var clazzId = $("#clazzId").val();
+          			
+          			if (typeof(clazzId) == "undefined" || clazzId == "undefined")
+					{
+						$("#clazzSelect").val("0");
+					}
+					else
+					{
+						$("#clazzSelect").val(clazzId);
+					}
+				},
+			});
+		}
+
+		//加载年级信息
+		function loadAllGradeList()
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>baseData/loadGradeList.do",
+				success : function(data) {
+					var gradeList = $.parseJSON(data);
+
+					//年级select页面html
+					var gradeSelectHtml = '<option value="0">--请选择--</option>';
+
+					$.each(gradeList, function(n, value) {
+						gradeSelectHtml += '<option value="' + value.id + '">' + value.name + '</option>';
+					});
+					$("#gradeSelect").html(gradeSelectHtml);
+					
+					var gradeId = $("#gradeId").val();
+          			
+          			if (typeof(clazzId) == "undefined" || clazzId == "undefined")
+					{
+						$("#gradeSelect").val("0");
+					}
+					else
+					{
+						$("#gradeSelect").val(gradeId);
+					}
+				},
+			});
+		}
+
+		//表单校验相关---end
+	</script>
+
+	<!-- END JAVASCRIPTS -->
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push([ '_setAccount', 'UA-37564768-1' ]);
+		_gaq.push([ '_setDomainName', 'keenthemes.com' ]);
+		_gaq.push([ '_setAllowLinker', true ]);
+		_gaq.push([ '_trackPageview' ]);
+		(function() {
+			var ga = document.createElement('script');
+			ga.type = 'text/javascript';
+			ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://'
+					: 'http://')
+					+ 'stats.g.doubleclick.net/dc.js';
+			var s = document.getElementsByTagName('script')[0];
+			s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+</body>
+
+<!-- END BODY -->
+
+</html>

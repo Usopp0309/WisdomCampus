@@ -1,0 +1,105 @@
+package com.guotop.palmschool.system.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.system.entity.Import;
+import com.guotop.palmschool.system.entity.ImportDetail;
+import com.guotop.palmschool.system.service.ImportService;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 导入记录业务实现类
+ * 
+ * @author sheng
+ */
+@Service("importService")
+public class ImportServiceImpl extends BaseService implements ImportService
+{
+	
+	@Override
+	public int addImport(Import imp)
+	{
+		int id = getBaseDao().addObject("Import.addImport", imp);
+		return id;
+	}
+	
+	@Override
+	public void updateImport(Integer importId,Integer status){
+		Map<String, Object> parmMap = new HashMap<String, Object>();
+		parmMap.put("importId", importId);
+		parmMap.put("status", status);
+		getBaseDao().updateObject("Import.updateImport", parmMap);
+	}
+	
+	@Override
+	public void addImportDetail(Integer importId,List<ImportDetail> importDetailList)
+	{
+		Map<String, Object> parmMap = new HashMap<String, Object>();
+		parmMap.put("importId", importId);
+		parmMap.put("importDetailList", importDetailList);
+		getBaseDao().addObject("Import.addImportDetail", parmMap);
+	}
+	
+	@Override
+	@Transactional(rollbackFor=Exception.class)
+	public void addImportAndDetail(Import imp,List<ImportDetail> importDetailList)
+	{
+		int importId = addImport(imp);
+		addImportDetail(importId,importDetailList);
+	}
+	
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public Pages<Import> getImportList(int pageSize, int page, Map<String, Object> paramMap)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<Import> list = new ArrayList<Import>();
+		allRow = (Integer) this.getBaseDao().selectObjectByObject("Import.getImportCount", paramMap);
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		currentPage = Pages.countCurrentPage(page);
+		// 解决ibatis框架的分页问题
+		// 起始数据坐标
+		paramMap.put("startIndex", offset);
+		// 单页数据量
+		paramMap.put("length", length);
+		list = this.getBaseDao().selectListByObject("Import.getImportList", paramMap);
+		
+		Pages<Import> pages = new Pages<Import>();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<ImportDetail> getImportDetailListByImportId(Integer importId,Integer status){
+		Map<String, Object> parmMap = new HashMap<String, Object>();
+		parmMap.put("importId", importId);
+		parmMap.put("status", status);
+		List<ImportDetail> list = getBaseDao().selectListByObject("Import.getImportDetailListByImportId", parmMap);
+		return list;
+	}
+}

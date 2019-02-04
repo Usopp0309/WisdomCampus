@@ -1,0 +1,354 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<head>
+        <meta charset="utf-8" />
+        <title>部门修改</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta content="width=device-width, initial-scale=1" name="viewport" />
+         <!--公共css开始-->
+		<%@ include file="/public_module/public_css_new.jsp"%>
+	 	<!--公共css结束--> 
+        </head>
+    <body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed">
+    	<input class="themes" type="hidden" value="<%=basePath%>">
+        <!-- 公共顶部开始-->
+        <%@ include file="/public_module/public_header.jsp"%>    
+        <!--公共顶部结束-->
+        <div class="clearfix"> </div>
+        <!-- 内容页开始 -->
+        <div class="page-container">
+            <!--主菜单开始-->
+            <%@include file="/public_module/public_menu.jsp"%>
+            <!--主菜单结束-->
+            <div class="page-content-wrapper">
+                <div class="page-content m_overflow_hidden m_page_content">
+                	<div class="col-md-1 col-sm-1 m_padding_0_0_0_15">
+                    <%@include file="/public_module/public_sub_menu.jsp" %>
+                	</div>
+                	<div class="col-md-11 col-sm-11 m_page_con">
+                    <div class="page-bar m_margin_0_0_0_0">
+                        <ul class="page-breadcrumb">
+                            <li><a href="<%=basePath %>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+                            <li><a href="">首页</a><i class="fa fa-circle"></i></li>
+	                        <li><a href="<%=basePath%>camera/toCameraManager.do">视频管理</a><i class="fa fa-circle"></i></li>
+                            <li><span>视频信息修改</span></li>
+                        </ul>
+                    </div>
+                    <h3 class="page-title">视频信息修改</h3>
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="portlet light portlet-fit portlet-form bordered m_margin_15_auto_0">
+                                <div class="portlet-title">
+                                    <div class="caption">
+                                        <i class=" icon-layers font-green"></i>
+                                        <span class="caption-subject font-green sbold uppercase">视频信息修改</span>
+                                    </div>
+                                </div>
+                                <div class="portlet-body form-horizontal">
+                                <form action="<%=basePath%>camera/doModifyCamera.do" id="submitForm" class="form-horizontal" method="post" >
+                                        <div class="form-body">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">设备编码：</label>
+                                                <div class="col-md-4">
+                                                 	<input type="text" size="16" name="cameraCode" value="${camera.cameraCode}" id="cameraCode"  class="form-control"/>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">设备名称：</label>
+                                                <div class="col-md-4">
+                                             <input type="text" size="16" name="cameraName" value="${camera.cameraName}" id="cameraName"  class="form-control"/>
+											<span class="help-inline" style="display: none;" id="cameraNameSpan"></span>
+											<input type="hidden"  value="${camera.cameraName}" id="originalName"/>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3" >设备密：</label>
+                                                <div class="col-md-4">
+                                              <input type="text" size="16" name="password" id="password" class="form-control" placeholder="若输入密码则会修改原密码"/>
+                                            	</div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">类型：</label>
+                                                <div class="col-md-4">
+                                                    <div class="input-icon right">
+                                                        <select  id="type" name="type" class="form-control">
+																<c:if test="${camera.type==0 }">
+													<option value= "0" selected="selected">公用</option>
+													<option value= "1">私用</option>
+													<option value= "2">全校</option>
+												</c:if>
+												<c:if test="${camera.type==1 }">
+													<option value= "0">公用</option>
+													<option value= "1" selected="selected">私用</option>
+													<option value= "2">全校</option>
+												</c:if>
+												<c:if test="${camera.type==2 }">
+													<option value= "0">公用</option>
+													<option value= "1">私用</option>
+													<option value= "2" selected="selected">全校</option>
+												</c:if>
+														</select>
+                                                	</div>
+                                            	</div>
+                                        	</div>
+                                        	 <div class="form-group">
+                                                <label class="control-label col-md-3" >开始日期：</label>
+                                                <div class="col-md-4">
+                                             <input type="text" size="16"  value="${camera.startDay}" name="startDay" id="startDay" class="day form-control" readonly="readonly"/>
+											 <span class="help-inline" style="display: none;" id="startDaySpan"></span>
+                                            	</div>
+                                            </div>
+                                        	 <div class="form-group">
+                                                <label class="control-label col-md-3" >结束日期：</label>
+                                                <div class="col-md-4">
+                                            <input type="text" size="16" value="${camera.endDay}" name="endDay" id="endDay" class="day form-control" readonly="readonly"/>
+											<span class="help-inline" style="display: none;" id="endDaySpan"></span>
+                                            	</div>
+                                            </div>
+                                        	 <div class="form-group">
+                                                <label class="control-label col-md-3" >开始时间：</label>
+                                                <div class="col-md-4">
+                                            <input type="text" size="16" value="${camera.startTime}" name="startTime" id="startTime" class="time form-control" readonly="readonly"/>
+											<span class="help-inline" style="display: none;" id="startTimeSapn"></span>
+                                            	</div>
+                                            </div>
+                                        	 <div class="form-group">
+                                                <label class="control-label col-md-3" >结束时间：</label>
+                                                <div class="col-md-4">
+                                            <input type="text" size="16" value="${camera.endTime}" name="endTime" id="endTime" class="time form-control" readonly="readonly"/>
+											<span class="help-inline" style="display: none;" id="endTimeSapn"></span>
+                                            	</div>
+                                            </div>
+                                        	 <div class="form-group">
+                                                <label class="control-label col-md-3" >地点名称：</label>
+                                                <div class="col-md-4">
+                                            <select class="form-control" id="placeId" name="placeId">
+											</select>
+											<span class="help-inline" style="display: none;" id="placeIdSpan"></span>
+                                            	</div>
+                                            </div>
+                                        <div class="form-actions">
+                                            <div class="row">
+                                                <div class="col-md-offset-3 col-md-9">
+                                                    <button type="button" class="btn green" id="submitButton">确定</button>
+                                                    <button type="button" class="btn" onclick="history.go(-1)">返回</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                </div>
+                                <input type="hidden" value="${cameraId}" name="cameraId" id="cameraId"/>
+									<input type="hidden" value="${camera.placeId}" name="place" id="place"/>
+								</form>
+                            </div>
+                                </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 亦信聊天开始 -->
+        	<%@ include file="/public_module/public_QQ.jsp" %>
+            <!-- 亦信聊天结束 -->
+        </div>
+        <!-- 内容页结束 -->
+        <!-- 底部开始 -->
+        <%@ include file="/public_module/public_footer.jsp" %>
+        <!-- 底部结束 -->
+    </body>
+        <!-- 公共js开始 -->
+        <%@ include file="/public_module/public_js.jsp" %>
+        <!-- 公共js结束 -->
+	<script>
+
+	jQuery(document).ready(function() { 
+		loadSubMenu("liveCameraManager"); 
+		//选取当前菜单位置
+		setActive("liveCameraManager","cameraManager");  
+		$('.day').datetimepicker({
+			format:'Y-m-d',
+			timepicker:false
+		}); 
+		$('.time').datetimepicker({
+			datepicker:false,
+			format:'H:i',
+			step:5
+		}); 
+		 
+		$("body,html",parent.document).animate({ scrollTop: 0 }, 0);
+		App.init();
+		loadPlaceList();
+        //设备编码校验
+        $("#cameraCode").blur(function(){
+            var cameraCode = $("#cameraCode").val();
+            var originalcode = $("#originalcode").val();
+            if("" == cameraCode)
+            {
+                $("#cameraCodeGroup").addClass("error");
+                $("#cameraCodeSpan").show();
+	            $("#cameraCodeSpan").html("设备编码不能为空");
+            } 
+//             else if(checkCode(cameraCode,originalcode))
+//             {
+//             	$("#cameraCodeGroup").addClass("error");
+//                 $("#cameraCodeSpan").show();
+//		            $("#cameraCodeSpan").html("设备编码已存在");
+//             }
+            else
+            {
+                $("#cameraCodeGroup").removeClass("error");
+                $("#cameraCodeSpan").hide();
+            }
+        });
+
+      //结束日期校验
+        $("#endDay").blur(function(){
+            var startDay = $("#startDay").val();
+            var endDay = $("#endDay").val();
+            var start = new Date(startDay.replace("-", "/").replace("-", "/"))
+            var end = new Date(endDay.replace("-", "/").replace("-", "/"))
+            if(startDay!="" && endDay!="" && start>end)
+            {
+                $("#endDayGroup").addClass("error");
+                $("#endDaySpan").show();
+	            $("#endDaySpan").html("结束日期不能晚于开始日期");
+            }
+            else
+            {
+               $("#endDayGroup").removeClass("error");
+               $("#endDaySpan").hide();
+            }
+        });
+         //记地点类型验证
+        $("#placeId").blur(function(){
+            var placeId = $("#placeId").val();
+            if(0 == placeId)
+            {
+                $("#placeIdGroup").addClass("error");
+                $("#placeIdSpan").show();
+	            $("#placeIdSpan").html("请选择地点");
+            }
+            else
+            {
+               $("#placeIdGroup").removeClass("error");
+               $("#placeIdSpan").hide();
+            }
+        });
+        
+		//表单提交
+		$("#submitButton").click(function()
+		{
+		    if(checkForm())
+			{
+			    $("#submitForm").submit();
+			}
+		});	
+	});
+	
+	//表单校验相关---begin
+	
+	function checkForm()
+	{
+		 //验证常量 
+        var cameraCodeFlag = false;
+        var placeIdFlag = false;
+        var timeFlag = false;
+	
+        //设备编码校验
+          var cameraCode = $("#cameraCode").val();
+          var originalcode = $("#originalcode").val();
+          if("" == cameraCode)
+          {
+              $("#cameraCodeGroup").addClass("error");
+              $("#cameraCodeSpan").show();
+              $("#cameraCodeSpan").html("设备编码不能为空");
+              cameraCodeFlag = false;
+          }
+//           else if(checkCode(cameraCode,originalcode))
+//           {
+//           		$("#cameraCodeGroup").addClass("error");
+//               	$("#cameraCodeSpan").show();
+//		            $("#cameraCodeSpan").html("设备编码已存在");
+//           }
+          else
+          {
+              $("#cameraCodeGroup").removeClass("error");
+              $("#cameraCodeSpan").hide();
+              cameraCodeFlag = true;
+          }
+
+          var startDay = $("#startDay").val();
+          var endDay = $("#endDay").val();
+          var start = new Date(startDay.replace("-", "/").replace("-", "/"))
+          var end = new Date(endDay.replace("-", "/").replace("-", "/"))
+          if(startDay!="" && endDay!="" && start>end)
+          {
+              $("#endDayGroup").addClass("error");
+              $("#endDaySpan").show();
+        	  $("#endDaySpan").html("结束日期不能晚于开始日期");
+        	  timeFlag = false;
+          }
+          else
+          {
+             $("#endDayGroup").removeClass("error");
+             $("#endDaySpan").hide();
+             timeFlag = true;
+          }
+
+         //记地点类型验证
+          var placeId = $("#placeId").val();
+          if(0 == placeId)
+          {
+              $("#placeIdGroup").addClass("error");
+              $("#placeIdSpan").show();
+              $("#placeIdSpan").html("请选择地点");
+              placeIdFlag = false;
+          }
+          else
+          {
+             $("#placeIdGroup").removeClass("error");
+             $("#placeIdSpan").hide();
+             placeIdFlag = true;
+          }
+		
+		if (cameraCodeFlag && placeIdFlag)
+		{
+			return true;
+		}	
+		else
+		{
+			return false;
+		}
+	
+	}
+
+	//加载记录点页面
+	function loadPlaceList()
+	{
+		var body = $("#body");
+		$.ajax({
+			type: "post",
+			url: "<%=basePath%>camera/getPlaceList.do",
+			dataType:"json",
+			data:{
+			},
+			success: function(list){
+				var appendHtml = '<option value="0">---请选择---</option>';
+				$.each(list, function(n, value) {  
+					appendHtml += '<option value="'+value.id+'">'+value.name+'</option>';
+      			}); 
+      			$("#placeId").html(appendHtml);
+      			var placeId = $("#place").val();
+      			if (placeId == null || placeId == "" || placeId == undefined)
+				{
+					$("#placeId").val("0");
+				}
+				else
+				{
+					$("#placeId").val(placeId);
+				}
+      			
+			},
+		});
+	}
+	</script>
+</html>

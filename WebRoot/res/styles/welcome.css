@@ -1,0 +1,20 @@
+#welcome table { width: 100%;}
+#welcome table td { vertical-align: top; }
+#welcome .right { width: 218px; padding-left: 25px; }
+
+#welcome .title { text-align: center; font-size: 14px; font-weight: bold; padding: 15px 0; }
+
+#welcome .board .con {padding: 0 15px 20px; line-height: 20px; }
+
+.mes {background: url('menu/messageonline.png') no-repeat; width: 985px;height: 636px;}
+/* .detail{position:relative; top:30px; padding: 0 15px 20px; line-height: 10px; } */
+
+#welcome .msg .con { padding: 0 30px 20px; }
+#welcome .msg table { table-layout: fixed; border-top: 1px dotted #ccc; margin-bottom: 15px; width: 100%; }
+#welcome .msg table.ctable0 { border-top: 0; }
+#welcome .msg .pic { padding: 18px 5px 0 15px; width: 40px; }
+#welcome .msg .ac { padding-top: 18px; }
+#welcome .msg .auth { line-height: 18px; }
+#welcome .msg .auth .name { padding: 0 18px 0 6px; }
+#welcome .msg .cont { line-height: 18px; text-indent: -1em; padding-left: 1em; }
+

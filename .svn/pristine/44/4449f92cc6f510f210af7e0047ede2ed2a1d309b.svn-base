@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="MeetingDetail">
+	<typeAlias alias="meetingDetail" type="com.guotop.palmschool.meeting.entity.MeetingDetail" />
+
+	<resultMap class="com.guotop.palmschool.meeting.entity.MeetingDetail" id="result-meetingDetail">
+		<result property="id" column="id" />
+		<result property="meetingName" column="meetingName" />
+		<result property="content" column="content" />
+		<result property="attendeeId" column="attendeeId" />
+		<result property="attendee" column="attendee" />
+		<result property="attenStatus" column="attenStatus" />
+		<result property="meetingTime" column="meetingTime" />
+		<result property="meetingPlace" column="meetingPlace" />
+		<result property="meetingPlaceName" column="meetingPlaceName" />
+		<result property="meetingId" column="meetingId" />
+		<result property="createTime" column="createTime" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.meeting.entity.MeetingDetail" id="meetingDetail">
+		<result property="id" column="id" />
+		<result property="meetingName" column="meetingName" />
+		<result property="content" column="content" />
+		<result property="attendeeId" column="attendeeId" />
+		<result property="attendee" column="attendee" />
+		<result property="attenStatus" column="attenStatus" />
+		<result property="meetingTime" column="meetingTime" />
+		<result property="meetingPlace" column="meetingPlace" />
+		<result property="meetingId" column="meetingId" />
+		<result property="createTime" column="createTime" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.meeting.entity.MeetingDetail" id="result-detail">
+		<result property="id" column="id" />
+		<result property="meetingName" column="meetingName" />
+		<result property="content" column="content" />
+		<result property="attendeeId" column="attendeeId" />
+		<result property="attendee" column="attendee" />
+		<result property="attenStatus" column="attenStatus" />
+		<result property="meetingTime" column="meetingTime" />
+		<result property="meetingPlace" column="meetingPlace" />
+		<result property="meetingId" column="meetingId" />
+		<result property="createTime" column="createTime" />
+	</resultMap>
+
+	<resultMap class="com.guotop.palmschool.meeting.entity.MeetingDetail" id="meetingDetailAPP">
+		<result property="id" column="id" />
+		<result property="meetingName" column="meetingName" />
+		<result property="content" column="content" />
+		<result property="attendeeId" column="attendeeId" />
+		<result property="attendee" column="attendee" />
+		<result property="attenStatus" column="attenStatus" />
+		<result property="meetingTime" column="meetingTime" />
+		<result property="meetingPlace" column="meetingPlace" />
+		<result property="meetingId" column="meetingId" />
+		<result property="createTime" column="createTime" />
+		<result property="code" column="code" />
+		<result property="departmentName" column="departmentName" />
+	</resultMap>
+	<!-- 新增异常记录 -->
+	<insert id="addMeetingDetail" parameterClass="meetingDetail">
+		insert into palm_meeting_detail
+		(
+		meetingName,
+		content,
+		attendeeId,
+		attendee,
+		attenStatus,
+		meetingTime,
+		meetingPlace,
+		meetingId,
+		createTime
+		)
+		values
+		(
+		#meetingName#,
+		#content#,
+		#attendeeId#,
+		#attendee#,
+		#attenStatus#,
+		#meetingTime#,
+		#meetingPlace#,
+		#meetingId#,
+		#createTime#
+		)
+	</insert>
+	
+	<delete id="deleteMeetingDetail"  parameterClass="Integer">
+	     delete from palm_meeting_detail where meetingId = #meetingId#
+	</delete>
+
+   <!-- 通过meetingId查询会议详情 -->
+	<select id="selectMeetingDetailByMeetingId" parameterClass="Integer" resultMap="result-detail">
+		select * from palm_meeting_detail 
+		   where meetingId = #meetingId#
+	</select>
+	
+	<!-- 通过ID查询会议详情 -->
+	<select id="selectMeetingDetailById" parameterClass="Integer" resultMap="result-meetingDetail">
+		select d.*,p.name as meetingPlaceName from palm_meeting_detail d,palm_place p
+		   where d.meetingPlace = p.id and d.id = #id#
+		    
+	</select>
+	
+	<!-- 更新出席状态根据打卡时间和会议Id  20151211-->
+	<update id="updateAttensta" parameterClass="HashMap">
+		update palm_meeting_detail
+		set 
+		attenStatus= #attenStatus#
+		where meetingId = #meetingId#
+		and  attendeeId = #attendeeId#	
+	</update>
+	
+	<!-- 根据会议Id查询会议详情  20151208 -->
+	<select id="getMeetingDetailListByMeetingId" parameterClass="HashMap" resultMap="meetingDetail">
+		select md.* from palm_meeting_detail md
+		   where  md.meetingId = #meetingId#
+		   <isNotEmpty prepend="and" property="queryContent">
+		      md.attendee LIKE CONCAT('%',#queryContent#,'%')
+		   </isNotEmpty>
+		   
+		   <isNotEmpty property="attenStatus">
+		
+			    <isEqual property="attenStatus" compareValue="0">
+				    and md.attenStatus = #attenStatus#
+				</isEqual>
+				
+				<isEqual property="attenStatus" compareValue="1">
+					and md.attenStatus = #attenStatus#
+				</isEqual>
+				
+				<isEqual property="attenStatus" compareValue="3">
+					and md.attenStatus = #attenStatus#
+				</isEqual>
+				
+				<isEqual property="attenStatus" compareValue="4">
+					 and md.attenStatus IN (0,1,2,3)
+				</isEqual>
+		 </isNotEmpty>
+		   order by md.createTime desc
+	</select>
+	
+	<!-- 更新会议信息  20151208-->
+	<update id="updateMeetingDetail" parameterClass="meetingDetail">
+		update palm_meeting_detail
+		set 
+		content= #content#
+		where meetingId = #meetingId#	
+	</update>
+	
+	<!-- 根据UserId查询会议详情 查看自己参加的会议  20151208 -->
+	<select id="getMeetingDetailListByUserId" parameterClass="HashMap" resultMap="result-meetingDetail">
+		select md.*,p.name as meetingPlaceName 
+		   from palm_meeting_detail md, palm_place p
+		   where p.id = md.meetingPlace 
+		   and  md.attendeeId = #userId#
+		   <!-- 会议名称 -->
+		    <isNotEmpty prepend="and" property="name">
+	           md.meetingName LIKE CONCAT('%',#name#,'%')
+		    </isNotEmpty>
+		    <!-- 会议地点 -->
+		    <isNotEmpty prepend="and" property="meetingPlace">
+				p.name LIKE CONCAT('%',#meetingPlace#,'%')
+		    </isNotEmpty>
+		   order by createTime desc
+	</select>
+	
+	<!-- 根据会议Id查询会议详情  20151208 -->
+	<select id="getMeetingDetailListByMeetingIdAPP" parameterClass="HashMap" resultMap="meetingDetailAPP">
+		SELECT md.*,u.code,d.departmentName FROM palm_meeting_detail md,platform.user_detail u,palm_user_department ud,palm_department d 
+		   WHERE  md.attendeeId = u.userId 
+		   AND ud.userId = md.attendeeId 
+		   AND ud.departmentId = d.id 
+		   AND  md.meetingId = #meetingId#
+		   <isNotEmpty prepend="and" property="queryContent">
+		     (
+		     	md.attendee LIKE CONCAT('%',#queryContent#,'%') or d.departmentName LIKE CONCAT('%',#queryContent#,'%')
+		     ) 
+		   </isNotEmpty>
+		   
+		   <isNotEmpty property="attenStatus">
+		
+			    <isEqual property="attenStatus" compareValue="0">
+				    AND md.attenStatus = #attenStatus#
+				</isEqual>
+				
+				<isEqual property="attenStatus" compareValue="1">
+					AND md.attenStatus = #attenStatus#
+				</isEqual>
+				
+				<isEqual property="attenStatus" compareValue="3">
+					AND md.attenStatus = #attenStatus#
+				</isEqual>
+				
+				<isEqual property="attenStatus" compareValue="4">
+					 AND md.attenStatus IN (0,1,2,3)
+				</isEqual>
+		 </isNotEmpty>
+		   ORDER BY md.createTime DESC
+		   
+		   <isNotEmpty property="startIndex">
+				 LIMIT #startIndex#, #length#
+			</isNotEmpty>
+	</select>
+	
+	<!-- 根据UserId查询会议详情 查看自己参加的会议 (APP) -->
+	<select id="getMeetingDetailListByUserIdAPP" parameterClass="HashMap" resultClass="meetingDetail">
+		select md.*,m.startTime,m.endTime,p.name as meetingPlaceName from palm_meeting_detail md,palm_meeting m, palm_place p
+		   where md.meetingId = m.id
+		   	 and p.id = md.meetingPlace 
+		   	 and md.attendeeId = #userId#
+		   <!-- 会议名称 -->
+		    <isNotEmpty prepend="and" property="queryContent">
+	          (
+	             md.meetingName LIKE CONCAT('%',#queryContent#,'%') or p.name LIKE CONCAT('%',#queryContent#,'%')
+	          ) 
+		    </isNotEmpty>
+		   order by md.createTime desc
+		    <isNotEmpty property="startIndex">
+				 LIMIT #startIndex#, #length#
+			</isNotEmpty>
+	</select>
+</sqlMap>

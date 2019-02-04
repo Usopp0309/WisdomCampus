@@ -1,0 +1,131 @@
+package com.guotop.palmschool.scheduler;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import com.guotop.palmschool.entity.OrderMessage;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.scheduler.entity.SchoolCountInfo;
+import com.guotop.palmschool.scheduler.entity.SchoolCountInfoServiceHistory;
+import com.guotop.palmschool.scheduler.service.CountService;
+import com.guotop.palmschool.service.OrderMessageService;
+import com.guotop.palmschool.service.SchoolService;
+import com.guotop.palmschool.util.TimeUtil;
+
+/**
+ * 统计学校人数，短信数等信息
+ * 
+ * @author jfy
+ * @date 2015年12月7日
+ */
+@Component("countScheduler")
+public class CountScheduler
+{
+	private Logger logger = LoggerFactory.getLogger(CountScheduler.class);
+	
+	@Resource
+	private CountService countService;
+	@Resource
+	private OrderMessageService orderMessageService;
+	@Resource
+	private SchoolService schoolService;
+	@Autowired
+	private ThreadPoolTaskExecutor poolTaskExecutor;
+	
+	@Scheduled(cron = "0 30 23 * * ?")
+	public void countJob()
+	{
+		//获取待统计学校列表
+		List<SchoolCountInfo> dataSourcelist = countService.getSchoolDataSorceList();
+		if(!CollectionUtils.isEmpty(dataSourcelist)){
+			for (SchoolCountInfo ci : dataSourcelist)
+			{
+				try{	
+						String currentTime = TimeUtil.getInstance().now();
+						Long schoolId = ci.getSchoolId();
+						SchoolCountInfo schoolCountInfo = countService.getCountInfoBySchoolId(schoolId);
+						if(schoolCountInfo != null){
+							countService.addCountInfoBK(schoolCountInfo);
+						}else{
+							schoolCountInfo = new SchoolCountInfo();
+							schoolCountInfo.setSchoolId(schoolId);
+							schoolService.addSchoolCountInfo(schoolCountInfo);
+						}
+						//切换数据源之前先添加到备份表中
+						DBContextHolder.setDBType(String.valueOf(schoolId));
+						//获取统计数据
+						Integer userCount = countService.getUserCountBySchoolId(schoolId);
+						Integer studentCount = countService.getStudentCountBySchoolId();
+						Integer teacherCount = countService.getTeacherCountBySchoolId();
+						//更新统计数据
+						schoolCountInfo.setUserCount(userCount);
+						schoolCountInfo.setStudentCount(studentCount);
+						schoolCountInfo.setTeacherCount(teacherCount);
+						schoolCountInfo.setSchoolId(schoolId);
+						countService.updateCountInfo(schoolCountInfo);	
+						
+						//获取所有面向个人的套餐
+						List<OrderMessage> orderMessageList = orderMessageService.getAllProduct();
+						if(!CollectionUtils.isEmpty(orderMessageList)){
+							for(OrderMessage orderMessage : orderMessageList){
+								try{
+									/*
+									 * 开始学校服务费统计
+									 */
+									Integer messageId = orderMessage.getId();
+									SchoolCountInfoServiceHistory scis = new SchoolCountInfoServiceHistory();
+									scis.setSchoolId(schoolId);
+									scis.setUserCount(userCount);
+									scis.setTeacherCount(teacherCount);
+									scis.setStudentCount(studentCount);
+									Integer alreadyPayCount = orderMessageService.getOrderMessgeFreeOrAlreadyPayCountByMessageId(messageId, 0);
+									if(alreadyPayCount == null){
+										alreadyPayCount = 0;
+									}
+									scis.setAlreadyPayCount(alreadyPayCount);
+									Integer freePayCount = orderMessageService.getOrderMessgeFreeOrAlreadyPayCountByMessageId(messageId, 1);
+									if(freePayCount == null){
+										freePayCount = 0;
+									}
+									scis.setFreePayCount(freePayCount);
+									Integer unPayCount = studentCount-alreadyPayCount-freePayCount;
+									scis.setUnPayCount(unPayCount);
+									scis.setMessageId(messageId);
+									scis.setName(orderMessage.getName());
+									scis.setPrice(orderMessage.getPrice());
+									scis.setStartTime(orderMessage.getStartTime());
+									scis.setEndTime(orderMessage.getEndTime());
+									scis.setType(orderMessage.getType());
+									scis.setStatus(orderMessage.getStatus());
+									scis.setIsVirtual(orderMessage.getIsVirtual());
+									scis.setRangeObject(orderMessage.getRangeObject());
+									scis.setCardPrice(orderMessage.getCardPrice());
+									scis.setServicePrice(orderMessage.getServicePrice());
+									scis.setCreateTime(currentTime);
+									scis.setUpdateTime(currentTime);
+									
+									countService.addSchoolCountInfoServiceHistory(scis);
+									
+								}catch(Exception e){
+									logger.error("学校服务费统计失败,CountScheduler:" + ci.getSchoolId()+ e.getMessage());
+									continue;
+								}
+							}
+						}
+				}catch(Exception e){
+					logger.error("统计学校人数失败,CountScheduler:" + ci.getSchoolId());
+					continue;
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,295 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>晨检列表</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+</head>
+	<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+		<input class="themes" type="hidden" value="<%=ThemePath%>">
+	    <!-- 公共顶部开始-->
+	    <%@ include file="/public_module/public_header.jsp"%>    
+	    <!--公共顶部结束-->
+	    <div class="clearfix"> </div>
+	    <!-- 内容页开始 -->
+	    <div class="page-container">
+	        <!--主菜单开始-->
+	        <%@include file="/public_module/public_menu.jsp"%>
+	        <!--主菜单结束-->
+	        <div class="page-content-wrapper">
+	            <div class="page-content m_overflow_hidden m_page_content">
+	            	<!-- 页面内容开始 -->
+	            	<div class="col-md-12 col-sm-12 m_page_con">
+	                <div class="page-bar m_margin_0_0_0_0">
+	                    <ul class="page-breadcrumb">
+	                        <li><a href="">首页</a><i class="fa fa-circle"></i></li>
+	                        <li><a href="">平安校园</a><i class="fa fa-circle"></i></li>
+	                        <li><span>晨检列表</span></li>
+	                    </ul>
+	                </div>
+	                <h3 class="page-title">晨检列表</h3>
+	                <div class="row">
+	                    <div class="col-md-12 col-sm-12">
+	                    	<div class="m_margin_0_0_15_0">
+	                    		<!-- 角色切换开始 -->
+	                    		<ul class="nav nav-tabs"  id="userTab">
+	                                <c:forEach items="${sessionScope.user.roleList}" var="roleList">
+									<c:if test="${roleList.roleCode eq 'parent' || roleList.roleCode eq 'classLeader' || roleList.roleCode eq 'president' || roleList.roleCode eq 'admin'}">
+										<li class="roleLi">
+											<a attr1="${sessionScope.user.userId}" attr2="${roleList.roleCode}" >${sessionScope.user.realName}(${roleList.roleName})
+											</a>
+										</li>
+									</c:if>
+								</c:forEach>	
+	                            </ul>
+	                            <input type="hidden" name="userId" id="userId" value="${sessionScope.user.userId}"/>	
+	                    		<!-- 角色切换结束 -->
+	                        </div>
+	                        <!-- 页面搜索开始 -->
+	                        <div class="portlet light form-fit bordered search_box">
+	                        	
+	                         <div class="row m_margin_10_auto">
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">选择班级:</span>
+	                         		<select class="form-control m_select" id="classSelect" name="clazz">
+	                                </select>
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">开始时间:</span>
+	                         		<input class="m_input form-control" type="text" name="startTime" id="startTime" >
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">结束时间:</span>
+	                         		<input class="m_input form-control" type="text" name="endTime" id="endTime" >
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">选择类型:</span>
+	                         		<select class="form-control m_select" id="typeSelect" name="type">
+	                         			<option value="">全部</option>
+										<option value="0">正常</option>
+										<option value="1">异常</option>
+	                                </select>
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">姓名：</span>
+	                         		<input class="m_input form-control" type="text" id="queryContent" name="condition">
+	                         	</div>
+		                         <div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+		                         	<button type="button" class="btn green" id="search">查找</button>
+		                         </div>
+	                         </div>
+	                        </div>
+	                       	<div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption">
+	                                    <i class="fa fa-list"></i>进出记录列表</div>
+	                            </div>
+	                            <div class="portlet-body flip-scroll">
+	                                <table class="table table-bordered table-hover" id="sample_1">
+	                                    <thead class="flip-content">
+	                                        <tr>
+	                                            <th class="m_width_15">姓名</th>
+												<th class="m_width_15">卡号</th>
+												<th class="m_width_10">班级</th>
+												<th class="m_width_15">班主任</th>	
+												<th class="m_width_10">晨检老师</th>
+												<th class="m_width_15">家长手机号</th>
+												<th class="m_width_5">类型</th>
+												<th class="m_width_15">时间</th>
+												<th class="m_width_5">详情</th>
+	                                        </tr>
+	                                    </thead>
+	                                    <tbody id="tbody">
+	                                       
+	                                    </tbody>
+	                                </table>
+	                            </div>
+	                        </div>
+	                       <!-- 列表展现开始 -->
+	                        <!-- 分页开始 -->
+	                        <%@include file="/public_module/public_page.jsp" %>
+	                        <!-- 分页结束 -->
+	                    </div>
+	                </div>
+	                </div>
+	                <!--页面内容结束 -->
+	            </div>
+	        </div>
+	        <!-- 亦信聊天开始 -->
+	    	<%@ include file="/public_module/public_QQ.jsp" %>
+	        <!-- 亦信聊天结束 -->
+	    </div>
+	    <!-- 内容页结束 -->
+	    <!-- 底部开始 -->
+	    <%@ include file="/public_module/public_footer.jsp" %>
+	    <!-- 底部结束 -->
+	    <!-- 弹窗开始  大小参数：modal-lg, modal-sm-->
+	    <div class="modal fade bs-modal-sm" id="small" tabindex="-1" role="dialog" aria-hidden="true">
+	        <div class="modal-dialog modal-sm">
+	            <div class="modal-content">
+	                <div class="modal-header">
+	                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+	                    <h4 class="modal-title">天窗标题</h4>
+	                </div>
+	                <div class="modal-body">弹窗主题</div>
+	                <div class="modal-footer">
+	                    <button type="button" class="btn dark btn-outline" data-dismiss="modal">确定</button>
+	                    <button type="button" class="btn green">取消</button>
+	                </div>
+	            </div>
+	            <!-- /.modal-content -->
+	        </div>
+	        <!-- /.modal-dialog -->
+	    </div>
+	    <!-- 弹窗结束 -->
+	</body>
+    <!-- 公共js开始 -->
+    <%@ include file="/public_module/public_js.jsp" %>
+    <!-- 公共js结束 -->
+</html>
+	<script>
+		$(function(){
+			loadSubMenu("safeSchool");
+			//选取当前菜单位置
+			setActive("safeSchool","morningCheck");  
+			$('#startTime,#endTime').datetimepicker({
+				 format:"Y-m-d H:i:s" 
+			});
+			//加载班级信息
+			var userId = $("#userId").val();
+			var roleCode = $("#userTab li.active").find('a').attr("attr2");
+			loadclazzList(userId, 'morningCheck');
+			loadCheckList(userId,roleCode,null);
+			$("#search").on("click",function(){
+				loadCheckList(userId,roleCode,null);
+			})
+			$("#queryContent").keypress(function(event){
+				if(event.which == "13")    
+            	{
+					$("#search").click();
+					return false;
+            	}
+			});
+			});
+		
+			// 加载班级列表
+			function loadclazzList(userId, permissionCode)
+			{
+				$.ajax({
+					type: "post",
+					url: "<%=basePath%>baseData/loadClazzList.do",
+					data:{
+							userId : userId,
+							permissionCode : permissionCode
+						},
+					success: function(data){
+
+						var clazzList = eval("(" + data + ")");
+						
+						var appendHtml = '<option value="" selected="selected">---请选择---</option>';
+						$.each(clazzList, function(n, value) {
+								appendHtml += '<option value="' + value.id + '">' + value.clazzName + '</option>';
+							
+	           			});  
+						 
+	           			$("#classSelect").html(appendHtml);
+					},
+				});
+			}
+			
+		function loadCheckList( userId, roleCode, cPage){
+			var body = $("#body");
+			App.blockUI(body);
+			
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>morningCheck/getAllMorningCheckList.do",
+				data:{
+				    	clazzId : $("#classSelect").val(),
+					    queryContent : $("#queryContent").val(),
+						userId : userId,
+						roleCode : roleCode,
+						state : $("#typeSelect").val(),
+						startTime:$("#startTime").val(),
+						endTime:$("endTime").val(),
+						cPage : cPage
+					},
+				success: function(data){
+					var data = $.parseJSON(data);
+					var appendHtml = '';
+					$("#currentPage").html(data.currentPage);
+					$("#totalPage").html(data.totalPage);
+					$.each(data.list,function(n,value){
+						if (n%2 == 0)
+						{
+							appendHtml += '<tr style="background-color: #ededed">';
+						}
+						else
+						{
+							appendHtml += '<tr>';
+						}	
+						appendHtml += '<td>' + value.name + '</td>';
+						appendHtml += '<td>' + value.cardCode + '</td>';
+						appendHtml += '<td>' + value.clazzName + '</td>';
+						appendHtml += '<td>' + value.leaderName + '</td>';
+						appendHtml += '<td>' + value.teacherName + '</td>';
+						appendHtml += '<td>' + value.parentPhone + '</td>';
+						if (value.state==0){
+							appendHtml += '<td>正常</td>';
+						}else{
+							appendHtml += '<td>异常</td>';
+						}
+						var time = value.createTime;
+						if (typeof(time)=="undefined"){
+							time = "";
+						}else{
+							time = time.substr(0, time.length-2)
+						}
+	           			appendHtml += '<td>' + time+ '</td>';
+						appendHtml += '<td><a href="javascript:;" class="btn btn-sm green" onclick="showDetail('+ value.id +')" >详情</a></td>';
+						appendHtml += '</tr>';
+					});
+          			$("#tbody").html(appendHtml);
+          			//解锁UI
+          			App.unblockUI(body);
+				},
+			});
+		}
+		function showDetail(id){
+			standardPost('<%=basePath%>morningCheck/showDetail.do',{id:id});
+		}
+		//分页相关
+		function jumpPage(type)
+		{
+			var cPage = $("#currentPage").html();
+			var totalPage = $("#totalPage").html();
+
+			var cPageInt = parseInt(cPage);
+			var totalPageInt = parseInt(totalPage);
+						
+			var newCPageInt = returnCPageInt(type,cPageInt,totalPageInt);
+			if(newCPageInt < 0){
+				return;
+			}else{
+				cPageInt = newCPageInt;
+			}		
+				//用户ID
+				var userId = $("#userId").val();
+				//角色ID
+				//var roleCode = $("ul li.active").find('a').attr("attr2");
+				var roleCode = $("#userTab li.active").find('a').attr("attr2");
+				
+				loadCheckList(userId, roleCode, cPageInt);
+			
+			   $("#currentPage").html(cPageInt);
+		}
+	</script>
+</html>

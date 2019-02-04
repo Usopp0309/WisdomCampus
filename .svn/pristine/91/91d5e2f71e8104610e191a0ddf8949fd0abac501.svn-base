@@ -1,0 +1,300 @@
+/* css reset */
+
+			body{color:#000;background:#fff;font:13px/1.5 "Microsoft Yahei";line-height:166.6%;text-align:center;}
+			body,input,select,button{font-family:verdana}
+			h1,h2,h3,select,input,button{font-size:100%}
+			body,h1,h2,h3,ul,li,form,p,img{margin:0;padding:0;border:0}
+			input,button,select,img{margin:0;line-height:normal}
+			select{padding:1px}
+			ul{list-style:none}
+			select,input,button,button img,label{vertical-align:middle}
+			header,footer,section,aside,nav,hgroup,figure,figcaption{display:block;margin:0;padding:0;border:none}
+			a{text-decoration:none;color:#848585}
+			a:hover{color:#000}
+			.fontWeight{font-weight:700;}
+			/* global */
+			.unvisi{visibility:hidden}
+			/* backgroundImage */
+			.headerIntro,
+			.loginIcoCurrent,
+			.loginFuncNormal,
+			.loginFuncMobile,
+			.loginIcoNew,
+			.themeText li,
+			.domain,
+			.whatAutologin,
+			.btn,
+			.dialogbox .hd .rc,
+			.dialogbox .hd,
+			.btn-moblogin,
+			.btn-moblogin2,
+			.loginFormIpt-over .loginFormTdIpt,
+			.loginFormIpt-focus .loginFormTdIpt,
+			.ico,
+			.ext,
+			.locationTestTitle,
+			.verSelected,
+			.servSelected,
+			.locationTestTitleClose,
+			#extText li,
+			#extMobLogin li,
+			#mobtips_arr,
+			#mobtips_close{background-image:url(../image_m/bg_v3.png)}
+			.headerLogo,
+			.headerIntro,
+			.headerNav,
+			#headerEff,
+			.footerLogo,
+			.footerNav,
+			.loginIcoCurrent,
+			.loginIcoNew,
+			.loginFormTh,
+			.loginFormTdIpt,
+			#loginFormSelect,
+			#whatAutologinTip,
+			#mobtips,
+			#mobtips_arr,
+			#mobtips_close{position:absolute}
+			/* ico */
+			.ico-arr{display:inline-block;width:7px;height:12px;vertical-align:baseline;background-position:-160px -112px;}
+			.ico-arr-d{background-position:-160px -110px;}
+			.loginFormConf a:hover .ico-arr-d,
+			.ico-arr-d-focus{background-position:-176px -110px;}
+			*+html .ico-arr-d{background-position:-160px -112px;}
+			*+html .loginFormConf a:hover .ico-arr-d,
+			*+html .ico-arr-d-focus{background-position:-176px -112px;}
+			/* header */
+			
+			.headerLogo{top:20px;left:0px}
+			.headerIntro{height:28px;width:160px;display:block;background-position:0 -64px;top:17px;left:144px}
+			.headerNav{top:55px;right:0px;width:300px;text-align:right}
+			.headerNav a{margin-left:13px}
+			#headerEff{}
+			/* main */
+			.main{}
+			.main-inner{width:900px;height:440px;overflow:visible;margin:0 auto;position:relative;clear:both}
+			#theme{height:440px;width:900px;position:absolute;overflow:hidden;z-index:1;background-position:top right;background-repeat:no-repeat;text-align:left;top:0;left:0;}
+			.themeLink{height:274px;width:430px;display:block;outline:0;}
+			.themeText{margin-left:26px;}
+			.themeText li{line-height:22px;-line-height:24px;height:24px;color:#858686;text-indent:12px;background-position:-756px -72px;background-repeat:no-repeat}
+			.themeText li a{color:#005590;text-decoration:underline;}
+			.login{width:300px;height:388px;overflow:;float:right;margin-right:30px;margin-top:24px;background:#fff;border:1px solid #afc2af;_display:inline;text-align:left;position:relative;z-index:2;border-radius:2px;}
+			.login,
+			.unishadow{box-shadow:0px 1px 3px 0 rgba(0,0,0,0.2);-webkit-box-shadow:0px 1px 3px 0 rgba(0,0,0,0.2);-moz-box-shadow:0px 1px 3px 0 rgba(0,0,0,0.2);}
+			.loginFunc{width:338px;height:55px;overflow:hidden;clear:both;}
+			.loginFuncNormal,.loginFuncMobile{top:15px;width:338px;height:59px;overflow:hidden;position:relative;font-weight:700;border-right:1px #afc2af solid;background-position:0 0;float:left;font-size:14px;text-align:center;background-repeat:repeat-x;color:#333;cursor:pointer;}
+			.loginFuncMobile{background-position:0px 0px;width:169px;border-right:none;}
+			.loginIcoCurrent{width:24px;height:24px;left:26px;top:9px;display:none;}
+			.loginIcoNew{width:21px;height:10px;font-size:0;background-position:-684px 0;left:135px;top:12px;}
+			.tab-1 .loginFuncNormal,
+			.tab-2 .loginFuncMobile{background:none;}
+			.tab-2 .loginFuncMobile .loginIcoCurrent,
+			.tab-1 .loginFuncNormal .loginIcoCurrent,
+			.tab-2 #extMobLogin,
+			.tab-1 #extText,
+			.tab-11 #extVerSelect,
+			.tab-22 #extMobLogin2,
+			.tab-2 #lfBtnReg2,
+			.tab-1 #lfBtnReg1,
+			.tab-2 .loginFormThMob{display:block;}
+			.tab-2 #lfVerSelect,
+			.tab-2 #extVerSelect,
+			.tab-22 #extMobLogin,
+			.tab-11 #extText,
+			.tab-2 #extText,
+			.tab-2 #lfBtnReg,
+			.tab-1 #lfBtnReg2,
+			.tab-22 #lfBtnMoblogin,
+			.tab-2 .loginFormThAcc{display:none;}
+			/* form */
+			.loginForm .logon_sub{background-color:#3aa4f1;color:#fff;border:none!important}
+			.loginForm{position:relative;height:303px;overflow:;padding-top:36px}
+			.loginFormIpt{position:relative;height:33px;line-height:33px;margin-top:0px;margin-left:42px;clear:both;width:253px;border:1px solid #b4ccb8;border-bottom-color:#d0dfd1;border-right-color:#d0dfd1;border-radius:2px;}
+			.loginFormIpt-over{border-color:#a0b9a6;border-bottom-color:#b4ccb8;border-right-color:#b4ccb8;}
+			.loginFormIpt-focus .loginFormTdIpt,
+			.loginFormIpt-over .loginFormTdIpt{background-position:0 -160px;}
+			.loginFormIpt-focus{border-color:#43bb56;border-bottom-color:#61c573;border-right-color:#61c573;}
+			.loginFormIpt-focus .placeholder{color:#aecdae;}
+			.loginFormIptWiotTh{height:35px;border:none;margin-top:25px;width:255px;}
+			.loginFormTh{width:36px;}
+			.loginFormThMob{display:none;}
+			.loginFormTdIpt{width:237px;padding:7px 8px 6px 8px;border:1px solid #838383;ime-mode:disabled;height:20px;top:0;left:0;line-height:20px;font-size:16px;font-weight:700;background-color:#f4f8f3;border:none;font-family:verdana;line-height:17px;color:#92a4bf;}
+			.loginFormTdIpt:focus{outline:0;}
+			.loginFormTdIpt-focus{color:#333;font-weight:700;}
+			.showPlaceholder .placeholder{visibility:visible;cursor:text;}
+			.placeholder{color:#8faf8f;font-size:14px;text-indent:10px;position:absolute;left:0;top:0;visibility:hidden;background:none;}
+			.domain{width:92px;height:33px;background-position:0 -112px;line-height:999em;overflow:hidden;display:block;right:0;top:0px;}
+			.loginFormCheck{height:14px;line-height:14px;color:#555;margin-left:42px;margin-top:13px;clear:both;width:255px;position:relative;z-index:1;}
+			.loginFormCheckInner{height:14px;width:150px;float:left;}
+			.forgetPwdLine{height:18px;line-height:18px;margin-left:42px;clear:both;width:253px;text-align:right;margin-top:8px;}
+			.forgetVCode{height:18px;line-height:18px;margin-left:42px;clear:both;width:253px;text-align:right;margin-top:8px;}
+			.forgetPwd{color:#8faf8f;}
+			.forgetPwd:hover{color:#333;}
+			#loginFormSelect{width:182px;left:46px;top:6px;}
+			.loginFormCbx{width:13px;height:13px;padding:0;overflow:hidden;margin:0;}
+			.loginFormSslText{font-family:simsun}
+			.whatAutologin{display:inline-block;vertical-align:top;width:14px;height:14px;background-position:-112px -112px;line-height:999em;overflow:hidden}
+			#whatAutologinTip{z-index:9; width:180px; height:36px;background-color:#fffcd1; border:1px #f1d47c solid; left:0px;top:16px;text-align:left; padding:5px;line-height:18px; color:#de6907;display:none;}
+			.btn{float:left;height:35px;text-align:center;cursor:pointer;border:0;padding:0;font-weight:700;font-size:14px;display:inline-block;vertical-align:baseline;line-height:35px;outline:0;}
+			.btn-login{width:160px;background-position:0 -208px;color:#fff;}
+			.btn-login-hover{background-position:0 -256px;}
+			.btn-login-active{background-position:0 -304px}
+			.btn-reg{width:102px;background-position:-112px -208px;color:#555;float:right;}
+			.btn-reg:hover{color:#555}
+			.btn-reg-hover{background-position:-112px -256px;color:#555}
+			.btn-reg-active{background-position:-112px -304px;color:#555}
+			.btn-moblogin2{width:202px;height:37px;text-align:center;font-size:14px;background-position:-396px -288px;background-color:#fff;margin-top:30px;float:none;margin-left:46px;}
+			.loginFormConf{height:12px;line-height:12px;margin-left:42px;margin-top:23px;clear:both;width:255px;position:relative;color:#848585;z-index:1;}
+			.loginFormVer{float:left;width:160px;}
+			.loginFormService{width:100px;text-align:right;position:absolute;right:0;top:2px;}
+			.loginFormVerList{width:140px;position:absolute;padding:1px;background:#fff;border:1px solid #b7c2c9;top:-6px;top:-4px\9;left:33px;display:none;}
+			.loginFormVerList li a{height:22px;line-height:22px;width:140px;overflow:hidden;color:#848585;display:block;text-indent:22px;zoom:1;}
+			.loginFormVerList li a:hover{background-color:#dbf0d8;}
+			.loginFormVerList li a.verSelected{background-position:-250px -58px;background-repeat:no-repeat;color:#333;}
+			/* ext */
+			#extVerSelect,#extText,#extMobLogin,#extMobLogin2{display:none;}
+			.ext{width:336px;border:1px solid #f1f3f5;height:62px;background-position:0 -448px;background-repeat:repeat-x;position:absolute;bottom:0;}
+			#extText{margin:15px 0 0 42px;line-height:12px;}
+			#extText li{background-position:-240px -123px;background-repeat:no-repeat;padding-left:7px;color:#9eb89e;margin-bottom:9px;}
+			#extText li a{color:#9eb89e;}
+			#extText li a:hover{color:#5aa869;}
+			#extMobLogin{padding-left:42px;}
+			#extMobLogin li{margin-bottom:9px;padding-left:7px;color:#848585;height:12px;line-height:12px;background-position:-240px -107px;background-repeat:no-repeat}
+			#extMobLogin h3{color:#555;font-size:12px;margin:16px 0 11px;height:14px;line-height:14px;}
+			#extVerSelect{height:66px;line-height:66px;font-size:14px;text-align:center;font-weight:700;}
+			#extVerSelect a{color:#005590;text-decoration:underline;}
+			.setMobLoginInfo{margin-left:46px;color:#848585;margin-top:10px;}
+			/* tab-2 */
+			.tab-2 .loginFormConf{margin-top:22px;}
+			.tab-2 .ext{height:85px;}
+			.tab-2 .loginFormIptWiotTh{margin-top:15px;}
+			.tab-2 .loginFormCheck{margin-top:13px;}
+			/* footer */
+			.footer{margin:0 auto;background:#f7f7f7;border-top:1px solid #fff;height:110px;}
+			.footer-inner{width:900px!important;height:80px;overflow:hidden;margin:0 auto;color:#848585;position:relative;background:#f7f7f7;}
+			.footerLogo{top:11px;left:35px}
+			.footerNav{top:15px;right:166px;}
+			.footerNav a{margin-left:14px}
+			.copyright{margin-left:22px}
+			/* noscript */
+			.noscriptTitle{line-height:32px;font-size:24px;color:#d90000;padding-top:60px;font-weight:700;background:#fff;}
+			.noscriptLink{text-decoration:underline;color:#005590;font-size:14px;}
+			/* mobtips */
+			#mobtips{height:18px;border:1px solid #c6c6a8;top:29px;left:46px;line-height:18px;background:#ffffe1;padding-left:6px;padding-right:20px;display:none;color:#565656;zoom:1;}
+			#mobtips_arr{width:9px;height:9px;background-position:-684px -72px;top:-5px;left:15px;}
+			#mobtips_close{background-position:-715px -68px;top:2px;width:16px;height:14px;right:0px;}
+			#mobtips em{font-style:normal;color:#328721;}
+			#mobtips a{text-decoration:underline;color:#005590;}
+			/* mask */
+			.mask{position:absolute;left:0;top:0;width:100%;height:100%;background:#000;filter:alpha(opacity=30);-moz-opacity:0.3;opacity:0.3;z-index:998}
+			/* 弹框 */
+			.dialogbox{position:absolute;left:0;top:0;z-index:999;width:687px;left:50%;margin-left:-343px;top:50%;margin-top:-152px;}
+			.dialogbox .hd{position:relative;padding:0 10px;height:27px;line-height:27px;color:#fff;background-repeat:repeat-x;background-position:0 -576px}
+			.dialogbox .hd .rc{position:absolute;top:0;width:2px;height:27px}
+			.dialogbox .hd .rc-l{left:0;background-position:-720px -36px}
+			.dialogbox .hd .rc-r{right:0;background-position:-722px -36px}
+			.dialogbox .hd .btn-close{position:absolute;right:5px;top:5px;width:16px;height:16px;background-position:-716px 3px;line-height:9999px;overflow:hidden;font-size:0;margin-right:0;}
+			.dialogbox .bd{border:1px solid #6C92AD;border-top:none;background:#fff}
+			.dialogbox iframe{display:block}
+			#phoneRegFrame{width:685px;height:315px}
+			/* 加密http登录弹窗 */
+			.enhttp .topborder,
+			.enhttp .bottomborder,
+			.enhttp .ct,
+			.enhttp .cldenhttp,
+			.enhttp .ct .inner .httplogin{background-image:url(../image_m/bg_httplogin.gif);background-color:transparent;background-repeat:no-repeat;text-decoration:none;}
+			.enhttp{width:420px;height:270px;position:absolute;z-index:999;overflow:hidden;top:0;left:50%;margin-left:-210px;top:50%;margin-top:-135px;}
+			.enhttp .topborder{width:418px;height:2px;font-size:1px;overflow:hidden;margin:0 auto;background-position:0 -108px;}
+			.enhttp .bottomborder{width:418px;height:2px;font-size:1px;overflow:hidden;margin:0 auto;background-position:0 -110px;}
+			.enhttp .ct{width:418px;height:266px;background-position:0 -134px;background-color:#fff;border-left:1px solid #82aecd;border-right:1px solid #82aecd;position:relative;overflow:hidden;}
+			.enhttp .ct .inner{padding-top:40px;margin:0 auto;text-align:left;}
+			.enhttp .ct .inner p{font-size:14px;}
+			.enhttp .ct .inner .txt-tips{color:#737373;line-height:30px;width:325px;margin-left:46px;display:inline;}
+			.enhttp .ct .inner .txt-normal{line-height:30px;width:325px;margin:10px 0 0 46px;}
+			.enhttp .ct .inner .httplogin{font-size:14px;height:34px;width:120px;display:block;background-position:-432px -108px;line-height:34px;text-align:center;color:#fff;font-weight:700;background-color:#3486cc;}
+			.enhttp .ct .inner .txt-line{width:325px;margin-left:46px;background:#b6cad9;height:1px;overflow:hidden;font-size:1px;margin-top:24px;}
+			.enhttp .ct .inner .txt-advice{line-height:60px;width:325px;color:#8d8d8d;margin-left:46px;}
+			.enhttp .ct .inner .txt-advicelink{margin-left:20px;font-size:14px;}
+			.enhttp .cldenhttp{height:22px;width:22px;overflow:hidden;position:absolute;right:8px;top:6px;background-position:0 -112px;text-indent:-9999px;}
+			.enhttp .cldenhttp:hover{background-position:-22px -112px;}
+			.enhttp .enhttpbox{position:absolute;z-index:2;left:0;}
+			.enhttp .httploginframe{width:100%;height:200px;position:absolute;top:2px;z-index:1;left:0;}
+			/* 测速 */
+			#locationTest{position:absolute;width:255px;top:-2px;left:0px;height:88px;background:#fff;border:1px solid #b7c2c9;display:;margin-bottom:200px;height:79px;overflow:hidden;display:none;}
+			.locationTestTitle{width:255px;height:26px;line-height:26px;position:relative;color:#555;text-indent:10px;background-position:0 -10px;border-bottom:1px solid #f1f3f5;}
+			.locationTestTitle h4{margin:0;font-size:12px;}
+			.locationTestTitleClose{height:8px;width:8px;overflow:hidden;display:block;position:absolute;right:6px;top:7px;background-position:-224px -112px}
+			.locationTestTitleClose:hover{background-position:-208px -112px}
+			.locationTestEach{display:inline-block;width:5em;font-family:verdana;}
+			.locationTestList li{padding:2px;float:left;display:inline-block;}
+			.locationTestList .servSelected{background-position:-248px -50px;background-repeat:no-repeat;}
+			.locationTestList li a{height:38px;width:80px;display:block;line-height:16px;padding-top:10px;overflow:hidden;text-align:center;}
+			.locationTestList li a:hover{background-color:#eef3f8;}
+			#selectLocation{text-align:center;}
+			#locationTestCur{width:3em;}
+			#selectLocationTipsDone{display:none;}
+			.locationTestBest{display:none;color:green;}
+			.locationChoose{text-decoration:underline;color:#005590;}
+			
+			#themeArea{width:240px;height:80px;position:absolute;left:90px;top:134px;}
+			/* 首页评分 */
+			#scoreIndex{position:absolute;right:90px;bottom:0px;font-size:12px;color:#9c9c9c;padding:3px 6px 3px 6px;border:1px solid #ced9dd;border-bottom:none;background:#fff;display:block;line-height:normal;border-radius:2px 2px 0 0;z-index:9;display:none;}
+			#scoreIndex:hover{color:#666}
+			#scoreIndexPop{left:50%;top:50%;margin-left:-231px;margin-top:-115px;width:462px;position:absolute;z-index:999;overflow:hidden;display:none;height:229px;background:#fff;}
+			#scoreIndexPopIfm{width:462px;height:229px;}
+			/*换色*/
+			.theme_bg_0{background-color:#3550b5!important}
+			.theme_bg_1{background-color:#afd87c!important}
+			.theme_bg_2{background-color:#afd87c!important}
+			.theme_bg_3{background-color:#afd87c!important}
+			
+			.theme_0{background:url("../img/m_img/t1.jpg")!important}
+			.theme_1{background:url("../img/m_img/t2.jpg")!important}
+			.theme_2{background:url("../img/m_img/t3.jpg")!important}
+			.theme_3{background:url("../img/m_img/t4.jpg")!important}
+			
+			.header{width:800px;height:80px;position:relative;margin:0 auto;z-index:2;overflow:hidden;text-align: left;}
+			.header img{margin:10px 0 0 0}
+			.login-form h3{font-size:18px;text-align: center;}
+			.login-form .input_text{width:80%;margin:23px auto 0; text-indent:15px; height:35px;border:1px solid #ccc;display:block;}
+			.login-form p {width:80%;margin:20px auto 0;}
+			.footer-inner p{width:100%;height:35px;font-size:12px;color:#999}
+			.footer-inner p span{}
+			.footer-inner p span a{margin:0px;font-size:12px; color:#848585;padding:0px 12px;}
+			.footer-inner p span a:hover{color:#ccc;}
+			.Response{font-style: normal;}
+			.logo_m{display:none;}
+			#mainBg{ height: 440px;margin: 0 auto;}
+			.copyright_m{display:none}
+			@media (max-width: 768px) {
+			body{height:100%;padding:0px!important}
+			
+				.Response{display:none;}
+				.m_input{background-color:#fff!important;}
+				#theme{display:none;}
+				.main-inner{width:100%;}
+				#mainBg{height:100%;}
+				.login{background:none;border:none;box-shadow:none;margin:0px auto;float: none;padding:30px 0 0 0;}
+				.loginForm{color:#fff;padding-top:20px;}
+				.loginForm a{color:#f2f2f2!important;}
+				
+				.logo_m{display:block;margin:0 auto 59px;}
+				html, body{ margin:0; height:100%; }
+				.logon_sub{background-color:#fec30f;color:#fff;font-size:18px; border:none;cursor:pointer;text-indent: 0px!important;border:none!important;margin:5px auto 0px!important;}
+				.foot_p{text-align: center;line-height:25px;margin:0px!important;padding:0px;width:100%;}
+				.copyright_m{display:block;width:80%;margin:10px auto 0;}
+				
+				.copyright_m p{width:100%!important;text-align: center;margin:0px auto!important;}
+				.copyright_m .copyright_m_head{margin:0 auto 20px;overflow:hidden;}
+				.copyright_m .copyright_m_head .logo{display:block;float:left;height:40px;width:50px;text-align:center; border-right:1px solid #fff;}
+				.copyright_m .copyright_m_head img{height:28px;width:28px;margin:5px auto 0px!important;}
+				.copyright_m .copyright_m_head p{float:left;text-align: left;width:75%!important;text-indent: 5px;}
+					/*换色*/
+				.theme_bg_0{background-color:#444!important}
+				.theme_bg_1{background-color:#009bd6!important}
+				.theme_bg_2{background-color:#70bd5d!important}
+				.theme_bg_3{background-color:#93adbf!important}
+			
+			
+			}
+			

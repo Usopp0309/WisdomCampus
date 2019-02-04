@@ -1,0 +1,72 @@
+/* 校园信息 */
+#submenu .ad a span { background-image: url('menu/icon/ad.png'); }
+#submenu .wdhy a span { background-image: url('menu/icon/wdhy.gif'); }
+#submenu .zsgl a span { background-image: url('menu/icon/zsgl.gif'); }
+#submenu .kcgl a span { background-image: url('menu/icon/kcgl.gif'); }
+#submenu .schedule a span { background-image: url('menu/icon/schedule.png'); }
+#submenu .stat a span { background-image: url('menu/icon/stat.png'); }
+#submenu .board a span { background-image: url('menu/icon/board.png'); }
+#submenu .outbox a span { background-image: url('menu/icon/outbox.png'); }
+#submenu .excel a span { background-image: url('menu/icon/excel.gif'); }
+#submenu .leave a span { background-image: url('menu/icon/qjsq.png'); }
+#submenu .xsxxk a span { background-image: url('menu/icon/xsxxk.png'); }
+#submenu .xyyktzl a span { background-image: url('menu/icon/xyyktzl.png'); }
+#submenu .xyykttsg a span { background-image: url('menu/icon/xyykttsg.png'); }
+#submenu .xyyktst a span { background-image: url('menu/icon/xyyktst.png'); }
+#submenu .xyyktxxzl a span { background-image: url('menu/icon/xyyktxxzl.png'); }
+#submenu .xyyktcs a span { background-image: url('menu/icon/xyyktcs.png'); }
+#submenu .xyyktsys a span { background-image: url('menu/icon/xyyktsys.png'); }
+#submenu .xyyktyws a span { background-image: url('menu/icon/xyyktyws.png'); }
+#submenu .ckkcb a span { background-image: url('menu/icon/ckkcb.png'); }
+#submenu .jspj a span { background-image: url('menu/icon/jspj.png'); }
+#submenu .ypwp a span { background-image: url('menu/icon/ypwp.png'); }
+#submenu .cjfs a span { background-image: url('menu/icon/cjfs.png'); }
+#submenu .qjsh a span { background-image: url('menu/icon/qjsh.png'); }
+#submenu .qjxg a span { background-image: url('menu/icon/qjxg.png'); }
+#submenu .kqbl a span { background-image: url('menu/icon/kqbl.png'); }
+#submenu .xxck a span { background-image: url('menu/icon/xxck.png'); }
+#submenu .fatend a span { background-image: url('menu/icon/kqbl.png'); }
+
+
+#submenu .userAttendance a span { background-image: url('menu/icon/kcgl.gif'); }
+
+#submenu .xkbb a span { background-image: url('menu/icon/new_card.png'); }
+#submenu .bksq a span { background-image: url('menu/icon/mack-up_card.png'); }
+#submenu .tksq a span { background-image: url('menu/icon/Return_card.png'); }
+#submenu .djzhk a span { background-image: url('menu/icon/Frozen_card.png'); }
+
+/* 消息中心 */
+#submenu .xxsfw a span { background-image: url('menu/icon/ad.png'); }
+#submenu .xsfw a span { background-image: url('menu/icon/xsfw.png'); }
+#submenu .kjgl a span { background-image: url('menu/icon/wdxx.gif'); }
+
+/* 基本管理 */
+#submenu .school a span { background-image: url('menu/icon/school.png'); }
+#submenu .inbox a span { background-image: url('menu/icon/inbox.png'); }
+#submenu .teacher a span { background-image: url('menu/icon/teacher.png'); }
+#submenu .clazz a span { background-image: url('menu/icon/class.png'); }
+#submenu .student a span { background-image: url('menu/icon/student.png'); }
+#submenu .wdxx a span { background-image: url('menu/icon/wdxx.gif'); }
+#submenu .xwgl a span { background-image: url('menu/icon/xwgl.gif'); }
+
+/* 系统管理 */
+#submenu .become a span { background-image: url('menu/icon/become.gif'); }
+#submenu .manager a span { background-image: url('menu/icon/manager.gif'); }
+#submenu .import a span { background-image: url('menu/icon/import.png'); }
+#submenu .log a span { background-image: url('menu/icon/log.gif'); }
+#submenu .xxs a span { background-image: url('menu/icon/xxs.png'); }
+
+/* 客服管理 */
+#submenu .cxwk a span { background-image: url('menu/icon/cxwk.png'); }
+#submenu .wxkj a span { background-image: url('menu/icon/wxkj.gif'); }
+#submenu .gcfw a span { background-image: url('menu/icon/gcfw.gif'); }
+#submenu .gxkx a span { background-image: url('menu/icon/gxkx.gif'); }
+#submenu .jxpg a span { background-image: url('menu/icon/jxpg.gif'); }
+#submenu .sjtj a span { background-image: url('menu/icon/sjtj.gif'); }
+#submenu .kcjl a span { background-image: url('menu/icon/kcjl.gif'); }
+#submenu .nrmb a span { background-image: url('menu/icon/nrmb.gif'); }
+#submenu .dep a span { background-image: url('menu/icon/dep.png'); }
+#submenu .detain a span { background-image: url('menu/icon/detain.png'); }
+#submenu .user a span { background-image: url('menu/icon/user.png'); }
+#submenu .link a span { background-image: url('menu/icon/link.png'); }
+

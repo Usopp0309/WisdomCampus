@@ -1,0 +1,83 @@
+package com.guotop.palmschool.bluetooth.entity;
+
+/**
+ * 蓝牙手环信息表
+ * 
+ * @author chenyong
+ *
+ */
+public class BluetoothBracelet {
+	private Integer id;
+	/**
+	 * 所属资产主键
+	 */
+	private Integer assetId;
+	private Integer updateUserId;
+	private String createTime;
+	/**
+	 * 手环唯一编号
+	 */
+	private String code;
+	private String mac;
+	/**
+	 * 状态(0:正常，1：停用)
+	 */
+	private Integer status;
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public Integer getAssetId() {
+		return assetId;
+	}
+
+	public void setAssetId(Integer assetId) {
+		this.assetId = assetId;
+	}
+
+	public Integer getUpdateUserId() {
+		return updateUserId;
+	}
+
+	public void setUpdateUserId(Integer updateUserId) {
+		this.updateUserId = updateUserId;
+	}
+
+	public String getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(String createTime) {
+		this.createTime = createTime;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	public String getMac() {
+		return mac;
+	}
+
+	public void setMac(String mac) {
+		this.mac = mac;
+	}
+
+	public Integer getStatus() {
+		return status;
+	}
+
+	public void setStatus(Integer status) {
+		this.status = status;
+	}
+
+}

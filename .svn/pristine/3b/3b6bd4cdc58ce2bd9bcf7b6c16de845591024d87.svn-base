@@ -1,0 +1,145 @@
+package com.guotop.palmschool.curriculum.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.guotop.palmschool.common.entity.ResultInfo;
+import com.guotop.palmschool.curriculum.entity.Classroom;
+import com.guotop.palmschool.curriculum.entity.Curriculum;
+import com.guotop.palmschool.curriculum.entity.CurriculumSemester;
+import com.guotop.palmschool.curriculum.entity.CurriculumTime;
+import com.guotop.palmschool.curriculum.entity.Week;
+import com.guotop.palmschool.entity.User;
+
+/**
+ * 电子课程表业务类接口
+ */
+public interface CurriculumService 
+{
+	/**
+	 * 查询星期list
+	 * @return
+	 */
+	public List<Week> getWeekList();
+	
+	/**
+	 * 根据日期查询对应的学期
+	 * @return
+	 */
+	public CurriculumSemester getCurriculumServiceByDate(String date,String startDate,String endDate);
+	
+	/**
+	 * 根据semesterId查询对应的时间段
+	 * @return
+	 */
+	public List<CurriculumTime> getCurriculumTimeBySemesterId(Integer semesterId);
+	
+	/**
+	 * 根据semesterId查询对应的时间段（上午）
+	 * @return
+	 */
+	public List<CurriculumTime> getCurriculumTimeMorningBySemesterId(Integer semesterId);
+	
+	/**
+	 * 根据semesterId查询对应的时间段（下午）
+	 * @return
+	 */
+	public List<CurriculumTime> getCurriculumTimeAfternoonBySemesterId(Integer semesterId);
+	
+	/**
+	 * 根据semesterId查询对应的时间段（晚上）
+	 * @return
+	 */
+	public List<CurriculumTime> getCurriculumTimeNightBySemesterId(Integer semesterId);
+	
+	/**
+	 * 根据timeId查询对应科目
+	 * @return
+	 */
+	public List<Curriculum> getCurriculumByTimeId(Integer timeId,String roleCode,User user,Integer clazzId);
+	
+	/**
+	 * 根据timeId查询对应科目(用于编辑)
+	 * @return
+	 */
+	public List<Curriculum> getCurriculumByTimeIdForEdit(Integer timeId,Integer clazzId);
+	
+	/**
+	 * 添加学期
+	 */
+	public Integer saveCurriculumSemester(CurriculumSemester semester);
+	
+	/**
+	 * 修改学期
+	 */
+	public void modifyCurriculumSemester(CurriculumSemester semester);
+	
+	
+	/**
+	 * 添加时间
+	 */
+	public Integer saveCurriculumTime(CurriculumTime curriculumTime);
+	
+	/**
+	 * 修改时间
+	 */
+	public void modifyCurriculumTime(CurriculumTime curriculumTime);
+	
+	/**
+	 * 添加科目
+	 */
+	public void saveCurriculum(Curriculum curriculum);
+	
+	/**
+	 * 添加考试科目信息表
+	 */
+	public void saveExamSubjectInfo(String subjectName,Integer teacherId,Integer clazzId);
+	
+	/**
+	 * 修改科目
+	 */
+	public void updateCurriculum(Curriculum curriculum);
+	
+	/**
+	 * 校验学期日期是否存在
+	 */
+	public ResultInfo checkSemesterCurriculum(Map<String, Object> paramMap);
+	
+	/**
+	 * 导入课程表时校验课程表是否存在
+	 */
+	public ResultInfo checkCurriculum(Map<String, Object> paramMap);
+	
+	/**
+	 * 获取代课教师List （用于班主任编辑课程表）
+	 */
+	public List<User> getSubjectTeacherList(String name);
+	
+	/**
+	 * 获取教室List （用于班主任编辑课程表）
+	 */
+	public List<Classroom> getclassroomNameList(String name);
+	
+	/**
+	 * 根据 semesterId，clazzId，timeId，weekId（用于班主任编辑课程表）
+	 */
+	public Curriculum getCurriculumByIds(Map<String, Object> paramMap);
+	
+	/**
+	 * 校验任课教师在此时间是否有代课
+	 */
+	public ResultInfo checkTeacher(Map<String, Object> paramMap);
+	
+	/**
+	 * 校验该教室在此时间是否被占用
+	 */
+	public ResultInfo checkClassroom(Map<String, Object> paramMap);
+
+	public List<CurriculumTime> getCurriculumController(Curriculum c);
+	
+	public List<CurriculumSemester> getCurriculumSemesterByClazzId(int clazzId);
+	
+	public void deleteCurriculumByClazzIdAndSemesterId(Map<String, Object> paramMap);
+	
+	public void deleteCurriculumTimeById(int id);
+}

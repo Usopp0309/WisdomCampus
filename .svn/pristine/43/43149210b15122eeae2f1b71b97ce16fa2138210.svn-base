@@ -1,0 +1,507 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@page import="com.guotop.palmschool.entity.User"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<head>
+	<title>新闻评论</title>
+	<%@ include file="/public_module/public_css_new.jsp"%>
+	<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+	<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+	<link href="<%=basePath%>assets/global/css/news_m.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+	<div class="header">
+		<div class="top">
+			<div class="logo"><img src="<%=basePath%>assets/global/img/m_img/logo_main.png"></div>
+		</div>
+	</div>
+	<div class="container-fluid news_detail">
+		<div class="control-group">
+			<h2 style="font-weight: bold;font-family: 黑体;">${schoolNewsInfo.newsTitle }</h2>
+		</div>
+		<div class="control-group margin-bottom_null">
+			<div class="control-group news_detail_info" id="nameGroup">
+				<span style="">${schoolNewsInfo.createTime }</span>
+			</div>
+							
+			<div class="control-group news_detail_bbs">
+				<p><span>我要评论</span><span style="float:right;"><em style="margin:0 5px;" id="commentsCount">0</em>条评论</span></p>
+				<textarea id="commentContent" rows="5"></textarea>
+				<div class="m_btn">
+					<span id="pingIsSuccess" class="success">评论成功</span>
+					<span style="float:right;"><input type="button" onclick="sendCommentNoParent()" value="发表评论"/></span>
+				</div>
+		    </div>
+			<div class="news_detail_bbs_list">
+				<span id="allComments" onclick="setCommentsType('')" style="border-bottom: 2px solid #1391f5">全部评论</span>
+				<span id="myComments" onclick="setCommentsType('1')">我的评论</span>
+				<div id="orderButton">
+					<input type="button" onclick="setOrderType(2)" value="时间"/>
+					<input type="button" onclick="setOrderType(1)" value="热度"/>
+				</div>
+			</div>
+			<ul id="commentsTable">
+			</ul>
+		</div>
+		
+		<input type="hidden" id="newsId" value="${schoolNewsInfo.newsId}"/>
+		<input type="hidden" id="schoolId" value="${schoolId}"/>
+	</div>
+	<div class="modal hide fade" id="replyModal" tabindex="-1" role="dialog" style="width: 40%;z-index:1002;left:30%;top:20%;position: absolute;margin-left:0px;">
+	</div>
+	<div class="modal hide fade" id="loginDialog" tabindex="-1" role="dialog">
+	<div class="login">
+		<h2>用户登录<button type="button" data-dismiss="modal" class="m_close">X</button></h2>
+		<input class="logon_input" type="text" id="account" />
+		<input class="logon_input" type="password" id="password" />
+		<input class="logon_btn" type="button" onclick="login()" value="登录"/>
+	</div>
+	</div>
+	
+ 	<%@include file="/public_module/footer.jsp" %>
+	<!-- 默认配置文件 -->
+    <script src="<%=basePath%>assets/global/plugins/schoolnews/ueditor.config.js" type="text/javascript" charset="utf-8" ></script>
+    <script src="<%=basePath%>assets/global/plugins/schoolnews/ueditor.all.js" type="text/javascript" charset="utf-8" > </script>
+    <!-- 语言文件 -->
+    <script src="<%=basePath%>assets/global/plugins/schoolnews/lang/zh-cn/zh-cn.js" type="text/javascript" charset="utf-8" ></script>
+    <!-- 如果需要页面渲染的话引入 -->
+    <script src="<%=basePath%>assets/global/plugins/schoolnews/ueditor.parse.min.js" type="text/javascript" charset="utf-8" ></script>
+	<script>
+
+		jQuery(document).ready(function() { 
+			var newsId = $("#newsId").val(); 
+			loadComments("commentsTable","0",newsId,"","1");
+			$(".news_detail_bbs_list span").on("click",function(){
+				$(this).siblings().removeAttr("style");
+				$(this).css({"border-bottom":"2px solid #1391f5"});
+			})
+		});
+		
+		var myComments = "";
+		//我的评论
+		function setCommentsType(type){
+			myComments=type;
+			if(type=="1"){
+				$("#orderButton").hide();
+				loadMyComments();
+			}else{
+				$("#orderButton").show();
+				var newsId = $("#newsId").val();
+				loadComments("commentsTable","0",newsId,"","1");
+			}
+		}
+		var orderType="1";
+		function setOrderType(type){
+			orderType=type;
+			var newsId = $("#newsId").val();
+			loadComments("commentsTable","0",newsId,myComments,orderType)
+		}
+		function loadMyComments(){
+			if(!isLogin()){
+				$("#loginDialog").modal("show");
+			}else{
+				$.ajax({
+					url:"<%=basePath %>schoolNewsLook/getMyCommentByUserId.do",
+					type:"post",
+					success:function(data){
+						var data = eval("("+data+")");
+						var headimg = data.headImg;
+						var list = data.list;
+						var appendHTML = "";
+						for(var i = 0;i<list.length;i++){
+							var value = list[i];
+							appendHTML += "<li><div class='bbs_list_left'>";
+							if(headimg=="" || headimg=="head/avatar_default.png" || headimg==undefined)
+							{
+								appendHTML+="<img src='<%=basePath%>media/image_m/head_photo.png'>";
+							}else
+							{
+								appendHTML += '<img src="<%=Cons.HEADIMGBASEPATH%>'+ headimg +'">';
+							}
+							if(value.parentId != "0"){
+								appendHTML += "</div><div class='bbs_list_right'><p>回复了<span class='username'>"+value.commentUserName+"</span>的评论;<span class='username'>"+value.newsTitle+"</span></p>";
+							}else{
+								appendHTML += "</div><div class='bbs_list_right'><p>发表评论</p>";
+							}
+							appendHTML += "<p><span>"+value.createTime+"</span><span>"+value.newsTitle+"</span></p>";
+							appendHTML += "<p>"+value.content+"</p>";
+							
+							appendHTML += "<p><span>赞("+value.zanCount+")</span><a href='javascript:void(0)' onclick='deleteComments("+value.commentId+")'>删除</a>";
+							appendHTML += "</p></div></li>";
+						}
+						$("#commentsTable").html(appendHTML);
+					}
+				});
+			}
+		}
+		
+		function loadComments(elementId,parentId,newsId,myComments,orderType){
+			var schoolId = $("#schoolId").val();
+			$.ajax({
+				url:"<%=basePath %>schoolNewsLook/getCommentsByAsync.do",
+				data:{
+					schoolId : schoolId,
+					parentId : parentId,
+					newsId : newsId,
+					myComments : myComments,
+					orderType : orderType
+				},
+				type:"post",
+				success:function(data){
+					var list = eval("("+data+")");
+					$("#commentsCount").text(list.length);
+					if(null!=list){
+						var appendHTML = "";
+						for(var i=0;i<list.length;i++){
+							var value = list[i];
+							if(elementId!="commentsTable"){
+								appendHTML += "<li style='margin-left:50px;'>";
+							}else{
+								appendHTML += "<li>";
+							}
+							appendHTML+="<div class='bbs_list_left'>";
+							if(value.userHeadPath=="" || value.userHeadPath=="head/avatar_default.png" || value.userHeadPath==undefined)
+							{
+								appendHTML+="<img src='<%=basePath%>media/image_m/head_photo.png'>";
+							}else
+							{
+								appendHTML += '<img src="<%=Cons.HEADIMGBASEPATH%>'+ value.userHeadPath +'">';
+							}
+							appendHTML+="</div>";
+							appendHTML+="<div class='bbs_list_right'>";
+							appendHTML+="<p><span class='username'>"+value.commentUserName+"</span>";
+							appendHTML+="<span class='createtime'>"+value.createTime+"</span></p>";
+							appendHTML+="<p>"+value.content+"</p>";
+							appendHTML+="<p><span><a href='javascript:void(0)' onclick='clickZan("+value.commentId+",this)'>赞("+value.zanCount+")</a></span>";
+							appendHTML+="<span style='cursor: pointer;' onclick='reply("+value.commentId+",this)'>回复</span>";
+							if(value.replayCount!="0"){
+								appendHTML+="<span data-toggle='modal' style='cursor: pointer;' onclick='lookComment("+value.commentId+")'>查看回复("+value.replayCount+")</span>";
+							}
+							appendHTML+="	</p>";
+							appendHTML+="	</div>";
+							
+							appendHTML+="</li>";
+						}
+						$("#"+elementId).html(appendHTML);
+						
+					}
+				}
+			});
+		}
+		function sendCommentNoParent(){
+			if(!isLogin()){
+				$("#loginDialog").modal("show");
+			}else{
+				sendComment($("#commentContent").val(),"0");
+			}
+		}
+		var isOpen;
+		function reply(id,obj){
+			$("div[name='replayParent']").each(function(){
+				$(this).remove();
+			});
+			if(isOpen != obj){
+				$(obj).parent().append("<div class='replayParent' name='replayParent'><textarea id='commentContentReply' rows='5'></textarea><span class='replay_bbs'><input type='button' onclick='sendCommentByParent("+id+",this)' value='发表评论'/></span></div>");
+				isOpen = obj;
+			}else{
+				isOpen = null;
+			}
+		}
+		var isDian = false;
+		var isId="";
+		function clickZan(id,obj){
+			if(isDian&&null!=isId&&isId.indexOf(","+id)>-1){
+			}else{
+				isDian=true;
+				isId+=","+id;
+				$(obj).css("cursor","default");
+				$.ajax({
+					url:"<%=basePath %>schoolNewsLook/addZan.do",
+					data:{
+						commentId : id
+					},
+					type:"post",
+					success:function(data){
+						var zanCount = $(obj).html();
+						zanCount = parseInt(zanCount.substring(zanCount.indexOf("(")+1,zanCount.indexOf(")")))+1;
+						$(obj).html("赞("+zanCount+")");
+					}
+				});
+			}
+		}
+		function sendCommentByParent(id,obj){
+			if(!isLogin()){
+				$("#loginDialog").modal("show");
+			}else{
+				var newsId = $("#newsId").val();
+				var commentContent = $("#commentContentReply").val();
+				var commentType = "1";
+				var nowDate = new Date();
+				$.ajax({
+					url:"<%=basePath %>schoolNewsLook/addComment.do",
+					data:{
+						newsId : newsId,
+						commentContent : commentContent,
+						commentType : commentType,
+						parentId : id
+					},
+					type:"post",
+					success:function(data){
+						if(data){
+							var reviewers = eval("("+data+")");
+							var appendHTML = "<table style='margin-left:20px;'><tr>";
+							appendHTML+="	<td valign='top' rowspan='3' class='comment_head_img'>";
+							
+							if(reviewers.userHeadPath=="" || reviewers.userHeadPath=="head/avatar_default.png" || reviewers.userHeadPath==undefined)
+							{
+								appendHTML+="<img src='<%=basePath%>media/image_m/head_photo.png'>";
+							}else
+							{
+								appendHTML += '<img src="<%=Cons.HEADIMGBASEPATH%>'+ reviewers.userHeadPath +'">';
+							}
+							appendHTML+="	</td>";
+							appendHTML+="	<td>";
+							appendHTML+="		<span style='color:#2C81C5;'>"+reviewers.commentUserName+"</span>";
+							appendHTML+="		<span>"+nowDate.Format("yyyy-MM-dd hh:mm:ss")+"</span>";
+							appendHTML+="	</td>";
+							appendHTML+="</tr>";
+							appendHTML+="<tr>";
+							appendHTML+="	<td>";
+							appendHTML+="		<span>"+commentContent+"</span>";
+							appendHTML+="	</td>";
+							appendHTML+="</tr>";
+							appendHTML+="<tr>";
+							appendHTML+="	<td>";
+							appendHTML+="		<span><a href='javascript:void(0)' onclick='clickZan("+reviewers.commentId+",this)'>赞(0)</a></span>";
+							appendHTML+="	</td>";
+							appendHTML+="</tr></table>";
+							$(obj).parent().parent().html(appendHTML);
+						}
+					}
+				});
+			}
+		}
+		function sendComment(commentContent,parendId){
+			var newsId = $("#newsId").val();
+			var commentType = "1";
+			$.ajax({
+				url:"<%=basePath %>schoolNewsLook/addComment.do",
+				data:{
+					newsId : newsId,
+					commentContent : commentContent,
+					commentType : commentType,
+					parentId : parendId
+				},
+				type:"post",
+				success:function(data){
+					if(data){
+						$("#commentsCount").text(parseInt($("#commentsCount").text())+1);
+						$("#pingIsSuccess").show();
+						setTimeout(function(){
+							$("#pingIsSuccess").hide(1000);
+						},1000);
+						$("#commentContent").val("");
+						loadComments("commentsTable","0",newsId,"","1");
+					}
+				}
+			});
+		}
+		Date.prototype.Format = function (fmt) { //author: meizz 
+		    var o = {
+		        "M+": this.getMonth() + 1, //月份 
+		        "d+": this.getDate(), //日 
+		        "h+": this.getHours(), //小时 
+		        "m+": this.getMinutes(), //分 
+		        "s+": this.getSeconds(), //秒 
+		        "q+": Math.floor((this.getMonth() + 3) / 3), //季度 
+		        "S": this.getMilliseconds() //毫秒 
+		    };
+		    if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+		    for (var k in o)
+		    if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+		    return fmt;
+		}
+		$("#replyModal").bind("show",function(){
+			$("#replyModal").html("");
+			var parentCommentId = $(this).attr("name");
+			var newsId = $("#newsId").val();
+			$.ajax({
+				url:"<%=basePath %>schoolNewsLook/getCommentsByAsync.do",
+				data:{
+					schoolId : $("#schoolId").val(),
+					parentId : parentCommentId,
+					newsId : newsId,
+					myComments : "",
+					orderType : "2",
+					detailComment:"1"
+				},
+				type:"post",
+				async:false,
+				success:function(data){
+					var list = eval("("+data+")");
+					if(null!=list){
+
+				
+						var appendHTML = "<ul id='commentsTable_model'>";
+						for(var i=0;i<list.length;i++){
+							var value = list[i];
+							appendHTML += "<li>";
+							appendHTML+="	<div class='bbs_list_left'>";
+							
+							if(value.userHeadPath=="" || value.userHeadPath=="head/avatar_default.png" || value.userHeadPath==undefined)
+							{
+								appendHTML+="<img src='<%=basePath%>media/image_m/head_photo.png'>";
+							}else
+							{
+								appendHTML += '<img src="<%=Cons.HEADIMGBASEPATH%>'+ value.userHeadPath +'">';
+							}
+							appendHTML+="	</div>";
+							appendHTML+="	<div class='bbs_list_right'>";
+							appendHTML+="	<p><span class='username'>"+value.commentUserName+"</span>";
+							appendHTML+="	<span class='createtime'>"+value.createTime+"</span></p>";
+							appendHTML+="	<p>"+value.content+"</p>";
+							appendHTML+="	<p>";
+							appendHTML+="	<span><a href='javascript:void(0)' onclick='clickZan("+value.commentId+",this)'>赞("+value.zanCount+")</a></span>";
+							appendHTML+="	<span style='cursor: pointer;' onclick='reply("+value.commentId+",this)'>回复</span>";
+							appendHTML+="	</p>";
+							appendHTML+="</li>";
+						}
+						appendHTML+="</ul>";
+						$("#replyModal").html(appendHTML);
+					}
+				}
+			});
+			$.ajax({
+				url:"<%=basePath %>schoolNewsLook/getCommentsByAsync.do",
+				data:{
+					schoolId : $("#schoolId").val(),
+					parentId : parentCommentId,
+					newsId : newsId,
+					myComments : "",
+					orderType : "2"
+				},
+				type:"post",
+				async:false,
+				success:function(data){
+					var list = eval("("+data+")");
+					if(null!=list){
+						
+						var appendHTML = "<ul id='commentsTable_model_reply'>";
+						for(var i=0;i<list.length;i++){
+							var value = list[i];
+							appendHTML+= "<li>";
+							appendHTML+="<div class='bbs_list_left'>";
+							if(value.userHeadPath=="" || value.userHeadPath=="head/avatar_default.png" || value.userHeadPath==undefined)
+							{
+								appendHTML+="<img src='<%=basePath%>media/image_m/head_photo.png'>";
+							}else
+							{
+								appendHTML += '<img src="<%=Cons.HEADIMGBASEPATH%>'+ value.userHeadPath +'">';
+							}
+							appendHTML+="</div>";
+							appendHTML+="<div class='bbs_list_right'>";
+							appendHTML+="		<p><span class='username'>"+value.commentUserName+"</span>";
+							appendHTML+="		<span class='createtime'>"+value.createTime+"</span>";
+							appendHTML+="	</p>";
+							appendHTML+="	<p>";
+							appendHTML+="		<span>"+value.content+"</span>";
+							appendHTML+="	</p>";
+							appendHTML+="	<p>";
+							appendHTML+="		<span><a href='javascript:void(0)' onclick='clickZan("+value.commentId+",this)'>赞("+value.zanCount+")</a></span>";
+							appendHTML+="	</p>";
+							appendHTML+="</li>";
+						}
+						appendHTML+="</ul>";
+						$("#replyModal").append(appendHTML);
+					}
+				}
+			});
+		});
+		function lookComment(id){
+			$("#replyModal").attr("name",id);
+			$("#replyModal").modal("show");
+		}
+		function deleteComments(id){
+			if(confirm("确认删除吗？")){
+				$.ajax({
+					url:"<%=basePath %>schoolNewsLook/deleteComments.do",
+					data:{
+						commentId : id
+					},
+					type:"post",
+					async:false,
+					success:function(data){
+						var isSuccess=eval("("+data+")");
+						if(isSuccess=="success"){
+							alert("删除成功！");
+							loadMyComments();
+						}
+					}
+				});
+			}
+		}
+
+		function isLogin(){
+			var isLog;
+			$.ajax({
+				type: "post",
+				async:false,
+				url: "<%=basePath%>user/isLogin.do",
+				data:{
+					schoolId:$("#schoolId").val()
+				},
+				success:function(data){
+					var isL = eval("("+data+")");
+					if(isL+""=="true"){
+						isLog = true;
+					}else{
+						isLog = false;	
+					}
+				}
+			});
+			return isLog;
+		}
+
+		function login(){
+			var account = $("#account").val();
+			var password = $("#password").val();
+			if(null==account||""==$.trim(account)){
+				alert("请输入账号");
+				return false;
+			}
+			if(null==password||""==$.trim(password)){
+				alert("请输入密码");
+				return false;
+			}
+			$.ajax({
+				type: "post",
+				async:false,
+				url: "<%=basePath%>user/doCheckUsernamePassword.do",
+				data:{
+						username : account,
+						password : password
+				},
+				success:function(data){	
+					var result = eval("(" + data + ")");
+				    var flag = result["reg"];
+				    if(flag)
+			        {
+			            alert("用户名或密码不对");
+			        }
+			        else
+			        {
+			            alert("登陆成功");
+			            $("#loginDialog").modal("hide");
+			        }
+				}
+			}); 
+		}
+	</script>
+
+	<!-- END JAVASCRIPTS -->
+
+<script type="text/javascript">  var _gaq = _gaq || [];  _gaq.push(['_setAccount', 'UA-37564768-1']);  _gaq.push(['_setDomainName', 'keenthemes.com']);  _gaq.push(['_setAllowLinker', true]);  _gaq.push(['_trackPageview']);  (function() {    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;    ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);  })();</script></body>
+
+<!-- END BODY -->
+
+</html>

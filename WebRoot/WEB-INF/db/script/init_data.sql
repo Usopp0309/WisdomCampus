@@ -1,0 +1,2 @@
+insert  into `palm_user`(`id`,`huxinId`,`homeId`,`code`,`username`,`password`,`type`,`parentname`,`name`,`updatetime`,`createtime`,`sex`,`stupic`,`schoolId`) values (1,'402818814b1b4c93014b1b59ff460c36',NULL,'201501','dysyxxadmin','dysyxxadmin',0,NULL,'³¬¹Ü','2014-04-25 09:29:02','2015-08-24 11:26:34',NULL,NULL,'1');
+insert  into `palm_user_role`(`id`,`userId`,`roleId`,`gradeId`,`clazzId`) values (1,1,3,NULL,NULL);

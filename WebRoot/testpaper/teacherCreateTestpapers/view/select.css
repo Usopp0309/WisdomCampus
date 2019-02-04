@@ -1,0 +1,36 @@
+
+
+
+
+.selectContent{
+    border-width: 1px;
+    /*border-style: dashed;*/
+    font-size: 18px;
+    line-height: 40px;
+    font-weight:bold;
+    margin-bottom: 10px;
+    margin-right: 10px;
+}
+.selectTopics{
+
+}
+
+.selectTopicEdit{
+    width: 90%;
+}
+.selectTopic{
+    margin-top: 5px;
+    margin-bottom: 5px;
+    margin-right: 5px;
+    border-width: 1px;
+    border-style: dashed;
+}
+
+.selectOperater {
+    width: 135px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.selectOption{
+
+}

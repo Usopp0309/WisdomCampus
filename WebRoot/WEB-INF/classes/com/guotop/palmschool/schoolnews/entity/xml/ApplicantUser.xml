@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="ApplicantUser">
+	<select id="getGoodsByDetailId" resultClass="goods" parameterClass="Integer">
+		select g.* from platform.goods g, platform.goodsdetail gd where g.id=gd.goodsId and gd.id=#goodsDetailId#	
+	</select>
+</sqlMap>

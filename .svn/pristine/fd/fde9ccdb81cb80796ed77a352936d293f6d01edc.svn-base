@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Device">
+	<typeAlias alias="device" type="com.guotop.palmschool.entity.Device"/>
+	<typeAlias alias="deviceSchool" type="com.guotop.palmschool.entity.DeviceSchool"/>
+
+	<resultMap class="com.guotop.palmschool.entity.Device" id="result_device">
+		<result property="id" column="id"/>
+		<result property="code" column="code"/>	
+		<result property="name" column="name"/>
+		<result property="ip" column="ip"/>
+		<result property="updatetime" column="updatetime"/>
+		<result property="createtime" column="createtime"/>
+		<result property="positionType" column="positiontype"/>
+		<result property="inoutType" column="inouttype"/>
+		<result property="placeId" column="placeId"/>
+	</resultMap>		
+	
+	<!-- 查找记录点信息 -->	
+	<select id="selectDeviceList" resultMap="result_device">
+		select * from palm_device 
+		    where 1 = 1
+		      and placeId = #placeId#
+				<isNotEmpty property="queryContent">
+					AND (
+					code LIKE CONCAT('%',#queryContent#,'%')
+					OR name LIKE CONCAT('%',#queryContent#,'%')
+					OR ip LIKE CONCAT('%',#queryContent#,'%')
+					)
+				</isNotEmpty>
+			order by code asc
+	</select>
+	<!-- 查找记录点信息 -->	
+	<select id="getSchoolIdByDeviceCode" parameterClass="String" resultClass="Long">
+		select schoolId from platform.device_school where deviceCode=#deviceCode#
+	</select>
+	
+	<!-- 根据Id查找所有记录点信息 -->	
+	<select id="selectDeviceById" parameterClass="Integer" resultMap="result_device">
+		select * from palm_device where id = #deviceId#
+	</select>
+	
+	<!-- 添加记录点 -->
+	<insert id="addDevice" parameterClass="device">
+		insert into palm_device
+		(
+			code, 
+			name, 
+			ip, 
+			updatetime,
+			createtime,
+			inoutType,
+			positionType,
+			placeId
+		)
+		values
+		(			
+			#code#,
+			#name#, 
+			#ip#,
+			#updatetime#,
+			#createtime#,
+			#inoutType#,
+			#positionType#,
+			#placeId#
+		)
+	</insert>
+	
+	<!-- 添加记录点同时添加对应的学校关系 -->
+	<insert id="addDeviceSchool" parameterClass="deviceSchool">
+		insert into platform.device_school
+		(
+			deviceCode, 
+			schoolId, 
+			type
+		)
+		values
+		(			
+			#deviceCode#,
+			#schoolId#, 
+			#type#
+		)
+	</insert>
+	
+	<!-- 修改记录点实体类 -->
+	<update id="modifyDeviceById" parameterClass="HashMap">
+	  update palm_device  
+	  	set code = #code#,
+		   	name = #name#,
+		   	ip = #ip#,
+		   	createtime = #createtime#,
+		   	updatetime = #updatetime#,
+		   	inoutType = #inoutType#,
+		   	positionType = #positionType#
+	  	where id = #deviceId#	  
+	</update>
+	
+	<!-- 修改记录点实体类 -->
+	<update id="modifyDeviceCodeByCode" parameterClass="HashMap">
+	  update platform.device_school  
+	  	set deviceCode = #code#
+	  	where deviceCode = #deviceCode#	  
+	</update>
+	
+	<!-- 根据ip或者设备号查找所有记录点信息  update 20151211 -->	
+	<select id="getDeviceByIpOrDeviceCode" parameterClass="HashMap" resultMap="result_device">
+		select * from palm_device 
+			where 1 = 1
+			<isNotEmpty property="ipSwitch">
+				<!-- IP -->
+				<isEqual property="ipSwitch" compareValue="0">
+					and ip = #position#
+				</isEqual>
+				<!-- 设备号 -->
+				<isEqual property="ipSwitch" compareValue="1">
+					and code = #position#
+				</isEqual>
+			</isNotEmpty>
+			limit 1
+	</select>
+	
+	<!-- 根据positionType或者设备号查找所有记录点信息 -->	
+	<select id="selectMeetingPalceListByDevicetype" parameterClass="String" resultMap="result_device">
+		select * from palm_device 
+			where 1 = 1 and positionType = #positionType#
+	</select>
+  
+    <!--验证code	-->
+	<select id="selectDeviceListbyCode" parameterClass="String" resultClass="Integer">
+ 		select 1 from platform.device_school
+ 			where deviceCode = #code#
+	</select>
+	
+    <!--修改时验证code	-->
+	<select id="checkCodeByModify" parameterClass="HashMap" resultClass="Integer">
+ 		select 1 from platform.device_school
+ 			where deviceCode = #code# and deviceCode != #codeOrg#
+	</select>
+	
+	<!-- 根据ip查找所有记录点信息 -->	
+	<select id="getDeviceByIP" parameterClass="String" resultMap="result_device">
+		select * from palm_device where ip = #position#
+	</select>
+	
+	<!-- 学校库删除divece对应的表 -->
+	<delete id="deleteDeviceById" parameterClass="Integer">
+	      delete from palm_device where id = #deviceId#
+	</delete>
+	<!--根据deviceCode删除palm_device表 -->
+	<delete id="deleteDeviceByDeviceCodeInSchool" parameterClass="String">
+		 delete from palm_device where code = #deviceCode#
+	</delete>
+	<!--根据deviceCode删除device_school表 -->
+	<delete id="deleteDeviceByDeviceCode" parameterClass="String">
+		 delete from platform.device_school where deviceCode = #deviceCode#
+	</delete>
+	
+</sqlMap>

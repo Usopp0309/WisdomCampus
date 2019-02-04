@@ -1,0 +1,944 @@
+package com.guotop.palmschool.controller;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.guotop.palmschool.common.entity.ResultInfo;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.entity.Card;
+import com.guotop.palmschool.entity.Clazz;
+import com.guotop.palmschool.entity.Role;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.service.CardService;
+import com.guotop.palmschool.service.DepartmentService;
+import com.guotop.palmschool.service.RoleService;
+import com.guotop.palmschool.service.TeacherService;
+import com.guotop.palmschool.service.UserDataChangeRecordsService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 教师管理
+ * 
+ * @author tao
+ *
+ */
+@RequestMapping("/teacher")
+@Controller
+public class TeacherController extends BaseController
+{
+	@Resource
+	private TeacherService teacherService;
+
+	@Resource
+	private CardService cardService;
+
+	@Resource
+	private RoleService roleService;
+
+	@Resource
+	private DepartmentService departmentService;
+
+	@Resource
+	private CommonService commonService;
+	
+	@Resource
+	private UserService userService;
+
+	@Resource
+	private UserDataChangeRecordsService userDataChangeRecordsService;
+	
+	private String syncTarget = "2";		//同步对象2：老师
+	
+	private String operationClass = "teacher";	//操作对象
+	/**
+	 * 进入教师列表页面, 分页查询
+	 */
+	@RequestMapping(value = "/toTeacherList.do")
+	public String toTeacherList()
+	{
+		return "teacher/teacher_list";
+	}
+
+	/**
+	 * 不同权限查看到不同的教师信息
+	 * 
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "/getTeacherList.do")
+	public String getTeacherList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+        User user=(User) session.getAttribute("user");
+		try
+		{
+			//分页信息
+			Integer currentPage = 1;
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+			//查询条件
+			String queryContent = request.getParameter("queryContent");
+			User loginUser = (User) session.getAttribute("user");
+			//参数map
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("schoolId", loginUser.getSchoolId());
+			paramMap.put("queryContent", queryContent);
+			paramMap.put("gradeId", loginUser.getGradeId());
+			paramMap.put("departmentId", loginUser.getDepartmentId());
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("permissionCode", "teacherManager");
+			Pages pages =null;
+			this.getPages().setPageSize(100);
+			if(!StringUtil.isFjequals(user.getSchoolId())){//非福建
+				pages = teacherService.getTeacherByRole(this.getPages().getPageSize(), currentPage, paramMap, loginUser);	
+			}else{
+				paramMap.put("fjSchoolId", user.getFjSchoolId());
+				pages = teacherService.getTeacherByRoleFj(this.getPages().getPageSize(), currentPage, paramMap);		
+			}
+			List<User> list = pages.getList();
+			StringBuilder cards = new StringBuilder();
+			for (User u : list)
+			{
+				cards.delete(0, cards.length());
+				List<Card> cardList = cardService.getCardListByUserId(u.getUserId());
+				for (Card c : cardList)
+				{
+					cards.append(c.getCardCode());
+					cards.append(",");
+				}
+				if(cards.length() > 0)
+				{
+					u.setCardCode(cards.toString().substring(0, cards.toString().length() - 1));
+				}else
+				{
+					u.setCardCode("");
+				}
+				
+				List<Clazz> clazzList = commonService.loadClazzListByLeaderId(u.getUserId());
+				StringBuilder clazzBuilder = new StringBuilder();
+				for (Clazz c : clazzList)
+				{
+					clazzBuilder.append(c.getClazzName());
+					clazzBuilder.append("、");
+					
+				}
+				if (u.getRoleCode().equals("classLeader"))
+				{
+					if (clazzBuilder.toString().length() > 0)
+					{
+						u.setRoleName(u.getRoleName() + ": " + clazzBuilder.toString().substring(0, clazzBuilder.toString().length() - 1));
+					}
+				}
+			}
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 进入增加教师页面
+	 */
+	@RequestMapping(value = "/toAddTeacher.do")
+	public String toAddTeacher(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		User loginUser = (User) session.getAttribute("user");
+
+		modelMap.addAttribute("user", loginUser);
+		modelMap.addAttribute("schoolId", loginUser.getSchoolId());
+
+		return "teacher/teacher_add";
+	}
+	/**
+	 * 检查教师手机号
+	  @author chenyong
+	  @date 2016年9月24日 下午5:24:54
+	 * @param response
+	 * @param phone
+	 */
+	@RequestMapping(value="/checkTeacherPhone.do", method = RequestMethod.POST)
+    public void checkTeacherPhone(HttpServletRequest request, HttpSession session,HttpServletResponse response,String phone,String name){
+		response.setCharacterEncoding("UTF-8");
+    	User loginUser = (User) session.getAttribute("user");
+    	Map<String, Object> resultMap = userService.getUserMapByBindPhone(phone, Long.valueOf(loginUser.getSchoolId()));
+		try
+		{
+			response.getWriter().write(GsonHelper.toJson(resultMap));
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+    }
+	/**
+	 * 执行增加教师逻辑
+	 */
+	@RequestMapping(value = "/doAddTeacher.do", method = RequestMethod.POST)
+	public String doAddTeacher(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		/**
+		 * 教师工号
+		 */
+		String code = request.getParameter("code");
+
+		/**
+		 * 姓名
+		 */
+		String name = request.getParameter("name");
+
+		/**
+		 * 手机号码
+		 */
+		String phone = request.getParameter("phone");
+
+		/**
+		 * 电子卡
+		 */
+		String[] cardCode = request.getParameterValues("cardCode");
+
+		/**
+		 * 角色
+		 */
+		String roleCode = request.getParameter("roleCode");
+
+		/**
+		 * 部门
+		 */
+		Integer departmentId = Integer.valueOf(request.getParameter("departmentId"));
+
+		User loginUser = (User) session.getAttribute("user");
+
+		/**
+		 * 参数
+		 */
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+
+		paramMap.put("departmentId", departmentId);
+		paramMap.put("roleCode", roleCode);
+		paramMap.put("schoolId", Long.valueOf(loginUser.getSchoolId()));
+		paramMap.put("realName", name);
+		paramMap.put("code", code);
+
+		// 教师基础信息
+		String username = loginUser.getSchoolId()+"T"+TimeUtil.getInstance().dateYYYYMM()+StringUtil.randomNum(3);
+		User teacherBase = new User();
+		teacherBase.setUsername(username);
+		teacherBase.setPassword(StringUtil.toMD5(phone));
+		teacherBase.setState("0");
+		teacherBase.setPhone(phone);
+		teacherBase.setBindPhone(phone);
+		teacherBase.setType(1);
+		teacherBase.setSource("1");
+
+		// 教师详细信息
+		User teacherDetail = new User();
+		teacherDetail.setRealName(name);
+		teacherDetail.setCode(code);
+		teacherDetail.setCreateTime(TimeUtil.getInstance().now());
+
+		/**
+		 * 设置教师对应的卡号
+		 */
+		/**
+		 * 新增电子卡
+		 */
+		Set<String> cardCodeSet = new HashSet<String>();
+		for (int i = 0; i < cardCode.length; i++)
+		{
+			cardCodeSet.add(cardCode[i]);
+		}
+
+		teacherService.addTeacher(paramMap, teacherBase, teacherDetail, cardCodeSet, roleCode);
+		return "teacher/teacher_list";
+	}
+
+	/**
+	 * 进入修改教师页面
+	 */
+	@RequestMapping(value = "/toModifyTeacher.do")
+	public String toModifyTeacher(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		User userList = (User) session.getAttribute("user");
+
+		Integer teacherId = Integer.valueOf(request.getParameter("teacherId"));
+
+		Integer departmentId = Integer.valueOf(request.getParameter("departmentId"));
+
+		String roleCode = request.getParameter("roleCode");
+
+		paramMap.put("teacherId", teacherId);
+		paramMap.put("departmentId", departmentId);
+		paramMap.put("roleCode", roleCode);
+
+		User teacher = teacherService.getTeacherById(paramMap);
+
+		/**
+		 * 用户ID
+		 */
+		Integer userId =0;
+		if (request.getParameter("userId")  != null && !"undefined".equals(request.getParameter("userId") ))
+		{
+			userId = Integer.valueOf(request.getParameter("userId"));
+		}
+
+		/**
+		 * 存放页面隐藏域
+		 */
+		modelMap.addAttribute("user", userList);
+		modelMap.addAttribute("teacher", teacher);
+		modelMap.addAttribute("teacherId", teacherId);
+		modelMap.addAttribute("roleCode", roleCode);
+		modelMap.addAttribute("userId", userId);
+		modelMap.addAttribute("departmentId", departmentId);
+		modelMap.addAttribute("schoolId", userList.getSchoolId());
+
+		return "teacher/teacher_modify";
+	}
+
+	/**
+	 * 加载教师详细信息(用于修改)
+	 */
+	@RequestMapping(value = "/getTeacherDetailForModify.do", method = RequestMethod.POST)
+	public String getTeacherDetailForModify(HttpServletRequest request, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+
+			Integer teacherId = Integer.valueOf(request.getParameter("teacherId"));
+			Integer departmentId = Integer.valueOf(request.getParameter("departmentId"));
+			String roleCode = request.getParameter("roleCode");
+
+			modelMap.put("teacherId", teacherId);
+			modelMap.put("departmentId", departmentId);
+			modelMap.put("roleCode", roleCode);
+
+			User teacher = teacherService.getTeacherById(modelMap);
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(teacher);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 加载电子卡列表(用于修改) 20151126
+	 */
+	@RequestMapping(value = "/getTeacherCardListForModify.do", method = RequestMethod.POST)
+	public String getTeacherCardListForModify(HttpServletRequest request, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			Integer teacherId = Integer.valueOf(request.getParameter("teacherId"));
+			List<Card> cardList = cardService.getCardListByUserId(teacherId);
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(cardList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+	/**
+	 * 修改教师信息时
+	  @author chenyong
+	  @date 2016年9月27日 上午11:37:04
+	 * @param userId
+	 * @param phone
+	 * @return
+	 */
+	@RequestMapping("/isUsePhone.do")
+    public String isUsePhone(String userId,String phone,HttpServletResponse response, HttpSession session){
+		response.setCharacterEncoding("UTF-8");
+		User loginUser = (User) session.getAttribute("user");
+		Map<String, Object> checkMap = userService.getUserMapByBindPhone(phone, Long.valueOf(loginUser.getSchoolId()));
+		try
+		{
+			response.getWriter().write(GsonHelper.toJson(checkMap));
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	
+   }
+	/**
+	 * 执行修改教师 20151126
+	 */
+	@RequestMapping(value = "/doModifyTeacher.do", method = RequestMethod.POST)
+	public String doModifyTeacher(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+
+		/*
+		 * 参数map
+		 */
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		User userList = (User) session.getAttribute("user");
+
+		/*
+		 * teacherId
+		 */
+		Integer teacherId = Integer.valueOf(request.getParameter("teacherId"));
+
+		/*
+		 * 教师工号
+		 */
+		String code = request.getParameter("code");
+
+		/*
+		 * 教师名称
+		 */
+		String realName = request.getParameter("realName");
+
+		/*
+		 * 联系电话
+		 */
+		String phone = request.getParameter("phone");
+		/*
+		 *密码 
+		 */
+		String passWord = request.getParameter("passWord");
+
+		/*
+		 * 待修改教师修改之前对应的角色
+		 */
+		String roleCode = request.getParameter("roleCode");
+
+		/*
+		 * 要修改为的角色
+		 */
+		String roleCodeNow = request.getParameter("roleName");
+
+		/*
+		 * 待修改教师修改之前对应的部门Id
+		 */
+		Integer departId = Integer.valueOf(request.getParameter("departmentId"));
+
+		/*
+		 * 学校ID
+		 */
+		String schoolId = userList.getSchoolId();
+		
+		if(passWord != null && !"".equals(passWord))
+		{
+			paramMap.put("passWord", StringUtil.toMD5(passWord));
+		}
+
+		paramMap.put("teacherId", teacherId);
+		paramMap.put("code", code);
+		paramMap.put("realName", realName);
+		paramMap.put("phone", phone);
+		paramMap.put("schoolId", schoolId);
+		paramMap.put("roleCode", roleCode);
+		paramMap.put("roleCodeNow", roleCodeNow);
+		paramMap.put("departId", departId);
+		paramMap.put("userId", teacherId);
+		paramMap.put("updateTime", formatter.format(new Date()));
+		//若是修改手机号后判断手机号是否已经存在，若存在则不允许修改
+		//boolean flag = userService.isExistUserByPhoneAndUserId(paramMap);
+		
+		//将输入的手机号和系统中的palmUserName比较
+		//存在的情况下 修改教师的时候，输入的手机号存在的情况只更新userbase表phone
+		//不存在 的情况下 修改教师的时候，输入的手机号更新到phone字段和palmUserName字段。
+		Map<String, Object> checkMap = new HashMap<String, Object>();
+		checkMap.put("palmUserName", phone);
+		checkMap.put("userId", userList.getUserId());
+		boolean flag = commonService.checkUserExistsByPalmUserName(checkMap);
+		if(!flag)
+		{
+			//不存在情况下
+			paramMap.put("palmUserName", phone);
+		}else{
+			//存在的情况下
+			paramMap.put("palmUserName", null);
+		}
+		teacherService.modifyTeacherById(paramMap);
+		/*
+		 * 修改角色和对应的角色 如果待修改教师修改之前对应的角色与要修改为的角色相同 则角色和对应的权限不变 如果不同则则修改角色和其对应的权限
+		 */
+		if (!roleCodeNow.equals(roleCode))
+		{
+
+			// 删除老权限及角色
+			HashMap<String, Object> map = new HashMap<String, Object>();
+			map.put("userId", teacherId);
+			map.put("roleCode", roleCode);
+			commonService.deleteUserRolePermission(map);
+			commonService.deleteUserRole(map);
+			map.put("roleCode", roleCodeNow);
+			if (roleCodeNow.equals("departManager"))
+			{
+				map.put("optDepartId", departId);
+			} else
+			{
+				map.remove("optDepartId");
+			}
+			commonService.addUserRole(map);
+		}
+
+		/*
+		 * 电子卡相关---begin
+		 */
+
+		/*
+		 * 电子卡
+		 */
+		String[] cardCode = request.getParameterValues("cardCode");
+
+		/*
+		 * 删除此教师与所有卡之间的关联
+		 */
+		cardService.deleteUserCard(teacherId);
+
+		List<Card> cardList = new ArrayList<Card>();
+		for (int i = 0; i < cardCode.length; i++)
+		{
+			Card card = new Card();
+			card.setCardCode(cardCode[i]);
+			card.setStatus("1");
+			card.setBattery("1");
+			card.setCreatetime(formatter.format(new Date()));
+			card.setUpdatetime(formatter.format(new Date()));
+			cardList.add(card);
+		}
+
+		cardService.addCardForUser(teacherId, cardList);
+
+		/*
+		 * 电子卡相关---end
+		 */
+
+		return "teacher/teacher_list";
+	}
+
+	/**
+	 * 进入导入教师页面
+	 */
+	@RequestMapping(value = "/toImportTeacher.do")
+	public String toImportTeacher(HttpServletRequest request, ModelMap modelMap)
+	{
+		String userId = request.getParameter("userId");
+		modelMap.put("userId", userId);
+		return "teacher/teacher_import";
+	}
+
+	/**
+	 * 根据RoleID查找角色
+	 */
+	@RequestMapping(value = "/selectRoleListByRoleId.do")
+	public String selectRoleListByRoleId(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		List<Role> roleList = commonService.getRoleList();
+		try
+		{
+			Gson gson = new Gson();
+			String json = gson.toJson(roleList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 师生信息(详情)---begin
+	 */
+	/**
+	 * 进入教师信息页面
+	 */
+	@RequestMapping(value = "/toTeacherDetail.do")
+	public String toTeacherDetail()
+	{
+		return "teacher/teacher_detail";
+	}
+
+	/**
+	 * 师生信息(详情)---end
+	 */
+
+	/**
+	 * 进入教师详细页面
+	 */
+	@RequestMapping(value = "/toTeacherDetailView.do")
+	public String toTeacherDetailView(HttpServletRequest request, ModelMap modelMap)
+	{
+		Integer id = Integer.valueOf(request.getParameter("id"));
+
+		modelMap.put("id", id);
+		return "teacher/teacher_detailinfo";
+	}
+
+	/**
+	 * 根据班级ID加载学生列表
+	 */
+	@RequestMapping(value = "/selectTeacherListByClazzId.do")
+	public String selectTeacherListByClazzId(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			Integer clazzId = Integer.valueOf(request.getParameter("clazzId"));
+			List<User> studentList = commonService.selectTeacherListByClazzId(clazzId);
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(studentList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 根据根据学生ID加载学生基本信息
+	 */
+	@RequestMapping(value = "/loadTeacherInfoForStudentDetail.do")
+	public String loadStudentInfoForStudentDetail(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			Integer id = Integer.valueOf(request.getParameter("teacherId"));
+			List<User> teacher = commonService.selectTeacherInfoForTeacherDetail(id);
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(teacher);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@RequestMapping(value = "/loadTeacherOfJobDetailInfo.do")
+	public String loadTeacherOfJobDetailInfo(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			Integer id = Integer.valueOf(request.getParameter("teacherId"));
+			List<User> teacher = commonService.loadTeacherOfJobDetailInfo(id);
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(teacher);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 表单校验---begin
+	 */
+
+	/**
+	 * 校验工号 添加教师时 20151126
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/checkUserByCode.do")
+	public String checkUserByCode(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		User loginUser = (User) session.getAttribute("user");
+		try
+		{
+			String code = request.getParameter("code");
+			boolean codeFlag = userService.checkCodeIsExistInAddNewUser(code, Long.valueOf(loginUser.getSchoolId()));
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(codeFlag);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 修改时检测工号是否已经存在 20151126
+	 */
+	@RequestMapping(value = "/checkModifyTeacherByCode.do")
+	public String checkModifyTeacherByCode(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			User loginUser = (User) session.getAttribute("user");
+			Long schoolId = Long.valueOf(loginUser.getSchoolId());
+			
+			String code = request.getParameter("code");
+			String originalcode = request.getParameter("originalcode");
+			modelMap.put("code", code);
+			modelMap.put("originalcode", originalcode);
+			modelMap.put("schoolId", schoolId);
+			boolean codeFlag = userService.checkCodeIsExistInModifyUser(originalcode, code, schoolId);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(codeFlag);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 检测卡号是否存在（修改教师信息时） 20151126
+	 */
+	@RequestMapping(value = "/checkModifyTeacherCardCodeByCardCode.do")
+	public String checkModifyTeacherCardCodeByCardCode(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			String code = request.getParameter("code");
+			String originalCardCode = request.getParameter("originalCardCode");
+			modelMap.put("code", code);
+			modelMap.put("originalCardCode", originalCardCode);
+
+			ResultInfo resultInfo = teacherService.checkModifyTeacherCardCodeByCardCode(modelMap);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(resultInfo);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	/**
+	 * 表单校验---end
+	 */
+	/**
+	 * 删除教师
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/delTeacher.do")
+	public String delTeacher(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		User login = (User)session.getAttribute("user");
+		String teacherId = request.getParameter("teacherId");
+		int reCode = 0;
+		try
+		{
+			if (!StringUtil.isEmpty(teacherId))
+			{
+				int teacherIdInt = Integer.valueOf(teacherId);
+				Long schoolId = Long.valueOf(login.getSchoolId());
+				HashMap<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("userId", teacherIdInt);
+				paramMap.put("schoolId", schoolId);
+				teacherService.delTeacher(paramMap);
+			}
+		}catch(Exception e)
+		{
+			reCode = 1;
+		}
+		
+		try
+		{
+			response.getWriter().write(String.valueOf(reCode));
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 初始化detail的参数
+	 * @param user
+	 * @param userDetail
+	 * @return
+	 */
+	public Map<String, String> putDetailMap(User user)
+	{
+		Map<String, String> detailMap = new HashMap<String, String>();
+		detailMap.put("userId", String.valueOf(user.getUserId()));
+		detailMap.put("teacherNumber", user.getCode());
+		detailMap.put("name", user.getRealName());
+		detailMap.put("phoneNumber", user.getPhone());
+		detailMap.put("userName", user.getPalmUserName());
+		detailMap.put("createTime", user.getCreateTime());
+		detailMap.put("updateTime", user.getUpdateTime());
+		detailMap.put("passWord", user.getPassword());
+		detailMap.put("status", user.getState());
+		return detailMap;
+	}
+	
+	/**
+	 * 初始化modify detail的参数
+	 * @param user
+	 * @param userDetail
+	 * @return
+	 */
+	public Map<String, String> putModifyDetailMap(User user)
+	{
+		Map<String, String> detailMap = new HashMap<String, String>();
+		detailMap.put("userId", String.valueOf(user.getUserId()));
+		detailMap.put("teacherNumber", user.getCode());
+		detailMap.put("name", user.getRealName());
+		detailMap.put("phoneNumber", user.getPhone());
+		detailMap.put("cardNumber", user.getCardCode());
+		detailMap.put("updateTime", TimeUtil.getInstance().now());
+		detailMap.put("passWord", user.getPassword());
+		return detailMap;
+	}
+	/**
+	 * 根据部门Id 获取对应的部门人员（资源云学校电视台接口）
+	 * 
+	 * @param type
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getTeacherListByDepartmentId.do")
+	@ResponseBody
+	public String getTeacherListByDepartmentId(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+		BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+		StringBuilder sb = new StringBuilder();
+		String line = null;
+		while ((line = br.readLine()) != null)
+		{
+			sb.append(line);
+		}
+		String msgInfo = sb.toString();
+		Gson gson = new Gson();
+		Map<String, Object> param = gson.fromJson(msgInfo, new TypeToken<Map<String, Object>>(){}.getType());
+		DBContextHolder.setDBType(param.get("schoolId")+"");
+		Map<String, Object> map=new HashMap<String, Object>();
+		map.put("departmentId", param.get("departmentId"));
+		map.put("channelId", param.get("channelId"));
+		List<User> teacherList = commonService.getCloudTeacherByDepartmentId(map);
+		/**
+		 * flush到页面
+		 */
+		String json = gson.toJson(teacherList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+}

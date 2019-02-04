@@ -1,0 +1,7 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<link href="<%=basePath%>assets/global/css/app_m.css" rel="stylesheet" type="text/css"/>
+<link href="<%=basePath%>assets/global/plugins/DateTime/css/mobiscroll_002.css" rel="stylesheet" type="text/css">
+<link href="<%=basePath%>assets/global/plugins/DateTime/css/mobiscroll.css" rel="stylesheet" type="text/css">
+<link href="<%=basePath%>assets/global/plugins/DateTime/css/mobiscroll_003.css" rel="stylesheet" type="text/css">
+<link href="<%=basePath%>assets/global/plugins/m_font/demo.css" rel="stylesheet"  type="text/css">
+<link rel="shortcut icon" href="<%=basePath%>media/image/favicon.ico" />

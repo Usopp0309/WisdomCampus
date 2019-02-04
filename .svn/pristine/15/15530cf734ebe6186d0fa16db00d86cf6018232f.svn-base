@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="OrderMessagePermission">
+	<typeAlias alias="orderMessagePermission" type="com.guotop.palmschool.entity.OrderMessagePermission" />
+	<typeAlias alias="orderMessagePermissionDetail" type="com.guotop.palmschool.entity.OrderMessagePermissionDetail" />
+	
+	<insert id="addOrderMessagePermissionDetailBATCH" parameterClass="java.util.List">
+		insert into palm_order_message_user
+		 (menuId,
+		 clazzId,
+		 gradeId)
+		values
+		<iterate conjunction=",">  
+	        (
+	        #orderMessagePermissionDetailList[].menuId#,
+			#orderMessagePermissionDetailList[].clazzId#,
+			#orderMessagePermissionDetailList[].gradeId#
+	        )
+	    </iterate>
+	</insert>
+	
+	<!-- 更新限制状态 -->
+	<update id="updateOrderMessagePermission" parameterClass="HashMap">
+		update palm_order_message_permission set status = #status# where menuId = #menuId#
+	</update>
+	
+	<!-- 删除限制的对象 -->
+	<delete id="deleteDetailByMenuId" parameterClass="String">
+		DELETE FROM palm_order_message_permission_detail WHERE menuId = #menuId#
+	</delete>
+
+	<select id="getOrderMessagePermissionList"  resultClass="orderMessagePermission">
+		SELECT * FROM palm_order_message_permission
+	</select>
+	
+	<select id="getOrderMessagePermissionDetailListByMenuId" parameterClass="String" resultClass="orderMessagePermissionDetail">
+		SELECT ompd.*,getGradeName() As gradeName FROM palm_order_message_permission_detail ompd
+		WHERE ompd.menuId = #menuId#
+	</select>
+</sqlMap>

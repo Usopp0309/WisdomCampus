@@ -1,0 +1,218 @@
+package com.guotop.palmschool.system.controller;
+
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import com.google.gson.Gson;
+import com.guotop.palmschool.controller.BaseController;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.entity.UserAccount;
+import com.guotop.palmschool.service.CardService;
+import com.guotop.palmschool.service.DepartmentService;
+import com.guotop.palmschool.service.StudentService;
+import com.guotop.palmschool.service.UserAccountService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.service.YinxinAndWisdomExchangeService;
+import com.guotop.palmschool.system.entity.Import;
+import com.guotop.palmschool.system.entity.ImportDetail;
+import com.guotop.palmschool.system.service.ImportService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+
+/**
+ * 导入记录控制类
+ * @author zhou
+ */
+@RequestMapping("/fileImport")
+@Controller
+public class ImportController extends BaseController
+{
+	private Logger logger = LoggerFactory.getLogger(ImportController.class);
+	
+	@Resource
+	private ImportService importService;
+	
+	@Resource
+	private UserService userService;
+	
+	@Resource
+	private StudentService studentService;
+	
+	@Resource
+	private CardService cardService;
+
+	@Resource
+	private DepartmentService departmentService;
+	
+	@Resource
+	private UserAccountService userAccountService;
+	
+	@Resource
+	private YinxinAndWisdomExchangeService yinxinAndWisdomExchangeService;
+	/**
+	 * 不同权限查看到不同的page
+	 * 导入记录列表
+	 * 加载导入记录list
+	 */
+	@RequestMapping(value="/getImportList.do",method=RequestMethod.POST)
+	public String loadImportList(HttpServletRequest request, HttpServletResponse response,
+			HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			Integer currentPage = 1;
+			
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			}
+			catch (Exception e)
+			{
+				currentPage = 1;
+			}
+			//0:导入学生家长 1:导入教师
+			Integer type = StringUtil.toint(request.getParameter("type"));
+			Map<String, Object> parmMap = new HashMap<String, Object>();
+			parmMap.put("type", type);
+			this.getPages().setPageSize(10);
+			Pages<Import> pages = importService.getImportList(this.getPages().getPageSize(),currentPage, parmMap);
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+
+	/**
+	 * 删除
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@Transactional(rollbackFor=Exception.class)
+	@RequestMapping(value="/delImportUser.do",method=RequestMethod.POST)
+	public String delImportUser(HttpServletRequest request, HttpServletResponse response,
+			HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			User loginUser = (User) session.getAttribute("user");
+			String localSchoolId = loginUser.getSchoolId();
+			Integer importId = StringUtil.toint(request.getParameter("importId"));
+			String roleCode = request.getParameter("roleCode");
+			//根据导入importId找到所有导入成功的人员
+			List<ImportDetail> importDetailList = importService.getImportDetailListByImportId(importId,0);
+			if(!CollectionUtils.isEmpty(importDetailList)){
+				//
+				for(ImportDetail importDetail : importDetailList){
+					Integer userId = importDetail.getUserId();
+					if(userId != null){
+						try{
+							//判断该用户是不是多学校
+							//1.多学校的情况下只删除在本校的关系
+							//2.是单学校的情况下并且等于本学校的情况
+							//3.没有学校关系只是亦信用户
+							List<User> schoolIdList = userService.getUserSchoolByUserId(userId);
+							if((!CollectionUtils.isEmpty(schoolIdList)) && schoolIdList.size() > 1){
+								boolean isExistSchoolId = false;
+								for(User user : schoolIdList){
+									if(localSchoolId.equals(user.getSchoolId())){
+										isExistSchoolId = true;
+										break;
+									}
+								}
+								if(isExistSchoolId){
+									//删除在本校的关系
+									if ("parent".equals(roleCode))
+									{
+										studentService.delStudentAndParentLinkByParentId(userId);
+									} else if ("student".equals(roleCode))
+									{
+										studentService.delStudentAndParentLinkByStudentId(userId);
+										studentService.deleteUserAndClazzLinkByUserId(userId);
+									} else
+									{
+										departmentService.delUserAndDepartLinkByUserId(userId);
+									}
+									userService.deleteUserRole(userId,null);
+									userService.deleteUserRolePermission(userId,null);
+									cardService.deleteCardByUserId(userId);
+									userService.delUserAndSchoolLink(userId, Long.valueOf(localSchoolId));
+								}
+							}else{
+								//只有一个学校关系的话判断账户有没有余额，有余额的话智慧校园转亦信；没有余额的话，直接删除该用户
+								//没有学校关系判断账户有没有余额，有余额的话智慧校园转亦信，没有余额的话，直接删除该用户
+								//判断账户是否有余额
+								UserAccount ua = userAccountService.findUserAccountByUserId(userId);
+								if(ua == null || Double.valueOf(ua.getBalance()).doubleValue() < 0.000001){
+									if ("parent".equals(roleCode))
+									{
+										studentService.delStudentAndParentLinkByParentId(userId);
+									} else if ("student".equals(roleCode))
+									{
+										studentService.delStudentAndParentLinkByStudentId(userId);
+										studentService.deleteUserAndClazzLinkByUserId(userId);
+									} else
+									{
+										departmentService.delUserAndDepartLinkByUserId(userId);
+									}
+									userService.deleteUserRole(userId,null);
+									userService.deleteUserRolePermission(userId,null);
+									cardService.deleteCardByUserId(userId);
+									userService.delUserAndSchoolLink(userId, Long.valueOf(localSchoolId));
+									
+									userAccountService.delUserAccount(userId);
+									userService.delUserUserPhones(userId);
+									userService.delUserFriend(userId);
+									userService.delUser(userId);
+								}else{
+									//智慧校园转亦信
+									yinxinAndWisdomExchangeService.wisdomToYinxin(userId, roleCode, Long.valueOf(localSchoolId));	
+								}
+							}
+						}catch(Exception e){
+							logger.error("清空导入人员出错:"+userId+""+ e.getMessage());
+							continue;
+						}
+					}
+				}
+			}
+			//更新
+			importService.updateImport(importId,1);
+			boolean flag = true;
+			Gson gson = new Gson();
+			String json = gson.toJson(flag);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+}

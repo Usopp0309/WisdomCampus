@@ -1,0 +1,574 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>智慧校园服务费设置</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+</head>
+	<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+		<input class="themes" type="hidden" value="<%=ThemePath%>">
+	    <!-- 公共顶部开始-->
+	    <%@ include file="/public_module/public_header.jsp"%>    
+	    <!--公共顶部结束-->
+	    <div class="clearfix"> </div>
+	    <!-- 内容页开始 -->
+	    <div class="page-container">
+	        <!--主菜单开始-->
+	        <%@include file="/public_module/public_menu.jsp"%>
+	        <!--主菜单结束-->
+	        <div class="page-content-wrapper">
+	            <div class="page-content m_overflow_hidden m_page_content">
+	            	<!-- 页面内容开始 -->
+	            	<div class="col-md-12 col-sm-12 m_page_con">
+	                <div class="page-bar m_margin_0_0_0_0">
+	                    <ul class="page-breadcrumb">
+	                        <li><a href="<%=basePath %>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+	                        <li><a href="">系统管理</a><i class="fa fa-circle"></i></li>
+	                        <li><span>智慧校园服务费设置</span></li>
+	                    </ul>
+	                </div>
+	                <h3 class="page-title">智慧校园服务费设置</h3>
+	                <div class="row">
+	                    <div class="col-md-12 col-sm-12">
+	                    	
+	                        <!-- 添加功能菜单开始 -->
+	                        <div class="portlet light form-fit m_margin_0_0_15_0">
+	                        	<div>
+		                        	<a class="btn btn-default" id="addMessage">添加</a>
+									<a class="btn btn-default" onclick="deleteMessage()" id="deleteMessage">取消校园服务费</a>
+	                        		<c:if test="${sessionScope.user.userId eq '1'}">
+										<a href="#" class="btn default" onclick="cardApplyNotice();" id="cardApplyNotice"  title="用于通知学校内所有未办卡的学生家长">
+											一键通知补办卡
+										</a>
+										<a href="#" class="btn default" onclick="servicePaymentNotice();" id="servicePaymentNotice"  title="用于通知学校内所有未缴费的家长">
+											一键通知服务费缴纳
+										</a>
+										<a href="#" class="btn default" onclick="purchaseMessage();" id="purchaseMessage"  title="用于学校内所有人员钱包金额转换为学校服务费">
+											一键购买服务费
+										</a>
+									</c:if>
+	                        	</div>
+                       			
+								
+									<c:if test="${sessionScope.user.userId eq '1'}">
+									<div class="note note-success m_margin_15_0_0_0">
+										<c:if test="${ status eq '0'}">
+											试用套餐是否开启<input id="checkbox" type="checkbox" checked="checked"><br>
+										</c:if>
+										<c:if test="${ status eq '1'}">
+											试用套餐是否开启<input id="checkbox" type="checkbox" ><br>
+										</c:if>
+										<c:if test="${ paymentNoticeStatus eq '0'}">
+											定时推送服务费缴纳是否开启<input id="paymentCheckbox" type="checkbox" checked="checked"><br>
+										</c:if>
+										<c:if test="${ paymentNoticeStatus eq '1'}">
+											定时推送服务费缴纳是否开启<input id="paymentCheckbox" type="checkbox" ><br>
+										</c:if>
+                                    </div>
+								</c:if>
+	                        </div>
+	                        <!-- 添加功能菜单结束 -->
+	                        <!-- 页面搜索开始 -->
+	                        <div class="portlet light form-fit bordered search_box">
+	                       	<form action="#" class="form-horizontal">
+	                         <div class="row m_margin_10_auto">
+	
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">搜索内容：</span>
+	                         		<input type="text" class="form-control m_input" id="queryContent"/>
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">选择类型：</span>
+	                         		<select id="type" class="form-control m_select">
+												<option value="">全部</option>
+												<option value="0">时间段</option>
+												<option value="1">单条</option>
+											</select>
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">选择状态：</span>
+	                         		<select id="status" class="form-control m_select">
+										<option value="">全部</option>
+										<option value="0">可用</option>
+										<option value="1">失效</option>
+									</select>
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		 <button type="button" class="btn green" id="search">查找</button>
+	                         	</div>
+	                         </div>
+	                         </form>
+	                        </div>
+	                       	<div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption">
+	                                    <i class="fa fa-list"></i>智慧校园服务费设置</div>
+	                            </div>
+	                            <div class="portlet-body flip-scroll">
+	                                <table class="table table-bordered table-hover">
+	                                    <thead class="flip-content">
+	                                        <tr>
+	                                            <th>名称</th>
+												<th>单价</th>
+												<th>类型</th>
+												<th>有效时间</th>
+												<th>状态</th>
+												<th>服务范围</th>
+												<th class="hidden-sm hidden-md">创建时间</th>
+												<th>操作</th>
+	                                        </tr>
+	                                    </thead>
+	                                    <tbody id="tbody">
+	                                      
+	                                    </tbody>
+	                                </table>
+	                            </div>
+	                        </div>
+	                       <!-- 列表展现开始 -->
+	                        <!-- 分页开始 -->
+	                        <%@include file="/public_module/public_page.jsp" %>
+	                        <!-- 分页结束 -->
+	                    </div>
+	                </div>
+	                </div>
+	                <!--页面内容结束 -->
+	            </div>
+	        </div>
+	        <!-- 亦信聊天开始 -->
+	    	<%@ include file="/public_module/public_QQ.jsp" %>
+	        <!-- 亦信聊天结束 -->
+	    </div>
+	    <!-- 内容页结束 -->
+	    <!-- 底部开始 -->
+	    <%@ include file="/public_module/public_footer.jsp" %>
+	    <!-- 底部结束 -->
+	</body>
+    <!-- 公共js开始 -->
+    <%@ include file="/public_module/public_js.jsp" %>
+    <!-- 公共js结束 -->
+	<script src="<%=basePath%>assets/global/plugins/layer/layer.js" type="text/javascript"></script>
+	<script>
+		jQuery(document).ready(function() {  
+			loadSubMenu("systemManage"); 
+			//选取当前菜单位置
+			setActive("systemManage","serviceFee");    
+			//点击增加页面
+			$("#addMessage").click(function(){
+				window.location.href='<%=basePath%>replaceRecharge/toAddMessage.do';
+			});
+
+			$("#checkbox").change(function(e) {
+				if($('#checkbox').is(':checked')) {
+					//更新虚拟套餐为开启状态
+					var status = 0;
+					updateVirtualMessage(status);
+				}else{
+					//更新虚拟套餐为关闭状态
+					var status = 1;
+					updateVirtualMessage(status);
+				}
+			});
+			
+			$("#paymentCheckbox").change(function(e) {
+				if($('#paymentCheckbox').is(':checked')) {
+					//更新虚拟套餐为开启状态
+					var status = 0;
+					updatePaymentNoticeStatus(status);
+				}else{
+					//更新虚拟套餐为关闭状态
+					var status = 1;
+					updatePaymentNoticeStatus(status);
+				}
+			});
+			
+
+			loadAllMessageList(null,null,null,null);
+			
+			//条件查询
+			$("#search").click(function(){
+				//查询内容
+				var queryContent = $("#queryContent").val();
+				var type = $("#type").val();
+				var status = $("#status").val();
+				loadAllMessageList(queryContent,type,status,null);
+			});
+
+			$("#queryContent").keypress(function(event){
+				if(event.which == "13")    
+            	{
+					$("#search").click();
+					return false;
+            	}
+			});	
+
+		});
+		
+		//加载所有的短信套餐
+		function loadAllMessageList(queryContent,type,status,cPage)
+		{
+			var body = $("#body");
+			App.blockUI(body);
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>replaceRecharge/getAllMessageList.do",
+				data:{
+						queryContent : queryContent,
+						type : type,
+						status : status,
+						cPage : cPage
+				},
+				success: function(data){
+					var page = eval("(" + data + ")");
+					$("#currentPage").html(page.currentPage);
+					$("#totalPage").html(page.totalPage);
+					var appendHtml = '';
+					$.each(page.list, function(n, value) {  
+						if (n%2 == 0)
+						{
+							//虚拟套餐加上红色
+							if(value.isVirtual == 0){
+								appendHtml += '<tr style="background-color: #ededed;color:red">';
+							}else{
+								appendHtml += '<tr style="background-color: #ededed;">';
+							}
+						}
+						else
+						{
+							if(value.isVirtual == 0){
+								appendHtml += '<tr style="color:red">';
+							}else{
+								appendHtml += '<tr>';
+							}
+						}	
+            			appendHtml += '<td>' + value.name + '</td>';
+            			appendHtml += '<td>' + value.price + '</td>';
+            			if(value.isVirtual == 0){
+            				appendHtml += '<td></td>';
+                    		appendHtml += '<td></td>';
+                		}else{
+                			if(value.type == 0){
+                				appendHtml += '<td>时间段</td>';
+                				appendHtml += '<td>'+value.startTime+'至'+value.endTime+'</td>';
+                    		}else if(value.type == 1){
+                    			appendHtml += '<td>单条</td>';
+                				appendHtml += '<td></td>';
+                        	}else
+                            {
+                        		appendHtml += '<td></td>';
+                        		appendHtml += '<td></td>';
+                            }
+                        }
+                        
+            			if(value.status == 0){
+            				appendHtml += '<td style="font-weight:bold;">可用</td>';
+                		}else if(value.status == 1){
+                			appendHtml += '<td>失效</td>';
+                    	}else
+                        {
+                    		appendHtml += '<td>失效</td>';
+                        }
+                        if(value.rangeObject == 0){
+                        	appendHtml += '<td>学校</td>';
+                        }else if(value.rangeObject == 1){
+                        	appendHtml += '<td>个人</td>';
+                        }
+            			appendHtml += '<td class="hidden-sm hidden-md">' + value.createTime + '</td>';
+            			appendHtml += '<td>';
+            			if(value.isVirtual != 0)
+           				{
+	            			appendHtml += '<a href="javascript:;" onclick="modifyMessage(' + value.id + ')">修改</a>';
+           				}
+            			appendHtml += '</td>';
+           				appendHtml += '</tr>';
+          			}); 
+          			$("#tbody").html(appendHtml);
+        			//解锁UI
+          			App.unblockUI(body);
+				},
+			});
+		}
+		//点击编辑
+		function modifyMessage(id)
+		{
+			window.location.href='<%=basePath%>replaceRecharge/modifyMessage.do?id=' + id;
+		}
+		
+		//删除套餐
+	    function deleteMessage(){
+		 var l_=layer.confirm('确定取消？一旦取消家长接收信息将不会根据是否付费判断！', {
+			  btn: ['确定','取消'] //按钮
+			}, function(){
+				var d_ = layer.msg('正在删除数据,请稍候。。。',{icon: 16,time:0,shade:0.3});
+				 $.ajax({
+			           type:"post",
+			           url: "<%=basePath%>replaceRecharge/deleteMessage.do",
+					   data:{},
+			           error:function(){ 
+				           layer.close(l_);
+				           layer.close(d_);
+				       },
+			           success:function(data){
+			        	   var date = eval("(" + data + ")");
+							if(date)
+							{
+								$('#myModal').modal('hide');
+								var cPage = $("#currentPage").html();
+								var cPageInt = parseInt(cPage);
+								var queryContent = $("#queryContent").val();
+								var type = $("#type").val();
+								var status = $("#status").val();
+								loadAllMessageList(queryContent,type,status,cPageInt)
+				        	    layer.close(l_);
+				        	    layer.close(d_);
+							}
+			        	   
+			           }
+			    }); 
+			}, function(){
+			  layer.close(l_);
+			});
+		
+		}
+		//更新虚拟套餐状态
+		function updateVirtualMessage(status)
+		{
+			var confirmMess = '';
+			if(status == 0){
+				confirmMess = '确定开启试用套餐？';
+			}else{
+				confirmMess = '确定关闭试用套餐？';
+			}
+			var l_=layer.confirm(confirmMess, {
+				  btn: ['确定','取消'] //按钮
+			},function(){
+				$.ajax({
+		           type:"post",
+		           url: "<%=basePath%>replaceRecharge/updateVirtualMessage.do",
+				   data:{
+						status:status
+				   },
+		           error:function(){ 
+			           layer.close(l_);
+			       },
+		           success:function(data){
+		        	   var data = eval("(" + data + ")");
+						if(!data)
+						{
+							layer.msg("更新失败,请联系管理员");
+						}
+						layer.close(l_);
+						window.location.reload();
+		           } 
+			    });
+			},function(){
+			  layer.close(l_);
+			});
+		}
+
+		//更新定时推送服务费状态
+		function updatePaymentNoticeStatus(status)
+		{
+			var confirmMess = '';
+			if(status == 0){
+				confirmMess = '确定开启定时通知服务费缴纳？';
+			}else{
+				confirmMess = '确定关闭定时通知服务费缴纳？';
+			}
+			var l_=layer.confirm(confirmMess, {
+				  btn: ['确定','取消'] //按钮
+			},function(){
+				$.ajax({
+		           type:"post",
+		           url: "<%=basePath%>replaceRecharge/updatePaymentNoticeStatus.do",
+				   data:{
+						status:status
+				   },
+		           error:function(){ 
+			           layer.close(l_);
+			       },
+		           success:function(data){
+		        	   var data = eval("(" + data + ")");
+						if(!data)
+						{
+							layer.msg("更新失败,请联系管理员");
+						}
+						layer.close(l_);
+						window.location.reload();
+		           } 
+			    });
+			},function(){
+			  layer.close(l_);
+			});
+		}
+		
+		//一键通知补办卡
+		function cardApplyNotice()
+		{
+			//自定页
+			layer.open({
+			  type: 1,
+			  title: '一键通知补办卡',
+			  area: ['600px', '370px'],
+			  skin: 'layui-layer-demo', //样式类名
+			  closeBtn: 1, //不显示关闭按钮
+			  anim: 2,
+			  btn: ['确定','取消'],
+			  shadeClose: true, //开启遮罩关闭
+			  content: '<div class="alert alert-danger" style="width:95%;margin:15px auto"><b>该功能适用于通知学校内所有未办卡的学生家长(推送)</b></div><textarea id="cardNoticeContent" class="m_display_block" style="width:95%;margin:0px auto; height:160px;resize: none;"  rows="" cols=""></textarea><span class="m_display_block font-green-mint" style="width:95%;margin:15px auto 0">*请输入通知内容</span>',
+			  yes: function(){
+				  var content = $("#cardNoticeContent").val();
+				  if(content == "")
+				  {
+					  parent.layer.msg('通知内容不能为空', {time:1000,shade: 0.3})
+				  }
+				  else
+				  {
+					  var d_ = parent.layer.msg('正在发送信息,请稍候。。。',{icon: 16,time:0,shade:0.3});
+					  $.ajax({
+						 url:"<%=basePath%>sms/cardApplyNotice.do",
+		                 type:"post",
+		                 data:{content : content},
+				         error:function(){layer.closeAll();},
+				         success:function(data){
+			        	   var data = eval("(" + data + ")");
+			        	   if(data)
+	                	   {
+			        		   
+			        		   setTimeout(function(){
+			        			   parent.layer.msg("通知下发成功",{time:3000,icon:1});
+			        			   setTimeout(function(){layer.closeAll();},2000);
+			        			},2000);
+	                	   }
+			        	   else
+		        		   {
+			        		   setTimeout(function(){
+			        			   parent.layer.msg("通知下发失败",{time:3000,icon:2});
+			        			   setTimeout(function(){layer.closeAll();},2000);
+			        			},2000);
+		        		   }
+				         } 
+					 });
+				  }
+			  },
+			  btn2: function(){
+			    layer.closeAll();
+			  } 
+			});
+        }
+		//一键通知服务费缴纳
+		function servicePaymentNotice()
+		{
+			//自定页
+			layer.open({
+			  type: 1,
+			  title: '一键通知服务费缴纳',
+			  area: ['600px', '370px'],
+			  skin: 'layui-layer-demo', //样式类名
+			  closeBtn: 1, //不显示关闭按钮
+			  anim: 2,
+			  btn: ['确定','取消'],
+			  shadeClose: true, //开启遮罩关闭
+			  content: '<div class="alert alert-danger" style="width:95%;margin:15px auto"><b>该功能适用于通知所有未缴纳服务费的学生家长(短信+推送)</b></div><textarea id="noticeContent" class="m_display_block" style="width:95%;margin:0px auto; height:160px;resize: none;"  rows="" cols=""></textarea><span class="m_display_block font-green-mint" style="width:95%;margin:15px auto 0">*请输入通知内容</span>',
+			  yes: function(){
+				  var content = $("#noticeContent").val();
+				  if(content == "")
+				  {
+					  parent.layer.msg('通知内容不能为空', {time:1000,shade: 0.3})
+				  }
+				  else
+				  {
+					  var d_ = parent.layer.msg('正在发送信息,请稍候。。。',{icon: 16,time:0,shade:0.3});
+					  $.ajax({
+						 url:"<%=basePath%>sms/autoPaymentNotice.do",
+		                 type:"post",
+		                 data:{content : content},
+				         error:function(){layer.closeAll();},
+				         success:function(data){
+			        	   var data = eval("(" + data + ")");
+			        	   if(data)
+	                	   {
+			        		   
+			        		   setTimeout(function(){
+			        			   parent.layer.msg("通知下发成功",{time:3000,icon:1});
+			        			   setTimeout(function(){layer.closeAll();},2000);
+			        			},2000);
+	                	   }
+			        	   else
+		        		   {
+			                	setTimeout(function(){layer.closeAll();},3000);
+		        		   }
+				         } 
+					 });
+				  }
+			  },
+			  btn2: function(){
+			    layer.closeAll();
+			  } 
+			});
+        }
+
+		//一键购买服务费
+        function purchaseMessage()
+		{
+        	var l=parent.layer.confirm('该功能适用于：给没有购买短信套餐的用户，利用亦信钱包里的钱购买短信，确定一键购买服务费？', {
+        		  btn: ['确定','取消'] //按钮
+        		}, function(){
+        			parent.layer.close(l);
+        			buySmsService();
+        	});
+        }
+		//一键购买服务费
+        function buySmsService()
+        {
+        	 var indexlayer = parent.layer.msg('正在处理数据,请稍候。。。',{time:3000});
+   		  	$.ajax({
+                 url:"<%=basePath%>sms/autoBuySmsService.do",
+                 type:"post",
+                 dataType:"json",
+                 error:function(){ parent.layer.close(indexlayer);},
+                 success:function(data){
+                  	   var flag = eval("(" + data + ")");
+  		        	   if(flag)
+                  	   {
+  		        		parent.layer.close(indexlayer);
+  		        		parent.layer.msg("购买成功",{time:1000,icon:1});
+                      }
+                 }
+              });
+       	}
+	  
+		//分页相关
+		function jumpPage(type)
+		{
+			var cPage = $("#currentPage").html();
+			var totalPage = $("#totalPage").html();
+
+			var cPageInt = parseInt(cPage);
+			var totalPageInt = parseInt(totalPage);
+						
+			var newCPageInt = returnCPageInt(type,cPageInt,totalPageInt);
+			if(newCPageInt < 0){
+				return;
+			}else{
+				cPageInt = newCPageInt;
+			}	
+			//查询条件
+			var queryContent = $("#queryContent").val();
+			var type = $("#type").val();
+			var status = $("#status").val();
+			
+			loadAllMessageList(queryContent,type,status,cPageInt)
+			
+		    $("#currentPage").html(cPageInt);
+		}
+
+	</script>
+</html>

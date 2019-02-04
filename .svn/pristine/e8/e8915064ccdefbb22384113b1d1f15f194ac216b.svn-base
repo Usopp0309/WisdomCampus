@@ -1,0 +1,63 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<div class="submenu">
+<h2></h2>
+<ul id="submenu">
+
+</ul>
+</div>
+<script src="<%=basePath%>media/js/jquery-1.10.1.min.js" type="text/javascript"></script>
+
+<script>
+loadAllSubMenu();
+function loadAllSubMenu(){
+	 $.ajax({
+			url: "<%=basePath%>menu/getAllMenu.do",
+			async: false,
+			data:{
+			},
+           success: function(data)
+           {
+               var data = $.parseJSON(data);
+               var appendHtml ='';
+
+               $.each(data,function(n, value){
+            	   $.each(value.subMenuList,function(n,subMenu){
+            	   		appendHtml += '<li class="'+value.id+'" id="'+subMenu.id+'" style="display:none"><a href="<%=basePath%>'+subMenu.url+'"><span class="sale-info">'+subMenu.name+'</span></a></li>';
+            	   }) 
+               }) 
+               $("#submenu").html(appendHtml); 
+           }
+	    });
+}
+
+
+</script>
+
+    
+    
+    
+    
+   
+    
+   
+    
+   
+    
+    
+   
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+   
+
+
+
+
+

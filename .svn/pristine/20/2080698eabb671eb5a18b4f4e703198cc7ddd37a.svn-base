@@ -1,0 +1,170 @@
+package com.guotop.palmschool.common.controller;
+
+import java.io.File;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.guotop.palmschool.common.entity.Excel;
+import com.guotop.palmschool.listener.StartupListener;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.system.entity.Import;
+import com.guotop.palmschool.system.service.ImportService;
+import com.guotop.palmschool.util.TimeUtil;
+
+/**
+ * 导入控制基类
+ * 
+ * @author zhou
+ */
+@Controller
+public abstract class BaseImportController extends BaseUploadController
+{
+
+	@Resource
+	private ImportService importService;
+	
+	@Resource
+	private UserService userService;
+
+	/**
+	 * 处理excel
+	 * 
+	 * @param excel
+	 *            待处理的excel文件
+	 */
+	public abstract void handle(Excel excel);
+
+	public abstract String getCommandName();
+
+	public abstract String getImportType();
+
+	public abstract String getHandler();
+
+	private int total;
+
+	private String resultDescription;
+
+	private String currentFileName = null;
+
+	public String getCurrentFileName()
+	{
+		return currentFileName;
+	}
+
+	public int getTotal()
+	{
+		return total;
+	}
+
+	public void setTotal(int total)
+	{
+		this.total = total;
+	}
+
+	public String getResultDescription()
+	{
+		return resultDescription;
+	}
+
+	public void setResultDescription(String resultDescription)
+	{
+		this.resultDescription = resultDescription;
+	}
+
+
+	public String getTempRoot()
+	{
+		return StartupListener.getRoot() + "/upload/";
+	}
+
+	@RequestMapping(value = "/onUpload.do")
+	public String onUpload(HttpServletRequest request, HttpServletResponse response) throws Exception
+	{
+		/**
+		 * 用户ID
+		 */
+		Integer userId = Integer.valueOf(request.getParameter("userId"));
+		File file = upload(request, userId);
+		String fullName = file.getCanonicalPath();
+
+		String type = getImportType();
+		if (null != type && !"".equals(type))
+		{
+			Import imp = new Import();
+			imp.setFileName(currentFileName);
+			imp.setFilePath(fullName);
+			imp.setType(getImportType());
+			imp.setHandler(getHandler());
+			imp.setCreateTime(TimeUtil.getInstance().now());
+
+			importService.addImport(imp);
+
+			StartupListener.wakeupImportHandler(); // 唤醒导入进程
+
+		}
+
+		// return null;
+		/**
+		 * 进入导入页面
+		 */
+		return "system/import_list";
+	}
+	
+
+
+	
+	/**
+	 * 成绩下发
+	 * 
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/doScoreSending.do")
+	public String doScoreSending(HttpServletRequest request, HttpServletResponse response) throws Exception
+	{
+		/**
+		 * 用户ID
+		 */
+		Integer userId = Integer.valueOf(request.getParameter("userId"));
+		File file = upload(request, userId);
+		String fullName = file.getCanonicalPath();
+
+		// 记载到import 表
+		String type = getImportType();
+		if (null != type && !"".equals(type))
+		{
+			Import imp = new Import();
+			imp.setFileName(currentFileName);
+			imp.setFilePath(fullName);
+			imp.setType(getImportType());
+			imp.setHandler(getHandler());
+			imp.setCreateTime(TimeUtil.getInstance().now());
+			imp.setUserId(userId);
+			int importid = importService.addImportReturnId(imp);
+
+			imp.setId(importid);
+			String newFullName = fullName.split(".xl")[0] + "-" + importid + ".xl" + fullName.split(".xl")[1];
+			imp.setFilePath(newFullName);
+			imp.setResult(0);
+			// 更新数据库中filePath的内容
+			importService.updateImport(imp);
+			// 更改上传之后的文件名
+			file.renameTo(new File(newFullName));
+
+			StartupListener.wakeupImportHandler(); // 唤醒导入进程
+
+		}
+
+		/**
+		 * 进入历史发送成绩页面
+		 */
+		return "sms/scoreSendingSms_list";
+	}
+}

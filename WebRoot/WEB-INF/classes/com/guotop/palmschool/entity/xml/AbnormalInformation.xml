@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="AbnormalInformation">
+	<typeAlias alias="AbnormalInformation" type="com.guotop.palmschool.entity.AbnormalInformation" />
+	<resultMap class="com.guotop.palmschool.entity.AbnormalInformation" id="result_abnormalInfo">
+		<result property="id" column="id" />
+		<result property="content" column="content" />
+		<result property="userId" column="userId" />
+		<result property="createTime" column="createTime" />
+		<result property="realName" column="realName" />
+		<result property="type" column="type" />
+	</resultMap>
+	<insert id="addAbnormalInfo" parameterClass="AbnormalInformation">
+		insert into palm_abnormalinformation(content,userId,createTime,type) values(#content#, #userId#, #createTime#,#type#)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	<select id="getAbnormalInfo4Admin" parameterClass="HashMap" resultMap="result_abnormalInfo">
+		select i.*,ud.realName from palm_abnormalInformation i, platform.user_detail ud, palm_user_role ur where i.userId = ud.userId and i.userid=ur.userid
+		<isNotNull property="abnormalType">
+			<isNotEmpty prepend="and" property="abnormalType">
+				i.type=#abnormalType#
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="type">
+			<isNotEmpty property="type">
+				<isEqual compareValue="student" prepend="and" property="type">
+					ur.roleCode=#type#
+				</isEqual>
+				<isEqual compareValue="teacher" prepend="and" property="type">
+					ur.roleCode not in('student','parent','other')
+				</isEqual>
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="name">
+			<isNotEmpty prepend="and" property="name">
+				ud.realName like concat('%',#name#,'%')
+			</isNotEmpty>
+		</isNotNull>
+<!-- 		GROUP BY i.content  -->
+		ORDER BY i.createTime DESC
+	</select>
+	<select id="getAbnormalInfosByPriv" parameterClass="HashMap" resultMap="result_abnormalInfo">
+		<isNotNull property="classList">
+			<isNotEmpty property="classList">
+				select i.*,ud.realName from palm_abnormalInformation i, platform.user_detail ud, palm_student_clazz sc where i.userId = ud.userId and i.userid=sc.userid
+				<isNotNull property="abnormalType">
+					<isNotEmpty prepend="and" property="abnormalType">
+						i.type=#abnormalType#
+					</isNotEmpty>
+				</isNotNull>
+				<isNotNull property="name">
+					<isNotEmpty prepend="and" property="name">
+						ud.realName like concat('%',#name#,'%')
+					</isNotEmpty>
+				</isNotNull>
+				and sc.clazzId in
+				<iterate open="(" close=")" conjunction="," property="classList">
+					#classList[]# 
+				</iterate>
+				<isNotNull property="departList">
+					union all
+				</isNotNull>
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="departList">
+			<isNotEmpty property="departList">
+				select i.*,ud.realName from palm_abnormalInformation i, platform.user_detail ud, palm_user_department d where i.userId = ud.userId and i.userid=d.userid
+				<isNotNull property="abnormalType">
+					<isNotEmpty prepend="and" property="abnormalType">
+						i.type=#abnormalType#
+					</isNotEmpty>
+				</isNotNull>
+				<isNotNull property="name">
+					<isNotEmpty prepend="and" property="name">
+						ud.realName like concat('%',#name#,'%')
+					</isNotEmpty>
+				</isNotNull>
+				and d.departmentId in
+				<iterate open="(" close=")" conjunction="," property="departList">
+					#departList[]# 
+				</iterate>
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="classList">
+			<isNotEmpty property="classList">
+				ORDER BY i.createTime DESC
+			</isNotEmpty>
+		</isNotNull>
+	</select>
+	
+	<select id="getAbnormalInfos4DepartManager" parameterClass="HashMap" resultMap="result_abnormalInfo">
+		select i.*,ud.realName from palm_abnormalInformation i, platform.user_detail ud, palm_user_department d where i.userId = ud.userId and i.userid=d.userid
+				<isNotNull property="abnormalType">
+					<isNotEmpty prepend="and" property="abnormalType">
+						i.type=#abnormalType#
+					</isNotEmpty>
+				</isNotNull>
+				<isNotNull property="name">
+					<isNotEmpty prepend="and" property="name">
+						ud.realName like concat('%',#name#,'%')
+					</isNotEmpty>
+				</isNotNull>
+				
+				<isNotEmpty prepend="and" property="departList">
+					d.departmentId in
+					<iterate open="(" close=")" conjunction="," property="departList">
+						#departList[]# 
+					</iterate>
+				</isNotEmpty>
+				
+				<isEmpty prepend="and" property="departList">
+					 d.departmentId in (null)
+				</isEmpty>
+				GROUP BY i.content 
+				ORDER BY i.createTime DESC
+	</select>
+	
+	<select id="getAbnormalInfos4ClassLeader" parameterClass="HashMap" resultMap="result_abnormalInfo">
+		select i.*,ud.realName from palm_abnormalInformation i, platform.user_detail ud, palm_student_clazz sc where i.userId = ud.userId and i.userid=sc.userid
+				<isNotNull property="abnormalType">
+					<isNotEmpty prepend="and" property="abnormalType">
+						i.type=#abnormalType#
+					</isNotEmpty>
+				</isNotNull>
+				<isNotNull property="name">
+					<isNotEmpty prepend="and" property="name">
+						ud.realName like concat('%',#name#,'%')
+					</isNotEmpty>
+				</isNotNull>
+				
+				<isNotEmpty prepend="and" property="classList">
+					sc.clazzId in
+					<iterate open="(" close=")" conjunction="," property="classList">
+						#classList[]# 
+					</iterate>
+				</isNotEmpty>
+				
+				<isEmpty prepend="and" property="classList">
+					sc.clazzId in (null)
+				</isEmpty>
+				
+				ORDER BY i.createTime DESC
+	</select>
+	
+	<select id="getAbnormalInfos4Self" parameterClass="HashMap" resultMap="result_abnormalInfo">
+		select i.*,ud.realName from palm_abnormalInformation i, platform.user_detail ud where i.userId = ud.userId  and i.userId = #userId#
+				<isNotNull property="abnormalType">
+					<isNotEmpty prepend="and" property="abnormalType">
+						i.type=#abnormalType#
+					</isNotEmpty>
+				</isNotNull>
+				ORDER BY i.createTime DESC
+	</select>
+	
+<!-- 	手机端    -->
+	<select id="getAbnormalInfo4AdminAPP" parameterClass="HashMap" resultMap="result_abnormalInfo">
+			select i.*,ud.realName from palm_abnormalInformation i, platform.user_detail ud, palm_user_role ur where i.userId = ud.userId and i.userid=ur.userid
+			<isNotNull property="abnormalType">
+				<isNotEmpty property="abnormalType">
+				 	<isEqual compareValue="-1" prepend="and" property="abnormalType">
+						1=1
+					</isEqual>
+					<isEqual compareValue="1" prepend="and" property="abnormalType">
+						i.type=#abnormalType#
+					</isEqual>
+					<isEqual compareValue="0" prepend="and" property="abnormalType">
+						i.type=#abnormalType#
+					</isEqual>
+				</isNotEmpty>
+			</isNotNull>
+			<isNotNull property="type">
+				<isNotEmpty property="type">
+					<isEqual compareValue="student" prepend="and" property="type">
+						ur.roleCode=#type#
+					</isEqual>
+					<isEqual compareValue="teacher" prepend="and" property="type">
+						ur.roleCode not in('student','parent','other')
+					</isEqual>
+					<isEqual compareValue="0" prepend="and" property="type">
+						1=1
+					</isEqual>
+				</isNotEmpty>
+			</isNotNull>
+			<isNotNull property="name">
+				<isNotEmpty prepend="and" property="name">
+					ud.realName like concat('%',#name#,'%')
+				</isNotEmpty>
+			</isNotNull>
+			ORDER BY i.createTime DESC
+			<isNotEmpty property="startIndex">
+			LIMIT #startIndex#, #length#
+		   </isNotEmpty>
+	</select>
+	
+	<select id="getAbnormalInfosByPrivAPP" parameterClass="HashMap" resultMap="result_abnormalInfo">
+		<isNotNull property="classList">
+			<isNotEmpty property="classList">
+				select i.*,ud.realName from palm_abnormalInformation i, platform.user_detail ud, palm_student_clazz sc where i.userId = ud.userId and i.userid=sc.userid
+				<isNotNull property="abnormalType">
+					<isEqual compareValue="-1" prepend="and" property="abnormalType">
+						1=1
+					</isEqual>
+					<isEqual compareValue="1" prepend="and" property="abnormalType">
+						i.type=#abnormalType#
+					</isEqual>
+					<isEqual compareValue="0" prepend="and" property="abnormalType">
+						i.type=#abnormalType#
+					</isEqual>
+				</isNotNull>
+				<isNotNull property="name">
+					<isNotEmpty prepend="and" property="name">
+						ud.realName like concat('%',#name#,'%')
+					</isNotEmpty>
+				</isNotNull>
+				and sc.clazzId in
+				<iterate open="(" close=")" conjunction="," property="classList">
+					#classList[]# 
+				</iterate>
+				<isNotNull property="departList">
+					union all
+				</isNotNull>
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="departList">
+			<isNotEmpty property="departList">
+				select i.*,ud.realName from palm_abnormalInformation i, platform.user_detail ud, palm_user_department d where i.userId = ud.userId and i.userid=d.userid
+				<isNotNull property="abnormalType">
+					<isNotEmpty property="abnormalType">
+						<isEqual compareValue="-1" prepend="and" property="abnormalType">
+							1=1
+						</isEqual>
+						<isEqual compareValue="1" prepend="and" property="abnormalType">
+							i.type=#abnormalType#
+						</isEqual>
+						<isEqual compareValue="0" prepend="and" property="abnormalType">
+							i.type=#abnormalType#
+						</isEqual>
+					</isNotEmpty>
+				</isNotNull>
+				<isNotNull property="name">
+					<isNotEmpty prepend="and" property="name">
+						ud.realName like concat('%',#name#,'%')
+					</isNotEmpty>
+				</isNotNull>
+				and d.departmentId in
+				<iterate open="(" close=")" conjunction="," property="departList">
+					#departList[]# 
+				</iterate>
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="classList">
+			<isNotEmpty property="classList">
+				ORDER BY i.createTime DESC
+			</isNotEmpty>
+		</isNotNull>
+		
+		<isNotEmpty property="startIndex">
+		LIMIT #startIndex#, #length#
+	   </isNotEmpty>
+	</select>
+	
+	<select id="getAbnormalInfos4DepartManagerAPP" parameterClass="HashMap" resultMap="result_abnormalInfo">
+		select i.*,ud.realName from palm_abnormalInformation i, platform.user_detail ud, palm_user_department d where i.userId = ud.userId and i.userid=d.userid
+				<isNotNull property="abnormalType">
+					<isNotEmpty property="abnormalType">
+						<isEqual compareValue="-1" prepend="and" property="abnormalType">
+							1=1
+						</isEqual>
+						<isEqual compareValue="1" prepend="and" property="abnormalType">
+							i.type=#abnormalType#
+						</isEqual>
+						<isEqual compareValue="0" prepend="and" property="abnormalType">
+							i.type=#abnormalType#
+						</isEqual>
+					</isNotEmpty>
+				</isNotNull>
+				<isNotNull property="name">
+					<isNotEmpty prepend="and" property="name">
+						ud.realName like concat('%',#name#,'%')
+					</isNotEmpty>
+				</isNotNull>
+				
+				<isNotEmpty prepend="and" property="departList">
+					d.departmentId in
+					<iterate open="(" close=")" conjunction="," property="departList">
+						#departList[]# 
+					</iterate>
+				</isNotEmpty>
+				
+				<isEmpty prepend="and" property="departList">
+					d.departmentId in (null)
+				</isEmpty>
+				
+				ORDER BY i.createTime DESC
+				
+				<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			   </isNotEmpty>
+	</select>
+	
+	<select id="getAbnormalInfos4ClassLeaderAPP" parameterClass="HashMap" resultMap="result_abnormalInfo">
+		select i.*,ud.realName from palm_abnormalInformation i, platform.user_detail ud, palm_student_clazz sc where i.userId = ud.userId and i.userid=sc.userid
+				<isNotNull property="abnormalType">
+					<isNotEmpty property="abnormalType">
+						<isEqual compareValue="-1" prepend="and" property="abnormalType">
+							1=1
+						</isEqual>
+						<isEqual compareValue="1" prepend="and" property="abnormalType">
+							i.type=#abnormalType#
+						</isEqual>
+						<isEqual compareValue="0" prepend="and" property="abnormalType">
+							i.type=#abnormalType#
+						</isEqual>
+					</isNotEmpty>
+				</isNotNull>
+				<isNotNull property="name">
+					<isNotEmpty prepend="and" property="name">
+						ud.realName like concat('%',#name#,'%')
+					</isNotEmpty>
+				</isNotNull>
+				<isNotEmpty prepend="and" property="classList">
+					sc.clazzId in
+					<iterate open="(" close=")" conjunction="," property="classList">
+						#classList[]# 
+					</iterate>
+				</isNotEmpty>
+				
+				<isEmpty prepend="and" property="classList">
+					sc.clazzId in (null)
+				</isEmpty>
+				
+				ORDER BY i.createTime DESC
+				
+				<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			   </isNotEmpty>
+	</select>
+	
+	<select id="getAbnormalInfos4SelfAPP" parameterClass="HashMap" resultMap="result_abnormalInfo">
+		select i.*,ud.realName from palm_abnormalInformation i, platform.user_detail ud where i.userId = ud.userId  and i.userId = #userId#
+				<isNotNull property="abnormalType">
+					<isNotEmpty property="abnormalType">
+						<isEqual compareValue="-1" prepend="and" property="abnormalType">
+							1=1
+						</isEqual>
+						<isEqual compareValue="1" prepend="and" property="abnormalType">
+							i.type=#abnormalType#
+						</isEqual>
+						<isEqual compareValue="0" prepend="and" property="abnormalType">
+							i.type=#abnormalType#
+						</isEqual>
+					</isNotEmpty>
+				</isNotNull>
+				ORDER BY i.createTime DESC
+				
+				<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			   </isNotEmpty>
+	</select>
+	
+	
+</sqlMap>

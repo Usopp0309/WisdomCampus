@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Comment">
+	<typeAlias alias="comment" type="com.guotop.palmschool.classphotoalbum.entity.RecordsComment" />
+
+	<!--添加评论-->
+	<insert id="addComment" parameterClass="comment">
+		insert into palm_records_comment
+		(
+		parentId,
+		commentType,
+		content,
+		commentUserId,
+		commentUserName,
+		createTime,
+		recordsId,
+		photoId,
+		commentReplyId,
+		commentReplyUserId,
+		commentReplyUserName
+		)
+		values
+		(
+		#parentId#,
+		#commentType#,
+		#content#,
+		#commentUserId#,
+		#commentUserName#,
+		#createTime#,
+		#recordsId#,
+		#photoId#,
+		#commentReplyId#,
+		#commentReplyUserId#,
+		#commentReplyUserName#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="commentId">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert> 
+	
+	<!-- 查找该上传记录的所有对应的评论-->
+	<select id="getCommentListByRecordsIdAndCommentType" parameterClass="java.util.HashMap" resultClass="comment">
+		SELECT r.*,ud.headImg FROM palm_records_comment r,platform.user_detail ud 
+		WHERE r.commentUserId = ud.userId
+			and r.recordsId = #recordsId# 
+			and r.commentType = #commentType#
+	</select>
+	
+	<!-- 根据photoId和commentType 查出该照片所有相关的评论或者点赞-->
+	<select id="getCommentListByPhotoIdAndCommentType" parameterClass="java.util.HashMap" resultClass="comment">
+		SELECT r.*,ud.headImg FROM palm_records_comment r,platform.user_detail ud
+		WHERE r.commentUserId = ud.userId
+			AND r.commentType=#commentType#
+			AND r.photoId = #photoId#
+	</select>
+	
+	<select id="getCommentByCommentId" parameterClass="java.lang.Integer" resultClass="comment">
+		SELECT * FROM palm_records_comment 
+		WHERE commentId=#commentId#
+	</select>
+	
+	<!-- 根据photoId和commentType以及userId 查出单个图片自己的点赞次数-->
+	<select id="getPraiseByPhotoIdAndCommentTypeAndUserId" parameterClass="java.util.HashMap" resultClass="comment">
+		SELECT * FROM palm_records_comment 
+		WHERE commentType='0'
+		AND photoId = #photoId#
+		AND commentUserId = #commentUserId#
+	</select>
+	
+	<!-- 根据RecordsId和commentType以及userId 查出单个图片自己的点赞次数-->
+	<select id="getPraiseByRecordsIdAndCommentTypeAndUserId" parameterClass="java.util.HashMap" resultClass="comment">
+		SELECT * FROM palm_records_comment 
+		WHERE commentType='0'
+		AND recordsId = #recordsId#
+		AND commentUserId = #commentUserId#
+	</select>
+	
+	<!-- 删除点评或者点赞 -->
+	<delete id="deleteRecordsComment" parameterClass="Integer">
+		delete from palm_records_comment 
+		where commentId=#commentId#
+	</delete>
+
+	<!-- 根据parentId删除点评 -->
+	<delete id="deleteRecordsCommentByParentId" parameterClass="Integer">
+		delete from palm_records_comment 
+		where parentId=#parentId#
+	</delete>	
+	
+</sqlMap>

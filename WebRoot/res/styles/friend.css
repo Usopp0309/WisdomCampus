@@ -1,0 +1,21 @@
+/* 列表 */
+
+#friend .maintable thead { display: none; }
+
+#friend .maintable .icon { width: 40px; }
+#friend .maintable .opt { width: 170px; }
+
+#friend .maintable .intro { font-weight: bold; height: 21px; }
+#friend .maintable .sign { color: #999; }
+#friend .maintable .linktime { height: 21px; }
+
+#friend .maintable .opt .send { color: purple; }
+#friend .maintable .opt .view { color: blue; }
+#friend .maintable .opt .move { color: green; }
+#friend .maintable .opt .del { color: red; }
+#friend .maintable .opt a:hover { color: black; }
+
+/* 显示 */
+
+#friend .maintable .item { padding-left: 20px; background: url('form/icon.gif') 5px 7px no-repeat; }
+#friend .maintable .intr { text-indent: -60px; padding-left: 80px; }

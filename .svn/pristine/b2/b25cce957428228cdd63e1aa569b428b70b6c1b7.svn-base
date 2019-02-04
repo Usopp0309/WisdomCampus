@@ -1,0 +1,415 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>创建每日活动</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+</head>
+	<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+		<input class="themes" type="hidden" value="<%=ThemePath%>">
+	    <!-- 公共顶部开始-->
+	    <%@ include file="/public_module/public_header.jsp"%>    
+	    <!--公共顶部结束-->
+	    <div class="clearfix"> </div>
+	    <!-- 内容页开始 -->
+	    <div class="page-container">
+	        <!--主菜单开始-->
+	        <%@include file="/public_module/public_menu.jsp"%>
+	        <!--主菜单结束-->
+	        <div class="page-content-wrapper">
+	            <div class="page-content m_overflow_hidden m_page_content">
+	            	
+	            	<!-- 页面内容开始 -->
+	            	<div class="col-md-12 col-sm-12 m_page_con">
+	                <div class="page-bar m_margin_0_0_0_0">
+	                    <ul class="page-breadcrumb">
+	                        <li><a href="<%=basePath %>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+	                        <li><a href="">每日活动</a><i class="fa fa-circle"></i></li>
+	                        <li><span>创建每日活动</span></li>
+	                    </ul>
+	                </div>
+	                <h3 class="page-title">创建每日活动</h3>
+	                <div class="row">
+	                    <div class="col-md-12 col-sm-12">
+	                        <!-- 页面搜索开始 -->
+	                        <div class="portlet light form-fit bordered search_box">
+	                       	<form action="<%=basePath%>todayActivity/toSaveTodayActivity.do" class="form-horizontal" name="defform" method="post" id="saveCurriculumTime">
+	                         <div class="row m_margin_10_auto">
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">开始时间：</span>
+	                         		<input type="text" class="m_input form-control" name="startDay" id="startDay"/> 
+									<span class="help-inline" style="display: none;" id="startDayHelp"></span>
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">结束时间：</span>
+	                         		<input type="text" class="m_input form-control" name="endDay"  id="endDay"/>
+									<span class="help-inline" style="display: none;" id="endDayHelp"></span>
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+									<a class="btn green" id="save">保存</a>
+	                         	</div>
+	                         </div>
+	                         </form>
+	                        </div>
+	                       	<div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption">
+	                                    <i class="fa fa-list"></i>创建每日活动 </div>
+	                            </div>
+	                            <div class="portlet-body flip-scroll">
+	                                <table class="table table-bordered table-hover Activity">
+									<tr class="activity_title">
+										<td class="activitybg" colspan="3">时间段</td>
+										<c:forEach items="${weekList}" var="week">
+											<c:if test="${week.id == 1}"><td>${week.weekName}</td></c:if>
+											<c:if test="${week.id == 2}"><td>${week.weekName}</td></c:if>
+											<c:if test="${week.id == 3}"><td>${week.weekName}</td></c:if>
+											<c:if test="${week.id == 4}"><td>${week.weekName}</td></c:if>
+											<c:if test="${week.id == 5}"><td>${week.weekName}</td></c:if>
+											<c:if test="${week.id == 6}"><td>${week.weekName}</td></c:if>
+											<c:if test="${week.id == 7}"><td>${week.weekName}</td></c:if>
+										</c:forEach>
+									</tr>
+	
+									<tr class="morning">
+										<td>
+										    <input class="title_input" placeholder="时间" name="startTimeAm" id="startTimeAm1"/>
+										</td>
+										<td>
+										    <input placeholder="时间" name="endTimeAm" class="title_input" id="endTimeAm1"/>
+										</td>
+										<td class="m_text_align_conter">
+										    <i class="icon-plus" onclick="appendAddAm()"></i>
+										</td>
+										<c:forEach items="${weekList}" var="wam" varStatus="wamt">
+											<td><input name="subAm${wamt.index+1}"/></td>
+										</c:forEach>
+									</tr>
+									
+									<tr class="morning">
+										<td>
+										    <input class="title_input" placeholder="时间" name="startTimeAm" id="startTimeAm2"/>
+										</td>
+										<td>
+										    <input placeholder="时间" name="endTimeAm" class="title_input" id="endTimeAm2"/>
+										</td>
+										<td class="m_text_align_conter">
+											<i class="fa fa-times" onclick="removeAddAm($(this))"></i>
+										</td>
+										<c:forEach items="${weekList}" var="wam2" varStatus="wamt">
+											<td><input name="subAm${wamt.index+1}"/></td>
+										</c:forEach>
+									</tr>
+									
+									<tr class="morning">
+										<td>
+										    <input class="title_input" placeholder="时间" name="startTimeAm" id="startTimeAm3"/>
+										</td>
+										<td>
+										    <input placeholder="时间" name="endTimeAm" class="title_input" id="endTimeAm3"/>
+										</td>
+										<td class="m_text_align_conter">
+										    <i class="fa fa-times" onclick="removeAddAm($(this))"></i>
+										</td>
+										<c:forEach items="${weekList}" var="wam3" varStatus="wamt">
+											<td><input name="subAm${wamt.index+1}"/></td>
+										</c:forEach>
+									</tr>
+									
+									<tr class="morning">
+										<td>
+										    <input class="title_input" placeholder="时间" name="startTimeAm" id="startTimeAm4"/>
+										</td>
+										<td>
+										    <input placeholder="时间" name="endTimeAm" class="title_input" id="endTimeAm4"/>
+										</td>
+										<td class="m_text_align_conter">
+											<i class="fa fa-times" onclick="removeAddAm($(this))"></i>
+										</td>
+										<c:forEach items="${weekList}" var="wam4" varStatus="wamt">
+											<td><input name="subAm${wamt.index+1}"/></td>
+										</c:forEach>
+									</tr>
+									
+									<tr id="noon1">
+										<td>
+										    <input placeholder="时间" class="title_input" name="startTimeNoon" id="startTimeNoon1"/>
+										</td>
+										<td>
+										    <input placeholder="时间" name="endTimeNoon" class="title_input" id="endTimeNoon1"/>
+										</td>
+										<td colspan="8" class="lunch-noon">午餐+午休</td>
+									</tr>
+	
+									<tr class="afternoon">
+										<td>
+										    <input placeholder="时间" class="title_input" name="startTimePm" id="startTimePm1"/>
+										</td>
+										<td>
+										    <input placeholder="时间" class="title_input" name="endTimePm" id="startTimePm1"/>
+										</td>
+										<td class="m_text_align_conter">
+											<i class="icon-plus" onclick="appendAddPm()"></i>
+										</td> 
+										<c:forEach items="${weekList}" varStatus="wpmt1">
+											<td><input name="subPm${wpmt1.index+1}"/></td>
+										</c:forEach>
+									</tr>
+									<tr class="afternoon">
+										<td>
+										    <input placeholder="时间" class="title_input" name="startTimePm" id="startTimePm2"/>
+										</td>
+										<td>
+										    <input placeholder="时间" name="endTimePm" class="title_input" id="endTimePm2"/>
+										</td>
+										<td class="m_text_align_conter">
+											<i class="fa fa-times" onclick="removeAddPm($(this))"></i>
+										</td>
+										<c:forEach items="${weekList}" varStatus="wpmt2">
+											<td><input name="subPm${wpmt2.index+1}"/></td>
+										</c:forEach>
+									</tr>
+									<tr class="afternoon">
+										<td>
+										    <input placeholder="时间" class="title_input" name="startTimePm" id="startTimePm3"/>
+										</td>
+										<td>
+										    <input placeholder="时间" name="endTimePm" class="title_input" id="endTimePm3"/>
+										</td>
+										<td class="m_text_align_conter">
+											<i class="fa fa-times"onclick="removeAddPm($(this))"></i>
+										</td>
+										<c:forEach items="${weekList}" varStatus="wpmt3">
+											<td><input name="subPm${wpmt3.index+1}" /></td>
+										</c:forEach>
+									</tr>
+								</table>
+							<input type="hidden" name="clazzId" value="${clazzId}">
+	                            </div>
+	                        </div>
+	                       <!-- 列表展现开始 -->
+	                        <!-- 分页开始 -->
+	                        <%@include file="/public_module/public_page.jsp" %>
+	                        <!-- 分页结束 -->
+	                    </div>
+	                </div>
+	                </div>
+	                <!--页面内容结束 -->
+	            </div>
+	        </div>
+	        <!-- 亦信聊天开始 -->
+	    	<%@ include file="/public_module/public_QQ.jsp" %>
+	        <!-- 亦信聊天结束 -->
+	    </div>
+	    <!-- 内容页结束 -->
+	    <!-- 底部开始 -->
+	    <%@ include file="/public_module/public_footer.jsp" %>
+	    <!-- 底部结束 -->
+	</body>
+    <!-- 公共js开始 -->
+    <%@ include file="/public_module/public_js.jsp" %>
+    <!-- 公共js结束 -->
+
+	<script>
+
+		jQuery(document).ready(function() {  
+			loadSubMenu("dailyActivities"); 
+			//选取当前菜单位置
+			setActive("dailyActivities","todayActivity");    
+			$('#startDay,#endDay').datetimepicker({
+				format:'Y-m-d',
+				timepicker:false
+			});
+			$('.title_input').datetimepicker({
+				datepicker:false,
+				format:'H:i',
+				step:5
+			});
+			
+			//结束日期
+			$("#endDay").blur(function(){
+				var endDay = $("#endDay").val();
+				var startDay = $("#startDay").val();
+				//未输入结束时间
+				if ("" == endDay)
+				{
+					$("#endDayGroup").addClass("error");
+					$("#endDayHelp").show();
+					$("#endDayHelp").html("*");
+				}
+				else if(startDay > endDay)
+				{
+					$("#endDayGroup").addClass("error");
+					$("#endDayHelp").show();
+					$("#endDayHelp").html("开始日期不能晚于结束日期");
+				}	
+				else
+				{
+					$("#endDayGroup").removeClass("error");
+					$("#endDayHelp").hide();
+				}
+				
+			});
+
+			
+			//点击确定保存
+		    $("#save").on("click",function()
+		    {
+			    
+		    	var startDay = $("#startDay").val();
+		    	var endDay = $("#endDay").val();
+		    	if(startDay=="" || endDay=="")
+				{
+		    		alert("开始日期结束日期不能为空");
+		    		return;
+				}
+				if(startDay > endDay)
+				{
+					alert("开始日期不能晚于结束日期");
+					return;
+				}
+
+			   var flag = false;
+			   $(".title_input").each(function(){
+			      if($(this).val()==""){
+					flag = true;
+					return false;
+			      }
+			    })
+			
+				if(flag)
+				{
+					alert("时间不能为空！");
+					return;
+				}
+
+				var clazzId = $("#clazzId").val();
+		    	if(checkTime(startDay,endDay,clazzId))
+				{
+		    		$("#saveCurriculumTime").submit();
+				}
+			})
+			
+			//点击取消
+		    $("#cancel").on("click",function(){
+		    	window.location.href='javascript:history.go(-1);';
+			})
+
+		});
+
+	    var i = 4;
+		function appendAddAm(){
+			i++;
+			var appendHtml = '<tr class="morning">';
+			appendHtml += '<td class="bg">';
+			appendHtml += '<input placeholder="时间" class="title_input" name="startTimeAm" id="startTimeAm'+i+'" />';
+			appendHtml += '</td>';
+			appendHtml += '<td class="bg">';
+			appendHtml += '<input placeholder="时间"class="title_input add_title" name="endTimeAm" id="endTimeAm'+i+'"/>';
+			appendHtml += '</td>';
+			appendHtml += '<td class="bg m_text_align_conter">';
+			appendHtml += '<i class="fa fa-times" onclick="removeAddAm($(this))"></i>';
+			appendHtml += '</td>';
+			appendHtml += '<c:forEach items="${weekList}" varStatus="wamt"><td><input name="subAm${wamt.index+1}"/></td></c:forEach>';
+			appendHtml += '</tr>';
+			var id = $(".morning").length;
+			var d = parseInt(id)+1;
+			$("#am").attr("rowspan",d);
+			$(".morning").last().after(appendHtml);
+			$('.title_input').datetimepicker({
+				datepicker:false,
+				format:'H:i',
+				step:5
+			});
+		}
+		
+		 var j = 3;
+		function appendAddPm(){
+			j++;
+			var appendHtml = '<tr class="afternoon">';
+			appendHtml += '<td class="bg">';
+			appendHtml += '<input placeholder="上课时间" class="title_input" name="startTimePm" id="startTimePm'+j+'"/>';
+			appendHtml += '</td>';
+			appendHtml += '<td class="bg">';
+			appendHtml += '<input placeholder="下课时间" class="title_input add_title" name="endTimePm" id="endTimePm'+j+'" />';
+			appendHtml += '</td>';
+			appendHtml += '<td class="bg m_text_align_conter">';
+			appendHtml += '<i class="fa fa-times" onclick="removeAddPm($(this));"></i>';
+			appendHtml += '</td>';
+			appendHtml += '<c:forEach items="${weekList}"  varStatus="wpmt"><td><input name="subPm${wpmt.index+1}"/></td></c:forEach>';
+			appendHtml += '</tr>';
+
+			var id = $(".afternoon").length;
+			var d = parseInt(id)+1;
+			$("#pm").attr("rowspan",d);
+			$(".afternoon").last().after(appendHtml);
+			$('.title_input').datetimepicker({
+				datepicker:false,
+				format:'H:i',
+				step:5
+			});
+		}
+		
+		function removeAddAm(obj)
+		{
+			if(confirm("确定要删除此行吗？"))
+		 	{
+				var id = $("#am").attr("rowspan");
+				var d = parseInt(id)-1;
+				$("#am").attr("rowspan",d);
+				obj.parent().parent().remove();
+		 	}
+		}
+		
+		function removeAddPm(obj)
+		{
+			if(confirm("确定要删除此行吗？"))
+		 	{
+				var id = $("#pm").attr("rowspan");
+				var d = parseInt(id)-1;
+				$("#pm").attr("rowspan",d);
+				obj.parent().parent().remove();
+		 	}
+		}
+		
+		
+		function checkTime(startDay,endDay,clazzId)
+		{
+			var flag = false;
+			$.ajax({
+				type: "post",
+				async:false, 
+				data:{
+					startDay : startDay,
+					endDay : endDay,
+					clazzId : clazzId
+				},
+				url: "<%=basePath%>todayActivity/toCheckSemester.do",
+				success: function(data)
+				{
+					var result = eval("(" + data + ")");
+					//此日期存在
+					if ("success" == result.resultCode)
+					{
+						alert("该时间段内已有课程表存在，请勿重新创建，如有问题请点编辑进行修改！");
+						flag = false;
+					}
+					else
+					{
+						flag = true;
+					}
+					
+				},
+			});
+			return flag;
+		}
+	</script>
+</html>

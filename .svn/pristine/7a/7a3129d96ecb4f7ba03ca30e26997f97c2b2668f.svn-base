@@ -1,0 +1,52 @@
+.photo_show{width:600px;height:475px;position:relative;background:#f7f7f7;float:left;overflow:hidden;}
+.photo_show ul li{list-style-type: none;}
+.photo_show .btn{position:absolute;width:15px;height:70px;top:336px;cursor:pointer;z-index:99;font-size:50px;font-weight:bold;padding:0px;}
+.photo_show .btn:hover{background:none}
+.photo_show .prev{left:0;background:none;}
+.photo_show #prevTop,.photo_show #nextTop{top:195px;width: 46px;height: 80px;padding:0px;}
+.photo_show #prevTop{color:#fff}
+.photo_show #nextTop{color:#fff}
+.photo_show .next{right:0;background:none;}
+.photo_show li{float:left;}
+.photo_show .cf li{position: relative;color: #fff;}
+.photo_show .cf a{display: block; width: 600px;height: 330px; position: absolute;color: #fff;}
+.photo_show .cf li span{display: block;width: 100%; position: absolute; left: 0; bottom: 0;padding:0px 20px;line-height: 22px;text-align:center;background:rgba(0,0,0,0.6);filter: progid:DXImageTransform.Microsoft.gradient( GradientType = 0,startColorstr = "#60000000",endColorstr = "#60000000") 6}
+.photo_show .picBox{height:400px;position:relative;overflow:hidden;}
+.photo_show .picBox ul{height:400px;position:absolute;padding:0px;margin:0px;}
+.photo_show .picBox li{width:600px;height:400px;}
+.photo_show .picBox li img{width:600px;height:400px;}
+.photo_show .listBox{width:600px;height:70px;margin:0 auto;position:relative;padding:6px 0 10px;overflow:hidden;}
+.photo_show .listBox ul{height:70px;position:absolute;padding:0px;margin:0px;}
+.photo_show .listBox li{width:70px;height:70px;margin:0px 5px;cursor:pointer;position:relative;}
+.photo_show .listBox li i{display:none;}
+.photo_show .listBox li a{display: block;width:70px;height: 70px;}
+.photo_show .listBox li img{width:70px;height: 70px;}
+.photo_show .listBox .on img{width: 64px;height: 64px;border:3px solid #1095DE;}
+.photo_show .listBox .on i{display:block;}
+
+
+.photo_show_person{width:600px;height:475px;position:relative;background:#f7f7f7;margin:0 auto;overflow:hidden;}
+.photo_show_person ul li{list-style-type: none;}
+.photo_show_person .btn{position:absolute;width:15px;height:70px;top:336px;cursor:pointer;z-index:99;font-size:50px;font-weight:bold;padding:0px;}
+.photo_show_person .btn:hover{background:none}
+.photo_show_person .prev{left:0;background:none;}
+.photo_show_person #prevTop,.photo_show_person #nextTop{top:195px;width: 46px;height: 48px;padding:0px;}
+.photo_show_person #prevTop{color:#fff}
+.photo_show_person #nextTop{color:#fff}
+.photo_show_person .next{right:0;background:none;}
+.photo_show_person li{float:left;}
+.photo_show_person .cf li{position: relative;color: #fff;}
+.photo_show_person .cf a{display: block; width: 600px;height: 330px; position: absolute;color: #fff;}
+.photo_show_person .cf li span{display: block;width: 560px; position: absolute; left: 0; bottom: 0;padding:0px 20px;line-height: 22px;text-align:center;background:rgba(0,0,0,0.6);filter: progid:DXImageTransform.Microsoft.gradient( GradientType = 0,startColorstr = "#60000000",endColorstr = "#60000000") 6}
+.photo_show_person .picBox{height:400px;position:relative;overflow:hidden;}
+.photo_show_person .picBox ul{height:400px;position:absolute;padding:0px;margin:0px;}
+.photo_show_person .picBox li{width:600px;height:400px;}
+.photo_show_person .picBox li img{width:600px;height:400px;}
+.photo_show_person .listBox{width:600px;height:70px;margin:0 auto;position:relative;padding:6px 0 10px;overflow:hidden;}
+.photo_show_person .listBox ul{height:70px;position:absolute;padding:0px;margin:0px;}
+.photo_show_person .listBox li{width:70px;height:70px;margin:0px 5px;cursor:pointer;position:relative;}
+.photo_show_person .listBox li i{display:none;}
+.photo_show_person .listBox li a{display: block;width:70px;height: 70px;}
+.photo_show_person .listBox li img{width:70px;height: 70px;}
+.photo_show_person .listBox .on img{width: 64px;height: 64px;border:3px solid #1095DE;}
+.photo_show_person .listBox .on i{display:block;}

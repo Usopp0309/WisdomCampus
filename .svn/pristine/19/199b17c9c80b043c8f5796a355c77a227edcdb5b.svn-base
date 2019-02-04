@@ -1,0 +1,78 @@
+package com.guotop.palmschool.meeting.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.meeting.entity.MeetingDetail;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 会议安排业务类接口
+ * @author zhou
+ *
+ */
+public interface MeetingDetailService 
+{
+	/**
+	 * 添加会议详情实体
+	 * @param check 待添加的会议详情实体
+	 */
+	public void addMeetingDetail(MeetingDetail meetingDetail);
+	
+	/**
+	 * 删除会议详情
+	 * @param 
+	 */
+	public void deleteMeetingDetail(Integer meetingId);
+	
+	/**
+	 * 根据会议Id查询会议详情 /分页查询
+	 * @param paramMap 参数map
+	 * @return 会议安排/分页
+	 * 20151208
+	 */
+	public Pages getMeetingDetailByMeetingId(int pageSize, int page, Map<String, Object> paramMap, User user);
+	
+	/**
+	 * 根据userId查询会议详情 /分页查询
+	 * @param paramMap 参数map
+	 * @return 会议安排/分页
+	 * 查看自己参加的会议List
+	 * 20151208
+	 */
+	public Pages getMeetingDetailByUserId(int pageSize, int page, Map<String, Object> paramMap, User user);
+	
+	/**
+	 * 根据meetingId查询会议详情
+	 */
+	public List<MeetingDetail> selectMeetingDetailByMeetingId(Integer meetingId);
+	
+	/**
+	 * 更新会议记录实体
+	 * @param check 待更新的会议记录实体
+	 * 20151208
+	 */
+	public void updateMeetingDetail(MeetingDetail meetingDetail);
+	
+	/**
+	 * 更新我的会议详情签到状态
+	 */
+	public void updateAttensta(Map<String, Object> parmMap);
+	/**
+	 * 根据会议Id查询会议详情 /分页查询(APP)
+	 * @param paramMap 参数map
+	 * @return 会议安排/分页
+	 * 20160223
+	 */
+	public List<MeetingDetail> getMeetingDetailByMeetingIdAPP(int pageSize, int page, Map<String, Object> paramMap, User user);
+	
+	/**
+	 * 根据userId查询会议记录 /分页查询(APP)
+	 * @param paramMap 参数map
+	 * @return 会议记录/分页
+	 * 查看自己参加会议List
+	 * 20151208
+	 */
+	public List<MeetingDetail> getMeetingDetailByUserIdAPP(int pageSize, int page, Map<String, Object> paramMap,User user);
+}

@@ -1,0 +1,1073 @@
+package com.guotop.palmschool.check.service.impl;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.check.entity.Check;
+import com.guotop.palmschool.check.entity.CheckAttendance;
+import com.guotop.palmschool.check.entity.StudentCheck;
+import com.guotop.palmschool.check.entity.TeacherAttendance;
+import com.guotop.palmschool.check.entity.TeacherCheck;
+import com.guotop.palmschool.check.service.CheckService;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 考勤业务类实现类
+ * 
+ * @author zhou
+ */
+@Service("checkService")
+public class CheckServiceImpl extends BaseService implements CheckService
+{
+	@Resource
+	
+	private CommonService commonService;
+
+	/**
+	 * 检查未离校的老师
+	 * 
+	 * @return List<User> 查询出来的数据
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> selectTeacherNotLeave()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		/**
+		 * 时间区间:
+		 */
+		/**
+		 * 获取今天16:30
+		 */
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 16); // 时
+		cal.set(Calendar.MINUTE, 30); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String beginTime = formatter.format(cal.getTime());
+
+		/**
+		 * 20:00
+		 */
+		cal.set(Calendar.HOUR_OF_DAY, 20); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String endTime = formatter.format(cal.getTime());
+
+		paramMap.put("beginTime", beginTime);
+		paramMap.put("endTime", endTime);
+		paramMap.put("status", Cons.INOUTTYPE_OUT);
+
+		List<User> teacherList = getBaseDao().selectListByObject("Check.selectTeacherNotLeave", paramMap);
+		return teacherList;
+
+	}
+
+	/**
+	 * 检查未到校的老师
+	 * 
+	 * @return List<User> 查询出来的数据
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> selectTeacherNotArrive()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		/**
+		 * 获取当天03:00(早上)时间
+		 */
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 3); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+
+		String updateTime = formatter.format(cal.getTime());
+
+		paramMap.put("updateTime", updateTime);
+		paramMap.put("status", Cons.INOUTTYPE_OUT);
+
+		List<User> teacherList = getBaseDao().selectListByObject("Check.selectTeacherNotArrive", paramMap);
+
+		return teacherList;
+	}
+
+	/**
+	 * 检查迟到的老师（上午）
+	 * 
+	 * @return List<User> 查询出来的数据
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> selectTeacherMorningLate()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date now = new Date();
+		String[] times = formatter.format(now).split("\\s+");
+		String day = times[0];
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		/**
+		 * 时间区间:
+		 */
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 8); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String beginTime = formatter.format(cal.getTime());
+
+		cal.set(Calendar.HOUR_OF_DAY, 6); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String endTime = formatter.format(cal.getTime());
+
+		paramMap.put("beginTime", beginTime);
+		paramMap.put("endTime", endTime);
+		paramMap.put("status", Cons.INOUTTYPE_IN);
+		paramMap.put("time", day);
+
+		List<User> teacherList = getBaseDao().selectListByObject("Check.selectTeacherLate", paramMap);
+
+		return teacherList;
+	}
+
+	/**
+	 * 检查早退的老师（上午）
+	 * 
+	 * @return List<User> 查询出来的数据
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> selectTeacherMorningLeave()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		Date now = new Date();
+		String[] times = formatter.format(now).split("\\s+");
+		String day = times[0];
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		/**
+		 * 时间区间:
+		 */
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 11); // 时
+		cal.set(Calendar.MINUTE, 20); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String beginTime = formatter.format(cal.getTime());
+
+		cal.set(Calendar.HOUR_OF_DAY, 13); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String endTime = formatter.format(cal.getTime());
+
+		paramMap.put("beginTime", beginTime);
+		paramMap.put("endTime", endTime);
+		paramMap.put("status", Cons.INOUTTYPE_OUT);
+		paramMap.put("time", day);
+
+		List<User> teacherList = getBaseDao().selectListByObject("Check.selectTeacherLeave", paramMap);
+
+		return teacherList;
+	}
+
+	/**
+	 * 检查迟到的老师（下午）
+	 * 
+	 * @return List<User> 查询出来的数据
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> selectTeacherAfternoonLate()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date now = new Date();
+		String[] times = formatter.format(now).split("\\s+");
+		String day = times[0];
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		/**
+		 * 时间区间:今天早上6点到最迟到达时间
+		 */
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 14); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String beginTime = formatter.format(cal.getTime());
+
+		cal.set(Calendar.HOUR_OF_DAY, 13); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String endTime = formatter.format(cal.getTime());
+
+		paramMap.put("beginTime", beginTime);
+		paramMap.put("endTime", endTime);
+		paramMap.put("status", Cons.INOUTTYPE_IN);
+		paramMap.put("time", day);
+
+		List<User> teacherList = getBaseDao().selectListByObject("Check.selectTeacherLate", paramMap);
+
+		return teacherList;
+	}
+
+	/**
+	 * 检查早退的老师（下午）
+	 * 
+	 * @return List<User> 查询出来的数据
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> selectTeacherAfternoonLeave()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		Date now = new Date();
+		String[] times = formatter.format(now).split("\\s+");
+		String day = times[0];
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		/**
+		 * 时间区间:
+		 */
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 15); // 时
+		cal.set(Calendar.MINUTE, 40); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String beginTime = formatter.format(cal.getTime());
+
+		cal.set(Calendar.HOUR_OF_DAY, 22); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String endTime = formatter.format(cal.getTime());
+
+		paramMap.put("beginTime", beginTime);
+		paramMap.put("endTime", endTime);
+		paramMap.put("status", Cons.INOUTTYPE_OUT);
+		paramMap.put("time", day);
+
+		List<User> teacherList = getBaseDao().selectListByObject("Check.selectTeacherLeave", paramMap);
+
+		return teacherList;
+	}
+
+	/**
+	 * 检查未离校的学生
+	 * 
+	 * @return 查询出的数据
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> selectStudentNotLeave()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		/**
+		 * 时间区间:1天前3点 - 今天3点
+		 */
+		/**
+		 * 获取今天16:30
+		 */
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 16); // 时
+		cal.set(Calendar.MINUTE, 30); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String beginTime = formatter.format(cal.getTime());
+
+		/**
+		 * 20:00
+		 */
+		cal.set(Calendar.HOUR_OF_DAY, 20); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String endTime = formatter.format(cal.getTime());
+
+		paramMap.put("beginTime", beginTime);
+		paramMap.put("endTime", endTime);
+		paramMap.put("status", Cons.INOUTTYPE_OUT);
+
+		List<User> studentList = getBaseDao().selectListByObject("Check.selectStudentNotLeave", paramMap);
+		return studentList;
+	}
+
+	/**
+	 * 检查未到校的学生
+	 * 
+	 * @return 查询出的数据
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> selectStudentNotArrive()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		/**
+		 * 时间区间:3天前3点 - 今天3点
+		 */
+		/**
+		 * 时间区间:今天早上3点到最迟到达时间
+		 */
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 17); // 时
+		cal.set(Calendar.MINUTE, 35); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String beginTime = formatter.format(cal.getTime());
+
+		cal.set(Calendar.HOUR_OF_DAY, 7); // 时
+		cal.set(Calendar.MINUTE, 35); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String endTime = formatter.format(cal.getTime());
+
+		paramMap.put("beginTime", beginTime);
+		paramMap.put("endTime", endTime);
+		paramMap.put("status", Cons.INOUTTYPE_IN);
+
+		List<User> studentList = getBaseDao().selectListByObject("Check.selectStudentNotArrive", paramMap);
+		return studentList;
+	}
+
+	/**
+	 * 检测学生迟到（上午） 学生迟到逻辑:检测时间段在当天03:00到上课时间内未到校的学生的列表
+	 * 
+	 * @return List<User> 检测到的迟到的学生
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> selectStudentMorningLate()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		Date now = new Date();
+		String[] times = formatter.format(now).split("\\s+");
+		String day = times[0];
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		/**
+		 * 时间区间:
+		 */
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 8); // 时
+		cal.set(Calendar.MINUTE, 35); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String beginTime = formatter.format(cal.getTime());
+
+		cal.set(Calendar.HOUR_OF_DAY, 6); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String endTime = formatter.format(cal.getTime());
+
+		paramMap.put("beginTime", beginTime);
+		paramMap.put("endTime", endTime);
+		paramMap.put("status", Cons.INOUTTYPE_IN);
+		paramMap.put("time", day);
+
+		List<User> studentList = getBaseDao().selectListByObject("Check.selectStudentLate", paramMap);
+		return studentList;
+	}
+
+	/**
+	 * 检测学生早退（上午） 学生早退逻辑:检测时间段在当天03:00到上课时间内未到校的学生的列表
+	 * 
+	 * @return List<User> 检测到的迟到的学生
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> selectStudentMorningLeave()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		Date now = new Date();
+		String[] times = formatter.format(now).split("\\s+");
+		String day = times[0];
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		/**
+		 * 时间区间:今天早上3点到最迟到达时间
+		 */
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 11); // 时
+		cal.set(Calendar.MINUTE, 20); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String beginTime = formatter.format(cal.getTime());
+
+		cal.set(Calendar.HOUR_OF_DAY, 13); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String endTime = formatter.format(cal.getTime());
+
+		paramMap.put("beginTime", beginTime);
+		paramMap.put("endTime", endTime);
+		paramMap.put("status", Cons.INOUTTYPE_OUT);
+		paramMap.put("time", day);
+
+		List<User> studentList = getBaseDao().selectListByObject("Check.selectStudentLeave", paramMap);
+		return studentList;
+	}
+
+	/**
+	 * 检测学生迟到（下午） 学生迟到逻辑:检测时间段在当天03:00到上课时间内未到校的学生的列表
+	 * 
+	 * @return List<User> 检测到的迟到的学生
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> selectStudentAfternoonLate()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		Date now = new Date();
+		String[] times = formatter.format(now).split("\\s+");
+		String day = times[0];
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		/**
+		 * 时间区间:今天早上3点到最迟到达时间
+		 */
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 14); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String beginTime = formatter.format(cal.getTime());
+
+		cal.set(Calendar.HOUR_OF_DAY, 13); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String endTime = formatter.format(cal.getTime());
+
+		paramMap.put("beginTime", beginTime);
+		paramMap.put("endTime", endTime);
+		paramMap.put("status", Cons.INOUTTYPE_IN);
+		paramMap.put("time", day);
+
+		List<User> studentList = getBaseDao().selectListByObject("Check.selectStudentLate", paramMap);
+		return studentList;
+	}
+
+	/**
+	 * 检测学生早退（下午） 学生早退逻辑:检测时间段在当天03:00到上课时间内未到校的学生的列表
+	 * 
+	 * @return List<User> 检测到的迟到的学生
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> selectStudentAfternoonLeave()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		Date now = new Date();
+		String[] times = formatter.format(now).split("\\s+");
+		String day = times[0];
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		/**
+		 * 时间区间:今天早上3点到最迟到达时间
+		 */
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 15); // 时
+		cal.set(Calendar.MINUTE, 40); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String beginTime = formatter.format(cal.getTime());
+
+		cal.set(Calendar.HOUR_OF_DAY, 22); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		String endTime = formatter.format(cal.getTime());
+
+		paramMap.put("beginTime", beginTime);
+		paramMap.put("endTime", endTime);
+		paramMap.put("status", Cons.INOUTTYPE_OUT);
+		paramMap.put("time", day);
+
+		List<User> studentList = getBaseDao().selectListByObject("Check.selectStudentLeave", paramMap);
+		return studentList;
+	}
+
+	/**
+	 * 添加考勤实体
+	 * 
+	 * @param check
+	 *            待添加的考勤实体
+	 */
+	public void addCheck(Check check)
+	{
+		getBaseDao().addObject("Check.addCheck", check);
+	}
+
+	/**
+	 * 根据条件查找考勤列表
+	 * 
+	 * @param 参数列表
+	 * @return 查找出来的考勤列表
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Check> selectCheckList(Map<String, Object> paramMap)
+	{
+		return getBaseDao().selectListByObject("Check.selectCheckList", paramMap);
+	}
+
+	/**
+	 * 页面加载检测记录列表
+	 * 
+	 * @param paramMap
+	 *            参数map
+	 * @return 检测记录/分页
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages loadCheckList(int pageSize, int page, Map<String, Object> paramMap)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<Check> list = new ArrayList<Check>();
+		allRow = this.getBaseDao().getAllRowCountByCondition("Check.loadCheckList", paramMap);
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		currentPage = Pages.countCurrentPage(page);
+		list = this.getBaseDao().queryForPageByCondition("Check.loadCheckList", paramMap, offset, length);
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	/**
+	 * 页面加载教师考勤列表
+	 * 
+	 * @param paramMap
+	 *            参数map
+	 * @param user
+	 *            当前用户
+	 * @return 教师考勤/分页
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages getTeacherCheckList(int pageSize, int page, Map<String, Object> paramMap, User user)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<TeacherAttendance> list = new ArrayList<TeacherAttendance>();
+		/**
+		 * 权限划分
+		 */
+		/**
+		 * 管理员权限
+		 */
+		if (commonService.hasAdminPermission(user))
+		{
+
+			allRow = (Integer) this.getBaseDao().selectObjectByObject("Check.getTeacherAttendanceListCount", paramMap);
+
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+
+			// 解决ibatis框架的分页问题
+			// 起始数据坐标
+			paramMap.put("startIndex", offset);
+			// 单页数据量
+			paramMap.put("length", length);
+			list = this.getBaseDao().selectListByObject("Check.getTeacherAttendanceList", paramMap);
+
+		} else
+		{
+			List<Integer> departIdList = getBaseDao().selectListByObject("UserPermission.getOptDepartsByUserIdAndPermissionCode", paramMap);
+			if (departIdList != null && departIdList.size() > 0)
+			{
+				paramMap.put("departIdList", departIdList);
+				allRow = (Integer) this.getBaseDao().selectObjectByObject("Check.getNormalTeacherAttendanceListCount", paramMap);
+
+				totalPage = Pages.countTotalPage(pageSize, allRow);
+
+				final int offset = Pages.countOffset(pageSize, page);
+				final int length = pageSize;
+				currentPage = Pages.countCurrentPage(page);
+
+				// 解决ibatis框架的分页问题
+				// 起始数据坐标
+				paramMap.put("startIndex", offset);
+				// 单页数据量
+				paramMap.put("length", length);
+				list = this.getBaseDao().selectListByObject("Check.getNormalTeacherAttendanceList", paramMap);
+			}else
+			{
+				paramMap.put("userId", user.getUserId());
+				allRow = (Integer) this.getBaseDao().selectObjectByObject("Check.getNormalTeacherAttendanceListCount", paramMap);
+
+				totalPage = Pages.countTotalPage(pageSize, allRow);
+
+				final int offset = Pages.countOffset(pageSize, page);
+				final int length = pageSize;
+				currentPage = Pages.countCurrentPage(page);
+
+				// 解决ibatis框架的分页问题
+				// 起始数据坐标
+				paramMap.put("startIndex", offset);
+				// 单页数据量
+				paramMap.put("length", length);
+				list = this.getBaseDao().selectListByObject("Check.getNormalTeacherAttendanceList", paramMap);
+			}
+			
+		}
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	/**
+	 * 页面加载学生考勤列表
+	 * 
+	 * @param paramMap
+	 *            参数map
+	 * @param user
+	 *            当前用户
+	 * @return 学生考勤/分页
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages loadStudentCheckList(int pageSize, int page, Map<String, Object> paramMap, User user)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		String roleCode = (String)paramMap.get("roleCode");
+
+		List<StudentCheck> list = new ArrayList<StudentCheck>();
+
+		/**
+		 * 权限划分
+		 */
+		/**
+		 * 校长权限
+		 */
+		if (commonService.hasAdminPermission(user))
+		{	
+			allRow = (Integer) this.getBaseDao().selectObjectByObject("Check.getStudentCheckListCount", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			// 解决ibatis框架的分页问题
+			// 起始数据坐标
+			paramMap.put("startIndex", offset);
+			// 单页数据量
+			paramMap.put("length", length);
+			list = this.getBaseDao().selectListByObject("Check.getStudentCheckList", paramMap);
+		}else if (roleCode != null && roleCode.equals("parent"))
+		{
+			paramMap.put("userId", user.getUserId());
+			allRow = this.getBaseDao().getAllRowCountByCondition("Check.getStudentCheckListAsParent", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			// 解决ibatis框架的分页问题
+			// 起始数据坐标
+			paramMap.put("startIndex", offset);
+			// 单页数据量
+			paramMap.put("length", length);
+			list = this.getBaseDao().selectListByObject("Check.getStudentCheckListAsParent", paramMap);
+		}else if (roleCode != null && roleCode.equals("student"))
+		{
+			paramMap.put("userId", user.getUserId());
+			allRow = this.getBaseDao().getAllRowCountByCondition("Check.getStudentCheckListAsStudent", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			// 解决ibatis框架的分页问题
+			// 起始数据坐标
+			paramMap.put("startIndex", offset);
+			// 单页数据量
+			paramMap.put("length", length);
+			list = this.getBaseDao().selectListByObject("Check.getStudentCheckListAsStudent", paramMap);
+		}
+		/**
+		 * 班主任及有权限人员
+		 */
+		else 
+		{
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("permissionCode", "studentAttendanceManager");
+			List<Integer> clazzIdList = getBaseDao().selectListByObject("UserPermission.getOptClazzsByUserIdAndPermissionCode", paramMap);
+			paramMap.remove("permissionCode");
+			paramMap.remove("userId");
+			paramMap.put("clazzIdList", clazzIdList);
+			if (clazzIdList != null && clazzIdList.size() > 0)
+			{
+				allRow = this.getBaseDao().getAllRowCountByCondition("Check.getStudentCheckListAsHeadMaster", paramMap);
+				totalPage = Pages.countTotalPage(pageSize, allRow);
+
+				final int offset = Pages.countOffset(pageSize, page);
+				final int length = pageSize;
+				currentPage = Pages.countCurrentPage(page);
+				// 解决ibatis框架的分页问题
+				// 起始数据坐标
+				paramMap.put("startIndex", offset);
+				// 单页数据量
+				paramMap.put("length", length);
+				list = this.getBaseDao().selectListByObject("Check.getStudentCheckListAsHeadMaster", paramMap);
+			}
+		}
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	/**
+	 * 查找进出记录(为了导出excel)
+	 * 
+	 * @param paramMap
+	 *            参数map
+	 * @param roleId
+	 *            权限ID 学生考勤
+	 */
+	@SuppressWarnings("unchecked")
+	public List<StudentCheck> getStudentCheckListForExcel(Map<String, Object> paramMap, User user)
+	{
+		String roleId = (String)paramMap.get("roleId");
+		/**
+		 * 校长权限
+		 */
+		if (commonService.hasAdminPermission(user))
+		{
+			return getBaseDao().selectListByObject("Check.getStudentCheckList", paramMap);
+		}else if ("student".equals(roleId))//学生
+		{
+			return getBaseDao().selectListByObject("Check.getStudentCheckListAsStudent", paramMap);
+		}else
+		{
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("permissionCode", "studentAttendanceManager");
+			List<Integer> clazzIdList = getBaseDao().selectListByObject("UserPermission.getOptClazzsByUserIdAndPermissionCode", paramMap);
+			paramMap.remove("permissionCode");
+			paramMap.remove("userId");
+			paramMap.put("clazzIdList", clazzIdList);
+			return getBaseDao().selectListByObject("Check.getStudentCheckListAsHeadMaster", paramMap);
+		}
+	}
+
+	/**
+	 * 查找进出记录(为了导出excel)
+	 * 
+	 * @param paramMap
+	 *            参数map
+	 * @param roleId
+	 *            权限ID 教师考勤
+	 */
+	@SuppressWarnings("unchecked")
+	public List<TeacherAttendance> getTeacherCheckListForExcel(Map<String, Object> paramMap, User user)
+	{
+		/**
+		 * 校长权限
+		 */
+		if (commonService.hasAdminPermission(user))
+		{
+			return getBaseDao().selectListByObject("Check.getTeacherAttendanceList", paramMap);
+		}else
+		{
+			List<Integer> departIdList = getBaseDao().selectListByObject("UserPermission.getOptDepartsByUserIdAndPermissionCode", paramMap);
+			paramMap.put("departIdList", departIdList);
+ 			return getBaseDao().selectListByObject("Check.getNormalTeacherAttendanceList", paramMap);
+		}
+
+	}
+
+	/**
+	 * 添加考勤统计表
+	 */
+	public void addCheckAttendance(CheckAttendance checkAttendance)
+	{
+		getBaseDao().addObject("Check.addCheckAttendance", checkAttendance);
+	}
+
+	/**
+	 * 根据userid修改考勤统计实体
+	 */
+	public void updateCheckAttendance(Integer userId, Integer status)
+	{
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("userId", userId);
+		paramMap.put("status", status);
+		getBaseDao().updateObject("Check.updateCheckAttendance", userId);
+	}
+
+	/**
+	 * 老师正常
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Integer> checkTeacherNormal()
+	{
+		return getBaseDao().selectListBySql("Check.checkTeacherNormal");
+	}
+
+	/**
+	 * 老师考勤相关（上午）
+	 */
+	@SuppressWarnings("unchecked")
+	public List<CheckAttendance> checkAMTeacherAttendance(Map<String, Object> paramMap, User user)
+	{
+		//管理员权限
+		if (commonService.hasAdminPermission(user))
+		{
+			return getBaseDao().selectListByObject("Check.checkAMTeacherAttendance", paramMap);
+		}else//有查询权限
+		{
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("permissionCode", "attendanceStatisticsManager");
+			List<Integer> departIdList = getBaseDao().selectListByObject("UserPermission.getOptDepartsByUserIdAndPermissionCode", paramMap);
+			paramMap.put("departIdList", departIdList);
+			return getBaseDao().selectListByObject("Check.checkAMTeacherAttendanceWithTeacher", paramMap);
+		}
+	}
+
+	/**
+	 * 老师考勤相关（下午）
+	 */
+	@SuppressWarnings("unchecked")
+	public List<CheckAttendance> checkPMTeacherAttendance(Map<String, Object> paramMap, User user)
+	{
+		//管理员权限
+		if (commonService.hasAdminPermission(user))
+		{
+			return getBaseDao().selectListByObject("Check.checkPMTeacherAttendance", paramMap);
+		}else//有查询权限
+		{
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("permissionCode", "attendanceStatisticsManager");
+			List<Integer> departIdList = getBaseDao().selectListByObject("UserPermission.getOptDepartsByUserIdAndPermissionCode", paramMap);
+			paramMap.put("departIdList", departIdList);
+			return getBaseDao().selectListByObject("Check.checkPMTeacherAttendanceWithTeacher", paramMap);
+			
+		}
+
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<CheckAttendance> checkTeacherAttendance(Map<String, Object> paramMap,User user)
+	{
+		//管理员权限
+		if (commonService.hasAdminPermission(user))
+		{
+			return getBaseDao().selectListByObject("Check.checkTeacherAttendance", paramMap);
+		}else//有查询权限
+		{
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("permissionCode", "attendanceStatisticsManager");
+			List<Integer> departIdList = getBaseDao().selectListByObject("UserPermission.getOptDepartsByUserIdAndPermissionCode", paramMap);
+			paramMap.put("departIdList", departIdList);
+			return getBaseDao().selectListByObject("Check.checkTeacherAttendanceWithTeacher", paramMap);
+			
+		}
+	}
+
+	public void toUpdateStatus(Map<String, Object> paramMap)
+	{
+		getBaseDao().addObject("Check.updateStatus", paramMap);
+
+	}
+	
+	
+	
+	/**
+	 * 页面加载教师考勤列表(APP)
+	 * @param paramMap 参数map
+	 * @param user 当前用户
+	 * @return 教师考勤/分页
+	 */
+	@SuppressWarnings("unchecked")
+	public List<TeacherCheck> getTeacherCheckListAPP(int pageSize, int page, Map<String, Object> paramMap, User user)
+	{
+		List<TeacherCheck> list = new ArrayList<TeacherCheck>();
+		/**
+		 * 权限划分
+		 */
+		/**
+		 * 管理员权限
+		 */
+		if (commonService.hasAdminPermission(user))
+		{
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+
+			// 解决ibatis框架的分页问题
+			// 起始数据坐标
+			paramMap.put("startIndex", offset);
+			// 单页数据量
+			paramMap.put("length", length);
+			list = this.getBaseDao().selectListByObject("Check.getTeacherAttendanceList", paramMap);
+
+		} else
+		{
+			List<Integer> departIdList = getBaseDao().selectListByObject("UserPermission.getOptDepartsByUserIdAndPermissionCode", paramMap);
+			if (departIdList != null && departIdList.size() > 0)
+			{
+				paramMap.put("departIdList", departIdList);
+
+				final int offset = Pages.countOffset(pageSize, page);
+				final int length = pageSize;
+
+				// 解决ibatis框架的分页问题
+				// 起始数据坐标
+				paramMap.put("startIndex", offset);
+				// 单页数据量
+				paramMap.put("length", length);
+				list = this.getBaseDao().selectListByObject("Check.getNormalTeacherAttendanceList", paramMap);
+			}else
+			{
+				paramMap.put("userId", user.getUserId());
+
+				final int offset = Pages.countOffset(pageSize, page);
+				final int length = pageSize;
+
+				// 解决ibatis框架的分页问题
+				// 起始数据坐标
+				paramMap.put("startIndex", offset);
+				// 单页数据量
+				paramMap.put("length", length);
+				list = this.getBaseDao().selectListByObject("Check.getNormalTeacherAttendanceList", paramMap);
+			}
+			
+		}
+
+		return list;
+	}
+	
+	
+	/**
+	 * 页面加载学生考勤列表 (APP)
+	 * @param paramMap  参数map
+	 * @param user 当前用户
+	 * @return 学生考勤/分页
+	 */
+	@SuppressWarnings("unchecked")
+	public List<TeacherCheck> loadStudentCheckListAPP(int pageSize, int page, Map<String, Object> paramMap, User user)
+	{
+		String roleCode = (String)paramMap.get("roleCode");
+
+		List<TeacherCheck> list = new ArrayList<TeacherCheck>();
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+
+		// 解决ibatis框架的分页问题
+		
+		// 起始数据坐标
+		paramMap.put("startIndex", offset);
+		// 单页数据量
+		paramMap.put("length", length);
+		/**
+		 * 权限划分
+		 */
+		/**
+		 * 校长权限
+		 */
+		if (commonService.hasAdminPermission(user))
+		{
+			list = this.getBaseDao().selectListByObject("Check.getStudentCheckList", paramMap);
+		}else if (roleCode != null && roleCode.equals("parent"))
+		{
+			paramMap.put("userId", user.getUserId());
+			list = this.getBaseDao().selectListByObject("Check.getStudentCheckListAsParent", paramMap);
+		}else if (roleCode != null && roleCode.equals("student"))
+		{
+			paramMap.put("userId", user.getUserId());
+			list = this.getBaseDao().selectListByObject("Check.getStudentCheckListAsStudent", paramMap);
+		}
+		/**
+		 * 班主任及有权限人员
+		 */
+		else 
+		{
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("permissionCode", "studentAttendanceManager");
+			List<Integer> clazzIdList = getBaseDao().selectListByObject("UserPermission.getOptClazzsByUserIdAndPermissionCode", paramMap);
+			paramMap.remove("permissionCode");
+			paramMap.remove("userId");
+			paramMap.put("clazzIdList", clazzIdList);
+			if (clazzIdList != null && clazzIdList.size() > 0)
+			{
+				list = this.getBaseDao().selectListByObject("Check.getStudentCheckListAsHeadMaster", paramMap);
+			}
+		}
+
+		return list;
+	}
+}

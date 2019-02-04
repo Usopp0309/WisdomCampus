@@ -1,0 +1,148 @@
+.home_header{position: fixed;top:0px;width:100%;}
+.home_footer{position: fixed;bottom:0px;height:50px;width:100%;}
+.home_main{overflow:hidden;margin:65px auto 0px;}
+.container{min-width:1024px!important}
+@media (min-width: 1680px){
+.m_badge span{position: absolute; top:0px; right:0px;border-radius:12px!important;padding:0px 6px;background-color:#e02222;color:#fff;}
+.homepage{max-width:1100px;margin:0px auto;padding:0px 20px;}
+.homepage .web_logo{height:40px}
+.homepage .web_logo img{float:right;margin:2px 20px 0 0;height:98%;}
+.logo{width:50%;margin:10px 0px;}
+.logo img{height:50px;display:inline-block;float:left}
+.logo span{line-height:50px;font-size:26px;color:#3091ed;text-indent: 15px;display:inline-block;float:left}
+.logo span em{font-style: normal;padding:0px 10px;}
+.time{line-height:50px;font-size:14px;color:#666;float:right;margin:20px 0 0 0}
+.nav-tabs > li > a{display:block;text-align: center;color:#666;}
+.nav-tabs > .active > a, .nav-tabs > .active > a:hover, .nav-tabs > .active > a:focus{background-color:#168ff3;color:#fff;}
+.home_row{height:300px;overflow:hidden;}
+.news_show{background-color:#e9ebef;height:300px;}
+.news_show .nav-tabs{width:100%;margin-right:0px;}
+.news_show .tab-content{background-color:#fff;width:100%;height:270px;overflow:hidden;}
+.news_show #school_menu{width:20%;float:left;height:100%;}
+.news_show #school_menu li{height:50px;line-height:50px;color:#fff;text-align:center;font-size:16px;cursor: pointer;}
+.news_show #school_menu .select{color:#666;background-color:#fff;}
+.news_show #school_menu_info{width:80%;float:left;background-color:#fff;height:350px;}
+.news_show #school_menu_info li{display:none;}
+.news_show #school_menu_info li h3{margin:0px;padding:0px;text-align: center;font-size:18px;font-weight: 300;}
+.news_show #school_menu_info li p{text-indent: 30px;line-height:33px;padding:0px 10px;}
+.news_show img{width:90%;margin:50px auto 0px;display:block;}
+.news_show h3{width:95%;display:block;float:left;font-size:18px;text-align: center;}
+.news_show p{width:95%;display:block;line-height:31px;text-indent:20px; float:left;margin:0px;}
+.news_show .school_news{height:220px;}
+.news_show .school_news a{width:80%;margin:0;display:inline-block;float:left;overflow:hidden;height:30px;line-height:30px;color:#333;text-indent: 30px;text-overflow: ellipsis;white-space: nowrap;}
+.news_show .school_news a:hover{color:#666!important}
+.news_show .school_news em{width:20%;display:inline-block;float:left;text-align: center;line-height:30px;font-style: normal;color:#ccc}
+.news_show .img_news p{width:59%;display:block;line-height:31px;text-indent:20px; float:left;}
+.Course{background-color:#fff;height:400px;}
+.Course .header{height:30px;line-height:30px;text-align: center;background-color:#168ff3;margin:0px;color:#fff;font-size: 18px;}
+.calender{background-color:#fff;height:400px;}
+.ContactUs div{text-align: center;line-height:30px;color:#666;padding:10px 0px;}
+.tool_ul{height:400px;}
+.tool_ul .platform{background-color:#fff;border:1px solid #ddd}
+.tool_ul .platform a{color:#666}
+.tool_ul .platform i{height:40px;line-height:40px;font-size:26px;color:#666;display:block;margin:0px auto;text-align: center;}
+.tool_ul .platform .platform_name{height:40px;line-height:40px;font-size:18px;}
+.tool_ul .m_module{background-color:#3091ed}
+.tool_ul .m_module i{height:40px;line-height:40px;font-size:26px;color:#fff;display:block;margin:0px auto;text-align: center;}
+.tool_ul .m_module .m_module_name{height:40px;line-height:40px;font-size:16px;color:#fff;}
+}
+@media (min-width: 1440px)and (max-width:1679px){
+.m_padding_25_0_0_0{padding:15px 0 0 0}
+.c-day-previous-month{padding:6px;margin:0px;}
+.c-day-next-month{padding:6px;margin:0px;}
+.c-day{padding:6px;margin:0px;}
+.table th, .table td{padding:5px 2px;line-height:18px;}
+.m_badge span{position: absolute; top:0px; right:0px;border-radius:12px!important;padding:0px 6px;background-color:#e02222;color:#fff;}
+.homepage{max-width:1100px;margin:0px auto;padding:0px 20px;}
+.homepage .web_logo{height:40px}
+.homepage .web_logo img{float:right;margin:2px 20px 0 0;height:98%;}
+.logo{width:50%;margin:10px 0px;}
+.logo img{height:50px;display:inline-block;float:left}
+.logo span{line-height:50px;font-size:26px;color:#3091ed;text-indent: 15px;display:inline-block;float:left}
+.logo span em{font-style: normal;padding:0px 10px;}
+.time{line-height:50px;font-size:14px;color:#666;float:right;margin:20px 0 0 0}
+.nav-tabs > li > a{display:block;text-align: center;color:#666;}
+.nav-tabs > .active > a, .nav-tabs > .active > a:hover, .nav-tabs > .active > a:focus{background-color:#168ff3;color:#fff;}
+.home_row{height:300px;overflow:hidden;}
+.news_show{background-color:#e9ebef;height:300px;}
+.news_show .nav-tabs{width:100%;margin-right:0px;}
+.news_show .tab-content{background-color:#fff;width:100%;height:270px;overflow:hidden;}
+.news_show #school_menu{width:20%;float:left;height:100%;}
+.news_show #school_menu li{height:50px;line-height:50px;color:#fff;text-align:center;font-size:16px;cursor: pointer;}
+.news_show #school_menu .select{color:#666;background-color:#fff;}
+.news_show #school_menu_info{width:80%;float:left;background-color:#fff;height:350px;}
+.news_show #school_menu_info li{display:none;}
+.news_show #school_menu_info li h3{margin:0px;padding:0px;text-align: center;font-size:18px;font-weight: 300;}
+.news_show #school_menu_info li p{text-indent: 30px;line-height:33px;padding:0px 10px;}
+.news_show img{width:90%;margin:30px auto 0px;display:block;}
+.news_show h3{width:95%;display:block;float:left;font-size:16px;line-height:30px;text-align: center;}
+.news_show p{width:95%;display:block;line-height:31px;text-indent:20px; float:left;margin:0px;}
+.news_show .school_news{height:220px;}
+.news_show .school_news a{width:80%;margin:0;display:inline-block;float:left;overflow:hidden;height:30px;line-height:30px;color:#333;text-indent: 30px;text-overflow: ellipsis;white-space: nowrap;}
+.news_show .school_news a:hover{color:#666!important}
+.news_show .school_news em{width:20%;display:inline-block;float:left;text-align: center;line-height:30px;font-style: normal;color:#ccc}
+.news_show .img_news p{width:59%;display:block;line-height:31px;text-indent:20px; float:left;}
+.Course{background-color:#fff;height:400px;}
+.Course .header{height:30px;line-height:30px;text-align: center;background-color:#168ff3;margin:0px;color:#fff;font-size: 18px;}
+.calender{background-color:#fff;height:400px;}
+.ContactUs div{text-align: center;line-height:30px;color:#666;padding:10px 0px;}
+.tool_ul{height:400px;}
+.tool_ul .platform{background-color:#fff;border:1px solid #ddd}
+.tool_ul .platform a{color:#666}
+.tool_ul .platform i{height:40px;line-height:40px;font-size:20px;color:#666;display:block;margin:0px auto;text-align: center;}
+.tool_ul .platform .platform_name{height:40px;line-height:40px;font-size:14px;}
+.tool_ul .m_module{background-color:#3091ed}
+.tool_ul .m_module i{height:40px;line-height:40px;font-size:20px;color:#fff;display:block;margin:0px auto;text-align: center;}
+.tool_ul .m_module .m_module_name{height:40px;line-height:40px;font-size:14px;color:#fff;}
+}
+@media (min-width: 1024px)and (max-width:1366px){
+.m_padding_25_0_0_0{padding:15px 0 0 0}
+.c-day-previous-month{padding:6px;margin:0px;}
+.c-day-next-month{padding:6px;margin:0px;}
+.c-day{padding:6px;margin:0px;}
+.table th, .table td{padding:2px;line-height:18px;}
+.m_badge span{position: absolute; top:0px; right:0px;border-radius:12px!important;padding:0px 6px;background-color:#e02222;color:#fff;}
+.homepage{max-width:1100px;margin:0px auto;padding:0px 20px;}
+.homepage .web_logo{height:40px}
+.homepage .web_logo img{float:right;margin:2px 20px 0 0;height:98%;}
+.logo{width:50%;margin:10px 0px;}
+.logo img{height:50px;display:inline-block;float:left}
+.logo span{line-height:50px;font-size:26px;color:#3091ed;text-indent: 15px;display:inline-block;float:left}
+.logo span em{font-style: normal;padding:0px 10px;}
+.time{line-height:50px;font-size:14px;color:#666;float:right;margin:20px 0 0 0}
+.nav-tabs > li > a{display:block;text-align: center;color:#666;}
+.nav-tabs > .active > a, .nav-tabs > .active > a:hover, .nav-tabs > .active > a:focus{background-color:#168ff3;color:#fff;}
+.home_row{height:200px;overflow:hidden;}
+.news_show{background-color:#e9ebef;height:300px;}
+.news_show .nav-tabs{width:100%;margin-right:0px;}
+.news_show .tab-content{background-color:#fff;width:100%;height:270px;overflow:hidden;}
+.news_show #school_menu{width:20%;float:left;height:100%;}
+.news_show #school_menu li{height:50px;line-height:50px;color:#fff;text-align:center;font-size:16px;cursor: pointer;}
+.news_show #school_menu .select{color:#666;background-color:#fff;}
+.news_show #school_menu_info{width:80%;float:left;background-color:#fff;height:350px;}
+.news_show #school_menu_info li{display:none;}
+.news_show #school_menu_info li h3{margin:0px;padding:0px;text-align: center;font-size:18px;font-weight: 300;}
+.news_show #school_menu_info li p{text-indent: 30px;line-height:33px;padding:0px 10px;}
+.news_show img{width:90%;margin:30px auto 0px;display:block;}
+.news_show h3{width:95%;display:block;float:left;font-size:16px;line-height:30px;text-align: center;}
+.news_show p{width:95%;display:block;line-height:31px;text-indent:20px; float:left;margin:0px;}
+.news_show .school_news{height:220px;}
+.news_show .school_news a{width:80%;margin:0;display:inline-block;float:left;overflow:hidden;height:30px;line-height:30px;color:#333;text-indent: 30px;text-overflow: ellipsis;white-space: nowrap;}
+.news_show .school_news a:hover{color:#666!important}
+.news_show .school_news em{width:20%;display:inline-block;float:left;text-align: center;line-height:30px;font-style: normal;color:#ccc}
+.news_show .img_news p{width:59%;display:block;line-height:31px;text-indent:20px; float:left;}
+.Course{background-color:#fff;height:400px;}
+.Course .header{height:30px;line-height:30px;text-align: center;background-color:#168ff3;margin:0px;color:#fff;font-size: 18px;}
+.calender{background-color:#fff;height:400px;}
+.ContactUs div{text-align: center;line-height:30px;color:#666;padding:10px 0px;}
+.tool_ul{height:400px;}
+.tool_ul .platform{background-color:#fff;border:1px solid #ddd}
+.tool_ul .platform a{color:#666}
+.tool_ul .platform i{height:20px;line-height:20px;font-size:20px;color:#666;display:block;margin:0px auto;text-align: center;}
+.tool_ul .platform .platform_name{height:20px;line-height:20px;font-size:14px;}
+.tool_ul .m_module{background-color:#3091ed}
+.tool_ul .m_module i{height:20px;line-height:20px;font-size:20px;color:#fff;display:block;margin:0px auto;text-align: center;}
+.tool_ul .m_module .m_module_name{height:20px;line-height:20px;font-size:14px;color:#fff;}
+.row-fluid [class*="span"]{min-height:23px;}
+}
+

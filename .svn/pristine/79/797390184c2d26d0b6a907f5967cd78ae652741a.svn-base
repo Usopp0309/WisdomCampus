@@ -1,0 +1,24 @@
+log4j.rootLogger=INFO, CONSOLE,DAILY_FILE1,DAILY_FILE
+
+log4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender
+log4j.appender.CONSOLE.layout=org.apache.log4j.PatternLayout
+log4j.appender.CONSOLE.layout.ConversionPattern=%p %d{yyyy-MM-dd HH:mm:ss.SSS} %c[%t] %x-%m %n
+log4j.appender.CONSOLE.Encoding=UTF-8
+
+log4j.appender.DAILY_FILE1=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.DAILY_FILE1.File=D:/Guolang/ftp/java_log/wisdomcampus/wisdomcampus.log
+log4j.appender.DAILY_FILE1.Append=true
+log4j.appender.DAILY_FILE1.Threshold=INFO
+log4j.appender.DAILY_FILE1.layout=org.apache.log4j.PatternLayout
+log4j.appender.DAILY_FILE1.layout.ConversionPattern=%p %d{yyyy-MM-dd HH:mm:ss.SSS} %c[%t] %x-%m %n
+log4j.appender.DAILY_FILE1.DatePattern='.'yyyy-MM-dd
+log4j.appender.DAILY_FILE1.Encoding=UTF-8
+
+log4j.appender.DAILY_FILE=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.DAILY_FILE.File=D:/Guolang/ftp/java_log/wisdomcampus/wisdomcampus_error.log
+log4j.appender.DAILY_FILE.Append=true
+log4j.appender.DAILY_FILE.Threshold=ERROR
+log4j.appender.DAILY_FILE.layout=org.apache.log4j.PatternLayout
+log4j.appender.DAILY_FILE.layout.ConversionPattern=%p %d{yyyy-MM-dd HH:mm:ss.SSS} %c[%t] %x-%m %n
+log4j.appender.DAILY_FILE.DatePattern='.'yyyy-MM-dd
+log4j.appender.DAILY_FILE.Encoding=UTF-8

@@ -1,0 +1,509 @@
+package com.guotop.palmschool.controller;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.constant.Cons.PUSHTYPE;
+import com.guotop.palmschool.entity.Announcement;
+import com.guotop.palmschool.entity.Clazz;
+import com.guotop.palmschool.entity.Department;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.rest.entity.PushItem;
+import com.guotop.palmschool.service.AnnouncementService;
+import com.guotop.palmschool.service.ClazzService;
+import com.guotop.palmschool.service.DepartmentService;
+import com.guotop.palmschool.service.SmsService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.system.service.InformationTypeService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+
+import dev.gson.GsonHelper;
+
+/**
+ * PC端公告操作类
+ * 
+ * @author sheng
+ * 
+ */
+@RequestMapping("/announcement")
+@Controller
+public class AnnouncementController extends BaseController
+{
+	@Resource
+	private AnnouncementService announcementService;
+
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private DepartmentService departmentService;
+
+	@Resource
+	private ClazzService clazzService;
+
+	@Resource
+	private UserService userService;
+
+	@Resource
+	private InformationTypeService informationTypeService;
+
+	@Resource
+	private SmsService smsService;
+
+	/**
+	 * 进入公告列表
+	 */
+	@RequestMapping(value = "/toAnnouncementList.do")
+	public String toAnnouncementList()
+	{
+		return "announcement/announcement_list";
+	}
+
+	/**
+	 * 不同权限查看到不同的page 历史公告列表加载公告list
+	 */
+	@RequestMapping(value = "/loadAnnouncementList.do")
+	public String loadAnnouncementList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		// 参数map
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		try
+		{
+			Integer userId = 0;
+			if (request.getParameter("userId") != null && !"undefined".equals(request.getParameter("userId")))
+			{
+				userId = Integer.valueOf(request.getParameter("userId"));
+			}
+			String roleCode = request.getParameter("roleCode");
+			String permissionCode = request.getParameter("permissionCode");
+
+			// 分页信息
+			Integer currentPage = 1;
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			// 公告类型
+			Integer type = 0;
+			try
+			{
+				type = Integer.valueOf(request.getParameter("type"));
+				// 最新公告即不设公告类型
+				if (Cons.ANNOUNCEMENT_NEW.equals(type))
+				{
+					type = null;
+				}
+			} catch (Exception e)
+			{
+				type = null;
+			}
+
+			User loginUser = (User) session.getAttribute("user");
+
+			paramMap.put("type", type);
+			paramMap.put("roleCode", roleCode);
+			paramMap.put("userId", userId);
+			paramMap.put("permissionCode", permissionCode);
+
+			this.getPages().setPageSize(50);
+			Pages<?> pages = null;
+			if (!StringUtil.isFjequals(loginUser.getSchoolId()))
+			{// 非福建
+				pages = announcementService.getAnnouncementByRoleCode(this.getPages().getPageSize(), currentPage, paramMap, loginUser);
+			} else
+			{
+				paramMap.put("fjSchoolId", loginUser.getUserId());
+				pages = announcementService.getAnnouncementByRoleCodeFj(this.getPages().getPageSize(), currentPage, paramMap, loginUser);
+			}
+
+			// flush到页面
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 进入发布公告页面
+	 */
+	@RequestMapping(value = "/toAddAnnouncement.do")
+	public String toAddAnnouncement(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		// 用户ID
+		Integer userId = Integer.valueOf(request.getParameter("userId"));
+		// 角色ID
+		String roleCode = request.getParameter("roleCode");
+
+		User loginUser = (User) session.getAttribute("user");
+
+		modelMap.addAttribute("userId", userId);
+		modelMap.addAttribute("roleCode", roleCode);
+		modelMap.addAttribute("permissionList", loginUser.getPermissionList());
+
+		return "announcement/announcement_add";
+	}
+
+	/**
+	 * 加载操作资源
+	 * 
+	 * @throws IOException
+	 */
+	@RequestMapping(value = "/loadOpeObjectList.do")
+	public String loadOpeObjectList(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException
+	{
+		response.setCharacterEncoding("UTF-8");
+		// 公告类型
+		String selectVal = request.getParameter("selectVal");
+
+		// 用户ID
+		Integer userId = Integer.valueOf(request.getParameter("userId"));
+
+		User loginUser = (User) session.getAttribute("user");
+
+		// flush到页面
+		Gson gson = new Gson();
+		String json = "";
+		/*
+		 * 学校公告
+		 */
+		if ("1".equals(selectVal))
+		{
+			// 如果发送的是学校公告，操作对象不显示
+		}
+		/*
+		 * 部门公告
+		 */
+		else if ("2".equals(selectVal))
+		{
+			// 如果角色是admin，也就是能操作所有部门
+			List<Department> departmentList = new ArrayList<Department>();
+			if (commonService.hasAdminPermission(loginUser))
+			{
+				departmentList = commonService.getDepartmentList();
+			}
+			// 如果不是角色admin，那就从user_permission中查询他能操作的对象
+			else
+			{
+				List<Integer> departmentIdList = commonService.getIdsByUserIdAndPermissionCode(userId, "departmentAnnouncementAdd", 1);
+				for (Integer departmentId : departmentIdList)
+				{
+					Department department = departmentService.getDepartmentById(Integer.valueOf(departmentId));
+					departmentList.add(department);
+				}
+			}
+			json = gson.toJson(departmentList);
+		}
+		/*
+		 * 班级公告
+		 */
+		else if ("3".equals(selectVal))
+		{
+			// 如果角色是admin，也就是能操作所有班级
+			List<Clazz> clazzList = new ArrayList<Clazz>();
+			if (commonService.hasAdminPermission(loginUser))
+			{
+				clazzList = clazzService.getClazzList();
+			}
+			// 如果不是角色admin，那就从user_permission中查询他能操作的对象
+			else
+			{
+				// 通过userId 和 permissionCode 来查询操作的对象
+				List<Integer> clazzIdList = commonService.getIdsByUserIdAndPermissionCode(userId, "clazzAnnouncementAdd", 0);
+				for (Integer clazzId : clazzIdList)
+				{
+					Clazz clazz = clazzService.getClazzById(Integer.valueOf(clazzId));
+					clazzList.add(clazz);
+				}
+			}
+			json = gson.toJson(clazzList);
+		}
+		/*
+		 * 系统公告
+		 */
+		else if ("4".equals(selectVal))
+		{
+			// 如果发送的是系统公告，操作对象不显示
+
+		}
+
+		response.getWriter().write(json);
+		response.getWriter().flush();
+
+		return null;
+	}
+
+	/**
+	 * 执行发布公告逻辑
+	 */
+	@RequestMapping(value = "/doAddAnnouncement.do")
+	public String doAddAnnouncement(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+
+		// 用户ID
+		Integer userId = Integer.valueOf(request.getParameter("userId"));
+
+		User loginUser = (User) session.getAttribute("user");
+
+		// 公告内容
+		String content = request.getParameter("content");
+		// 公告类型
+		String type = request.getParameter("announcementSelect");
+		// 学校ID
+		String schoolId = loginUser.getSchoolId();
+
+		Announcement announcement = new Announcement();
+		announcement.setContent(content);
+		announcement.setUserId(userId);
+		announcement.setCreateTime(TimeUtil.getInstance().now());
+		PUSHTYPE pushtype = null;
+		List<User> list = new ArrayList<User>();
+
+		if ("1".equals(type))
+		{
+			// 是学校公告
+			announcement.setType(1);
+			pushtype = PUSHTYPE.SCHOOLANNOUNCEMENTPUSH;
+			// 获取学校所有人员id列表
+			list = userService.getUserIdListBySchoolId(Long.valueOf(schoolId));
+		}
+		/*
+		 * 部门公告
+		 */
+		else if ("2".equals(type))
+		{
+			// 操作对象
+			Integer departmentId = Integer.valueOf(request.getParameter("opeObject"));
+			announcement.setType(2);
+			announcement.setDepartmentId(departmentId);
+			pushtype = PUSHTYPE.DEPARTANNOUNCEMENTPUSH;
+			// 获取部门所有人员id列表
+			list = departmentService.getUserIdListByDepartmentId(departmentId);
+		}
+		/*
+		 * 班级公告
+		 */
+		else if ("3".equals(type))
+		{
+			// 操作对象
+			Integer clazzId = Integer.valueOf(request.getParameter("opeObject"));
+			announcement.setType(3);
+			announcement.setClazzId(clazzId);
+			pushtype = PUSHTYPE.CLAZZANNOUNCEMENTPUSH;
+			// 获取班级所有人员id列表
+			list = clazzService.getUserIdListByClazzId(clazzId);
+		}
+		/*
+		 * 系统公告
+		 */
+		else if ("4".equals(type))
+		{
+			// 系统公告
+
+			announcement.setType(4);
+			pushtype = PUSHTYPE.SYSANNOUNCEMENTPUSH;
+			// 获取学校所有人员id列表
+			list = userService.getUserIdListBySchoolId(Long.valueOf(schoolId));
+
+		}
+
+		/**
+		 * 添加公告
+		 */
+		announcementService.addAnnouncement(announcement);
+
+		// 推送消息
+		List<PushItem> piList = new ArrayList<PushItem>();
+		for (User receiver : list)
+		{
+			PushItem pi = new PushItem();
+			pi.receiverId = receiver.getUserId();
+			pi.PushContent = content;
+			pi.title = pushtype.getName();
+			pi.PushType = pushtype.getType();
+			pi.PushContentType = pushtype.getContentType();
+			pi.PushSender = String.valueOf(loginUser.getUserId());
+			pi.channels = receiver.getBaiduChannelId();
+			pi.deviceType = String.valueOf(receiver.getDeviceType());
+			pi.schoolId = loginUser.getSchoolId();
+			piList.add(pi);
+		}
+
+		commonService.pushMsg(piList, true);
+
+		return "announcement/announcement_list";
+	}
+
+	/**
+	 * RichCloud获得最新的公告
+	 * 
+	 * @author chenyong
+	 * @date 2016年8月8日 下午4:00:08
+	 * @param response
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping("/getNweAnnouncement.do")
+	public String getNweAnnouncement(HttpServletResponse response, HttpServletRequest request)
+	{
+		response.setContentType("application/json;charset=UTF-8");
+		BufferedReader br;
+		try
+		{
+			br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line);
+			}
+			String msgInfoStr = sb.toString();
+			Gson gson = new Gson();
+			Map<String, Object> param = gson.fromJson(msgInfoStr, new TypeToken<Map<String, Object>>()
+			{
+			}.getType());
+			Integer length = StringUtil.toint(param.get("length"));
+			String schoolId = (String) param.get("schoolId");
+			Integer type = StringUtil.toint(param.get("type"));
+			DBContextHolder.setDBType(schoolId);
+
+			Map<String, Integer> param1 = new HashMap<String, Integer>();
+			param1.put("length", length);
+			param1.put("type", type);
+			List<Announcement> list = announcementService.getNewAnnouncement(param1);
+			String json = GsonHelper.toJson(list);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e1)
+		{
+			e1.printStackTrace();
+		}
+
+		return null;
+
+	}
+
+	/**
+	 * RichCloud获得最新的公告
+	 * 
+	 * @author chenyong
+	 * @date 2016年8月8日 下午4:00:08
+	 * @param response
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping("/getNweAnnouncementDetail.do")
+	public String getNweAnnouncementDetail(HttpServletResponse response, HttpServletRequest request)
+	{
+		response.setContentType("application/json;charset=UTF-8");
+		BufferedReader br;
+		try
+		{
+			br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line);
+			}
+			String msgInfoStr = sb.toString();
+			Gson gson = new Gson();
+			Map<String, Object> param = gson.fromJson(msgInfoStr, new TypeToken<Map<String, Object>>()
+			{
+			}.getType());
+			String key = (String) param.get("key");
+			String schoolId = (String) param.get("schoolId");
+			DBContextHolder.setDBType(schoolId);
+			Announcement announcement = announcementService.getById(Integer.valueOf(key));
+			String json = GsonHelper.toJson(announcement);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e1)
+		{
+			e1.printStackTrace();
+		}
+
+		return null;
+
+	}
+
+	/**
+	 * RichCloud分页获得最新的公告
+	 * 
+	 * @author chenyong
+	 * @date 2016年8月8日 下午4:00:08
+	 * @param response
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping("/getPageAnnouncement.do")
+	public String getPageAnnouncement(HttpServletResponse response, HttpServletRequest request)
+	{
+		response.setContentType("application/json;charset=UTF-8");
+		BufferedReader br;
+		try
+		{
+			br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line);
+			}
+			String msgInfoStr = sb.toString();
+			Gson gson = new Gson();
+			Map<String, Object> param = gson.fromJson(msgInfoStr, new TypeToken<Map<String, Object>>()
+			{
+			}.getType());
+			String pageSize = (String) param.get("pageSize");
+			String page = (String) param.get("page");
+			int type = StringUtil.toint(param.get("type"));
+			Map<String, Integer> param1 = new HashMap<String, Integer>();
+			param1.put("type", type);
+			String schoolId = (String) param.get("schoolId");
+			DBContextHolder.setDBType(schoolId);
+
+			Pages<?> pages = announcementService.getPageAnnouncement(Integer.valueOf(pageSize), Integer.valueOf(page), param1);
+			String json = GsonHelper.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e1)
+		{
+			e1.printStackTrace();
+		}
+		return null;
+
+	}
+}

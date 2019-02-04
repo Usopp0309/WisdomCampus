@@ -1,0 +1,54 @@
+package com.guotop.palmschool.system.service;
+
+import java.util.Map;
+
+import com.guotop.palmschool.system.entity.Import;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 导入记录业务类
+ * @author admin
+ *
+ */
+public interface ImportService 
+{
+	/**
+	 * 页面加载导入记录列表
+	 * @param paramMap 参数map
+	 * @return 检测导入记录/分页
+	 */
+	public Pages loadImportList(int pageSize, int page, Map<String, Object> paramMap);
+	
+	/**
+	 * 新增导入bean
+	 * @param imp 待新增的导入bean
+	 */
+	public void addImport(Import imp);
+	
+	/**
+	 * 新增导入bean  返回主键id
+	 * 
+	 * @param imp
+	 *            待新增的导入bean
+	 */
+	public int addImportReturnId(Import imp);
+	
+	/**
+	 * 修改导入bean
+	 * @param imp 待修改的导入bean
+	 */
+	public void updateImport(Import imp);
+	
+	/**
+	 * 重置import
+	 */
+	public void resetErrorImports();
+	
+	/**
+	 * 查找下个需要导入的文件
+	 * @return 下个需要导入的文件
+	 */
+	public Import getNextImport();
+	
+
+}

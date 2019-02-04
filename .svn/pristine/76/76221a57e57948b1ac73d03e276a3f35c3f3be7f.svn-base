@@ -1,0 +1,9 @@
+package com.guotop.palmschool.service;
+
+import com.guotop.palmschool.entity.Groupmember;
+
+
+public interface GroupmemberService
+{
+	public void addGroupmember(Groupmember groupmember);
+}

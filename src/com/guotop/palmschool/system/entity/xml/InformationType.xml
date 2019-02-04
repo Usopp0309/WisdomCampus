@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="InformationType">
+	
+	<typeAlias alias="informationType" type="com.guotop.palmschool.system.entity.InformationType"/>
+
+	<!-- 查找所有的信息提醒类型 -->
+	<select id="getAllInformationType" resultClass="informationType">
+		select * from palm_information_type
+	</select>
+	
+	<!-- 查找parentId 为null 的所有的信息提醒类型 -->
+	<select id="getInformationType" resultClass="informationType">
+		select * from palm_information_type where parentId is null
+	</select>
+	
+	<!-- 根据parentId查找的所有的信息提醒类型 -->
+	<select id="getInformationTypeByParentId" parameterClass="Integer" resultClass="informationType">
+		select * from palm_information_type where parentId = #parentId#
+	</select>
+	
+	<!-- 根据Id更新信息提醒类型 -->
+	
+	<update id="updateInformationTypeById" parameterClass="HashMap">
+	   update palm_information_type 
+	   set type = #type#
+	   where id = #id#
+	</update>
+	
+	<!-- 根据informationType查找的所有的信息提醒类型 -->
+	<select id="getInformationTypeByInformationType" parameterClass="Integer" resultClass="informationType">
+		select * from palm_information_type where informationType = #informationType#
+	</select>
+	
+	
+</sqlMap>

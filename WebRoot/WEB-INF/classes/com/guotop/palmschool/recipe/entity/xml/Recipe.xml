@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Recipe">
+  	<typeAlias alias="recipe" type="com.guotop.palmschool.recipe.entity.Recipe" />
+  	<typeAlias alias="recipeRichx" type="com.richx.pojo.Recipe" />
+	
+  	<!-- 添加每日的菜单 -->
+	<insert id="addRecipe" parameterClass="recipe">
+		insert into palm_recipe
+		(
+			createTime,
+			pushDate
+		)
+		values
+		(
+			#createTime#,
+			#pushDate#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 根据ID删除菜谱信息 -->
+	<delete id="deleteRecipe" parameterClass="Integer">
+		delete from palm_recipe
+		where id = #id#
+	</delete>
+	
+	<!-- 修改每日的菜单 -->
+	<update id="modifyRecipe" parameterClass="recipe">
+		update palm_recipe
+		set pushDate = #pushDate#
+		where id = #id#
+	</update>
+	
+	<!-- 加载菜品列表  20160314 -->
+	<select id="loadRecipeByRecipeId" parameterClass="Integer" resultClass="recipe">
+		 SELECT r.* FROM palm_recipe r
+			 WHERE r.id = #id#
+	</select>
+	
+	<!-- 根据日期查出当天食谱  20160315 -->
+	<select id="loadRecipeByPushDate" parameterClass="String" resultClass="recipe">
+		 SELECT r.* FROM palm_recipe r
+			 WHERE r.pushDate = #pushDate#
+	</select>
+	<!-- 通过加载菜品列表   20160315 -->
+	<select id="loadRecipeBewteenPushDate" parameterClass="HashMap" resultClass="recipe">
+		 SELECT r.* FROM palm_recipe r
+			 WHERE r.pushDate <![CDATA[ >= ]]> #startPushDate#
+			 AND r.pushDate <![CDATA[ <= ]]> #endPushDate#
+	</select>
+	
+	<!-- 加载菜品列表  20160311 -->
+	<select id="loadRecipeList" parameterClass="HashMap" resultClass="recipe">
+		 SELECT r.* FROM palm_recipe r
+			 WHERE 1=1
+			<!-- 查询短信内容 -->
+			<isNotEmpty prepend="and" property="queryContent">
+				(r.pushDate like CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			ORDER BY r.pushDate DESC
+			LIMIT #startIndex#, #length#
+	</select>
+	
+	<!-- 加载菜品列表总数  20160311 -->
+	<select id="loadRecipeCount" parameterClass="HashMap" resultClass="Integer">
+		   SELECT COUNT(*) FROM palm_recipe r
+			    WHERE 1=1
+				<!-- 查询菜名内容 -->
+				<isNotEmpty prepend="and" property="queryContent">
+					(r.pushDate like CONCAT('%',#queryContent#,'%'))
+				</isNotEmpty>
+	</select>
+	
+	<select id="checkPushDate" parameterClass="HashMap" resultClass="Integer">
+		SELECT count(*) FROM palm_recipe r WHERE r.pushDate = #pushDate#
+	</select>
+	
+	<!-- 加载菜品列表总数  20160311 -->
+	<select id="getWeekRecipe" parameterClass="HashMap" resultClass="recipe">
+		  select r.* from palm_recipe r
+		      where 1=1
+		        and r.pushDate in
+		        <iterate open="(" close=")" conjunction="," property="dayList">
+					#dayList[]# 
+				</iterate>
+				order by r.pushDate asc
+	</select>
+	
+	<!-- 加载菜品列表总数  20160311(手机端) -->
+	<select id="getWeekRecipeRichx" parameterClass="HashMap" resultClass="recipeRichx">
+		  select r.*,r.id recipeId from palm_recipe r
+		      where 1=1
+		        and r.pushDate in
+		        <iterate open="(" close=")" conjunction="," property="dayList">
+					#dayList[]# 
+				</iterate>
+				order by r.pushDate asc
+	</select>
+		
+	<!-- 获得离目标日期最近的课程表 -->
+	<select id="getDataDay" parameterClass="String" resultClass="String">
+		  select pushDate from palm_recipe r
+		      where 1=1 and pushDate <![CDATA[ <= ]]> #day#
+				order by r.pushDate desc limit 0,1
+	</select>	
+</sqlMap>

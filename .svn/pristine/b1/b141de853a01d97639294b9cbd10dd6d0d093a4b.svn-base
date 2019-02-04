@@ -1,0 +1,331 @@
+package com.guotop.palmschool.service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.guotop.palmschool.entity.Card;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.util.Pages;
+
+public interface StudentService
+{
+	/**
+	 * 查询条件查询学生记录 /分页查询
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @return 学生记录/分页
+	 * 
+	 * jfy 20151211
+	 */
+	public Pages getStudentListByRole(int pageSize, int page, Map<String, Object> paramMap, User user);
+	/**
+	 * 查询条件查询学生记录 /分页查询【福建专用】
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @return 学生记录/分页
+	 * 
+	 * jfy 20151211
+	 */
+	public Pages getStudentListByRoleFj(int pageSize, int page, Map<String, Object> paramMap, User user);
+
+	/**
+	 * 添加学生
+	 * 
+	 * @param student
+	 *            待添加的学生
+	 * @param paramMap
+	 *            参数map
+	 * @param cardList
+	 *            电子卡的列表
+	 */
+	public Integer addStudent(User student, String[] cardCodes);
+
+
+	/**
+	 * 根据学生ID修改学生信息
+	 * 
+	 * @param
+	 */
+	public void modifyStudentById(Map<String, Object> paramMap);
+
+	/**
+	 * 导入时添加学生和家长
+	 * 如果家长存在的话添加相关的关系
+	 * @param 待添加的学生
+	 *  isChangeClass :false不是换班导入，true:是换班导入
+	 *            update by shengyinjiang 20151125
+	 */
+	public void   addStudentParentImport(User studentBase, User studentDetail, List<User> studentParentBaseList, List<User> studentParentDetailList, List<Card> cardList,
+			List<Card> parent1Card, List<Card> parent2Card, Map<String, Object> paramMap_student, Map<String, Object> paramMap_studentParent,boolean isChangeClass);
+
+
+	/**
+	 * 根据学生ID查找电子卡列表
+	 * 
+	 * @param studentId
+	 * @param List
+	 *            <Card> 电子卡列表
+	 */
+	public List<Card> getCardListByStudentId(Integer studentId);
+
+
+	/**
+	 * 保存家长信息
+	 * 
+	 * @param parentUser
+	 * @return update by jfy 2015-11-28
+	 */
+	public Integer addParent(User parentUser, String[] cardCodes);
+	
+	/**
+	 * 保存家长信息1
+	 * 
+	 * @param parentUser
+	 * @return update by syj 2015-12-17
+	 */
+	public Integer addParent1(User parentUser, String[] cardCodes , boolean isExistInSchool);
+
+	/**
+	 * 添加学生与家长对应关系
+	 * 
+	 * @param studentId
+	 * @param parentId
+	 */
+	public void addStudentAndParentLink(Integer studentId, Integer parentId);
+
+	/**
+	 * 添加学生与家长对应关系
+	 * 
+	 * @param studentId
+	 * @param parentId
+	 */
+	public void addStudentAndParentLinkForFJ(Integer studentId, Integer parentId);
+	
+	/**
+	 * 修改家长信息
+	 * 
+	 * @param paramMap
+	 */
+	public void modifyParent(HashMap<String, Object> paramMap);
+
+	/**
+	 * 根据用户ID 获取家长信息
+	 * 
+	 * @param userId
+	 * @return jfy 2015-11-29
+	 */
+	public User getParentByUserId(Integer userId);
+
+	/**
+	 * 根据code 和 学校id 获取userId 和realName 
+	 * 
+	 * shengyinjiang 2015-12-07
+	 */
+	public List<User> getUserByCode(HashMap<String, Object> paramMap);
+
+	/**
+	 * 根据学生id 获取家长的realName 和phone shengyinjiang 2015-12-03
+	 */
+	public List<User> getParentByStudentId(Integer studentId);
+
+	/**
+	 * 根据clazzId 找到该班级下所有学生
+	 * @param paramMap
+	 * @return
+	 * update syj 20151207
+	 */
+	public List<User> getStudentListByClazzIdInStudentSMS(Integer clazzId);
+	
+	/**
+	 * 根据clazzId 找到该班级下已评论所有学生(幼儿园教师评价使用)
+	 * 
+	 * @param paramMap
+	 * @return
+	 * 
+	 * syj 20160317
+	 */
+	public List<User> getAlreadyCommentStudentListByClazzIdInEvaluation(HashMap<String, Object> paramMap);
+	
+	/**
+	 * 根据clazzId 找到该班级下未评论所有学生(幼儿园教师评价使用)
+	 * 
+	 * @param paramMap
+	 * @return
+	 * 
+	 * syj 20160317
+	 */
+	public List<User> getNoCommentStudentListByClazzIdInEvaluation(HashMap<String, Object> paramMap);
+	
+	/**
+	 * 根据clazzId 找到该班级下所有学生 （包含家长手机号码，一个学生对应多个家长）
+	 * @param paramMap
+	 * @return
+	 * update syj 20151207
+	 */
+	public List<User> getStudentListWithPartentPhoneByClazzIdInStudentSMS(Integer clazzId);
+	
+	/**
+	 * 根据学生ID 所有学生详细信息（ 包含家长手机号码，一个学生对应多个家长）
+	 * @param paramMap
+	 * @return
+	 * update syj 20151207
+	 */
+	public List<User> getStudentListWithPartentPhoneByIdInStudentSMS(Integer userId);
+
+	/**
+	 * 通过Id查询要修改的学生信息
+	 * 
+	 * @param id
+	 * @return
+	 * 
+	 *  syj 20151208
+	 */
+	public User getStudentById(Integer id);
+	
+	/**
+	 * 添加人员与学校关系 FOR福建
+	 * @param userId
+	 * @param schoolId
+	 */
+	public void addUserAndSchoolLinkForFJ(Integer userId, Long schoolId);
+	
+	/**
+	 * 添加人员与班级关系
+	 * @param userId
+	 * @param clazzId
+	 */
+	public void addUserAndClazzLink(Integer userId, Integer clazzId);
+	
+
+	
+	/**
+	 * 查看人员和学校是否关联 FOR 福建
+	 * @param userId
+	 * @param schoolId
+	 * @return true：有关系  false：没有关系
+	 */
+	public boolean isExistsInSchoolForFJ(Integer userId,long schoolId);
+	
+	/**
+	 * 查看学生和班级是否关联
+	 * @param userId
+	 * @param clazzId
+	 * @return true：有关系  false：没有关系
+	 */
+	public boolean isExistsInClazz(Integer userId,Integer clazzId);
+	
+	/**
+	 * 通过班级Id查询家长信息
+	 * 
+	 * @param clazzId
+	 * @return
+	 *  syj 20160107
+	 */
+	public List<User> getParentListByClazzId(Integer clazzId,String schoolId);
+	
+	/**
+	 * 通过班级Id查询家长信息
+	 * 
+	 * @param clazzId
+	 * @return
+	 *  syj 20160122
+	 */
+	public List<User> getParentListByClazzIdInRICHBOOK(Integer clazzId);
+	/**
+	 * 通过班级Id查询学生信息
+	 * 
+	 * @param clazzId
+	 * @return
+	 *  syj 20160122
+	 */
+	public List<User> getStudentListByClazzIdInRICHBOOK(Integer clazzId);
+	/**
+	 * 根据学生iD和 家长ID判断学生家长是否关联
+	 * @param studentId
+	 * @param parentId
+	 * @return
+	 */
+	public boolean isExistsStudentAndParentLink(int studentId, int parentId);
+	
+	/**
+	 * 根据学生iD和 家长ID判断学生家长是否关联 for 福建
+	 * @param studentId
+	 * @param parentId
+	 * @return
+	 */
+	public boolean isExistsStudentAndParentLinkForFJ(int studentId, int parentId);
+	/**
+	 * 根据家长ID获取孩子列表
+	 * @param userId
+	 * @return
+	 */
+	public List<User> getStudentListByParentId(int userId);
+	/**
+	 * 删除用户（删除用户角色及与学校关系）
+	 * @param map
+	 */
+	public void delUser(HashMap<String, Object> map);
+	/**
+	 * 根据姓名和学号查找该用户是否存在
+	 * @param palmUserName（schoolId+code）
+	 * @param name(真实姓名)
+	 * @return
+	 */
+	public User getStudentByPalmUserNameAndName(String palmUserName,String name);
+	
+	/**
+	 * 添加用户角色
+	 * @param userId
+	 * @param roleCode
+	 */
+	public void addUserRoleLink(Integer userId, String roleCode);
+	
+	/**
+	 * [学生身份]根据clazzId 和家长userId找到该班级下自己的小孩
+	 * @param pageSize
+	 * @param page
+	 * @param paramMap
+	 * @return
+	 */
+	public Pages getStudentListByClazzIdListAndStudentIdInEvaluate(int pageSize, int page, Map<String, Object> paramMap);
+	
+	/**
+	 * [家长身份]根据clazzId 和家长userId找到该班级下自己的小孩
+	 * @param pageSize
+	 * @param page
+	 * @param paramMap
+	 * @return
+	 */
+	public Pages getStudentListByClazzIdListAndParentUserIdInEvaluate(int pageSize, int page, Map<String, Object> paramMap);
+	
+	/**
+	 * [除家长，学生身份之外的身份]根据clazzId 找到该班级下所有学生
+	 * @param pageSize
+	 * @param page
+	 * @param paramMap
+	 * @return
+	 */
+	public Pages getStudentListByClazzIdListInEvaluate(int pageSize, int page, Map<String, Object> paramMap);
+
+
+	public List<User> getEvaluateDetailById(Integer valueOf);
+	/**
+	 * 根据学号和真实名称获得数据
+	  @author chenyong
+	  @date 2016年9月21日 下午5:42:06
+	 * @param map
+	 * @return
+	 */
+	public User getUserByCodeRealName(Map<String,Object> map);
+	
+	//---------------------------------以下智慧校园3.0---------------------------------------------------
+	/**
+	 * 获得所有的可用年级的所有学生
+	 * @author chenyong
+	 * @Time 2016年12月21日 上午11:11:28
+	 */
+	public List<User> getAllStudentList();
+}

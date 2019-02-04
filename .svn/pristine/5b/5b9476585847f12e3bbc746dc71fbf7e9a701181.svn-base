@@ -1,0 +1,517 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<head>
+        <meta charset="utf-8" />
+        <title>人员摄像头</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta content="width=device-width, initial-scale=1" name="viewport" />
+         <!--公共css开始-->
+		<%@ include file="/public_module/public_css_new.jsp"%>
+	 	<!--公共css结束--> 
+        </head>
+    <body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed">
+    	<input class="themes" type="hidden" value="<%=basePath%>">
+        <!-- 公共顶部开始-->
+        <%@ include file="/public_module/public_header.jsp"%>    
+        <!--公共顶部结束-->
+        <div class="clearfix"> </div>
+        <!-- 内容页开始 -->
+        <div class="page-container">
+            <!--主菜单开始-->
+            <%@include file="/public_module/public_menu.jsp"%>
+            <!--主菜单结束-->
+            <!-- END SIDEBAR -->
+            <!-- BEGIN CONTENT -->
+            <div class="page-content-wrapper">
+                <!-- BEGIN CONTENT BODY -->
+                <div class="page-content m_overflow_hidden m_page_content">
+                	<div class="col-md-1 col-sm-1">
+                    <%@include file="/public_module/public_sub_menu.jsp" %>
+                	</div>
+                	<div class="col-md-11 col-sm-11 m_page_con">
+                    <div class="page-bar m_margin_0_0_0_0">
+                        <ul class="page-breadcrumb">
+                            <li><a href="">首页</a><i class="fa fa-circle"></i></li>
+                            <li><a href="">视频直播</a><i class="fa fa-circle"></i></li>
+                            <li><span>人员摄像头</span></li>
+                        </ul>
+                    </div>
+                    <h3 class="page-title">人员摄像头</h3>
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="portlet light portlet-fit portlet-form bordered m_margin_15_auto_0" id="form_wizard_1">
+                                <div class="portlet-title">
+                                    <div class="caption">
+                                        <i class=" icon-layers font-green"></i>
+                                        <span class="caption-subject font-green sbold uppercase">人员摄像头</span>
+                                    </div>
+                                </div>
+                                <div class="portlet-body">
+                                    <form action="<%=basePath%>camera/doSaveUserCamera.do" class="form-horizontal" method="post" id="addSmsForm">
+                                        <div class="form-body">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3" for="inputWarning">班级摄像机</label>
+                                                <div class="col-md-9">
+                                                	<input type="hidden" name="cameraIds" id="cameraIds">
+                                                    <ul class="video" id="video"></ul>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">选择班级:</label>
+                                                <div class="col-md-4">
+                                                    <select class="form-control"  name="clazzList" id="clazzList">
+														
+													</select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3" for="inputError">筛选条件</label>
+                                                <div class="col-md-4">
+                                                    <input type="text"  name="code" class="form-control" value="" id="search"  
+									      			onkeyup="filter(this.value)" onchange="filter(this.value)" onpropertychange="filter(this.value)" oninput="filter(this.value)"/>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3" for="inputSuccess">发送对象</label>
+                                                <div class="col-md-2">
+                                                    <select class="form-control sms_select" multiple="multiple" tabindex="1" id="toSelectObj">
+		
+													</select>
+														
+                                            	</div>
+                                            	<div class="col-md-1">
+ 													<button type="button" class="btn default btn-block" id="add" ><i class="fa fa-angle-right"></i></button>
+													<button type="button" class="btn default btn-block" id="remove" ><i class="fa fa-angle-left"></i></button>
+													<button type="button" class="btn green btn-block" id="addAll" ><i class="fa fa-angle-double-right"></i></button>
+													<button type="button" class="btn green btn-block" id="removeAll" ><i class="fa fa-angle-double-left"></i></button>
+                                            	</div>
+                                            	<div class="col-md-2">
+                                            		<select class="form-control sms_select" multiple="multiple" id="selectedObj" name="selectedObj">
+													</select>
+													<select class="form-control sms_select" multiple="multiple" tabindex="1" id="toSelectObj1" style="display : none">
+													</select>
+                                            	</div>
+                                            </div>
+                                        </div>
+                                        <div class="form-actions">
+                                            <div class="row">
+                                                <div class="col-md-offset-3 col-md-9">
+                                                	<button type="button" class="btn green" id="save">保存</button>
+                                                	<button type="button" class="btn" id="cancel">返回</button>
+													<input type="hidden" id="userId" value="${userId}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                                </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 亦信聊天开始 -->
+        	<%@ include file="/public_module/public_QQ.jsp" %>
+            <!-- 亦信聊天结束 -->
+        </div>
+        <!-- 内容页结束 -->
+        <!-- 底部开始 -->
+        <%@ include file="/public_module/public_footer.jsp" %>
+        <!-- 底部结束 -->
+    </body>
+        <!-- 公共js开始 -->
+        <%@ include file="/public_module/public_js.jsp" %>
+        <!-- 公共js结束 -->
+	<script type="text/javascript">
+
+		$(function() {    
+			loadSubMenu("liveCameraManager"); 
+			//选取当前菜单位置
+			setActive("liveCameraManager","cameraManager");   
+			//全局数组存放已选中元素
+			var selectValArr = new Array();
+			//加载初始化数据
+			loadclazzList($("#userId").val(), "studentMessageManager");
+			
+			loadCameraList(1);
+			//初始化选择班级，如果select改动则将发送对象改为某个班级的所有学生的信息
+			$("#clazzList").click(function(){
+				//班级ID
+				var clazzId = $(this).val().replace("C", "");
+				
+				//clazzId为0表示选择所有班级，不为0表示选择某个班级
+				if (clazzId != 0)
+				{
+					
+					$.ajax({
+						type: "POST",
+					 	url: "<%=basePath%>sms/loadStudentListByClazzId.do",
+					 	processData:true,
+					 	data:{
+						 		clazzId : clazzId
+						 	 },
+					 	success: function(data){
+					 		var studentList = eval("(" + data + ")");
+	
+							var appendHtml = '';
+							
+							$.each(studentList, function(n, value) {
+								//新增，如果已选框有的话则不显示
+								var val = "S" + value.userId;
+								//表明未选
+								if (checkArray(selectValArr, val) == -1)
+								{
+									appendHtml += '<option value="S' + value.userId + '">(学生)' + value.realName + '</option>';
+								}
+		           			}); 
+	
+		           			$("#toSelectObj").html(appendHtml);
+		           			$("#toSelectObj1").html(appendHtml);
+					 	}
+					});
+				}
+				else
+				{
+					var appendHtml = $("#clazzList").html();
+
+					$("#toSelectObj").html(appendHtml);
+					$("#toSelectObj option[value='0']").remove();
+					$("#toSelectObj1").html(appendHtml);
+					$("#toSelectObj1 option[value='0']").remove();
+				}
+			});
+
+
+			//将option从待发送对象移到发送对象的div中
+			$("#toSelectObj").dblclick(function(){
+            	var $options = $('#toSelectObj option:selected');//获取当前选中的项  
+            	var $remove = $options.remove();//删除下拉列表中选中的项  
+            	$remove.appendTo('#selectedObj');//追加给对方
+            	
+        		var i=0;
+        		var length = $("#selectedObj option").length;
+        		
+        		while(i<length){
+        			var j=i+1;
+        			while(j<$("#selectedObj option").length){
+
+        				if($("#selectedObj option")[i].value==$("#selectedObj option")[j].value){
+            				$("#selectedObj option")[j].remove();
+            				j++;   
+        				}else{  
+            				j++;   
+        				}   
+        			}  
+        			i++;   
+        		} 		
+			});
+
+			//将option从发送对象移到待发送对象的div中
+			$("#selectedObj").dblclick(function(){
+            	var $removeOptions = $('#selectedObj option:selected');  
+            	$removeOptions.appendTo('#toSelectObj');//删除和追加可以用appendTo()直接
+            	
+        		var i=0;
+        		var length = $("#toSelectObj option").length;
+        		
+        		while(i<length){
+        			var j=i+1;
+        			while(j<$("#toSelectObj option").length){
+
+        				if($("#toSelectObj option")[i].value==$("#toSelectObj option")[j].value){
+            				$("#toSelectObj option")[j].remove();    
+            				j++;   
+        				}else{  
+            				j++;   
+        				}   
+        			}  
+        			i++;   
+        		}             	
+			});
+
+
+        	$('#add').click(function(){
+
+            	var $options = $('#toSelectObj option:selected');//获取当前选中的项  
+            	var $remove = $options.remove();//删除下拉列表中选中的项  
+            	$remove.appendTo('#selectedObj');//追加给对方
+            	
+        		var i=0;
+        		var length = $("#selectedObj option").length;
+        		
+        		while(i<length){
+        			var j=i+1;
+        			while(j<$("#selectedObj option").length){
+
+        				if($("#selectedObj option")[i].value==$("#selectedObj option")[j].value){
+            				$("#selectedObj option")[j].remove();   
+            				j++;   
+        				}else{  
+            				j++;   
+        				}   
+        			}  
+        			i++;   
+        		} 				
+				
+
+        	});  
+          
+        	$('#remove').click(function(){  
+
+            	var $removeOptions = $('#selectedObj option:selected');  
+            	$removeOptions.appendTo('#toSelectObj');//删除和追加可以用appendTo()直接
+            	
+        		var i=0;
+        		var length = $("#toSelectObj option").length;
+        		
+        		while(i<length){
+        			var j=i+1;
+        			while(j<$("#toSelectObj option").length){
+
+        				if($("#toSelectObj option")[i].value==$("#toSelectObj option")[j].value){
+            				$("#toSelectObj option")[j].remove();    
+            				j++;   
+        				}else{  
+            				j++;   
+        				}   
+        			}  
+        			i++;   
+        		} 
+        	}); 
+          
+        	$('#addAll').click(function(){  
+            	var $options = $('#toSelectObj option');  
+            	$options.appendTo('#selectedObj');  
+            	$("#selectedObj option").attr("selected",true);
+        		var i=0;
+        		var length = $("#selectedObj option").length;
+        		
+        		while(i<length){
+        			var j=i+1;
+        			while(j<$("#selectedObj option").length){
+
+        				if($("#selectedObj option")[i].value==$("#selectedObj option")[j].value){
+            				$("#selectedObj option")[j].remove(); 
+            				j++;   
+        				}else{  
+            				j++;   
+        				}   
+        			}  
+        			i++;   
+        		}	
+            	
+        	});  
+          
+        	$('#removeAll').click(function(){  
+            	var $options = $('#selectedObj option');  
+            	$options.appendTo('#toSelectObj'); 
+            	
+        		var i=0;
+        		var length = $("#toSelectObj option").length;
+        		
+        		while(i<length){
+        			var j=i+1;
+        			while(j<$("#toSelectObj option").length){
+
+        				if($("#toSelectObj option")[i].value==$("#toSelectObj option")[j].value){
+            				$("#toSelectObj option")[j].remove();    
+            				j++;   
+        				}else{  
+            				j++;   
+        				}   
+        			}  
+        			i++;   
+        		}          	 
+        	});  
+
+			//提交表单 
+			$("#save").click(function(){
+			
+				if($("#selectedObj option").val()==null)
+				{
+					alert("请至少选择一个发送对象！");
+					return false;
+				}
+
+				if($("#video").find(".select").length==0)
+				{
+					alert("至少选择一个摄像头！");
+					return false;
+				}
+
+				var cameraIds = [];
+				$("#video").find(".select").each(function(n)
+				{
+			    	cameraIds.push($(this).attr("id")); 
+				});
+				$("#cameraIds").val(cameraIds);
+				
+				var selectedValues = [];    
+				$("#selectedObj option").each(function(){
+				    selectedValues.push($(this).val()); 
+				});
+				$("#selectedObj").val(selectedValues);
+				
+				$("#addSmsForm").submit();
+				
+			});
+					
+		});
+		 
+    	
+		function filter(v){
+            var $SerTxt = v.trim();
+            //全局数据用于存放toSelectObj中的text
+			var arryText = new Array();
+            //全局数据用于存放toSelectObj中的val
+			var arryVal = new Array();
+     		$("#toSelectObj1").find("option").each(function(i, n) {
+        		arryText[i] = $(this).text();
+        		arryVal[i] = $(this).val();
+    		});
+    		
+            if ($SerTxt != "" && $SerTxt != null) {
+            	var appendHtml = '';
+                for (var i = 0; i < arryText.length; i++) {
+                    if (arryText[i].toLowerCase().indexOf($SerTxt) >= 0) {
+                    	//添加到toSelectObject 中
+                    	appendHtml += '<option value="' + arryVal[i] + '">' + arryText[i] + '</option>';
+                    }
+                }
+                $("#toSelectObj").html(appendHtml);
+            }else{
+            	var appendHtml = '';
+            	for (var i = 0; i < arryText.length; i++) {
+            		appendHtml += '<option value="' + arryVal[i] + '">' + arryText[i] + '</option>';
+                }
+                $("#toSelectObj").html(appendHtml);
+            }
+		}
+		
+		// 加载班级列表
+		function loadclazzList(userId, permissionCode)
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>sms/getStudentList.do",
+				data:{
+						userId : userId,
+						permissionCode : "studentMessageManager"
+					},
+				success: function(data){
+
+					var clazzList = eval("(" + data + ")");
+					
+					var appendHtml = '<option value="0">--选择所有班级--</option>';
+
+					$.each(clazzList, function(n, value) {
+           				appendHtml += '<option value="C' + value.id + '">' + value.clazzName + '</option>';
+           			});  
+           			$("#clazzList").html(appendHtml);
+           			//初始化带选框
+           			var appendHtml = $("#clazzList").html();
+					//$("#toSelectObj").html(appendHtml);
+					$("#toSelectObj option[value='0']").remove();
+					$("#toSelectObj1").html(appendHtml);
+					$("#toSelectObj1 option[value='0']").remove();
+				},
+			});
+		}
+
+
+		//加载所有的私用摄像头
+		function loadCameraList(type)
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>camera/getCameraListByType.do",
+				data:{
+						type : type
+					},
+				success: function(data){
+
+					var cameraList = eval("(" + data + ")");
+					
+					var appendHtml = '';
+
+					$.each(cameraList, function(n, value) {
+
+						var cameraName = value.cameraName;
+						if(cameraName == undefined)
+						{
+							cameraName = "";
+						}
+           				appendHtml += '<li id="'+value.cameraId+'""><i class="fa fa-video-camera"></i><p>'+value.cameraCode+'</p><p>'+cameraName+'</p></li>';
+           			});  
+					 
+           			$("#video").html(appendHtml);
+
+           			$(".video li").on("click",function(){
+        				if($(this).hasClass("select")){
+        					$(this).removeClass("select");
+        				}else{
+        					$(this).addClass("select");
+        				}
+        			})
+				},
+			});
+		}
+
+		//检查元素是否存在数组中
+		//arr: 元素, e:数组
+		function checkArray(arr, e)
+		{
+			for(var i = 0,j; j = arr[i]; i++)
+			{
+				if(j == e)
+				{
+					return i;
+				}
+			}
+			return -1;	
+		}
+		
+		//用于检查文本域中已经输入字数
+        function check() {
+            var str = $("#content").val();
+            var len = strlen(str);
+            var info = len;
+            info = info + "";
+            if (info.indexOf('.') > 0){
+                info = info.substring(0, info.indexOf('.'));
+			}
+			$("#info").html(info);
+			//65个字作为一条短信
+			if(len <= 65){
+				if(len == 0){
+					$("#info1").html("");
+				}else{
+					$("#info1").html("1");
+				}	
+			}else if(len > 65 && len <= 190){
+				if(len%65 == 0){
+					$("#info1").html(len/65);
+				}else{
+					$("#info1").html(parseInt(len/65)+1);
+				}
+			}else if(len > 190){
+				alert("对不起，你已经超过短信规定长度！");
+				return false;
+			}
+        }
+
+        function strlen(str) {
+            var str = trim(str);
+            var len = 0;
+            for (var i = 0; i < str.length; i++) {
+                len += str.charCodeAt(i) > 0 && str.charCodeAt(i) < 255 ? 0.5 : 1;
+            }
+            return len;
+        }
+        function trim(str) {
+            return (str + '').replace(/(\s+)$/g, '').replace(/^\s+/g, '');
+        }	
+        	
+	</script>
+</html>

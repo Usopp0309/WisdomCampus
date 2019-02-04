@@ -1,0 +1,184 @@
+package com.guotop.palmschool.util;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+
+import com.guotop.palmschool.constant.Cons;
+
+public class HttpPostUtil
+{
+
+	/**
+	 * 
+	 * @param postUrl post请求的参数
+	 * ContentType : application/json
+	 * @param json 请求参数转成的json字符串
+	 * @return str 返回json字符串（需要解析）
+	 */
+	public static String postByJson(String postUrl, String json)
+	{
+		HttpClient httpclient = HttpClients.createDefault();
+		HttpPost httppost = new HttpPost(postUrl);
+		// 解决中文乱码问题
+		StringEntity entity = new StringEntity(json.toString(), "utf-8");
+		entity.setContentEncoding("UTF-8");
+		entity.setContentType("application/json");
+		httppost.setEntity(entity);
+		try
+		{
+			HttpResponse hr = httpclient.execute(httppost);
+			HttpEntity respose = hr.getEntity();
+			InputStream instreams = respose.getContent();
+			String str = convertStreamToString(instreams);
+			return str;
+		} catch (ClientProtocolException e1)
+		{
+			e1.printStackTrace();
+		} catch (IOException e1)
+		{
+			e1.printStackTrace();
+		}
+		return null;
+	}
+	/**
+	 * 模拟form表单post提交
+	 * ContentType : application/x-www-form-urlencoded
+	 * @param postUrl post请求的参数
+	 * @return str 返回json字符串（需要解析）
+	 */
+	public static String postByForm(String postUrl,Map<String,String> mapValue)
+	{
+
+		try
+		{
+		HttpClient httpclient = HttpClients.createDefault();
+		HttpPost httppost = new HttpPost(postUrl);
+		// 解决中文乱码问题
+		List <NameValuePair> nvps = new ArrayList<NameValuePair>(); 
+		for (Map.Entry<String,String> nameValuePair : mapValue.entrySet())
+		{
+			nvps.add(new BasicNameValuePair(nameValuePair.getKey(),nameValuePair.getValue()));   
+		}
+		//封装表单
+		httppost.setEntity(new UrlEncodedFormEntity(nvps,"utf-8"));
+		//将参数传入post方法中 3
+		HttpResponse hr = httpclient.execute(httppost);
+		HttpEntity respose = hr.getEntity();
+		InputStream instreams = respose.getContent();
+		String str = convertStreamToString(instreams);
+		return str;
+		} catch (ClientProtocolException e1)
+		{
+			e1.printStackTrace();
+		} catch (IOException e1)
+		{
+			e1.printStackTrace();
+		}
+		return null;
+	}
+	
+	private static String convertStreamToString(InputStream is)
+	{
+
+		StringBuilder sb = new StringBuilder();
+
+		String line = null;
+		try
+		{
+			BufferedReader reader = new BufferedReader(new InputStreamReader(is, "utf-8"));
+			while ((line = reader.readLine()) != null)
+			{
+				sb.append(line);
+			}
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		} finally
+		{
+			try
+			{
+				is.close();
+			} catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		return sb.toString();
+	}
+	
+	/**
+	 * 获取亦信请求地址BASEPATH
+	 * @return
+	 */
+	public static String getRichBookUrl()
+	{
+		Properties pro = PropertiesUtil.getInstance().read("wisdomcampus.properties");
+		String richBookUrl = "http://" + pro.getProperty("richBookIp") + ":" + pro.getProperty("richBookPort") + "/RichBook/api/";
+		return richBookUrl;
+	}
+	
+	/**
+	 * 获取智慧校园请求地址BASEPATH
+	 * @param port
+	 * @return
+	 */
+	public static String getWisdomCampusUrl(int port)
+	{
+		Properties pro = PropertiesUtil.getInstance().read("webInfo.properties");
+		String wisdomCampusUrl = "";
+		if(Cons.SERVERPORT.HTTPPORT.getPort() == port){
+			wisdomCampusUrl = pro.getProperty("basePath");
+		}else{
+			wisdomCampusUrl = pro.getProperty("basePath_https");
+		}
+		return wisdomCampusUrl;
+	}
+	
+	/**
+	 * 获取资源云请求地址BASEPATH
+	 * @param port
+	 * @return
+	 */
+	public static String getResourceUrl(int port)
+	{
+		Properties pro = PropertiesUtil.getInstance().read("webInfo.properties");
+		String resourceUrl = "";
+		if(Cons.SERVERPORT.HTTPPORT.getPort() == port){
+			resourceUrl = pro.getProperty("resourceBasePath");
+		}else{
+			resourceUrl = pro.getProperty("resourceBasePath");
+		}
+		return resourceUrl;
+	}
+	
+	public static void main(String[] args)
+	{
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("action", "send");
+		map.put("userid", "10302");
+		map.put("account", "shrjyd");
+		map.put("password", "12345");
+		map.put("mobile", "13851580154");
+		map.put("content", "天气晴朗【智慧校园】");
+		String result = postByForm("http://121.40.78.35:8080/yxthttp/sms/sendUTF8",map);
+		System.out.println(result);
+	}
+}

@@ -1,0 +1,108 @@
+package com.guotop.palmschool.entity;
+
+/**
+ * 亦信用户转智慧校园用户日志
+ * 
+ * @author chenyong
+ * @date 2016年12月3日 下午3:52:31
+ */
+public class YintowisdomLog
+{
+
+	private int id;
+	/**
+	 * 亦信用户Id
+	 */
+	private Integer yUserId;
+	/**
+	 * 智慧校园用户Id
+	 */
+	private int wUserId;
+	/**
+	 * 操作说明
+	 */
+	private String remark;
+	/**
+	 * 创建人
+	 */
+	private Integer createUserId;
+	/**
+	 * 创建时间
+	 */
+	private String createTime;
+	/**
+	 * 1:删除亦信用户,2:手动确认，3：亦信余额转到智慧账号
+	 */
+	private int type;
+
+	public int getType()
+	{
+		return type;
+	}
+
+	public void setType(int type)
+	{
+		this.type = type;
+	}
+
+	public int getId()
+	{
+		return id;
+	}
+
+	public void setId(int id)
+	{
+		this.id = id;
+	}
+
+	public Integer getyUserId()
+	{
+		return yUserId;
+	}
+
+	public void setyUserId(Integer yUserId)
+	{
+		this.yUserId = yUserId;
+	}
+
+	public int getwUserId()
+	{
+		return wUserId;
+	}
+
+	public void setwUserId(int wUserId)
+	{
+		this.wUserId = wUserId;
+	}
+
+	public String getRemark()
+	{
+		return remark;
+	}
+
+	public void setRemark(String remark)
+	{
+		this.remark = remark;
+	}
+
+	public Integer getCreateUserId()
+	{
+		return createUserId;
+	}
+
+	public void setCreateUserId(Integer createUserId)
+	{
+		this.createUserId = createUserId;
+	}
+
+	public String getCreateTime()
+	{
+		return createTime;
+	}
+
+	public void setCreateTime(String createTime)
+	{
+		this.createTime = createTime;
+	}
+
+}

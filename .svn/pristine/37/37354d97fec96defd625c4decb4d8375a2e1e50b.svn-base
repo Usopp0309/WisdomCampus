@@ -1,0 +1,14 @@
+body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"microsoft yahei";font-size:12px;}
+.location_search{background-color: #4e90fe;color:#fff;margin: 15px auto;padding: 10px 10px 0 10px;position: absolute;right: 5%;top: 15px;z-index: 999;}
+.location_search .row{margin:0px auto 10px;overflow:hidden;}
+.location_search .row a{background-color: #fff;border:1px solid #fff ;color: #14b2da;text-align:center;height:25px;line-height:25px; display:block;float:left;width:80px;margin:0px 5px;text-decoration: none;}
+.location_search .row a i{margin:0 5px 0 0;display:inline-block;}
+.location_search .row span{display:block;float:left;width:80px;margin:0px 5px;height:25px;line-height:25px;}
+.location_search .row input,.location_search .row select{text-indent:5px;height:25px;line-height:25px;padding:0px; background:none;margin:0px 5px;border:1px solid #fff;color:#fff;float:left;width:80px;}
+.bus_state{}
+.bus_state p{text-align:left;color:#333;line-height:30px;height:30px;margin:0px;padding:0px;}
+.bus_state p span{margin:0px 10px;display:block;float:left;}
+.bus_state p .blue{color:#3385ff;float:right;margin:0 15px 0 0}
+.bus_state .header{border-bottom: 1px solid #ccc;padding:0 0 5px 0;font-weight:bold;font-size:16px}
+.bus_state .shift span{width:auto;}
+select option{color:#666;}

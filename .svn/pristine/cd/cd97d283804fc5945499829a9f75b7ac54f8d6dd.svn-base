@@ -1,0 +1,192 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>学生考勤统计</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+</head>
+	<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+		<input class="themes" type="hidden" value="<%=ThemePath%>">
+	    <!-- 公共顶部开始-->
+	    <%@ include file="/public_module/public_header.jsp"%>    
+	    <!--公共顶部结束-->
+	    <div class="clearfix"> </div>
+	    <!-- 内容页开始 -->
+	    <div class="page-container">
+	        <!--主菜单开始-->
+	        <%@include file="/public_module/public_menu.jsp"%>
+	        <!--主菜单结束-->
+	        <div class="page-content-wrapper">
+	            <div class="page-content m_overflow_hidden m_page_content">
+	            	<!-- 页面内容开始 -->
+	            	<div class="col-md-12 col-sm-12 m_page_con">
+	                <div class="page-bar m_margin_0_0_0_0">
+	                    <ul class="page-breadcrumb">
+	                         <li><a href="<%=basePath %>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+	                        <li><a href="javascript:void(0);">考勤统计</a><i class="fa fa-circle"></i></li>
+	                        <li><span>学生考勤统计列表</span></li>
+	                    </ul>
+	                </div>
+	                <h3 class="page-title">学生考勤统计列表</h3>
+	                <div class="row">
+	                    <div class="m_margin_0_0_15_0">
+	                    		<!-- 角色切换开始 -->
+	                    		<ul class="nav nav-tabs">
+										<li><a href="<%=basePath %>check/toCheckReport.do" target="_self">教师考情</a></li>
+										<li class="active"><a>学生考情</a></li>
+	                            </ul>
+	                    		<!-- 角色切换结束 -->
+	                        </div>
+	                        <!-- 页面搜索开始 -->
+	                        <div class="portlet light bordered search_box">
+		                         <div class="row">
+		                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+		                         		<span class="m_span">选择时间：</span>
+		                         		<input type="text"  name="time" id="time"  class="form-control m_input"/>
+		                         	</div>
+		                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+		                         		<button type="button" class="btn green" id="search">查找</button>
+										<input type="hidden" name="type" id="type">
+		                         	</div>
+		                         </div>
+	                        </div>
+	                     
+	                       	<div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption">
+	                                    <i class="fa fa-list"></i>考勤统计</div>
+	                            </div>
+	                            <div class="portlet-body">
+	                            <div class="row">
+									<div class="col-md-12 col-sm-12 col-lg-12" >
+										<h3 class="m_text_align_conter">全天考情考勤统计</h3>
+										<div class="row m_text_align_conter">
+											 <div id="main" style="width: 600px;height:400px;"></div>
+											<img src="<%=basePath%>assets/global/img/null_img.jpg">
+										</div>
+									</div>
+								</div>
+	                            <div class="row">
+									<div class="col-md-6 col-sm-6 col-lg-6" >
+										<h3 class="m_text_align_conter">上午考勤统计</h3>
+										<div class="row m_text_align_conter">
+											 <div id="chart_8" class="chart" style="height: 525px;"> </div>
+											<img src="<%=basePath%>assets/global/img/null_img.jpg">
+										</div>
+									</div>
+									<div class="col-md-6 col-sm-6 col-lg-6" >
+										<h3  class="m_text_align_conter">下午考勤统计</h3>
+										<div class="row m_text_align_conter">
+											 <div id="chart_7" class="chart" style="height: 525px;"> </div>
+											<img src="<%=basePath%>assets/global/img/null_img.jpg">
+										</div>
+									</div>
+								</div>
+								<div class="row">	
+								<div class="col-md-12 col-sm-12 col-lg-12">
+									<div class="col-md-12 col-sm-12 col-lg-12">
+									<div class="portlet">
+											<div class="search_box">
+												<form action="http://192.168.0.118:9080/WisdomCampus3.0/check/loadTeacherCheckList.do" class="form-horizontal" method="post" style="margin: 0px">
+													<div class="search_box">
+					                                   <div class="row m_margin_10_auto">
+								                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+								                         		<span class="m_span">部门：</span>
+								                         		<select class="m_select form-control" id="departmentSelect" name="departmentId"><option value="0">--选择所有部门--</option><option value="教职工未分组">教职工未分组</option><option value="(西校区)行政班子">(西校区)行政班子</option><option value="(西校区)一年级组">(西校区)一年级组</option><option value="(西校区)二年级组">(西校区)二年级组</option><option value="(西校区)五年级组">(西校区)五年级组</option><option value="(西校区)六年级组">(西校区)六年级组</option><option value="(西校区)常识技能组">(西校区)常识技能组</option><option value="(西校区)保卫工友">(西校区)保卫工友</option><option value="（西校区）后勤组">（西校区）后勤组</option><option value="(东校区)行政班子">(东校区)行政班子</option><option value="(东校区)三年段">(东校区)三年段</option><option value="(东校区)四年段">(东校区)四年段</option><option value="(东校区)五年段">(东校区)五年段</option><option value="(东校区)六年段">(东校区)六年段</option><option value="(东校区)常识组">(东校区)常识组</option><option value="(东校区)技能组">(东校区)技能组</option><option value="(东校区)后勤组">(东校区)后勤组</option><option value="(东校区)保安工友">(东校区)保安工友</option><option value="(东校区)交流组">(东校区)交流组</option><option value="测试组001">测试组001</option></select>
+								                         	</div>
+								                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+								                         		<span class="m_span">搜索内容：</span>
+								                         		<input placeholder="姓名..." class="m_input form-control" id="queryContent" type="text">
+																					
+								                         	</div>
+								                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+								                         		<button type="button" class="btn green" id="search">查找</button>
+								                         		 <button type="button" class="btn green f_right" id="export"><i class="icon-share-alt"></i>导出</button>
+								                         	</div>
+							                         		<input value="8" name="depart" id="depart" type="hidden">
+							                         	</div>
+							                        </div>
+												</form>
+											</div>
+										</div>
+				                            <div class="note note-success">
+			                                        <h3>(<span id="itemName" class="font-red-mint">下午旷工273人</span>)人员详情</h3>
+			                                    </div>
+											<table class="table table-bordered table-hover">
+												<thead>
+													<tr>
+														<th>部门</th>
+														<th>工号</th>
+														<th>姓名</th>
+														<th>状态</th>
+														<th>更新时间</th>
+													</tr>
+												</thead>
+												<tbody id="tbody"><tr style="background-color: #ededed"><td>(西校区)行政班子</td><td>SYXX012</td><td> 陈玉焰</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)行政班子</td><td>SYXX009</td><td> 周  建</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)行政班子</td><td>SYXX013</td><td> 周  丹</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)一年级组</td><td>SYXX016</td><td> 陈晏玲</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)一年级组</td><td>SYXX019</td><td> 吴碧环</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)一年级组</td><td>SYXX022</td><td> 林秀云</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)一年级组</td><td>SYXX025</td><td> 叶金清</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)一年级组</td><td>SYXX028</td><td> 王燕金</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)一年级组</td><td>SYXX031</td><td> 吴秀清</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)一年级组</td><td>SYXX034</td><td> 陈巧丹</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)二年级组</td><td>SYXX039</td><td> 吴巧玲</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)二年级组</td><td>SYXX040</td><td> 尤玉珍</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)二年级组</td><td>SYXX043</td><td> 孙喜玲</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)二年级组</td><td>SYXX047</td><td> 黄晓琨</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)二年级组</td><td>SYXX053</td><td> 阮建莺</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)五年级组</td><td>SYXX056</td><td> 郑小花</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)五年级组</td><td>SYXX058</td><td> 汤建武</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)六年级组</td><td>SYXX062</td><td> 孙万生</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)六年级组</td><td>SYXX064</td><td> 陈言萍</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)六年级组</td><td>SYXX066</td><td> 李发奋</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)六年级组</td><td>SYXX067</td><td> 詹建蓉</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)常识技能组</td><td>SYXX069</td><td> 李燕斌</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)常识技能组</td><td>SYXX070</td><td> 江承燕</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)常识技能组</td><td>SYXX071</td><td> 汤寒茜</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)常识技能组</td><td>SYXX072</td><td> 钟雪凤</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)常识技能组</td><td>SYXX073</td><td> 周银萍</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)常识技能组</td><td>SYXX074</td><td> 游上贝</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)常识技能组</td><td>SYXX075</td><td> 甘林金</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)常识技能组</td><td>SYXX076</td><td> 陈 梅</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)常识技能组</td><td>SYXX077</td><td> 郑丽金</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)常识技能组</td><td>SYXX078</td><td> 郑德旺</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)常识技能组</td><td>SYXX079</td><td> 魏碧珠</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)常识技能组</td><td>SYXX080</td><td> 王秀芳</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)常识技能组</td><td>SYXX081</td><td> 陈 温</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)常识技能组</td><td>SYXX082</td><td> 郑海宁</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)常识技能组</td><td>SYXX083</td><td> 林辉华</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)常识技能组</td><td>SYXX084</td><td> 颜童</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)常识技能组</td><td>SYXX085</td><td> 简孟英</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)常识技能组</td><td>SYXX086</td><td> 胡步住</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)常识技能组</td><td>SYXX087</td><td> 赵振华</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)常识技能组</td><td>SYXX089</td><td> 林岑岑</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)常识技能组</td><td>SYXX090</td><td> 周芳玲</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)常识技能组</td><td>SYXX091</td><td> 傅珍花</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)常识技能组</td><td>SYXX092</td><td> 石斌生</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)常识技能组</td><td>SYXX093</td><td> 曾海清</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)常识技能组</td><td>SYXX094</td><td> 杨琼</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)常识技能组</td><td>SYXX095</td><td> 郑锦灼</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)常识技能组</td><td>SYXX096</td><td> 林群芳</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)常识技能组</td><td>SYXX097</td><td> 郭敏倩</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)常识技能组</td><td>SYXX098</td><td> 林娜</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)常识技能组</td><td>SYXX099</td><td> 陈 易</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)常识技能组</td><td>SYXX100</td><td> 陈丽霞</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)常识技能组</td><td>SYXX101</td><td> 宋雪梅</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)常识技能组</td><td>SYXX102</td><td> 彭志英</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)常识技能组</td><td>SYXX103</td><td> 林生富</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)保卫工友</td><td>SYXX104</td><td> 杨日强</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)保卫工友</td><td>SYXX105</td><td> 陈妙梨</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)保卫工友</td><td>SYXX106</td><td> 汤郑随</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)保卫工友</td><td>SYXX107</td><td> 黄仸明</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)一年级组</td><td>SYXX014</td><td> 游庆芬</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)一年级组</td><td>SYXX015</td><td> 张丽洁</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)一年级组</td><td>SYXX017</td><td> 林银鑫</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)一年级组</td><td>SYXX018</td><td> 黄凌燕</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)一年级组</td><td>SYXX020</td><td> 周巧莺</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)一年级组</td><td>SYXX021</td><td> 钟丽丹</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)一年级组</td><td>SYXX023</td><td> 周芬芬</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)一年级组</td><td>SYXX024</td><td> 蔡桑桑</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)一年级组</td><td>SYXX026</td><td> 余素莺</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)一年级组</td><td>SYXX027</td><td> 缪雪银</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)一年级组</td><td>SYXX029</td><td> 王彬</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)一年级组</td><td>SYXX030</td><td> 陈晓玲</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)一年级组</td><td>SYXX032</td><td> 黄纯柳</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)一年级组</td><td>SYXX033</td><td> 黄丽霞</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)二年级组</td><td>SYXX036</td><td> 林贵容</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)二年级组</td><td>SYXX035</td><td> 吴晓津</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)二年级组</td><td>SYXX037</td><td> 张小红</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)二年级组</td><td>SYXX038</td><td> 刘丽希</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)二年级组</td><td>SYXX042</td><td> 曹宁寿</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)二年级组</td><td>SYXX041</td><td> 陈丽津</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)二年级组</td><td>SYXX045</td><td> 陈赛平</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)二年级组</td><td>SYXX044</td><td> 邱惠莲</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)二年级组</td><td>SYXX046</td><td> 陈月玲</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)二年级组</td><td>SYXX048</td><td> 杨铃钰</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)二年级组</td><td>SYXX050</td><td> 陈乐钗</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)二年级组</td><td>SYXX049</td><td> 陈妙希</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)二年级组</td><td>SYXX051</td><td> 钱宁新</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)二年级组</td><td>SYXX052</td><td> 邱凤新</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)五年级组</td><td>SYXX054</td><td> 黄彩云</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)五年级组</td><td>SYXX055</td><td> 林翠英</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)五年级组</td><td>SYXX057</td><td> 刘玉华</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)五年级组</td><td>SYXX059</td><td> 郑俐</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)五年级组</td><td>SYXX060</td><td> 林小花</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)六年级组</td><td>SYXX061</td><td> 余小卿</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)六年级组</td><td>SYXX063</td><td> 陈爱梅</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)六年级组</td><td>SYXX065</td><td> 陆东妃</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)六年级组</td><td>SYXX068</td><td> 陈言辉</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)行政班子</td><td>SYXX002</td><td> 陈延述</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)行政班子</td><td>SYXX114</td><td> 钟深发</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)行政班子</td><td>SYXX115</td><td> 苏步清</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)行政班子</td><td>SYXX116</td><td> 陈年冬</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)行政班子</td><td>SYXX117</td><td> 黄宗量</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)行政班子</td><td>SYXX118</td><td> 包思榕</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)行政班子</td><td>SYXX119</td><td> 叶李英</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)行政班子</td><td>SYXX120</td><td> 陈雅婵</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)行政班子</td><td>SYXX121</td><td> 李安宏</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)行政班子</td><td>SYXX122</td><td> 阮平春</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)行政班子</td><td>SYXX123</td><td> 关喜鹊</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)行政班子</td><td>SYXX124</td><td> 苏赛丹</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)行政班子</td><td>SYXX125</td><td> 吴淑玲</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)行政班子</td><td>SYXX126</td><td> 阮赟</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)行政班子</td><td>SYXX127</td><td> 石慧云</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)行政班子</td><td>SYXX128</td><td> 刘崇生</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)行政班子</td><td>SYXX129</td><td> 吴磊峰</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)保安工友</td><td>SYXX130</td><td> 阮芳碧</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)保安工友</td><td>SYXX131</td><td> 李家赛</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)保安工友</td><td>SYXX132</td><td> 陈起容</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)保安工友</td><td>SYXX133</td><td> 阮元利</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)三年段</td><td>SYXX134</td><td> 夏巧芳</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)三年段</td><td>SYXX135</td><td> 关妙容</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)三年段</td><td>SYXX136</td><td> 程  红</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)三年段</td><td>SYXX137</td><td> 蔡锦雯</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)三年段</td><td>SYXX138</td><td> 郑艳新</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)三年段</td><td>SYXX139</td><td> 黄冰凌</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)三年段</td><td>SYXX140</td><td> 蔡颖艳</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)三年段</td><td>SYXX141</td><td> 郑蕴恬</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)三年段</td><td>SYXX142</td><td> 谌婉钦</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)三年段</td><td>SYXX143</td><td> 陈爱珍</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)三年段</td><td>SYXX145</td><td> 陈春妍</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)三年段</td><td>SYXX146</td><td> 彭数端</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)三年段</td><td>SYXX147</td><td> 黄玲玲</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)三年段</td><td>SYXX148</td><td> 余美菊</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)三年段</td><td>SYXX149</td><td> 周章柱</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)三年段</td><td>SYXX150</td><td> 阮家书</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)三年段</td><td>SYXX151</td><td> 彭锦眉</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)三年段</td><td>SYXX152</td><td> 阮喜云</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)三年段</td><td>SYXX153</td><td> 江莲英</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)三年段</td><td>SYXX154</td><td> 冯清燕</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)四年段</td><td>SYXX155</td><td> 苏秋华</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)四年段</td><td>SYXX156</td><td> 雷燕珠</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)四年段</td><td>SYXX157</td><td> 陈  玲</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)四年段</td><td>SYXX158</td><td> 黄晓锦</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)四年段</td><td>SYXX159</td><td> 马  彤</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)四年段</td><td>SYXX160</td><td> 钱强</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)四年段</td><td>SYXX161</td><td> 孙美芳</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)四年段</td><td>SYXX162</td><td> 阮昭玉</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)四年段</td><td>SYXX163</td><td> 郑皓珠</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)四年段</td><td>SYXX164</td><td> 李小莉</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)四年段</td><td>SYXX165</td><td> 谢淑芬</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)四年段</td><td>SYXX166</td><td> 钟凌仙</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)四年段</td><td>SYXX167</td><td> 杨细三</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)四年段</td><td>SYXX168</td><td> 周丽红</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)四年段</td><td>SYXX169</td><td> 林丽娟</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)四年段</td><td>SYXX170</td><td> 林文英</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)四年段</td><td>SYXX171</td><td> 邓  霞</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)四年段</td><td>SYXX172</td><td> 陈宗森</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)四年段</td><td>SYXX173</td><td> 谢昌程</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)四年段</td><td>SYXX174</td><td> 林盛华</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)四年段</td><td>SYXX175</td><td> 王功娟</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)四年段</td><td>SYXX176</td><td> 张小燕</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)四年段</td><td>SYXX177</td><td> 颜清燕</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)四年段</td><td>SYXX178</td><td> 黄垂武</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)四年段</td><td>SYXX179</td><td> 赵雅香</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)四年段</td><td>SYXX180</td><td> 刘郑容</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)五年段</td><td>SYXX181</td><td> 郑少燕</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)五年段</td><td>SYXX182</td><td> 陈  筝</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)五年段</td><td>SYXX183</td><td> 黄茂筠</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)五年段</td><td>SYXX184</td><td> 兰巧芳</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)五年段</td><td>SYXX185</td><td> 林燕芳</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)五年段</td><td>SYXX186</td><td> 张巧岚</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)五年段</td><td>SYXX187</td><td> 章晓燕</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)五年段</td><td>SYXX188</td><td> 陈秋冬</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)五年段</td><td>SYXX189</td><td> 陈月秀</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)五年段</td><td>SYXX190</td><td> 陈雪英</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)五年段</td><td>SYXX191</td><td> 陈月娟</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)五年段</td><td>SYXX192</td><td> 高穗妹</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)五年段</td><td>SYXX193</td><td> 黄榆东</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)五年段</td><td>SYXX195</td><td> 何凤珍</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)五年段</td><td>SYXX196</td><td> 傅明波</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)五年段</td><td>SYXX197</td><td> 张其晶</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)五年段</td><td>SYXX198</td><td> 吴梅金</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)五年段</td><td>SYXX199</td><td> 王肖冬</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)六年段</td><td>SYXX200</td><td> 周曼婕</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)六年段</td><td>SYXX201</td><td> 赖小英</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)六年段</td><td>SYXX202</td><td> 邓  雯</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)六年段</td><td>SYXX203</td><td> 陈秋华</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)六年段</td><td>SYXX204</td><td> 韩桂城</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)六年段</td><td>SYXX205</td><td> 林&nbsp;耘</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)六年段</td><td>SYXX206</td><td> 黄华芳</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)六年段</td><td>SYXX207</td><td> 谢文焰</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)六年段</td><td>SYXX208</td><td> 陈小静</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)六年段</td><td>SYXX209</td><td> 周慈耀</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)六年段</td><td>SYXX210</td><td> 吴巧玲</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)六年段</td><td>SYXX211</td><td> 林燕平</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)六年段</td><td>SYXX212</td><td> 张英</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)六年段</td><td>SYXX213</td><td> 尤妹田</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)六年段</td><td>SYXX214</td><td> 刘林莺</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)常识组</td><td>SYXX215</td><td> 刘桂新</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)常识组</td><td>SYXX216</td><td> 余梅钗</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)常识组</td><td>SYXX217</td><td> 陈郑炳</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)常识组</td><td>SYXX218</td><td> 朱昌莉</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)常识组</td><td>SYXX219</td><td> 周  轩</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)常识组</td><td>SYXX220</td><td> 高方辉</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)常识组</td><td>SYXX221</td><td> 吴俊辉</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)常识组</td><td>SYXX222</td><td> 彭宁芳</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)常识组</td><td>SYXX223</td><td> 阮佛养</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)常识组</td><td>SYXX224</td><td> 尤爱灼</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)常识组</td><td>SYXX225</td><td> 吴振端</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)常识组</td><td>SYXX226</td><td> 王明招</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)常识组</td><td>SYXX227</td><td> 叶华美</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)常识组</td><td>SYXX228</td><td> 周秋娟</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)常识组</td><td>SYXX229</td><td> 黄云平</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)常识组</td><td>SYXX230</td><td> 彭翠菊</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)技能组</td><td>SYXX231</td><td> 谢树茂</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)技能组</td><td>SYXX232</td><td> 黄文华</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)技能组</td><td>SYXX233</td><td> 彭铃强</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)技能组</td><td>SYXX234</td><td> 李安惠</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)技能组</td><td>SYXX235</td><td> 廖建统</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)技能组</td><td>SYXX236</td><td> 雷俞静</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)技能组</td><td>SYXX237</td><td> 黄艳玲</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)技能组</td><td>SYXX238</td><td> 张晓燕</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)技能组</td><td>SYXX239</td><td> 林秋晓</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)技能组</td><td>SYXX240</td><td> 曾晚霞</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)技能组</td><td>SYXX241</td><td> 石圣铄</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)技能组</td><td>SYXX242</td><td> 刘泽育</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)技能组</td><td>SYXX243</td><td> 林贤乾</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)技能组</td><td>SYXX244</td><td> 钟胜焦</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)技能组</td><td>SYXX245</td><td> 陈  丹</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)技能组</td><td>SYXX246</td><td> 钱  挺</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)技能组</td><td>SYXX247</td><td> 黄绍剑</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)技能组</td><td>SYXX248</td><td> 杨泽斌</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)技能组</td><td>SYXX249</td><td> 杨欣慧</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)技能组</td><td>SYXX251</td><td> 林玲莉</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)技能组</td><td>SYXX252</td><td> 林  荣</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)技能组</td><td>SYXX253</td><td> 郑荣杰</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)后勤组</td><td>SYXX254</td><td> 金  铃</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)后勤组</td><td>SYXX255</td><td> 徐  清</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)后勤组</td><td>SYXX256</td><td> 张本清</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)后勤组</td><td>SYXX257</td><td> 游赛花</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)后勤组</td><td>SYXX258</td><td> 吴艳艳</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)后勤组</td><td>SYXX260</td><td> 雷巧莺</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)后勤组</td><td>SYXX261</td><td> 朱崇松</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)后勤组</td><td>SYXX262</td><td> 林芳团</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)后勤组</td><td>SYXX263</td><td> 石贤璋</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)后勤组</td><td>SYXX264</td><td> 郑于凡</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)后勤组</td><td>SYXX265</td><td> 陈  蔚</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)交流组</td><td>SYXX266</td><td> 林月容</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)交流组</td><td>SYXX267</td><td> 黄荣楣</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)交流组</td><td>SYXX268</td><td> 林生泽</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)交流组</td><td>SYXX269</td><td> 柯丽锋</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)交流组</td><td>SYXX270</td><td> 谢霞妹</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)交流组</td><td>SYXX272</td><td> 刘小燕</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)交流组</td><td>SYXX273</td><td> 胡月明</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)交流组</td><td>SYXX274</td><td> 钟涌芳</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)交流组</td><td>SYXX275</td><td> 黄国伟</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)交流组</td><td>SYXX276</td><td> 薛巧芳</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)交流组</td><td>SYXX277</td><td> 梁素平</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)交流组</td><td>SYXX278</td><td> 孙  琳</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)交流组</td><td>SYXX271</td><td> 郑华</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)后勤组</td><td>SYXX259</td><td> 黄锡金</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(东校区)行政班子</td><td>SYXX001</td><td> 陈淑晶</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>（西校区）后勤组</td><td>SYXX109</td><td> 周钰珍</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>（西校区）后勤组</td><td>SYXX110</td><td> 杨秀银</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(东校区)五年段</td><td>SYXX279</td><td> 黄少玲</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)行政班子</td><td>SYXX003</td><td> 周玉东</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)行政班子</td><td>SYXX004</td><td> 魏祖龙</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)行政班子</td><td>SYXX005</td><td> 陈艳频</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)行政班子</td><td>SYXX006</td><td> 郭新美</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)行政班子</td><td>SYXX007</td><td> 黄月嫦</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)行政班子</td><td>SYXX008</td><td> 章巧媚</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)行政班子</td><td>SYXX010</td><td> 冯世学</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>(西校区)行政班子</td><td>SYXX011</td><td> 黄美娟</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr><td>(西校区)行政班子</td><td>SYXX280</td><td> Wangweiguang</td><td> 下午旷工</td><td>2017-01-04</td></tr><tr style="background-color: #ededed"><td>测试组001</td><td>richx98754</td><td> 游振文</td><td> 下午旷工</td><td>2017-01-04</td></tr></tbody>
+											</table>
+									</div>
+								</div>
+							</div>
+							</div>
+						</div>
+	                </div>
+	                </div>
+	                <!--页面内容结束 -->
+	            </div>
+	        </div>
+	        <!-- 亦信聊天开始 -->
+	    	<%@ include file="/public_module/public_QQ.jsp" %>
+	        <!-- 亦信聊天结束 -->
+	    </div>
+	    <!-- 内容页结束 -->
+	    <!-- 底部开始 -->
+	    <%@ include file="/public_module/public_footer.jsp" %>
+	    <!-- 底部结束 -->
+	</body>
+    <!-- 公共js开始 -->
+    <%@ include file="/public_module/public_js.jsp" %>
+    <!-- 公共js结束 -->
+</html>
+	<script src="<%=basePath%>assets/global/plugins/echarts.js"></script>
+	<script type="text/javascript">
+		 var myChart = echarts.init(document.getElementById('main')); 
+	     var option = {
+	    	 title:{
+	    		 text: '全天考情统计',
+	    	     subtext: '纯属虚构',
+	    	     x:'center'
+		    	     },
+	         tooltip: {
+	             show: true
+	         },
+	         legend: {
+	             data:['销量']
+	         },
+	         series : [
+	             {
+	            	 name: '访问来源',
+			            type: 'pie',
+			            radius: '55%',
+			            data:[
+			                {value:100, name:'搜索引擎'},
+			                {value:335, name:'直接访问'},
+			                {value:310, name:'邮件营销'},
+			                {value:274, name:'联盟广告'},
+			                {value:235, name:'视频广告'}
+			            ],
+	             }
+	         ]
+	     };
+	     // 为echarts对象加载数据 
+	     myChart.setOption(option); 
+	     
+	</script>
+	</html>

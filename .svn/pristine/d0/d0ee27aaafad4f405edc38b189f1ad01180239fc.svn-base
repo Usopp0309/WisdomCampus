@@ -1,0 +1,36 @@
+package com.guotop.palmschool.service;
+
+import java.util.HashMap;
+import java.util.List;
+
+import com.guotop.palmschool.entity.Menu;
+/**
+ * 菜单服务接口
+ * @author jfy
+ * @date 2015年12月2日
+ */
+public interface MenuService {
+	/**
+	 * 获取所有菜单信息
+	 * @return
+	 */
+	public List<Menu> getAllMenuInfo(String schoolId, Integer status);
+	
+	public List<Menu> getAllMenuInfoNOCache(String schoolId, Integer status);
+	/**
+	 * 获取菜单信息(超级管理员)
+	 */
+	public List<Menu> getAllMenuInfoSysadmin(String schoolId, Integer status);
+	/**
+	 * 修改菜单状态
+	 * @param map
+	 */
+	public void modifyMenuStatus(String schoolId,HashMap<String, Object> map);
+	/**
+	 * 获取所有菜单信息
+	 * @return
+	 */
+	public List<Menu> getMenusInfo(Integer status);
+	
+	
+}

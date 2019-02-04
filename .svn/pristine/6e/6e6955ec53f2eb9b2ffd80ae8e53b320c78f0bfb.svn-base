@@ -1,0 +1,163 @@
+package com.guotop.palmschool.bluetooth.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.guotop.palmschool.bluetooth.entity.BluetoothBracelet;
+import com.guotop.palmschool.bluetooth.entity.BluetoothStudent;
+import com.guotop.palmschool.bluetooth.service.BluetoothStudentService;
+import com.guotop.palmschool.bluetooth.service.BraceletService;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.util.Pages;
+
+@Service("braceletService")
+public class BraceletServiceImpl extends BaseService implements BraceletService {
+	@Autowired
+    private BluetoothStudentService bluetoothStudentService;
+	/**
+	 * 批量添加学生使用手环的数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月21日 下午4:58:02
+	 */
+	@Override
+	public void insertBathBluetoothBracelet(List<BluetoothBracelet> bluetoothBracelets) {
+		this.getBaseDao().addObject("BluetoothBracelet.insertBathBluetoothBracelet", bluetoothBracelets);
+	}
+
+	/**
+	 * 添加学生使用手环的数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月21日 下午5:03:39
+	 */
+	@Transactional
+	@Override
+	public Integer insertBluetoothBracelet(BluetoothBracelet bluetoothBracelet,BluetoothStudent student) {
+       Integer key=this.getBaseDao().addObject("BluetoothBracelet.insertBluetoothBracelet", bluetoothBracelet);
+       if(student!=null && student.getUserId()!=null){
+    	   student.setBluetoothBraceletId(key); 
+    	   bluetoothStudentService.insertBluetoothStudent(student);
+       }
+       
+		return key;
+
+	}
+
+	/**
+	 * 分页获得数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月21日 下午5:07:27
+	 */
+	@Override
+	public Pages<BluetoothBracelet> getPageBluetoothBracelet(int page, int pageSize,
+			Map<String, Object> paramMap) {
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		int currentPage = Pages.countCurrentPage(page);
+		int allRow = 0;
+		// 解决ibatis框架的分页问题
+		// 起始数据坐标
+		paramMap.put("startIndex", offset);
+		// 单页数据量
+		paramMap.put("length", length);
+		allRow = (Integer) getBaseDao().selectObjectByObject("BluetoothBracelet.getBluetoothBraceletCount", paramMap);
+		int totalPage = Pages.countTotalPage(pageSize, allRow);
+		Pages<BluetoothBracelet> pages = new Pages<>();
+		pages.setPageSize(pageSize);
+		@SuppressWarnings("unchecked")
+		List<BluetoothBracelet> list = this.getBaseDao().selectListByObject("BluetoothBracelet.getBluetoothBracelet",
+				paramMap);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage) {
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+	/**
+	 * 根据主键更新数据
+	 * @author chenyong
+	 * @Time 2017年4月24日 下午6:28:47
+	 */
+	@Override
+	@Transactional
+	public void updateById(BluetoothBracelet bluetoothBracelet,BluetoothStudent bluetoothStudent) {
+		this.getBaseDao().updateObject("BluetoothBracelet.updateById", bluetoothBracelet);
+		int count=bluetoothStudentService.getCountByBluetoothBraceletId(bluetoothBracelet.getId());
+		if(count>0){//已有人用，挤掉
+			if(bluetoothStudent!=null && bluetoothStudent.getUserId()!=null){
+			bluetoothStudentService.updateByBluetoothBraceletId(bluetoothStudent);
+			}
+		}else{//无人使用添加
+			bluetoothStudent.setBluetoothBraceletId(bluetoothBracelet.getId());
+			if(bluetoothStudent!=null &&  bluetoothStudent.getUserId()!=null){
+			bluetoothStudentService.insertBluetoothStudent(bluetoothStudent);
+			}
+		}
+	}
+	/**
+	 * 根据mac或code判断手环是否已存在 
+	 * @author chenyong
+	 * @Time 2017年4月25日 上午9:35:01
+	 */
+	@Override
+	public boolean getCountByMacOrCode(Map<String,Object> map){
+		return (Integer) this.getBaseDao().selectObjectByObject("BluetoothBracelet.getCountByMacOrCode", map)>0?true:false;
+	}
+
+	/**
+	 * 根据主键获得数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月25日 上午10:06:47
+	 */
+	@Override
+	public BluetoothBracelet getById(Integer id){
+		
+		return (BluetoothBracelet) this.getBaseDao().selectObject("BluetoothBracelet.getById", id);
+		
+	}
+	/**
+	 * 根据状态获得手环数据
+	 * @author chenyong
+	 * @Time 2017年4月25日 下午5:24:57
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<BluetoothBracelet> getByStatus(Integer status) {
+		
+		return this.getBaseDao().selectList("BluetoothBracelet.getByStatus", status);
+	}
+	/**
+	 * 修改手环的状态 
+	 * @author chenyong
+	 * @Time 2017年4月25日 下午7:39:50
+	 */
+	@Override
+	public void updateStatusById(Map<String, Object> map){
+		this.getBaseDao().updateObject("BluetoothBracelet.updateStatusById", map);
+	}
+
+	/**
+     * 批量更新手环的状态
+     * @author chenyong
+     * @Time 2017年4月26日 上午9:40:54
+     */
+	@Override
+	public void updateStatusByIds(Map<String,Object> map) {
+		
+		this.getBaseDao().updateObject("BluetoothBracelet.updateStatusByIds", map);
+	}
+}

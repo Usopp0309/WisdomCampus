@@ -1,0 +1,8 @@
+.select_img{background-color:#f4f4f4;overflow:hidden;height:220px;overflow-x:hidden;overflow-y:auto }
+.select_img li{width:25%;float:left;background-color:#fff;list-style-type: none;margin:15px 0 0 3%;padding:10px;border:1px solid #e3e3e3}
+.select_img li img{display:blcok;margin:0px auto;max-width:100%;}
+.tabbable-custom > .tab-content{border:none;}
+.tabbable-custom > .nav-tabs{border-bottom:1px solid #d4d4d4}
+.tabbable-custom .nav-tabs > li.active{background-color:#d4d4d4;border-top:3px solid #d4d4d4}
+.nav-tabs>.active>a, .nav-tabs>.active>a:hover, .nav-tabs>.active>a:focus{background:none;}
+.tabbable-custom .nav-tabs > li.active > a:hover{background:none;}

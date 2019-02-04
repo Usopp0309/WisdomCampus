@@ -1,0 +1,128 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>蓝牙手环-角色</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->
+ 	<style type="text/css">
+ 	    ul.condition li{float: left;margin: 15px;}
+ 	   .person_condition{width: 400px;height: 400px;border: 1px solid #28acb8;}
+ 	   .class_condition{width: 400px;height: 400px;border: 1px solid #28acb8;}
+ 	   .personInClass_condition{width: 400px;height: 400px;border: 1px solid #28acb8;}
+ 		
+ 	</style>    
+</head>
+	<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+		<input class="themes" type="hidden" value="<%=ThemePath%>">
+		<input type="hidden" value="${schoolId}" id="schoolId">
+	<input type="hidden" value="${sessionScope.user.userId}" id="userId">
+	    <!-- 公共顶部开始-->
+	    <%@ include file="/public_module/public_header.jsp"%>    
+	    <!--公共顶部结束-->
+	    <div class="clearfix"> </div>
+	    <!-- 内容页开始 -->
+	    <div class="page-container">
+	        <!--主菜单开始-->
+	        <%@include file="/public_module/public_menu.jsp"%>
+	        <!--主菜单结束-->
+	        <div class="page-content-wrapper">
+	            <div class="page-content m_overflow_hidden m_page_content">
+	            	
+	            	<!-- 页面内容开始 -->
+	            	<div class="col-md-12 col-sm-12 m_page_con">
+	                <div class="page-bar m_margin_0_0_0_0">
+	                    <ul class="page-breadcrumb">
+	                        <li><a href="<%=basePath%>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+	                        <li><a href="<%=basePath%>asset/toAssetInfoList.do">资产管理</a><i class="fa fa-circle"></i></li>
+	                        <li><span>蓝牙手环</span></li>
+	                    </ul>
+	                </div>
+	                
+	                <div class="portlet box green m_margin_15_auto_0">
+	                      <div class="portlet-body">
+	                          <div class="portlet light form-fit bordered search_box">
+	                         	 <form action="#" class="form-horizontal">
+				                         <div class="row m_margin_10_auto">
+				
+				                         	<div class="col-lg-3 m_margin_top-15" style="width: 15%;">
+				                         		<span class="m_span">课程类型：</span>
+				                                <select class="form-control m_select" id="clazzList" onchange="chooseClazz();"></select>
+				                         	</div>
+				                         	
+				                         	<div class="col-lg-3 m_margin_top-15" style="width: 15%;">
+				                         		<span class="m_span">选择班级：</span>
+				                                <select class="form-control m_select" id="studentLists" onchange="init(1);">
+				                                <option value="">--请选择班级--</option>
+				                                </select>
+				                         	</div>
+				                         	
+				                         	
+				                         	<div class="col-lg-3 m_margin_top-15" style="width: 20%;">
+				                         		<span class="m_span">搜索内容：</span>
+				                         		 <input class="m_input form-control" type="text" placeholder="姓名，学号，手机号"/>
+				                         	</div>
+				                         	
+				                         	<div class="col-lg-3 m_margin_top-15" style="width: 20%;">
+				                         		<span class="m_span">开始时间：</span>
+				                         		 <input class="m_input form-control" type="text" id="startTime"/>
+				                         	</div>
+		
+				                         	<div class="col-lg-3 m_margin_top-15" style="width: 20%;">
+				                         	     <span class="m_span">结束时间：</span>
+				                         		 <input class="m_input form-control" type="text" id="endTime"/>
+				                         	</div>
+				                         	
+				                         	
+				                         	<div class="col-lg-3 m_margin_top-15" style="width: 10%;">
+				                         		<button type="button" class="btn green" onclick=" init(1);">查找</button>
+				                         	</div>
+				                         </div>
+	                              </form>
+	                        </div>   
+	                      </div>
+	                      <!-- 图标区域-->
+							<div class="portlet light form-fit m_margin_0_0_15_0 echars">
+							    <ul class="condition">
+							        <li><div class="person_condition"></div></li>
+							        <li><div class="class_condition"></div></li>
+							        <li><div class="personInClass_condition"></div></li>
+                                </ul>
+                                 <div style="clear:both"></div>
+							</div>
+							
+							<div>
+							   <a href="<%=basePath%>data/toMoreCourse.do" class="btn btn-success btn-lg" >更多课程。。。</a>
+							</div>
+							
+							<div>
+							  <a href="<%=basePath%>data/toMoreCourse.do" class="btn btn-success btn-lg" style="margin-top: 10px;width: 160px;">对比。。。</a>
+							</div>
+						
+	                       
+	     <!-- 底部开始 -->
+	    <%@ include file="/public_module/public_footer.jsp" %>
+	    <!-- 底部结束 -->
+	</body>
+    <!-- 公共js开始 -->
+    <%@ include file="/public_module/public_js.jsp" %>
+    <script src="<%=basePath%>assets/global/plugins/map.js" type="text/javascript" ></script>
+    <!-- 公共js结束 -->
+    <script type="text/javascript">
+        $(function(){
+    	 $('#startTime,#endTime').datetimepicker({
+			 format:"Y-m-d H:i:00" 
+		});
+		
+    });
+   
+	
+    </script>
+</html>

@@ -1,0 +1,391 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>资产添加</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->      
+ 	<style type="text/css">
+ 		input[type="radio"]{margin-left:-2px!important;}
+ 	</style>  
+</head>
+<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+	<input class="themes" type="hidden" value="<%=ThemePath%>">
+    <!-- 公共顶部开始-->
+    <%@ include file="/public_module/public_header.jsp"%>    
+    <!--公共顶部结束-->
+    <div class="clearfix"> </div>
+    <!-- 内容页开始 -->
+    <div class="page-container">
+        <!--主菜单开始-->
+        <%@include file="/public_module/public_menu.jsp"%>
+        <!--主菜单结束-->
+        <div class="page-content-wrapper">
+            <div class="page-content m_overflow_hidden m_page_content">
+            	<!-- 页面内容开始 -->
+            	<div class="col-md-12 col-sm-12 m_page_con">
+	                <div class="page-bar m_margin_0_0_0_0">
+	                    <ul class="page-breadcrumb">
+	                        <li><a href="<%=basePath%>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+	                        <li><a href="<%=basePath%>asset/toAssetInfoList.do">资产管理</a><i class="fa fa-circle"></i></li>
+	                        <li><span>资产添加</span></li>
+	                    </ul>
+	                </div>
+	                <div class="row">
+	                    <div class="col-md-12 col-sm-12">
+	                    	<div class="row">
+                       			 <div class="col-md-12 col-sm-12">
+                            		<div class="portlet box green m_margin_15_auto_0">
+		                                <div class="portlet-title">
+			                                <div class="caption"><i class="fa fa-list"></i>资产添加</div>
+			                            </div>
+                               			<div class="portlet-body">
+			                            	<form action="<%=basePath%>asset/doAddAsset.do" method="post" id="addForm">
+		                                    		<div class="row m_margin_10_auto search_box">
+								                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+								                         		<span class="m_span">资产编号</span>
+								                         		<input class="m_input form-control asset_code" name="code" id="code" type="text">
+								                         	</div>
+								                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+								                         		<span class="m_span">资产名称</span>
+								                         		<input class="m_input form-control asset_name" name="name" type="text">
+								                         	</div>
+								                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+								                         		<span class="m_span">厂商名称</span>
+								                         		<input class="m_input form-control" name="manufacturer" id="manufacturer" type="text">
+								                         	</div>
+								                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+								                         		<span class="m_span">资产规格</span>
+								                         		<input class="m_input form-control" name="spec" type="text">
+								                         	</div>
+								                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+								                         		<span class="m_span">厂商型号</span>
+								                         		<input class="m_input form-control" name="model" type="text">
+								                         	</div>
+								                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+								                         		<span class="m_span">资产类型</span>
+								                         		<select class="form-control m_select" name="type" id="type">
+					                                            </select>
+								                         	</div>
+								                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+								                         		<span class="m_span">计量单位</span>
+								                         		<select class="form-control m_select" name="units" id="units">
+					                                            </select>
+								                         	</div>
+								                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+								                         		<span class="m_span">资产数量</span>
+								                         		<input class="m_input form-control asset_num" name="count" id="count" type="number">
+								                         	</div>
+								                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+								                         		<span class="m_span">单价</span>
+								                         		<input class="m_input form-control asset_price" name="price" id="price" type="number">
+								                         	</div>
+								                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+								                         		<span class="m_span">资产属性</span>
+								                         		<select class="form-control m_select" name="property" id="property">
+								                         			<option value="0">学校资产</option>
+								                         			<option value="1">个人资产</option>
+					                                            </select>
+								                         	</div>
+								                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+								                         		<span class="m_span">负责人</span>
+								                         		<select class="form-control select2me m_select asset_person" name="respPersonId" id="respPersonIdList">
+			                                                    </select>
+			                                                    <input type="hidden" name="respPerson" id="respPerson">
+								                         	</div>
+								                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15" id="receiveIdGroup" style="display:none">
+								                         		<span class="m_span">领取人</span>
+								                         		<select class="form-control select2me m_select" name="receiveId" id="receiveIdList">
+			                                                    </select>
+								                         	</div>
+								                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+								                         		<span class="m_span">存放地点</span>
+								                         		<input class="m_input form-control asset_place" name="site" id="site" type="text">
+								                         	</div>
+							                         	</div>
+							                         	<div class="row m_margin_10_auto search_box">
+								                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+								                         		<span class="m_span">购入时间</span>
+								                         		<input class="m_input form-control asset_buy_day" name="buyDate" id="buyDate"  readonly="readonly" type="text">
+								                         	</div>
+								                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15 m_text_align_conter" style="padding-top:5px;">
+								                         		<input type="radio" value="0" name="guaranteetime">半年
+								                         		<input type="radio" value="1" name="guaranteetime">一年
+								                         		<input type="radio" value="2" name="guaranteetime">两年
+								                         		<input type="radio" value="3" name="guaranteetime">自定义
+								                         	</div>
+								                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+								                         		<span class="m_span">保修期至</span>
+								                         		<input class="m_input form-control asset_validity" name="qualityDate" id="qualityDate" readonly="readonly" type="text">
+								                         	</div>
+								                         </div>
+							                         <hr class="m_hr">
+							                         <div class="row m_margin_10_auto">
+								                         <div class="col-md-12 col-sm-12 col-lg-12 m_margin_top-15">
+								                         		<span class="m_display_inline m_float_left m_width_10 m_text_align_conter">备注</span>
+								                         		<textarea class="m_width_90 m_float_left form-control" name="remark"></textarea>
+							                         	</div>
+							                         </div>
+							                         <div class="row m_margin_10_auto search_box">
+							                         	<div class="col-md-12 col-sm-12 col-lg-12 m_margin_top-15 m_text_align_conter">
+									                         <button type="button" id="addAsset" class="btn green">确定</button>
+									                         <button type="button" class="btn default" onclick="history.go(-1);" id="cancel">返回</button>
+								                         </div>
+							                         </div>
+		                            		</form>
+                            			</div>
+                            		</div>
+                        	</div>
+                    	</div>
+	               </div>
+               </div>
+             </div>
+               <!--页面内容结束 -->
+           </div>
+       </div>
+       <!-- 亦信聊天开始 -->
+   	   <%@ include file="/public_module/public_QQ.jsp" %>
+       <!-- 亦信聊天结束 -->
+    </div>
+    <!-- 内容页结束 -->
+    <!-- 底部开始 -->
+    <%@ include file="/public_module/public_footer.jsp" %>
+    <!-- 底部结束 -->
+</body>
+<!-- 公共js开始 -->
+<%@ include file="/public_module/public_js.jsp" %>
+<!-- 公共js结束 -->
+<script type="text/javascript">
+   
+	$(function(){
+	 	 //选取当前菜单位置
+	 	 setActive("assetmanagement","assetInfoList"); 
+	 	$('.asset_buy_day').datetimepicker({format:'Y-m-d',timepicker:false}); 
+   	   	$("input[name='guaranteetime']").on("click",function(){
+   	   		if($("#buyDate").val()=="")
+   			{
+	   	   		layer.tips('请输选择购买日期', '.asset_buy_day');
+	   	   		$(this).parent().removeAttr("class");
+				return;
+   			}
+   	   		var input_num=$(this).val();
+   	   		var asset_buy_day=$(".asset_buy_day").val();
+	 		var asset=asset_buy_day.split("-")
+   	   	    if(input_num=="0"){
+   	   	  		$(".asset_validity").attr("readonly","readonly");
+   	   	   	    asset[1]=parseInt(asset[1])+6;
+   	   	   	    if(asset[1]<10){
+   	   	   	   		asset[1]="0"+asset[1];
+   	   	   	   	}
+				$(".asset_validity").val(asset[0]+"-"+asset[1]+"-"+asset[2]);
+   	   	   	}else if(input_num=="1"){
+   	   	  		$(".asset_validity").attr("readonly","readonly");
+   	   	  		var asset_buy_day=$(".asset_buy_day").val();
+	 			var asset=asset_buy_day.split("-");
+	 			asset[0]=parseInt(asset[0])+1;
+	 			$(".asset_validity").val(asset[0]+"-"+asset[1]+"-"+asset[2]);
+   	   	   	}else if(input_num=="2"){
+   	   	  		$(".asset_validity").attr("readonly","readonly");
+   	   	 		var asset_buy_day=$(".asset_buy_day").val();
+				var asset=asset_buy_day.split("-");
+				asset[0]=parseInt(asset[0])+2;
+				$(".asset_validity").val(asset[0]+"-"+asset[1]+"-"+asset[2]);
+   	   	   	}else if(input_num=="3"){
+   	   	  		$(".asset_validity").removeAttr("readonly");
+   	   	  		$('.asset_validity').datetimepicker({format:'Y-m-d',timepicker:false}); 
+   	   	   	}
+   	   	 })
+       	$("#respPersonIdList").change(function(){
+			$("#respPerson").val($('#respPersonIdList option:selected').text());
+		});
+       	
+ 	 	 $("#addAsset").click(function(){
+				if (validate())
+				{
+					$("#addForm").submit();
+				}
+		});
+ 	 	
+ 	 	$("#property").change(function(){
+			if($("#property").val()==1)
+			{
+				$("#receiveIdGroup").show();
+			}
+			else
+			{
+				$("#receiveIdGroup").hide();
+			}
+			
+		});
+ 	 	 //获取计量单位
+ 	 	loadUnitsList();
+ 	 	//获取维修类型
+ 	 	loadTyepList();
+ 	 	//获取负责人列表
+ 	 	loadRespPersonList();
+ 	 	//领取人列表
+ 	 	loadReceiverList();
+     })
+	var asset_code='';asset_name='';respPersonId='';asset_num='';asset_price='';asset_place='';asset_buy_day='';asset_validity='';
+    function validate(){
+    	    asset_code=$.trim($(".asset_code").val());
+	 		asset_name=$.trim($(".asset_name").val());
+	 		respPersonId=$.trim($(".asset_person").val());
+	 		asset_num=$.trim($(".asset_num").val());
+	 		asset_price=$.trim($(".asset_price").val());
+	 		asset_place=$.trim($(".asset_place").val());
+	 		asset_buy_day=$.trim($(".asset_buy_day").val());
+	 		asset_validity=$.trim($(".asset_validity").val());
+			if(asset_code==""){
+				layer.tips('请输入编号', '.asset_code');
+				return false;
+			}
+			if(checkCode(asset_code))
+			{
+				layer.tips('编号重复,请重新输入', '.asset_code');
+				return false;
+			}
+			if(asset_name==""){
+				layer.tips('请输入名称', '.asset_name');
+				return false;
+			}
+			if(respPersonId==0){
+				layer.tips('请选择负责人', '.asset_person');
+				return false;
+			}
+			if(asset_num=="" || asset_num < 1 || asset_num > 100000){
+				layer.tips('请输入正确的数量', '.asset_num');
+				return false;
+			}
+			if(asset_price=="" || asset_price < 0 || asset_price > 99999999){
+				layer.tips('请输入正确的单价', '.asset_price');
+				return false;
+			}
+			if(asset_place==""){
+				layer.tips('请输入地点', '.asset_place');
+				return false;
+			}
+			if(asset_buy_day==""){
+				layer.tips('请输选择购买日期', '.asset_buy_day');
+				return false;
+			}
+			if(asset_validity==""){
+				layer.tips('保修期不能为空', '.asset_validity');
+				return false;
+			}
+			
+			return true;
+   	  }
+    
+    function checkCode(code)
+    {
+    	var flag = false;
+    	$.ajax({
+			type: "post",
+			async: false,
+			url: "<%=basePath%>asset/checkCode.do",
+			data:{
+				code : code
+			},
+			success: function(data){
+				var data = eval("(" + data + ")");
+				if(data)
+				{
+					flag = true;
+				}
+				else
+				{
+					flag = false;
+				}
+				
+			},
+		});
+    	return flag;
+    }
+    
+    function loadRespPersonList()
+    {
+    	$.ajax({
+			type: "post",
+			async: false,
+			url: "<%=basePath%>asset/getRespPerson.do",
+			data:{
+			},
+			success: function(data){
+				var list = eval("(" + data + ")");
+                var appendHtml = '';
+				$.each(list, function(n, value) {  
+       				appendHtml += '<option value="'+value.userId+'">'+value.realName+'</option>';
+      			}); 
+      			$("#respPersonIdList").html(appendHtml);
+				
+			},
+		});
+    }
+    function loadReceiverList()
+    {
+    	$.ajax({
+			type: "post",
+			async: false,
+			url: "<%=basePath%>asset/getRespPerson.do",
+			data:{
+			},
+			success: function(data){
+				var list = eval("(" + data + ")");
+                var appendHtml = '';
+				$.each(list, function(n, value) {  
+       				appendHtml += '<option value="'+value.userId+'">'+value.realName+'</option>';
+      			}); 
+      			$("#receiveIdList").html(appendHtml);
+				
+			},
+		});
+    }
+    function loadUnitsList()
+    {
+    	$.ajax({
+			type: "post",
+			async: false,
+			url: "<%=basePath%>asset/getUnitsList.do",
+			data:{
+			},
+			success: function(data){
+				var list = eval("(" + data + ")");
+                var appendHtml = '';
+				$.each(list, function(n, value) {  
+       				appendHtml += '<option value="'+value+'">'+value+'</option>';
+      			}); 
+      			$("#units").html(appendHtml);
+				
+			},
+		});
+    }
+    function loadTyepList()
+    {
+    	$.ajax({
+			type: "post",
+			async: false,
+			url: "<%=basePath%>asset/getAssetTypeList.do",
+			data:{
+			},
+			success: function(data){
+				var list = eval("(" + data + ")");
+                var appendHtml = '';
+				$.each(list, function(n, value) {  
+       				appendHtml += '<option value="'+value.id+'">'+value.name+'</option>';
+      			}); 
+      			$("#type").html(appendHtml);
+				
+			},
+		});
+    }
+  	
+   </script>
+</html>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="UserForwardsmsSwitch">
+  	<typeAlias alias="userForwardsmsSwitch" type="com.guotop.palmschool.entity.UserForwardsmsSwitch" />
+
+	<insert id="addUserForwardsmsSwitch" parameterClass="userForwardsmsSwitch">
+		insert into platform.user_forwardsms_switch
+		(
+			userId,
+			forwardPushStatus,
+			forwardSmsStatus
+		)
+		values
+		(
+			#userId#,
+			#forwardPushStatus#,
+			#forwardSmsStatus#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<select id="getUserForwardsmsSwitch" parameterClass="Integer" resultClass="userForwardsmsSwitch">
+		SELECT * FROM  platform.user_forwardsms_switch WHERE userId = #userId#
+	</select>
+	
+	
+</sqlMap>

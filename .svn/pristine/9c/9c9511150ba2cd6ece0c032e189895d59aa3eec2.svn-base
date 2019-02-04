@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="EvaluationTime">
+	<typeAlias alias="evaluationTime" type="com.guotop.palmschool.evaluation.entity.EvaluationTime"/>
+	<typeAlias alias="evaluationClazzModel" type="com.guotop.palmschool.evaluation.entity.EvaluationClazzModel"/>
+	
+	<resultMap class="com.guotop.palmschool.evaluation.entity.EvaluationTime" id="result_evaluationTime">
+		<result property="id" column="id"/>
+		<result property="startTime" column="startTime"/>
+		<result property="endTime" column="endTime"/>	
+		<result property="clazzId" column="clazzId"/>
+		<result property="gradeId" column="gradeId"/>
+		<result property="clazzName" column="clazzName"/>
+		<result property="gradeName" column="gradeName"/>
+	</resultMap>
+	
+	<!-- 查询评价时间设定List -->	
+	<select id="getEvaluationTimeList" parameterClass="java.util.HashMap" resultMap="result_evaluationTime">
+		select et.*,getGradeName(et.gradeId) gradeName,getClazzName(et.clazzId) clazzName
+		  from palm_evaluation_time et
+		   where 1=1
+			<isNotEmpty prepend="and" property="queryContent">
+			     (g.name LIKE CONCAT('%',#queryContent#,'%') or c.clazzName LIKE CONCAT('%',#queryContent#,'%'))
+		    </isNotEmpty>
+			<isNotEmpty prepend="and" property="startTime">
+				et.startTime >= #startTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="endTime">
+				#endTime# >= et.endTime
+		    </isNotEmpty>	     
+		     order by id desc
+	</select>
+	
+	<!-- 根据Id查询评价时间 -->	
+	<select id="getEvaluationTimeById" parameterClass="Integer" resultMap="result_evaluationTime">
+		select et.*,getGradeName(et.gradeId) gradeName,getClazzName(et.clazzId) clazzName
+		  from palm_evaluation_time et
+		   where et.id = #id#
+	</select>
+	
+	<insert id="addEvaluationTime" parameterClass="evaluationTime">
+	      insert into palm_evaluation_time 
+		(
+			startTime,
+			endTime,
+			clazzId,
+			gradeId
+		) 
+		values
+		(
+			#startTime#,
+			#endTime#,
+			#clazzId#,
+			#gradeId#
+		)
+		
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<update id="updateEvaluationTime" parameterClass="evaluationTime">
+	     update palm_evaluation_time 
+	     set 
+	        startTime = #startTime#,
+			endTime = #endTime#,
+			clazzId = #clazzId#,
+			gradeId = #gradeId#
+         where id=#id#
+	</update>
+	
+	<update id="updateEvaluationClazzModel" parameterClass="evaluationTime">
+	     update palm_evaluation_time 
+	     set 
+	        startTime = #startTime#,
+			endTime = #endTime#,
+			clazzId = #clazzId#,
+			gradeId = #gradeId#
+         where id=#id#
+	</update>
+	
+	<delete id="deleteEvaluationClazzModelById" parameterClass="Integer">
+	   delete from palm_evaluate_clazz_model where evaluatetimeId = #id#
+	</delete>
+	
+	<insert id="addEvaluationClazzModel" parameterClass="evaluationClazzModel">
+	      insert into palm_evaluate_clazz_model 
+		(
+			evaluatetimeId,
+			teachingfolderId,
+			status,
+			userType
+		) 
+		values
+		(
+			#evaluatetimeId#,
+			#teachingfolderId#,
+			#status#,
+			#userType#
+		)
+		
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 根据id date 查询评价时间 -->	
+	<select id="getEvaluationTimeByIdAndDate" parameterClass="HashMap" resultMap="result_evaluationTime">
+		select et.*,getGradeName(et.gradeId) gradeName,getClazzName(et.clazzId) clazzName
+		  from palm_evaluation_time et
+		   where et.id = #id#
+		      and  #date# >= startTime
+		       and endTime >= #date# 
+	</select>
+	
+	<select id="getEvaluationClazzByTimeId" parameterClass="Integer" resultClass="evaluationClazzModel">
+		select * from palm_evaluate_clazz_model where evaluatetimeId = #id#
+	</select>
+	
+	
+</sqlMap>

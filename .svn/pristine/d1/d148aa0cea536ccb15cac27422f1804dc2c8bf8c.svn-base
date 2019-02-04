@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Total">
+	<typeAlias alias="total" type="com.guotop.palmschool.check.entity.Total" />
+
+	<resultMap class="com.guotop.palmschool.check.entity.Total"
+		id="result-total">
+		<result property="id" column="id" />
+		<result property="userType" column="usertype" />
+		<result property="type" column="type" />
+		<result property="periodType" column="periodtype" />
+		<result property="period" column="period" />
+		<result property="periodTime" column="periodTime" />
+		<result property="code" column="code" />
+		<result property="name" column="name" />
+		<result property="objId" column="objid" />
+		<result property="clazzId" column="clazzid" />
+		<result property="gradeId" column="gradeid" />
+		<result property="lateTimes" column="latetimes" />
+		<result property="leaveTimes" column="leavetimes" />
+		<result property="arrivalTime" column="arrivaltime" />
+		<result property="leaveTime" column="leavetime" />
+		<result property="hours" column="hours" />
+		<result property="createTime" column="createtime" />
+		<result property="affairLeave" column="affairleave" />
+		<result property="sickLeave" column="sickleave" />
+		<result property="maternityLeave" column="maternityleave" />
+		<result property="businessTrip" column="businesstrip" />
+	</resultMap>
+
+	<!-- 页面相关begin -->
+	<!-- 根据条件查询考勤统计总数 -->
+	<select id="loadTotalCheckListCountAsHeadMasterCount"
+		parameterClass="HashMap" resultClass="Integer">
+		select count(*) from palm_total
+		where 1 = 1
+		<isNotEmpty prepend="and" property="userType">
+			usertype = #userType#
+			</isNotEmpty>
+		<isNotEmpty prepend="and" property="type">
+			type = #type#
+			</isNotEmpty>
+		<isNotEmpty prepend="and" property="periodType">
+			periodType = #periodType#
+			</isNotEmpty>
+		<isNotEmpty prepend="and" property="code">
+			code = #code# 
+			</isNotEmpty>
+		<isNotEmpty prepend="and" property="name">
+			name = #name#
+		</isNotEmpty>
+	</select>
+
+	<!-- 根据条件查询考勤统计 -->
+	<select id="loadTotalCheckListCountAsHeadMaster" parameterClass="HashMap"
+		resultMap="result-total">
+		select * from palm_total
+		where 1 = 1
+		<isNotEmpty prepend="and" property="userType">
+			usertype = #userType#
+			</isNotEmpty>
+		<isNotEmpty prepend="and" property="type">
+			type = #type#
+			</isNotEmpty>
+		<isNotEmpty prepend="and" property="periodType">
+			periodType = #periodType#
+			</isNotEmpty>
+		<isNotEmpty prepend="and" property="code">
+			code = #code#
+			</isNotEmpty>
+		<isNotEmpty prepend="and" property="name">
+			name = #name#
+			</isNotEmpty>
+		limit #startIndex#, #length#
+	</select>
+
+	<!-- 根据条件查询考勤统计 班主任权限总数-->
+	<select id="loadTotalCheckListCountAsHeadTeacherCount"
+		parameterClass="HashMap" resultClass="Integer">
+		select count(*) from palm_total t,palm_user u, palm_user_role ro
+		where u.id = ro.userId
+		AND ro.clazzId = t.clazzid
+		AND ro.clazzId = #clazzId#
+		<isNotEmpty prepend="and" property="userType">
+			usertype = #userType#
+			</isNotEmpty>
+		<isNotEmpty prepend="and" property="type">
+			type = #type#
+			</isNotEmpty>
+		<isNotEmpty prepend="and" property="periodType">
+			periodType = #periodType#
+			</isNotEmpty>
+		<isNotEmpty prepend="and" property="code">
+			code = #code#
+			</isNotEmpty>
+		<isNotEmpty prepend="and" property="name">
+			name = #name#
+			</isNotEmpty>
+
+	</select>
+
+	<!-- 根据条件查询考勤统计 班主任权限 -->
+	<select id="loadTotalCheckListCountAsHeadTeacher"
+		parameterClass="HashMap" resultMap="result-total">
+		select * from palm_total t,palm_user u, palm_user_role ro
+		where u.id = ro.userId
+		AND ro.clazzId = t.clazzid
+		AND ro.clazzId = #clazzId#
+		<isNotEmpty prepend="and" property="userType">
+			usertype = #userType#
+			</isNotEmpty>
+		<isNotEmpty prepend="and" property="type">
+			type = #type#
+			</isNotEmpty>
+		<isNotEmpty prepend="and" property="periodType">
+			periodType = #periodType#
+			</isNotEmpty>
+		<isNotEmpty prepend="and" property="code">
+			code = #code#
+			</isNotEmpty>
+		<isNotEmpty prepend="and" property="name">
+			name = #name#
+			</isNotEmpty>
+		limit #startIndex#, #length#
+	</select>
+	<!-- 页面相关end -->
+
+	<!-- 统计线程相关 begin-->
+	<!-- 查询最早到校时间 -->
+	<select id="selectArrivalTime" parameterClass="HashMap"
+		resultClass="HashMap">
+		select s.code as code, MIN(s.intime) as inTime FROM palm_stat s,
+		palm_user_role ur
+		where s.userid = ur.userid
+		<isNotEmpty property="userType">
+			<!-- 教师 -->
+			<isEqual property="userType" compareValue="1">
+				and ur.roleId in (3, 4, 5)
+				</isEqual>
+			<!-- 学生 -->
+			<isEqual property="userType" compareValue="2">
+				and ur.roleId = 7
+				</isEqual>
+		</isNotEmpty>
+	</select>
+
+	<!-- 查询最晚离校时间 -->
+	<select id="selectLeaveTime" parameterClass="HashMap"
+		resultClass="HashMap">
+		select s.code as code, MAX(s.outtime) as outTime 
+			from palm_stat s, palm_user_role ur
+			where s.userid = ur.userid
+			<isNotEmpty property="userType">
+				<!-- 教师 -->
+				<isEqual property="userType" compareValue="1">
+					and ur.roleId in (3, 4, 5)
+				</isEqual>
+				<!-- 学生 -->
+				<isEqual property="userType" compareValue="2">
+					and ur.roleId = 7
+				</isEqual>
+			</isNotEmpty>
+	</select>
+	
+	<!-- 插入考勤统计实体 -->
+	<insert id="addTotal" parameterClass="total">
+		insert into palm_total
+		(
+			usertype,
+			type,
+			periodtype,
+			period,
+			periodTime,
+			code,
+			name,
+			objid,
+			clazzid,
+			gradeid,
+			latetimes,
+			leavetimes,
+			arrivaltime,
+			leavetime,
+			hours,
+			createtime,
+			affairleave,
+			sickleave,
+			maternityleave,
+			businesstrip
+		)
+		values
+		(
+			#userType#,
+			#type#,
+			#periodType#,
+			#period#,
+			#periodTime#,
+			#code#,
+			#name#,
+			#objId#,
+			#clazzId#,
+			#gradeId#,
+			#lateTimes#,
+			#leaveTimes#,
+			#arrivalTime#,
+			#leaveTime#,
+			#hours#,
+			#createTime#,
+			#affairLeave#,
+			#sickLeave#,
+			#maternityLeave#,
+			#businessTrip#
+		)
+	</insert>
+	
+	<select id="selectLastTotal" parameterClass="HashMap" resultClass="HashMap">
+		select * FROM palm_total
+		where userType = #userType# 
+		  and type = #type# 
+		  and periodType = #periodType# 
+		  ORDER BY id DESC
+	</select>
+	
+	<select id="selectFirstStat" parameterClass="HashMap" resultClass="HashMap">
+		select * FROM palm_stay
+		where  type = #userType# 
+		ORDER BY id ASC
+	</select>
+	
+	<select id="selectTotalBySchoolDay" parameterClass="HashMap" resultClass="HashMap">
+	   <![CDATA[
+		SELECT MIN(arrivaltime),MAX(leavetime),SUM(hours),SUM(latetimes),SUM(leavetimes) FROM palm_total
+		  WHERE userType = #userType# 
+		    AND type = #type# 
+		    AND periodTime IS NOT NULL 
+		    AND periodTime >= #start#  
+		    AND periodTime < #end#
+	   ]]>
+	</select>
+	
+	<select id="selectTotalByGradeDay" parameterClass="HashMap" resultClass="HashMap">
+	   <![CDATA[
+	   SELECT gradeId,MIN(arrivaltime),MAX(leavetime),SUM(hours),SUM(latetimes),SUM(leavetimes) FROM palm_total
+		  WHERE userType = #userType# 
+		    AND type = #type# 
+		    AND periodTime IS NOT NULL 
+		    AND periodTime >= #start#  
+		    AND periodTime < #end#
+		    GROUP BY gradeId
+	   ]]>
+	</select>
+	
+	
+	<!-- 统计线程相关end -->
+</sqlMap>

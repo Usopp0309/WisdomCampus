@@ -1,0 +1,538 @@
+package com.guotop.palmschool.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.entity.Agency;
+import com.guotop.palmschool.entity.News;
+import com.guotop.palmschool.entity.School;
+import com.guotop.palmschool.entity.SchoolInfo;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.entity.UserBoundSchool;
+import com.guotop.palmschool.scheduler.entity.SchoolCountInfo;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.service.SchoolService;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 学校管理业务类实现类
+ * 
+ * @author zhou
+ *
+ */
+@Service("schoolService")
+public class SchoolServiceImpl extends BaseService implements SchoolService
+{
+	/**
+	 * 增加学校
+	 * 
+	 * @param school待增加的学校
+	 * @return
+	 */
+	public void addSchool(School school)
+	{
+		getBaseDao().addObject("School.addSchool", school);
+	}
+
+	/**
+	 * 查出所有学校信息
+	 */
+	@SuppressWarnings("unchecked")
+	public List<School> selectAllSchool()
+	{
+		return getBaseDao().selectListBySql("School.selectSchoolList");
+	}
+
+	@SuppressWarnings("unchecked")
+	public Pages getSchoolByRole(int pageSize, int page, Map<String, Object> paramMap, User user)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+
+		List<School> list = new ArrayList<School>();
+		/**
+		 * 新增权限划分
+		 */
+
+		Integer roleId = 0;
+
+		/**
+		 * 系统管理员
+		 */
+		if (Cons.ROLE_ADMIN.equals(roleId))
+		{
+			allRow = this.getBaseDao().getAllRowCountByCondition("School.selectSchoolList", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			list = this.getBaseDao().queryForPageByCondition("School.selectSchoolList", paramMap, offset, length);
+		}
+
+		/**
+		 * 学校管理员权限
+		 */
+		if (Cons.ROLE_SCHOOLADMIN.equals(roleId))
+		{
+			allRow = this.getBaseDao().getAllRowCountByCondition("School.selectSchoolById", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			list = this.getBaseDao().queryForPageByCondition("School.selectSchoolById", paramMap, offset, length);
+		}
+		/**
+		 * 校长权限
+		 */
+		if (Cons.ROLE_HEADMASTER.equals(roleId))
+		{
+			allRow = this.getBaseDao().getAllRowCountByCondition("School.selectSchoolList", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			list = this.getBaseDao().queryForPageByCondition("School.selectSchoolList", paramMap, offset, length);
+		}
+		/**
+		 * 班主任,普通教师,学生 为相同权限 (粗细度班级级别)
+		 * 能看系统公告,自己学校的学校公告(schoolId区分),自己班级的班级公告(clazzId区分)
+		 */
+		if (Cons.ROLE_HEADTEACHER.equals(roleId) || Cons.ROLE_NORMALTEACHER.equals(roleId) || Cons.ROLE_STUDENT.equals(roleId))
+		{
+			allRow = this.getBaseDao().getAllRowCountByCondition("School.selectSchoolList", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			list = this.getBaseDao().queryForPageByCondition("School.selectSchoolList", paramMap, offset, length);
+		}
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	/**
+	 * 根据id获取学校信息
+	 */
+	@Override
+	public School selectSchoolById(Long id)
+	{
+		// TODO Auto-generated method stub
+		return (School) getBaseDao().selectObjectByObject("School.getSchoolListById", id);
+	}
+
+	/**
+	 * 添加学校统计信息 20151207
+	 */
+	@Override
+	public void addSchoolCountInfo(SchoolCountInfo schoolCountInfo)
+	{
+		getBaseDao().addObject("SchoolCountInfo.addInitCountInfo", schoolCountInfo);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Pages getAllSchoolInfo(int pageSize, int page, HashMap<String, Object> paramMap)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<SchoolInfo> list = new ArrayList<SchoolInfo>();
+		try
+		{
+			allRow = (Integer) this.getBaseDao().selectObjectByObject("School.getSchoolInfoCount", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+
+			// 解决ibatis框架的分页问题
+			// 起始数据坐标
+			paramMap.put("startIndex", offset);
+			// 单页数据量
+			paramMap.put("length", length);
+			list = this.getBaseDao().selectListByObject("School.getSchoolInfo", paramMap);
+		} catch (Exception e)
+		{
+
+		}
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	/**
+	 * 根据id获取学校统计信息
+	 * 
+	 * @param id
+	 * @return
+	 * 
+	 *         syj 20151208
+	 */
+	public SchoolInfo getSchoolCountInfoById(Long schoolId)
+	{
+
+		return (SchoolInfo) getBaseDao().selectObjectByObject("School.getSchoolCountInfoById", schoolId);
+	}
+
+	/**
+	 * 根据id获取更新学校统计信息
+	 * 
+	 * @param schoolId
+	 * @return
+	 */
+	public void updateSchoolCountInfo(HashMap<String, Object> paramMap)
+	{
+
+		getBaseDao().updateObject("School.updateSchoolCountInfo", paramMap);
+	}
+
+	@Override
+	public School getSchoolInfoBySchoolId(long schoolId)
+	{
+		return (School) getBaseDao().selectObjectByObject("School.getSchoolInfoBySchoolId", schoolId);
+	}
+
+	@Override
+	public void updataSchoolDetail(School school)
+	{
+		getBaseDao().updateObject("School.updateSchoolDetailInfo", school);
+
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Agency> getAllSchoolWithoutAuthentication(HashMap<String, Object> map)
+	{
+		List<Agency> list = getBaseDao().selectListByObject("Agency.getAllSchoolWithoutAuthentication", map);
+		return list;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Agency> getAllSchoolWithAuthentication(HashMap<String, Object> map)
+	{
+		List<Agency> list = getBaseDao().selectListByObject("Agency.getAllSchoolWithAuthentication", map);
+		return list;
+	}
+
+	/**
+	 * 获取所有未绑定技术支持的学校列表
+	 * 
+	 * @return
+	 * 
+	 *         add by syj 20151215
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Agency> getAllSchoolWithoutTechnicalSupport(HashMap<String, Object> map)
+	{
+		List<Agency> list = getBaseDao().selectListByObject("Agency.getAllSchoolWithoutTechnicalSupport", map);
+		return list;
+	}
+
+	/**
+	 * 获取所有绑定技术支持的学校列表
+	 * 
+	 * @return
+	 * 
+	 *         add by syj 20151215
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Agency> getAllSchoolWithTechnicalSupport(HashMap<String, Object> map)
+	{
+		List<Agency> list = getBaseDao().selectListByObject("Agency.getAllSchoolWithTechnicalSupport", map);
+		return list;
+	}
+
+	@Override
+	public boolean isExistBySchoolId(long schoolId)
+	{
+		boolean flag = false;
+		Integer count = (Integer) getBaseDao().selectObjectByObject("Agency.getCountBySchoolIdAndAgencyId", schoolId);
+		if (count > 0)
+		{
+			flag = true;
+		}
+		return flag;
+	}
+
+	@Override
+	public boolean isExistSupportBySchoolId(HashMap<String, Object> map)
+	{
+		boolean flag = false;
+		Integer count = (Integer) getBaseDao().selectObjectByObject("Agency.getCountBySchoolIdAndSupportId", map);
+		if (count > 0)
+		{
+			flag = true;
+		}
+		return flag;
+	}
+
+	@Override
+	public void addSchoolAndAgencyLink(Long schoolId, Integer agencyId)
+	{
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("schoolId", schoolId);
+		map.put("agencyId", agencyId);
+
+		getBaseDao().addObject("Agency.addAgencyAndSchoolLink", map);
+	}
+
+	@Override
+	public void addSchoolAndSupport(Long schoolId, Integer new_supportUserId)
+	{
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("schoolId", schoolId);
+		map.put("new_supportUserId", new_supportUserId);
+
+		getBaseDao().addObject("Agency.addSchoolAndSupport", map);
+	}
+
+	@Override
+	public void modifySchoolAndAgencyLink(Long schoolId, Integer agencyId)
+	{
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("schoolId", schoolId);
+		map.put("agencyId", agencyId);
+
+		getBaseDao().addObject("Agency.modifyAgencyAndSchoolLink", map);
+
+	}
+
+	@Override
+	public void modifySchoolAndSupport(Long schoolId, Integer new_supportUserId, Integer orig_supportUserId)
+	{
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("schoolId", schoolId);
+		map.put("new_supportUserId", new_supportUserId);
+		map.put("orig_supportUserId", orig_supportUserId);
+
+		getBaseDao().addObject("Agency.modifySchoolAndSupport", map);
+
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<School> getSchoolListByUserId(Integer userId)
+	{
+		List<School> list = getBaseDao().selectListByObject("School.getSchoolsByUserId", userId);
+		return list;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<School> getSchoolsByUserIdForFJ(Integer userId)
+	{
+		List<School> list = getBaseDao().selectListByObject("School.getSchoolsByUserIdForFJ", userId);
+		return list;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Pages getSchoolListByAgencyUserId4Manage(int pageSize, int page, HashMap<String, Object> map)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<SchoolInfo> list = new ArrayList<SchoolInfo>();
+		try
+		{
+			allRow = (Integer) this.getBaseDao().selectObjectByObject("School.getSchoolListCountByAgencyUserId", map);
+			
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+
+			// 解决ibatis框架的分页问题
+			// 起始数据坐标
+			map.put("startIndex", offset);
+			// 单页数据量
+			map.put("length", length);
+			list = this.getBaseDao().selectListByObject("School.getSchoolListByAgencyUserId", map);
+		} catch (Exception e)
+		{
+
+		}
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<SchoolInfo> getSchoolListByAgencyUserId(HashMap<String, Object> map)
+	{
+		List<SchoolInfo> list = getBaseDao().selectListByObject("School.getSchoolListByAgencyUserId", map);
+		return list;
+	}
+
+	@SuppressWarnings("unchecked")
+	public Pages getSchoolListBySupportUserId4Manage(int pageSize, int page, HashMap<String, Object> map)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<SchoolInfo> list = new ArrayList<SchoolInfo>();
+		try
+		{
+			allRow = (Integer) this.getBaseDao().getAllRowCountByCondition("School.getSchoolListCountBySupportUserId", map);
+
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+
+			// 解决ibatis框架的分页问题
+			// 起始数据坐标
+			map.put("startIndex", offset);
+			// 单页数据量
+			map.put("length", length);
+			list = this.getBaseDao().selectListByObject("School.getSchoolListBySupportUserId", map);
+		} catch (Exception e)
+		{
+
+		}
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<SchoolInfo> getSchoolListBySupportUserId(HashMap<String, Object> map)
+	{
+		List<SchoolInfo> list = getBaseDao().selectListByObject("School.getSchoolListBySupportUserId", map);
+		return list;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<News> getNewsList()
+	{
+		return getBaseDao().selectListBySql("News.getNewsList");
+	}
+
+	/**
+	 * 查询用户和学校的关系 或者类型是否已经存在
+	 * 
+	 * @param userBoundSchool
+	 * @return
+	 */
+	public String getUserBoundSchool(UserBoundSchool userBoundSchool)
+	{
+		String result = "";
+
+		UserBoundSchool ubs1 = (UserBoundSchool) getBaseDao().selectObjectByObject("School.getUserBoundSchool1", userBoundSchool);
+		if (ubs1 != null)
+		{
+			result = "用户和学校的关系已经存在！";
+		} 
+		return result;
+	}
+
+	/**
+	 * 添加用户和学校 入学年份的关系
+	 * 
+	 * @param userBoundSchool
+	 */
+	public void addUserBoundSchool(UserBoundSchool userBoundSchool)
+	{
+		getBaseDao().addObject("School.addUserBoundSchool", userBoundSchool);
+	}
+	
+	/**
+	 * 删除用户和学校 入学年份的关系
+	 * @param userBoundSchool
+	 */
+	public	void deleteUserSchoolByHuxin(UserBoundSchool userBoundSchool)
+	{
+		getBaseDao().deleteObject("School.deleteUserSchoolByHuxin", userBoundSchool);
+	}
+	
+	/**
+	 * 获取用户和学校入学年份的关系
+	 * @param paramMap
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<UserBoundSchool> getUserSchoolByApiKey(Integer userId)
+	{
+		return (List<UserBoundSchool>)getBaseDao().selectList("School.getUserSchoolByApiKey", userId);
+	}
+	
+	/**
+	 * 根据学校id查询学校详情超管首页展示时使用
+	 * @param schoolId
+	 * @return
+	 */
+	public SchoolInfo getSchoolDetailBySchoolId(String schoolId)
+	{
+		return (SchoolInfo)getBaseDao().selectObjectByObject("School.getSchoolDetailBySchoolId", schoolId);
+	}
+}

@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Meeting">
+	<typeAlias alias="meeting" type="com.guotop.palmschool.meeting.entity.Meeting" />
+	<typeAlias alias="meetingInout" type="com.guotop.palmschool.meeting.entity.MeetingInout" />
+	<typeAlias alias="meetingInoutWifi" type="com.guotop.palmschool.meeting.entity.MeetingInoutWifi" />
+
+	<resultMap class="com.guotop.palmschool.meeting.entity.Meeting" id="result-meeting">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="startTime" column="startTime" />
+		<result property="endTime" column="endTime" />
+		<result property="place" column="place" />
+		<result property="placeName" column="placeName" />
+		<result property="person" column="person" />
+		<result property="content" column="content" />
+		<result property="remark" column="remark" />
+		<result property="createTime" column="createTime" />
+		<result property="userId" column="userId" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.meeting.entity.Meeting" id="result-meet">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="startTime" column="startTime" />
+		<result property="endTime" column="endTime" />
+		<result property="place" column="place" />
+		<result property="person" column="person" />
+		<result property="content" column="content" />
+		<result property="remark" column="remark" />
+		<result property="createTime" column="createTime" />
+		<result property="userId" column="userId" /> 
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.meeting.entity.MeetingInout" id="meetingInout">
+		<result property="code" column="code" />
+		<result property="status" column="status" />
+		<result property="realName" column="realName" />
+		<result property="createTime" column="createtime" />
+		<result property="positionName" column="positionName" />
+		<result property="meetingName" column="meetingName" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.meeting.entity.Meeting" id="result-att">
+	  <result property="attname" column="attname" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.meeting.entity.Meeting" id="result-meetingAPP">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="startTime" column="startTime" />
+		<result property="endTime" column="endTime" />
+		<result property="placeName" column="placeName" />
+	</resultMap>
+	
+	
+	
+	<!-- 修改会议信息 -->
+	<update id="updateMeetingById" parameterClass="com.guotop.palmschool.meeting.entity.Meeting">
+		update palm_meeting
+		set 
+		name = #name#,
+		startTime= #startTime#,
+		endTime= #endTime#,
+		place= #place#,
+		person= #person#,
+		content= #content#,
+		remark= #remark#
+		where id = #id#	
+	</update>
+	
+	<!-- 以会议的id查询会议 -->
+	<select id="selectMeetingListById" parameterClass="java.lang.Integer" resultMap="result-meeting">
+		select m.*,p.name as placeName 
+		     from palm_meeting m, palm_place p 
+		     where p.id = m.place 
+		     and m.id=#id#
+		     order by m.createTime desc
+	</select>
+	
+	
+	<select id="selectGradeById" parameterClass="Integer" resultMap="result-att">
+		select name as attname from palm_grade where id = #gradeId#
+	</select>
+	
+	<select id="selectTeacherById" parameterClass="Integer" resultMap="result-att">
+		select name as attname from palm_user where id = #teacherId#
+	</select>
+    
+	<!-- 新增会议记录  20151208-->
+	<insert id="addMeeting" parameterClass="meeting">
+		insert into palm_meeting
+		(
+		name,
+		startTime,
+		endTime,
+		place,
+		person,
+		createTime,
+		userId
+		)
+		values
+		(
+		#name#,
+		#startTime#,
+		#endTime#,
+		#place#,
+		#person#,
+		#createTime#,
+		#userId#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	<!-- 查询会议列表  20151208-->
+	<select id="getMeetingList" parameterClass="HashMap" resultMap="result-meeting">
+		select m.*,p.name as placeName 
+		     from palm_meeting m, palm_place p 
+		     where p.id = m.place
+		     <isNotEmpty property="userId">
+		      	and m.userId = #userId#
+		     </isNotEmpty>
+		     <!-- 会议名称 -->
+		    <isNotEmpty prepend="and" property="name">
+	           m.name LIKE CONCAT('%',#name#,'%')
+		    </isNotEmpty>
+		    
+		    <!-- 会议地点 -->
+		    <isNotEmpty prepend="and" property="placeName">
+				p.name LIKE CONCAT('%',#placeName#,'%')
+		    </isNotEmpty>
+		     order by m.createTime desc
+	</select>
+	<!-- 获取最近的一条会议名记录 -->
+	<select id="getLatestMeeting" parameterClass="HashMap" resultMap="result-meeting">
+		select m.*,p.name as placeName 
+		     from palm_meeting m, palm_place p 
+		     where p.id = m.place
+		     order by m.startTime desc
+		     limit 1
+	</select>
+	
+	<!-- 编辑会议信息  20151208-->
+	<update id="editMeetingById" parameterClass="com.guotop.palmschool.meeting.entity.Meeting">
+		update palm_meeting
+		set 
+		content= #content#,
+		remark= #remark#
+		where id = #id#	
+	</update>
+	
+	<!-- 查找所有会议刷卡记录(权限：校长) 查看(全校老师) 20151209-->
+	<select id="getMeetingInoutCountAsAdminPermission" parameterClass="java.util.HashMap" resultClass="Integer">
+		 SELECT COUNT(*) FROM 
+		 (
+            SELECT io.code
+				FROM palm_meeting_inout io, platform.user_detail u, palm_place p, palm_meeting m 
+				WHERE io.userId = u.userId
+				AND io.position = p.id
+				AND io.meetingId = m.id
+				<isNotEmpty prepend="and" property="queryContent">
+				  (u.realName LIKE CONCAT('%',#queryContent#,'%') or m.name LIKE CONCAT('%',#queryContent#,'%'))
+				</isNotEmpty>
+				<isNotEmpty property="status">
+					<isEqual property="status" compareValue="0">
+					    AND io.status = #status#
+					</isEqual>
+					<isEqual property="status" compareValue="1">
+						AND io.status = #status#
+					</isEqual>
+					<isEqual property="status" compareValue="3">
+						AND io.status IN (0,1)
+					</isEqual>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="startTime">
+					io.createtime >= #startTime#
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="endTime">
+					#endTime# >= io.createtime
+				</isNotEmpty>
+		) t		
+	</select>
+	
+	 <!-- 查找所有会议刷卡记录(权限：校长) 查看(全校老师) 20151209-->
+	<select id="getMeetingInoutListAsAdminPermission" parameterClass="HashMap" resultMap="meetingInout">
+		SELECT io.code,io.userId,io.status,io.createtime, u.realName, p.name AS positionName , m.name AS meetingName
+			FROM palm_meeting_inout io, platform.user_detail u, palm_place p, palm_meeting m 
+			WHERE io.userId = u.userId
+			AND io.position = p.id
+			AND io.meetingId = m.id
+			<isNotEmpty prepend="and" property="queryContent">
+			  (u.realName LIKE CONCAT('%',#queryContent#,'%') or m.name LIKE CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			<isNotEmpty property="status">
+				<isEqual property="status" compareValue="0">
+				    AND io.status = #status#
+				</isEqual>
+				<isEqual property="status" compareValue="1">
+					AND io.status = #status#
+				</isEqual>
+				<isEqual property="status" compareValue="3">
+					AND io.status IN (0,1)
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="startTime">
+				io.createtime >= #startTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="endTime">
+				#endTime# >= io.createtime
+			</isNotEmpty>
+				ORDER BY io.createtime DESC
+			<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			</isNotEmpty>
+	</select>
+	
+	<!-- 其他人查看自己的或者自己所管理部门的所有人员记录总数 20151209 -->
+	<select id="getMeetingInoutCountAsTeacherStaff" parameterClass="java.util.HashMap" resultClass="Integer">
+		 SELECT COUNT(*) FROM 
+		 (
+           SELECT DISTINCT io.code,io.userId,io.status,io.createtime, u.realName, p.name AS positionName , m.name AS meetingName
+			  FROM palm_meeting_inout io, platform.user_detail u, palm_place p, palm_meeting m ,palm_user_department ud
+				    WHERE io.userId = u.userId
+					AND io.position = p.id
+					AND io.meetingId = m.id
+					AND ud.userId = io.userId
+					AND (io.userId = #userId#
+				            <isNotEmpty prepend="or" property="departmentIdList">
+							    ud.departmentId IN 
+					            <iterate open="(" close=")" conjunction="," property="departmentIdList" > 
+					                #departmentIdList[]# 
+					            </iterate>
+						     </isNotEmpty>
+						     
+						     <isEmpty prepend="or" property="departmentIdList">
+							      ud.departmentId IS NULL
+						     </isEmpty>
+					     )	
+			        <isNotEmpty prepend="and" property="queryContent">
+					   (u.realName LIKE CONCAT('%',#queryContent#,'%') or m.name LIKE CONCAT('%',#queryContent#,'%'))
+					 </isNotEmpty>
+					 <isNotEmpty property="status">
+						<isEqual property="status" compareValue="0">
+						    AND io.status = #status#
+						</isEqual>
+						<isEqual property="status" compareValue="1">
+							AND io.status = #status#
+						</isEqual>
+						<isEqual property="status" compareValue="3">
+							AND io.status IN (0,1)
+						</isEqual>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime >= #startTime#
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						#endTime# >= io.createtime
+					</isNotEmpty>
+		) t		
+	</select>
+	
+	<!-- 其他人查看自己的或者自己所管理部门的所有人员 20151209 -->
+	<select id="getMeetingInoutListAsTeacherStaff" parameterClass="HashMap" resultMap="meetingInout" >
+		 SELECT DISTINCT io.code,io.userId,io.status,io.createtime, u.realName, p.name AS positionName , m.name AS meetingName
+			  FROM palm_meeting_inout io, platform.user_detail u, palm_place p, palm_meeting m ,palm_user_department ud
+				    WHERE io.userId = u.userId
+					AND io.position = p.id
+					AND io.meetingId = m.id
+					AND ud.userId = io.userId
+					AND (io.userId = #userId#
+				            <isNotEmpty prepend="or" property="departmentIdList">
+							    ud.departmentId IN 
+					            <iterate open="(" close=")" conjunction="," property="departmentIdList" > 
+					                #departmentIdList[]# 
+					            </iterate>
+						     </isNotEmpty>
+						     
+						     <isEmpty prepend="or" property="departmentIdList">
+							      ud.departmentId IS NULL
+						     </isEmpty>
+					     )	
+			        <isNotEmpty prepend="and" property="queryContent">
+					   (u.realName LIKE CONCAT('%',#queryContent#,'%') or m.name LIKE CONCAT('%',#queryContent#,'%'))
+					 </isNotEmpty>
+					 <isNotEmpty property="status">
+						<isEqual property="status" compareValue="0">
+						    AND io.status = #status#
+						</isEqual>
+						<isEqual property="status" compareValue="1">
+							AND io.status = #status#
+						</isEqual>
+						<isEqual property="status" compareValue="3">
+							AND io.status IN (0,1)
+						</isEqual>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime >= #startTime#
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						#endTime# >= io.createtime
+					</isNotEmpty>
+						ORDER BY io.createtime DESC
+					<isNotEmpty property="startIndex">
+						LIMIT #startIndex#, #length#
+					</isNotEmpty>
+	</select>
+	<!-- 根据place 日期time 用户Id userId 查询相关会议 20151211 -->
+	<select id="getMeetingListByPlaceAndTimeAndUserId" parameterClass="HashMap" resultMap="result-meet" >
+		SELECT m.* FROM palm_meeting m ,palm_meeting_detail md 
+			 WHERE m.id = md.meetingId 
+			   AND m.startTime LIKE CONCAT('%',#day#,'%')
+			   AND m.place = #place#
+			   AND md.attendeeId = #userId#
+			   ORDER BY startTime ASC
+   </select>
+   
+   <!-- 查询会议列表(APP)  20160222 -->
+	<select id="getMeetingListAPP" parameterClass="HashMap" resultMap="result-meetingAPP">
+		select m.id,m.name,DATE_FORMAT(m.startTime,"%Y-%m-%d %H:%i") startTime,DATE_FORMAT(m.endTime,"%H:%i") endTime,p.name AS placeName 
+		     from palm_meeting m, palm_place p 
+		     where p.id = m.place
+		     <isNotEmpty property="userId">
+		      	and m.userId = #userId#
+		     </isNotEmpty>
+		     <!-- 会议名称 -->
+		    <isNotEmpty prepend="and" property="queryContent">
+	          (
+	             m.name LIKE CONCAT('%',#queryContent#,'%') or p.name LIKE CONCAT('%',#queryContent#,'%')
+	          )
+		    </isNotEmpty>
+		     order by m.createTime desc
+		     <isNotEmpty property="startIndex">
+				 LIMIT #startIndex#, #length#
+			</isNotEmpty>
+	</select>
+	
+	<!-- 添加会议手机签到出入记录 -->
+	<insert id="addMeetingInoutWifi" parameterClass="meetingInoutWifi">
+		insert into palm_meeting_inout_wifi
+		(
+			status, 
+			position,
+			wifi,
+			device,
+			userId,
+			createTime,
+			meetingId
+		)
+		values
+		(
+			#status#, 
+			#position#,
+			#wifi#,
+			#device#,
+			#userId#,
+			#createTime#,
+			#meetingId#
+		)
+	</insert>
+</sqlMap>

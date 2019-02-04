@@ -1,0 +1,143 @@
+package com.guotop.palmschool.shopping.controller;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.guotop.palmschool.controller.BaseController;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.service.AgencyService;
+import com.guotop.palmschool.shopping.entity.Orders;
+import com.guotop.palmschool.shopping.service.OrdersService;
+
+import dev.gson.GsonHelper;
+/**
+ * 财务报表
+ * @author jfy
+ * @date 2016年1月22日
+ */
+@Controller
+@RequestMapping("/financialStatements")
+public class FinancialStatementsController extends BaseController
+{
+	@Resource
+	private OrdersService ordersService;
+	@Resource
+	private AgencyService agencyService;
+	/**
+	 * 进入财务报表页面
+	 * @return
+	 */
+	@RequestMapping(value="/toFinancialStatementsList.do")
+	public String toFinancialStatementsList()
+	{
+		return "finance/financial_statements";
+	}
+	/**
+	 * 加载各学校消费统计，代理商只能看到负责学校的统计数据
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value="/getFinancialStatementsList.do")
+	public String getFinancialStatementsList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("utf-8");
+		User login = (User)session.getAttribute("user");
+		HashMap<String,Object> params = new HashMap<String,Object>();
+		List<Orders> list = new ArrayList<Orders>();
+		HashMap<String, Object> reMap = new HashMap<String, Object>();
+		
+		boolean isBelongAgency = agencyService.isBelongAgency(login.getUserId());
+		String condition = request.getParameter("condition");
+		params.put("queryContent", condition);
+		//是否为代理商财务 是，则查看负责学校消费记录
+		if (isBelongAgency)
+		{
+			params.put("userId", login.getUserId());
+			params.put("agency", "0");
+			
+		}else//公司内部财务，查看所有
+		{
+			params.put("agency", "1");
+		}
+		list = ordersService.getFinancialStatementsList(params);
+		//计算总额
+		float totalAmount = 0l;
+		for(Orders o : list)
+		{
+			if (o.getAmount() != null)
+			{
+				totalAmount += Float.valueOf(o.getAmount());
+			}
+			if (o.getAgencyName() == null)
+			{
+				o.setAgencyName("");
+			}
+		}
+		reMap.put("totalAmount", totalAmount);
+		reMap.put("list", list);
+		String json = GsonHelper.toJson(reMap);
+		
+		try
+		{
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		//公司财务查看所有记录
+		
+		return null;
+	}
+	/**
+	 * 查看学校消费详情
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value="/toFinancialStatementsDetail.do")
+	public String toFinancialStatementsDetail(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("utf-8");
+		String schoolId = request.getParameter("schoolId");
+		String condition = request.getParameter("condition");
+		if (schoolId == null || "".equals(schoolId))
+		{
+			return "finance/financial_statements";
+		}else
+		{
+			String schoolName = "";
+			HashMap<String,Object> params = new HashMap<String, Object>();
+			params.put("queryContent", condition);
+			params.put("schoolId", Long.valueOf(schoolId));
+			List<Orders> list = ordersService.getFinancialStatementsDetailListBySchoolId(params);
+			if (list != null && list.size() > 0)
+			{
+				schoolName = list.get(0).getSchoolName();
+			}
+			modelMap.addAttribute("schoolName", schoolName);
+			modelMap.addAttribute("list", list);
+			modelMap.addAttribute("schoolId", schoolId);
+			modelMap.addAttribute("condition", condition);
+			return "finance/financial_statements_detail";
+		}
+		
+	}
+}

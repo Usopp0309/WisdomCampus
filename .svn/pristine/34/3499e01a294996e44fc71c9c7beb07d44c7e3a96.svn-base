@@ -1,0 +1,178 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%> 
+<head>
+	<title>校务巡更信息</title>
+  	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+	<!--公共css开始-->
+	<%@ include file="/public_module/app_public_css.jsp"%>
+	<!--公共css结束--> 
+	<style type="text/css">
+	   .header{
+	      background-color: #168ff2;
+          height: 50px;
+          line-height: 50px;
+          width: 100%;
+          font-size: 20px;
+          top: 0px;
+          left: 0px;
+          text-align: center;
+          color: #fff;
+       }
+	
+	</style>
+</head>
+<body>
+
+          <div class="header">
+		    <i class="m_icon-return icon_left" ></i>校务巡更
+	      </div>  
+                  <table class="app_table table-striped">
+	                            <thead class="app_table_head">
+	                                        <tr>
+	                                            <th class="m_width_20">巡更点编号</th>
+	                                            <th class="m_width_20">巡更点名称</th>
+	                                            <th class="m_width_40">巡更点经纬度</th>
+	                                            <th class="m_width_20">操作</th>
+	                                        </tr>
+	                            </thead>
+	                              <tbody  class="app_table_body" id="tbody">
+	                                   <tr>
+	                                    	<td>111</td>
+	                                    	<td>222</td>
+	                                    	<td>333</td>
+	                                    	<td><a type="button" class="btn btn-info btn-xs" data-toggle="modal" data-target="#update_info" >修改</a><a type="button" style="margin-left: 5px;" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#delete">删除</a></td>
+	                                    </tr>
+	                               
+	                             </tbody>
+	               </table>
+	               <div class="select_role">
+	                 <button data-toggle="modal" data-target="#add_info">
+	                  <span class="role_img iconfont">&#xe600;</span> 
+	                </button>   
+	               </div>
+	                   
+	
+	    
+	    
+	       <!-- 删除弹窗 start-->
+		  <div class="modal fade" id="delete" tabindex="-1"
+			role="dialog" aria-labelledby="myModalLabel">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-body">
+					<div style="text-align:left;">
+					  <h4>系统提示</h4>
+					</div>
+					<hr>
+					<div style="text-align: center;">
+					    <i class="layui-layer-ico layui-layer-ico3"></i>
+					    <h3>确定要删除该条信息吗？</h3>
+					</div>
+					 </div>
+					<div class="modal-footer" style="border-top: none; margin-right: 70px;">
+						<button type="button" class="btn btn-success" onclick="onsubmit();">确定</button>
+						<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--删除弹窗end  -->
+	
+	
+	     <!-- 修改弹出框 start-->
+	     <div class="modal fade" id="update_info" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+          <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">×</span>
+                      </button>
+                       <h4 class="modal-title" id="myModalLabel">修改巡更地点信息</h4>
+                  </div>
+                  <form action="#" method="post">
+                     <div class="modal-body">
+                     
+	                          <div class = "form-group">
+	                              <label for = "update_code">巡更点编号</label>
+	                              <input type = "text" class = "form-control" id = "update_code" placeholder = "请输入巡更点编号。。。">
+	                          </div>
+	                          
+	                          <div class = "form-group">
+	                              <label for = "update_name">巡更点名称</label>
+	                              <input type="text" class="form-control" id = "update_name" placeholder = "请输入巡更点名称。。。">
+	                          </div>
+	                          
+	                          <div class = "form-group">
+	                              <label for = "update_attilute">巡更点经纬度</label>
+	                              <input type="text" class="form-control" id = "update_attilute"placeholder = "请输入巡更点经纬度。。。">
+	                          </div>
+	                          
+	                        <div class="modal-footer">
+	                           <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+	                           <button type="button" class="btn btn-primary" onclick="update();">修改</button>
+	                       </div>
+                       
+                   </div>
+                  </form>
+              </div>
+          </div>
+      </div>
+	 <!-- 修改弹出框 end-->
+	 
+	 
+	 <!-- 增加地点弹出框 start-->
+	     <div class="modal fade" id="add_info" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+          <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">×</span>
+                      </button>
+                       <h4 class="modal-title" id="myModalLabel">增加巡更地点信息</h4>
+                  </div>
+                  <form action="#" method="post">
+                     <div class="modal-body">
+                     
+	                          <div class = "form-group">
+	                              <label for = "add_code">巡更点编号</label>
+	                              <input type = "text" class = "form-control" id = "add_code" placeholder = "请输入巡更点编号。。。">
+	                          </div>
+	                          
+	                          <div class = "form-group">
+	                              <label for = "add_name">巡更点名称</label>
+	                              <input type="text" class="form-control" id = "add_name" placeholder = "请输入巡更点名称。。。">
+	                          </div>
+	                          
+	                          <div class = "form-group">
+	                              <label for = "add_attilute">巡更点经纬度</label>
+	                              <input type="text" class="form-control" id = "add_attilute"placeholder = "请输入巡更点经纬度。。。">
+	                          </div>
+	                          
+	                        <div class="modal-footer">
+	                           <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+	                           <button type="button" class="btn btn-primary" onclick="commit();">提交</button>
+	                       </div>
+                       
+                   </div>
+                  </form>
+              </div>
+          </div>
+      </div>
+	 <!-- 增加地点弹出框 end-->
+	
+	
+	
+	
+
+	</body>
+	<!--公共js开始-->
+	<%@ include file="/public_module/app_public_js.jsp"%>
+	<!--公共js结束--> 
+
+   <script type="text/javascript">
+
+  
+   </script>
+
+</html>

@@ -1,0 +1,581 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<title>电子课程表</title>
+
+<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+
+<meta content="" name="description" />
+
+<meta content="" name="author" />
+
+<link href="../media/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+
+<link href="../media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+
+<link href="../media/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="../media/css/style-metro.css" rel="stylesheet" type="text/css" />
+
+<link href="../media/css/style.css" rel="stylesheet" type="text/css" />
+
+<link href="../media/css/style-responsive.css" rel="stylesheet" type="text/css" />
+
+<!-- <link href="../media/css/default.css" rel="stylesheet" type="text/css" id="style_color"/> -->
+
+<link href="../media/css/uniform.default.css" rel="stylesheet" type="text/css" />
+
+<link href="../media/css/pricing-tables.css" rel="stylesheet" type="text/css" />
+
+<link rel="stylesheet" type="text/css" href="../media/css/select2_metro.css" />
+
+<link rel="stylesheet" href="../media/css/DT_bootstrap.css" />
+
+<link href="../media/metronic_css_m/system_m.css" rel="stylesheet" type="text/css" media="screen" />
+
+<link rel="shortcut icon" href="../media/image/favicon.ico" />
+
+<link href="../media/css/bombbox.css" rel="stylesheet" type="text/css" />	
+
+</head>
+
+<body class="page-header-fixed" id="body">
+
+	<div class="container-fluid">
+
+		<div class="row-fluid">
+
+			<div class="span12">
+
+				<ul class="breadcrumb">
+					<li><i class="icon-home"></i><a href="#">首页</a><i
+						class="icon-angle-right"></i></li>
+					<li><a href="#">电子课程表</a><i class="icon-angle-right"></i></li>
+					<li><a href="#">电子课程表编辑</a></li>
+				</ul>
+
+			</div>
+
+		</div>
+
+		<div class="row-fluid">
+
+			<div class="span12">
+
+				<div class="tab-content">
+
+					<div id="tab_4" class="tab-pane active">
+
+					<form action="<%=basePath%>curriculum/toSaveCurriculum.do" class="form-horizontal" name="defform" method="post" id="saveCurriculum">
+						<div class="portlet box green">
+
+							<div class="portlet-title">
+								<div class="caption">课程表</div>
+								<div class="tools">
+									<a class="expand toTeacherList" href="javascript:;"></a>
+								</div>
+							</div>
+							
+							<div class="portlet-body search_box" >
+								<div class="control-group margin-bottom_null">
+									<a class="btn blue f_right" id="cancel"  ><i class="icon-plus"></i>返回</a>
+								</div>
+							</div>
+
+						</div>
+
+
+						<div class="portlet-body">
+
+							<table class="table syllabus" >
+								<tr>
+									<td class="bg">阶段</td>
+									<td class="bg">起始时间</td>
+									<c:forEach items="${weekList}" var="week">
+										<td  class="bg">${week.weekName}</td>
+									</c:forEach>
+								</tr>
+
+								<c:forEach items="${curriculumMorningTimeList}" var="mt" varStatus="cmt">
+                                      <c:choose>
+                                      	   <c:when test="${cmt.index==0}">
+												<tr >
+													<td rowspan="${fn:length(curriculumMorningTimeList)}"  class="bg" align="center" valign="middle">上午</td>
+													<td  class="bg"> ${mt.beginTime}-${mt.endTime}</td>
+													 <c:choose>
+													   <c:when test="${mt.curriculumList!=null && fn:length(mt.curriculumList) > 0 }">
+													        <c:forEach items="${mt.curriculumList}" var="ms">
+															  <td>
+															    <input readonly="readonly" name="subjects" id="subjects${cmt.index}"  
+															          onclick="opendivshow(${mt.id},${ms.weekId},${semesterId},${ms.id},'${ms.subjectName}','${ms.subjectsUser}','${ms.classroomId}')"
+															          value="${ms.subjectName} ${ms.subjectsUserName} ${ms.classroomName}" />
+															  </td>
+														    </c:forEach>
+													   </c:when>
+													   <c:otherwise>
+													        <c:forEach items="${weekList}" var="mw">
+															   <td><input readonly="readonly" name="subjects" id="subjects${cmt.index}"  onclick="opendivshow(${mt.id},${mw.id},${semesterId},0,'',0,0)"/></td>
+														    </c:forEach>
+													   </c:otherwise>
+													 </c:choose>
+												</tr>
+		                                    </c:when>
+		                                    <c:otherwise>
+		                                       <tr>
+		                                       		<td  class="bg">${mt.beginTime}-${mt.endTime}</td>
+											        <c:choose>
+													   <c:when test="${mt.curriculumList!=null && fn:length(mt.curriculumList) > 0 }">
+													        <c:forEach items="${mt.curriculumList}" var="ms2">
+															  <td>
+															     <input readonly="readonly" name="subjects" id="subjects${cmt.index}" 
+															          onclick="opendivshow(${mt.id},${ms2.weekId},${semesterId},${ms2.id},'${ms2.subjectName}','${ms2.subjectsUser}','${ms2.classroomId}')"
+															          value="${ms2.subjectName} ${ms2.subjectsUserName} ${ms2.classroomName}" />
+															  </td>
+														    </c:forEach>
+													   </c:when>
+													   <c:otherwise>
+													        <c:forEach items="${weekList}" var="mw2">
+															   <td>
+															      <input readonly="readonly" name="subjects" id="subjects${cmt.index}"  onclick="opendivshow(${mt.id},${mw2.id},${semesterId},0,'',0,0)"/>
+															   </td>
+														    </c:forEach>
+													   </c:otherwise>
+													 </c:choose>
+												</tr>
+		                                    </c:otherwise>
+                                      </c:choose>
+                                </c:forEach>
+                                
+                                <c:forEach items="${curriculumAfternoonTimeList}" var="at" varStatus="cat">
+                                       <c:choose>
+                                      	   <c:when test="${cat.index==0}">
+		                                       <tr>
+												<td colspan="10">休息时间</td>
+											   </tr>
+												<tr>
+													<td rowspan="${fn:length(curriculumAfternoonTimeList) }" class="bg" align="center" valign="middle">下午</td>
+													<td class="bg">${at.beginTime}-${at.endTime}</td>
+											       	<c:choose>
+													   <c:when test="${at.curriculumList!=null && fn:length(at.curriculumList) > 0 }">
+													        <c:forEach items="${at.curriculumList}" var="as">
+															  <td>
+															      <input readonly="readonly" name="subjects" id="subjects${cat.index}" 
+															             onclick="opendivshow(${at.id},${as.weekId},${semesterId},${as.id},'${as.subjectName}','${as.subjectsUser}','${as.classroomId}')"
+															             value="${as.subjectName} ${as.subjectsUserName} ${as.classroomName}" />
+															  </td>
+														    </c:forEach>
+													   </c:when>
+													   <c:otherwise>
+													        <c:forEach items="${weekList}" var="aw">
+															   <td>
+															       <input readonly="readonly" name="subjects" id="subjects${cat.index}"  onclick="opendivshow(${at.id},${aw.id},${semesterId},0,'',0,0)"/>
+															   </td>
+														    </c:forEach>
+													   </c:otherwise>
+													 </c:choose>
+												</tr>
+		                                    </c:when>
+		                                    <c:otherwise>
+		                                       <tr>
+		                                       		<td class="bg">${at.beginTime}-${at.endTime}</td>
+											        <c:choose>
+													   <c:when test="${at.curriculumList!=null && fn:length(at.curriculumList) > 0 }">
+													        <c:forEach items="${at.curriculumList}" var="as2">
+															  <td>
+															    <input readonly="readonly" name="subjects" id="subjects${cat.index}"  
+															           onclick="opendivshow(${at.id},${as2.weekId},${semesterId},${as2.id},'${as2.subjectName}','${as2.subjectsUser}','${as2.classroomId}')"
+															           value="${as2.subjectName} ${as2.subjectsUserName} ${as2.classroomName}" />
+															  </td>
+														    </c:forEach>
+													   </c:when>
+													   <c:otherwise>
+													        <c:forEach items="${weekList}" var="aw2">
+															   <td><input readonly="readonly" name="subjects" id="subjects${cat.index}"  onclick="opendivshow(${at.id},${aw2.id},${semesterId},0,'',0,0)"/></td>
+														    </c:forEach>
+													   </c:otherwise>
+													 </c:choose>
+												</tr>
+		                                    </c:otherwise>
+                                       </c:choose>
+							    </c:forEach>
+							    
+							     <c:forEach items="${curriculumNightTimeList}" var="nt" varStatus="cnt">
+									<c:choose>
+                                      	   <c:when test="${cnt.index==0}">
+		                                       <tr>
+												<td colspan="10">休息时间</td>
+											   </tr>
+												<tr>
+													<td rowspan="${fn:length(curriculumNightTimeList)}" class="bg" align="center" valign="middle">晚上</td>
+													<td class="bg">${nt.beginTime}-${nt.endTime}</td>
+											        <c:choose>
+													   <c:when test="${nt.curriculumList!=null && fn:length(nt.curriculumList) > 0 }">
+													        <c:forEach items="${nt.curriculumList}" var="ns">
+															  <td>
+																 <input readonly="readonly" name="subjects" id="subjects${cnt.index}"  
+																     onclick="opendivshow(${nt.id},${ns.weekId},${semesterId},${ns.id},'${ns.subjectName}','${ns.subjectsUser}','${ns.classroomId}')"
+																 	 value="${ns.subjectName} ${ns.subjectsUserName} ${ns.classroomName}" />
+															  </td>
+														    </c:forEach>
+													   </c:when>
+													   <c:otherwise>
+													        <c:forEach items="${weekList}" var="nw">
+															   <td><input readonly="readonly" name="subjects" id="subjects${cnt.index}"  onclick="opendivshow(${nt.id},${nw.id},${semesterId},0,'',0,0)"/></td>
+														    </c:forEach>
+													   </c:otherwise>
+													 </c:choose>
+												</tr>
+		                                    </c:when>
+		                                    
+		                                    <c:otherwise>
+		                                       <tr>
+		                                       		<td class="bg">${nt.beginTime}-${nt.endTime}</td>
+											        <c:choose>
+													   <c:when test="${nt.curriculumList!=null && fn:length(nt.curriculumList) > 0 }">
+													        <c:forEach items="${nt.curriculumList}" var="ns2">
+															  <td>
+																 <input readonly="readonly" name="subjects" id="subjects${cnt.index}" 
+																    onclick="opendivshow(${nt.id},${ns2.weekId},${semesterId},${ns2.id},'${ns2.subjectName}','${ns2.subjectsUser}','${ns2.classroomId}')"
+																    value="${ns2.subjectName} ${ns2.subjectsUserName} ${ns2.classroomName}" />
+															  </td>
+														    </c:forEach>
+													   </c:when>
+													   <c:otherwise>
+													        <c:forEach items="${weekList}" var="nw2">
+															   <td><input readonly="readonly" name="subjects" id="subjects${cnt.index}"  onclick="opendivshow(${nt.id},${nw2.id},${semesterId},0,'',0,0)"/></td>
+														    </c:forEach>
+													   </c:otherwise>
+													 </c:choose>
+												</tr>
+		                                    </c:otherwise>
+                                     </c:choose>
+								</c:forEach>
+							</table>
+							
+							<input type="hidden" id="semesterId" name="semesterId" value="${semesterId}"/>
+							<input type="hidden" id="clazzId" name="clazzId" value="${clazzId}"/>
+							<input type="hidden" id="timeId" name="timeId" value=""/>
+							<input type="hidden" id="weekId" name="weekId" value=""/>
+							<input type="hidden" id="id" name="id" value=""/>
+							
+							<div id="curriculum" ></div>
+							<div id="windown-box1">
+								<div id="windown-content-border1">
+									<div id="windown-content1">
+										<div id="searchResult">
+											<table border="0" cellpadding="0" cellspacing="0" id="ptable" style="width:400px; height: 200px;border-collapse:collapse;">
+												<tr>
+													<td width="70"></td>
+													<td colspan="2">
+														科目名称:&nbsp;&nbsp;<input type="text" name="subjectName" id="subjectName">
+													</td>
+												</tr>
+												<tr>
+													<td width="70"></td>
+													<td colspan="2">
+														代课老师:&nbsp;&nbsp;<select class="public_input_s" name="subjectTeacher" id="subjectTeacher"> </select>
+													</td>
+												</tr>
+												<tr>
+													<td width="70"></td>
+													<td colspan="2">
+														上课地点:&nbsp;&nbsp;<select class="public_input_s" name="classroom" id="classroomSelect"> </select>
+													</td>
+												</tr>
+												<tr>
+													<td></td>
+													<td align="right" width="120">
+														<a href="#" style="background: url('../media/image/ok.png') 0px 0px no-repeat;width:94px;height:44px;display: block;" onclick="show()"></a>
+													</td>
+													<td align="left">
+														<a href="#" style="background: url('../media/image/cancel.png') 0px 0px no-repeat; width:79px;height:37px;  display: block;" onclick="colsedivs()"></a>
+													</td>
+												</tr>
+											</table>
+										</div>
+									</div>
+								</div>
+							</div>
+							
+						</div>
+						</form>
+					</div>
+
+				</div>
+
+
+			</div>
+
+		</div>
+
+	</div>
+
+
+
+	<script src="../media/js/jquery-2.1.1.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery-migrate-1.2.1.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/bootstrap.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.slimscroll.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.blockui.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.cookie.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.uniform.min.js" type="text/javascript"></script>
+
+	<script type="text/javascript" src="../media/js/select2.min.js"></script>
+
+	<script type="text/javascript" src="../media/js/jquery.dataTables.min.js"></script>
+
+	<script type="text/javascript" src="../media/js/DT_bootstrap.js"></script>
+
+
+	<script src="../media/js/table-advanced.js"></script>
+
+	<script type="text/javascript" src="../media/js/My97DatePicker/WdatePicker.js"></script>
+	
+	<script type="text/javascript" src="../media/js_m/public_js.js"></script>
+	
+	<script type="text/javascript" src="../media/js/bombbox.js"></script>
+	<script src="../media/js/app.js"></script>
+	
+	<script>
+
+		jQuery(document).ready(function() {    
+
+			App.init();
+			
+			subjectTeacherList(null);
+			classroomNameList(null)
+
+			//点击确定保存
+		    $("#save").on("click",function()
+		    {
+		    	$("#editCurriculum").submit();
+			})
+			
+			//点击返回
+		    $("#cancel").on("click",function(){
+				//班级Id
+				var clazzId = $("#clazzId").val();
+				var roleCode = "classLeader";
+				standardPost('<%=basePath%>curriculum/toSetCurriculum.do',{clazzId:clazzId,roleCode:roleCode});
+			})
+			
+			
+			$("#subjectTeacher").change(function(){
+				
+				//学期Id
+				var semesterId = $("#semesterId").val();
+				//时间Id
+				var timeId = $("#timeId").val();
+				//星期Id
+				var weekId = $("#weekId").val();
+				// 教师Id
+				var teacherId = $("#subjectTeacher").val();
+				
+				checkTeacher(semesterId,timeId,weekId,teacherId);
+			});
+			
+			$("#classroomSelect").change(function(){
+				
+				//学期Id
+				var semesterId = $("#semesterId").val();
+				//时间Id
+				var timeId = $("#timeId").val();
+				//星期Id
+				var weekId = $("#weekId").val();
+				//教室Id
+				var classroomId = $("#classroomSelect").val();
+				
+				checkClassroom(semesterId,timeId,weekId,classroomId);
+			});
+
+		});
+		
+		function opendivshow(timeId,weekId,semesterId,id,subjectName,subjectsUserId,classroomId){
+			
+			$("#timeId").val(timeId);
+			$("#weekId").val(weekId);
+			$("#semesterId").val(semesterId);
+			$("#id").val(id);
+			$("#subjectName").val(subjectName);
+			
+			var teacherId ;
+			if(subjectsUserId == "")
+			{
+				subjectsUserId = "0";
+				teacherId = parseInt(subjectsUserId);
+			}else{
+				teacherId = parseInt(subjectsUserId);
+			}
+			$("#subjectTeacher").val(teacherId);
+			
+			var cid ;
+			if(classroomId == "")
+			{
+				classroomId = "0";
+				cid = parseInt(classroomId);
+			}else{
+				cid = parseInt(classroomId);
+			}
+			$("#classroomSelect").val(cid);
+			
+			openDivPage('400','200','1','编辑课程表');
+		}
+		
+		function show(){
+			var subjectName = $("#subjectName").val();
+			if(subjectName == "")
+			{
+				alert("科目名称不能为空！")
+			}else
+			{
+				var a=document.getElementById("saveCurriculum");
+				a.action="<%=basePath%>curriculum/toSaveCurriculum.do";
+				a.submit();
+			}
+		}
+
+		function colsedivs(){
+			//学期Id
+			var semesterId = $("#semesterId").val();
+			//班级Id
+			var clazzId = $("#clazzId").val();
+			standardPost('<%=basePath%>curriculum/toClassLeaderEditCurriculum.do',{semesterId:semesterId,clazzId:clazzId});
+		}
+		
+		
+		// 校验教师是否存在
+		function checkTeacher(semesterId,timeId,weekId,teacherId)
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>curriculum/checkTeacher.do",
+				data : {
+					semesterId : semesterId,
+					timeId : timeId,
+					weekId : weekId,
+					teacherId : teacherId
+				},
+				success : function(data) {
+
+					var result = eval("(" + data + ")");
+					
+					if ("success" == result.resultCode)
+					{
+						alert("该教师在此时间已有课程，请重新选择！");
+						$("#subjectTeacher").val(0);
+					}
+				},
+			});
+		}
+		
+		// 校验教室是否存在
+		function checkClassroom(semesterId,timeId,weekId,classroomId)
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>curriculum/checkClassroom.do",
+				data : {
+					semesterId : semesterId,
+					timeId : timeId,
+					weekId : weekId,
+					classroomId : classroomId
+				},
+				success : function(data) {
+
+					var result = eval("(" + data + ")");
+					
+					if ("success" == result.resultCode)
+					{
+						alert("该教室在此时间已被占用，请重新选择！");
+						
+						$("#classroomSelect").val(0);
+					}
+				},
+			});
+		}
+		
+		// 加载教师列表
+		function subjectTeacherList(name)
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>curriculum/getSubjectTeacherList.do",
+				data : {
+					name:name
+
+				},
+				success : function(data) {
+
+					var teacherList = eval("(" + data + ")");
+
+					var appendHtml = '<option value="0">---请选择---</option>';
+					$.each(teacherList, function(n, value) {
+						appendHtml += '<option value="' + value.userId + '">' + value.realName + '</option>';
+					});
+					$("#subjectTeacher").html(appendHtml);
+				},
+			});
+		}
+		
+		// 加载教室列表
+		function classroomNameList(name)
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>curriculum/getclassroomNameList.do",
+				data : {
+					name:name
+				},
+				success : function(data) {
+
+					var classroomList = eval("(" + data + ")");
+
+					var appendHtml = '<option value="0">---请选择---</option>';
+					$.each(classroomList, function(n, value) {
+						appendHtml += '<option value="' + value.id + '">' + value.name + '</option>';
+					});
+					$("#classroomSelect").html(appendHtml);
+				},
+			});
+		}
+		/* $(".search_box").css({"display":"none"}); */
+	</script>
+
+	<!-- END JAVASCRIPTS -->
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push([ '_setAccount', 'UA-37564768-1' ]);
+		_gaq.push([ '_setDomainName', 'keenthemes.com' ]);
+		_gaq.push([ '_setAllowLinker', true ]);
+		_gaq.push([ '_trackPageview' ]);
+		(function() {
+			var ga = document.createElement('script');
+			ga.type = 'text/javascript';
+			ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://'
+					: 'http://')
+					+ 'stats.g.doubleclick.net/dc.js';
+			var s = document.getElementsByTagName('script')[0];
+			s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+</body>
+
+<!-- END BODY -->
+
+</html>

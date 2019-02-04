@@ -1,0 +1,499 @@
+package com.guotop.palmschool.rest.controller;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.entity.Announcement;
+import com.guotop.palmschool.entity.Clazz;
+import com.guotop.palmschool.entity.Department;
+import com.guotop.palmschool.entity.Permission;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.rest.entity.AnnounceSelect;
+import com.guotop.palmschool.service.AnnouncementService;
+import com.guotop.palmschool.service.ClazzService;
+import com.guotop.palmschool.service.DepartmentService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+import com.richx.pojo.RichHttpResponse;
+
+import dev.gson.GsonHelper;
+
+
+/**
+ * 手机端获取公告
+ * @author Administrator
+ *
+ */
+@RequestMapping("/announce")
+@Controller
+public class AnnounceRestController
+{
+	@Resource
+	private AnnouncementService announcementService;
+	@Resource
+	private UserService userService;
+	@Resource
+	private CommonService commonService;
+	@Resource
+	private DepartmentService departmentService;
+	@Resource
+	private ClazzService clazzService;
+
+	private final int PAGE_SIZE = 10;
+
+	/**
+	 * 获取公告
+	 * 
+	 * @param type
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "/loadAnnouceList.do")
+	public String loadAnnouceList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setHeader("Content-type", "application/json;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		RichHttpResponse<List<Announcement>> richHttpResponse = new RichHttpResponse<List<Announcement>>();
+		Set<Announcement> announcementSet = new HashSet<Announcement>();
+		List<Announcement> announcementList = new ArrayList<Announcement>();
+		List<Announcement> announcementReturnList = new ArrayList<Announcement>();
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+				Integer userId = loginUser.getUserId();
+
+				// 上页最后一条记录ID
+				int lastId = 0;
+				try
+				{
+					lastId = Integer.valueOf(request.getParameter("lastId"));
+				} catch (Exception e)
+				{
+
+				}
+
+				Integer type = null;
+				try
+				{
+					type = Integer.valueOf(request.getParameter("type"));
+				} catch (Exception e)
+				{
+					type = null;
+				}
+
+				paramMap.put("type", type);
+				paramMap.put("userId", userId);
+				paramMap.put("permissionCode", "announcementManager");
+
+				List<Announcement> list = announcementService.selectAnnouncementListByRole(paramMap, loginUser);
+				announcementSet.addAll(list);
+
+				announcementList.addAll(announcementSet);
+				// 数据排序
+				Collections.sort(announcementList, new SortById());
+				// 首页传的为0
+				if (lastId == 0)
+				{
+					if (announcementList.size() >= PAGE_SIZE)
+					{
+						announcementReturnList.addAll(announcementList.subList(0, PAGE_SIZE));
+					} else
+					{
+						announcementReturnList.addAll(announcementList.subList(0, announcementList.size()));
+					}
+				} else
+				{
+					int beginIndex = 0;
+					for (int i = 0; i < announcementList.size(); i++)
+					{
+						if (announcementList.get(i).getId() == lastId)
+						{
+							beginIndex = i + 1;
+							break;
+						}
+					}
+					int endIndex = beginIndex + PAGE_SIZE;
+					if (endIndex > announcementList.size())
+					{
+						endIndex = announcementList.size();
+					}
+					announcementReturnList.addAll(announcementList.subList(beginIndex, endIndex));
+				}
+				/*
+				 * 循环返回的公告列表，对AnnouncementId进行赋值，ios使用
+				 */
+				for(Announcement announcement: announcementReturnList){
+					announcement.setAnnouncementId(announcement.getId());
+				}
+				
+				richHttpResponse.ResponseCode = 0;
+				richHttpResponse.ResponseResult = "获取公告成功";
+				richHttpResponse.ResponseObject = announcementReturnList;
+			} else
+			{
+				richHttpResponse.ResponseCode = -1;
+				richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+			}
+			String json = GsonHelper.toJson(richHttpResponse);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 发布公告
+	 * 
+	 * @param type
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/addAnnounce.do")
+	public String addAnnounce(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setHeader("Content-type", "application/json;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		RichHttpResponse<Announcement> richHttpResponse = new RichHttpResponse<Announcement>();
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+				Integer userId = loginUser.getUserId();
+				Announcement announcement = new Announcement();
+
+				// 公告类型
+				Integer type = null;
+				try
+				{
+					type = Integer.valueOf(request.getParameter("type"));
+				} catch (Exception e)
+				{
+					type = null;
+				}
+
+				// itemId
+				Integer itemId = null;
+				try
+				{
+					itemId = Integer.valueOf(request.getParameter("itemId"));
+				} catch (Exception e)
+				{
+					itemId = null;
+				}
+
+				// 内容
+				String content = request.getParameter("content");
+
+				// 系统管理员，超级管理员 系统公告
+				if (Cons.ANNOUNCEMENT_SYSTEM.equals(type))
+				{
+
+				}
+				// 校长 学校公告
+				else if (Cons.ANNOUNCEMENT_SCHOOL.equals(type))
+				{
+
+				}
+				// 部门长 部门公告
+				else if (Cons.ANNOUNCEMENT_DEPARTMENT.equals(type))
+				{
+					announcement.setDepartmentId(itemId);
+				}
+				// 班级主任 班级公告
+				else if (Cons.ANNOUNCEMENT_CLAZZ.equals(type))
+				{
+					announcement.setClazzId(itemId);
+				} else
+				{
+					richHttpResponse.ResponseCode = -2;
+					richHttpResponse.ResponseResult = "发布失败";
+					/**
+					 * flush到客户端
+					 */
+					// String json = gson.toJson(result);
+					String json = GsonHelper.toJson(richHttpResponse);
+					response.getWriter().write(json);
+					response.getWriter().flush();
+					return null;
+				}
+
+				if (0 == userId || userId == null)
+				{
+					richHttpResponse.ResponseCode = -2;
+					richHttpResponse.ResponseResult = "发布失败";
+					String json = GsonHelper.toJson(richHttpResponse);
+					response.getWriter().write(json);
+					response.getWriter().flush();
+					return null;
+				}
+
+				announcement.setType(type);
+				announcement.setContent(content);
+				announcement.setCreateTime(TimeUtil.getInstance().now());
+				announcement.setUserId(userId);
+				announcementService.addAnnouncement(announcement);
+
+				richHttpResponse.ResponseCode = 0;
+				richHttpResponse.ResponseResult = "发布成功";
+			} else
+			{
+				richHttpResponse.ResponseCode = -1;
+				richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+			}
+			String json = GsonHelper.toJson(richHttpResponse);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	class SortById implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Announcement s1 = (Announcement) o1;
+			Announcement s2 = (Announcement) o2;
+			if (s1.getId() < s2.getId())
+				return 1;
+			else if (s1.getId() == s2.getId())
+			{
+				return 0;
+			}
+			return -1;
+		}
+	}
+
+	/**
+	 * 获取公告类型选择列表
+	 * 
+	 * @param type
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/loadAnnouceTypeList.do")
+	public String loadAnnouceTypeList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setHeader("Content-type", "application/json;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		RichHttpResponse<List<AnnounceSelect>> richHttpResponse = new RichHttpResponse<List<AnnounceSelect>>();
+		List<AnnounceSelect> list = new ArrayList<AnnounceSelect>();
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			try
+			{
+				String schoolId = request.getParameter("schoolId");
+				// 这边是利用apikey 进行模拟登录
+				User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+				if (loginUser != null)
+				{
+					Integer userId = loginUser.getUserId();
+					List<Permission> permissionList = loginUser.getPermissionList();
+					for (Permission permission : permissionList)
+					{
+
+						if ((permission.getPermissionCode().equals("schoolAnnouncementAdd")) || (permission.getPermissionCode().equals("admin")))
+						{
+							AnnounceSelect announceSelect = new AnnounceSelect();
+							announceSelect.setType(Cons.ANNOUNCEMENT_SCHOOL);
+							announceSelect.setItemId(loginUser.getSchoolId());
+							announceSelect.setItemName(loginUser.getSchoolName());
+							announceSelect.setUserId(loginUser.getUserId());
+							list.add(announceSelect);
+						}
+
+						if ((permission.getPermissionCode().equals("departmentAnnouncementAdd")) || (permission.getPermissionCode().equals("admin")))
+						{
+							// 如果拥有admin权限，也就是能操作所有部门
+							List<Department> departmentList = new ArrayList<Department>();
+							if ((permission.getPermissionCode().equals("admin")))
+							{
+								departmentList = commonService.getDepartmentList();
+
+								for (Department department : departmentList)
+								{
+									AnnounceSelect announceSelect = new AnnounceSelect();
+									announceSelect.setType(Cons.ANNOUNCEMENT_DEPARTMENT);
+									announceSelect.setItemId(String.valueOf(department.getId()));
+									announceSelect.setItemName(department.getDepartmentName());
+									announceSelect.setUserId(loginUser.getUserId());
+									list.add(announceSelect);
+								}
+							}
+							// 从user_permission中查询他能操作的对象
+							else
+							{
+								List<Integer> departmentIdList = commonService.getIdsByUserIdAndPermissionCode(userId, "departmentAnnouncementAdd", 1);
+								for (Integer departmentId : departmentIdList)
+								{
+									Department department = departmentService.getDepartmentById(Integer.valueOf(departmentId));
+
+									AnnounceSelect announceSelect = new AnnounceSelect();
+									announceSelect.setType(Cons.ANNOUNCEMENT_DEPARTMENT);
+									announceSelect.setItemId(String.valueOf(department.getId()));
+									announceSelect.setItemName(department.getDepartmentName());
+									announceSelect.setUserId(loginUser.getUserId());
+									list.add(announceSelect);
+								}
+							}
+						}
+
+						if ((permission.getPermissionCode().equals("clazzAnnouncementAdd")) || (permission.getPermissionCode().equals("admin")))
+						{
+
+							// 如果拥有admin权限，也就是能操作所有班级
+							List<Clazz> clazzList = new ArrayList<Clazz>();
+							if ((permission.getPermissionCode().equals("admin")))
+							{
+								clazzList = clazzService.getClazzList();
+
+								for (Clazz clazz : clazzList)
+								{
+									AnnounceSelect announceSelect = new AnnounceSelect();
+									announceSelect.setType(Cons.ANNOUNCEMENT_CLAZZ);
+									announceSelect.setItemId(String.valueOf(clazz.getId()));
+									announceSelect.setItemName(clazz.getClazzName());
+									announceSelect.setUserId(loginUser.getUserId());
+									list.add(announceSelect);
+								}
+							}
+							// 从user_permission中查询他能操作的对象
+							else
+							{
+								// 通过userId 和 permissionCode 来查询操作的对象
+								List<Integer> clazzIdList = commonService.getIdsByUserIdAndPermissionCode(userId, "clazzAnnouncementAdd", 0);
+								for (Integer clazzId : clazzIdList)
+								{
+									Clazz clazz = clazzService.getClazzById(Integer.valueOf(clazzId));
+
+									AnnounceSelect announceSelect = new AnnounceSelect();
+									announceSelect.setType(Cons.ANNOUNCEMENT_CLAZZ);
+									announceSelect.setItemId(String.valueOf(clazz.getId()));
+									announceSelect.setItemName(clazz.getClazzName());
+									announceSelect.setUserId(loginUser.getUserId());
+									list.add(announceSelect);
+								}
+							}
+						}
+
+						if ((permission.getPermissionCode().equals("systemAnnouncementAdd")) || (permission.getPermissionCode().equals("admin")))
+						{
+							AnnounceSelect announceSelect = new AnnounceSelect();
+							announceSelect.setType(Cons.ANNOUNCEMENT_SYSTEM);
+							announceSelect.setItemId(loginUser.getSchoolId());
+							announceSelect.setItemName(loginUser.getSchoolName());
+							announceSelect.setUserId(loginUser.getUserId());
+							list.add(announceSelect);
+						}						
+						richHttpResponse.ResponseCode = 0;
+						richHttpResponse.ResponseResult = "获取发布公告列表成功";
+						richHttpResponse.ResponseObject = list;
+					}
+				}else{
+					richHttpResponse.ResponseCode = -1;
+					richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				}
+				String json = GsonHelper.toJson(richHttpResponse);
+				response.getWriter().write(json);
+				response.getWriter().flush();
+			} catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	/**
+	 * 无障碍通道获取最新校园公告
+	 * 
+	 * @param type
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getLatestSchoolAnnounceForAccess.do",method=RequestMethod.POST)
+	public String getLatestSchoolAnnounceForAccess(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setHeader("Content-type", "application/json;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		RichHttpResponse<Announcement> richHttpResponse = new RichHttpResponse<Announcement>();
+		try
+		{
+			String schoolId = request.getParameter("schoolId");
+			Announcement announcement = null;
+			if(StringUtil.isEmpty(schoolId)){
+				announcement = new Announcement();
+				announcement.setContent("欢迎进入智慧校园");
+				announcement.setCreateTime(TimeUtil.getInstance().now());
+			}else{
+				DBContextHolder.setDBType(schoolId);
+				announcement = announcementService.getSchoolAnnouncement();
+				if(null == announcement){
+					announcement = new Announcement();
+					announcement.setContent("欢迎进入智慧校园");
+					announcement.setCreateTime(TimeUtil.getInstance().now());
+				}
+			}
+			richHttpResponse.ResponseCode = 0;
+			richHttpResponse.ResponseResult = "获取最新学校公告成功";
+			richHttpResponse.ResponseObject = announcement;
+
+			String json = GsonHelper.toJson(richHttpResponse);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+}

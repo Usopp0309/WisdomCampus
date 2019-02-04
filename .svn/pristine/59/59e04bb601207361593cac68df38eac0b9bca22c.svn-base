@@ -1,0 +1,1023 @@
+package com.guotop.palmschool.camera.controller;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.gson.Gson;
+import com.guotop.palmschool.camera.entity.Camera;
+import com.guotop.palmschool.camera.entity.CameraRelation;
+import com.guotop.palmschool.camera.service.CameraService;
+import com.guotop.palmschool.common.entity.ResultInfo;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.controller.BaseController;
+import com.guotop.palmschool.entity.OrderMessagePermission;
+import com.guotop.palmschool.entity.OrderMessageUser;
+import com.guotop.palmschool.entity.Place;
+import com.guotop.palmschool.entity.Role;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.service.OrderMessagePermissionService;
+import com.guotop.palmschool.service.OrderMessageService;
+import com.guotop.palmschool.service.PlaceService;
+import com.guotop.palmschool.service.SmsService;
+import com.guotop.palmschool.service.StudentService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+import com.richx.pojo.RichHttpResponse;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 视屏直播控制类
+ * 
+ * @author Administrator
+ *
+ */
+@RequestMapping("/camera")
+@Controller
+public class CameraController extends BaseController
+{
+	private Logger logger = LoggerFactory.getLogger(CameraController.class);
+	@Resource
+	private UserService userService;
+
+	@Resource
+	private PlaceService placeService;
+
+	@Resource
+	private CameraService cameraService;
+
+	@Resource
+	private StudentService studentService;
+
+	@Resource
+	private SmsService smsService;
+
+	@Resource
+	private OrderMessageService orderMessageService;
+
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private OrderMessagePermissionService orderMessagePermissionService;
+
+	/***************** 电脑端接收 begin *********************/
+
+	/**
+	 * 进入视屏直播页面
+	 */
+	@RequestMapping(value = "/toLiveCamera.do")
+	public String toLiveCamera()
+	{
+		return "camera/camera_live";
+	}
+
+	/**
+	 * 进入视屏管理页面
+	 */
+	@RequestMapping(value = "/toCameraManager.do")
+	public String toCameraManager(HttpServletRequest request, HttpServletResponse response, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			/**
+			 * 地点Id
+			 */
+			String placeId = request.getParameter("placeId");
+			if (!StringUtil.isEmpty(placeId))
+			{
+				modelMap.addAttribute("placeId", placeId);
+			}
+
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return "camera/camera_list";
+	}
+
+	/**
+	 * 加载设备list
+	 */
+	@RequestMapping(value = "/getCameraList.do")
+	public String getCameraList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = StringUtil.toint(request.getParameter("cPage"));
+
+			/**
+			 * 搜索内容
+			 */
+			String queryContent = request.getParameter("queryContent");
+
+			/**
+			 * 地点Id
+			 */
+			String placeId = request.getParameter("placeId");
+
+			/**
+			 * 角色
+			 */
+			String roleCode = request.getParameter("roleCode");
+
+			User user = (User) session.getAttribute("user");
+
+			/**
+			 * 参数
+			 */
+			HashMap<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("queryContent", queryContent);
+			paramMap.put("placeId", placeId);
+			paramMap.put("roleCode", roleCode);
+			paramMap.put("user", user);
+			paramMap.put("userId", user.getUserId());
+
+			this.getPages().setPageSize(50);
+
+			Pages pages = cameraService.getCameraList(this.getPages().getPageSize(), currentPage, paramMap);
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 进入增加设备页面
+	 */
+	@RequestMapping(value = "/toAddCamera.do")
+	public String toAddCamera(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		try
+		{
+			/**
+			 * 地点Id
+			 */
+			String placeId = request.getParameter("placeId");
+			if (!StringUtil.isEmpty(placeId))
+			{
+				modelMap.addAttribute("placeId", placeId);
+			}
+
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return "camera/camera_add";
+	}
+
+	/**
+	 * 执行增加设备逻辑
+	 */
+	@RequestMapping(value = "/doAddCamera.do")
+	public String doAddCamera(HttpServletResponse response, HttpServletRequest request, HttpSession session)
+	{
+
+		response.setCharacterEncoding("UTF-8");
+
+		/**
+		 * 设备编码
+		 */
+		String cameraCode = request.getParameter("cameraCode");
+
+		/**
+		 * 设备名称
+		 */
+		String cameraName = request.getParameter("cameraName");
+
+		/**
+		 * 设备密码
+		 */
+		String password = request.getParameter("password");
+
+		/**
+		 * 地点Id
+		 */
+		Integer placeId = StringUtil.toint(request.getParameter("placeId"));
+
+		/**
+		 * 类型type
+		 */
+		Integer type = StringUtil.toint(request.getParameter("type"));
+
+		/**
+		 * 开始日期
+		 */
+		String startDay = request.getParameter("startDay");
+
+		/**
+		 * 结束日期
+		 */
+		String endDay = request.getParameter("endDay");
+
+		/**
+		 * 开始时间
+		 */
+		String startTime = request.getParameter("startTime");
+		if (StringUtil.isEmpty(startTime))
+		{
+			startTime = "00:00";
+		}
+
+		/**
+		 * 开始结束
+		 */
+		String endTime = request.getParameter("endTime");
+		if (StringUtil.isEmpty(endTime))
+		{
+			endTime = "23:59";
+		}
+
+		Camera camera = new Camera();
+		camera.setCameraCode(cameraCode);
+		camera.setCameraName(cameraName);
+		camera.setPassword(password);
+		camera.setPlaceId(placeId);
+		camera.setCreateTime(TimeUtil.getInstance().now());
+		camera.setType(type);
+		camera.setStartDay(startDay);
+		camera.setEndDay(endDay);
+		camera.setStartTime(startTime);
+		camera.setEndTime(endTime);
+		/**
+		 * 添加设备
+		 */
+		cameraService.addCamera(camera);
+
+		return "camera/camera_list";
+	}
+
+	/**
+	 * 进入修改设备页面
+	 */
+	@RequestMapping(value = "/modifyCamera.do")
+	public String modifyCamera(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+
+		Integer cameraId = Integer.valueOf(request.getParameter("cameraId"));
+
+		// 根据cameraId查询对应的camera
+		Camera camera = cameraService.getCameraById(cameraId);
+
+		/**
+		 * 存放页面隐藏域
+		 */
+		modelMap.addAttribute("cameraId", cameraId);
+		modelMap.addAttribute("camera", camera);
+
+		return "camera/camera_modify";
+	}
+
+	/**
+	 * 视频详细
+	 * 
+	 * @author chenyong
+	 * @date 2016年10月8日 上午11:02:34
+	 * @param cameraId
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping("/detailCamera.do")
+	public String detailCamera(Integer cameraId, ModelMap modelMap)
+	{
+		Camera camera = cameraService.getCameraById(cameraId);
+		modelMap.addAttribute("camera", camera);
+		return "camera/camera_list_detail";
+	}
+
+	/**
+	 * 分页获得详细
+	 * 
+	 * @author chenyong
+	 * @date 2016年10月8日 下午1:35:17
+	 * @param page
+	 * @param response
+	 * @param cameraId
+	 * @return
+	 */
+	@RequestMapping("/getDetailCamera.do")
+	public String getDetailCamera(Integer page, HttpServletResponse response, Integer cameraId)
+	{
+		response.setCharacterEncoding("UTF-8");
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("cameraId", cameraId);
+		Pages pages = cameraService.getCameraClassUser(30, page, paramMap);
+		try
+		{
+			String json = GsonHelper.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 执行修改设备逻辑
+	 */
+	@RequestMapping(value = "/doModifyCamera.do")
+	public String doModifyCamera(HttpServletResponse response, HttpServletRequest request, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		/**
+		 * 设备编码
+		 */
+		String cameraCode = request.getParameter("cameraCode");
+
+		/**
+		 * 设备名称
+		 */
+		String cameraName = request.getParameter("cameraName");
+
+		/**
+		 * 设备密码
+		 */
+		String password = request.getParameter("password");
+
+		/**
+		 * 地点Id
+		 */
+		Integer placeId = StringUtil.toint(request.getParameter("placeId"));
+
+		/**
+		 * 设备Id
+		 */
+		Integer cameraId = StringUtil.toint(request.getParameter("cameraId"));
+
+		/**
+		 * 类型type
+		 */
+		Integer type = StringUtil.toint(request.getParameter("type"));
+
+		/**
+		 * 开始日期
+		 */
+		String startDay = request.getParameter("startDay");
+
+		/**
+		 * 结束日期
+		 */
+		String endDay = request.getParameter("endDay");
+
+		/**
+		 * 开始时间
+		 */
+		String startTime = request.getParameter("startTime");
+		if (StringUtil.isEmpty(startTime))
+		{
+			startTime = "00:00";
+		}
+
+		/**
+		 * 开始结束
+		 */
+		String endTime = request.getParameter("endTime");
+		if (StringUtil.isEmpty(endTime))
+		{
+			endTime = "23:59";
+		}
+
+		Camera camera = new Camera();
+		camera.setCameraId(cameraId);
+		camera.setCameraCode(cameraCode);
+		camera.setCameraName(cameraName);
+		if (!StringUtil.isEmpty(password))
+		{
+			camera.setPassword(password);
+		}
+		camera.setPlaceId(placeId);
+		camera.setUpdateTime(TimeUtil.getInstance().now());
+		camera.setType(type);
+		camera.setStartDay(startDay);
+		camera.setEndDay(endDay);
+		camera.setStartTime(startTime);
+		camera.setEndTime(endTime);
+
+		/**
+		 * 修改设备
+		 */
+		cameraService.modifyCamera(camera);
+
+		return "camera/camera_list";
+	}
+
+	/**
+	 * 进入摄像头详情页面
+	 */
+	@RequestMapping(value = "/toCameraDetail.do")
+	public String toCameraDetail(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+
+		Integer cameraId = Integer.valueOf(request.getParameter("cameraId"));
+
+		String roleCode = request.getParameter("roleCode");
+
+		// 根据cameraId查询对应的camera
+		Camera camera = cameraService.getCameraById(cameraId);
+
+		User user = (User) session.getAttribute("user");
+
+		/**
+		 * 存放页面隐藏域
+		 */
+		modelMap.addAttribute("camera", camera);
+		modelMap.addAttribute("roleCode", roleCode);
+		modelMap.addAttribute("userId", user.getUserId());
+
+		return "camera/camera_detail_list";
+	}
+
+	/**
+	 * 根据userId 和roleCode获取对应的cameraList
+	 */
+	@RequestMapping(value = "/getAllCameraListByUserIdRoleCode.do")
+	public String getAllCameraListByUserIdRoleCode(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+
+		response.setCharacterEncoding("UTF-8");
+
+		Integer userId = Integer.valueOf(request.getParameter("userId"));
+
+		String roleCode = request.getParameter("roleCode");
+
+		User user = (User) session.getAttribute("user");
+		try
+		{
+			List<Camera> cameraList = cameraService.getAllCameraListByUserIdRoleCode(user, userId, roleCode);
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(cameraList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+
+	}
+
+	/**
+	 * 进入摄像头配置页面(配置摄像头归属那个班级)
+	 */
+	@RequestMapping(value = "/toClazzCameraConfig.do")
+	public String toClazzCameraConfig(ModelMap modelMap, HttpSession session)
+	{
+		User user = (User) session.getAttribute("user");
+		modelMap.addAttribute("userId", user.getUserId());
+		return "camera/camera_config_clazz";
+	}
+
+	/**
+	 * 进入摄像头配置页面(配置摄像头缴费的人员可以查看 未交费的人员不可以查看)
+	 */
+	@RequestMapping(value = "/toUserCameraConfig.do")
+	public String toUserCameraConfig(ModelMap modelMap, HttpSession session)
+	{
+		User user = (User) session.getAttribute("user");
+		modelMap.addAttribute("userId", user.getUserId());
+		return "camera/camera_config_user";
+	}
+
+	/**
+	 * 根据类型加载设备list
+	 */
+	@RequestMapping(value = "/getCameraListByType.do")
+	public String getCameraListByType(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			/**
+			 * 类型
+			 */
+			Integer type = StringUtil.toint(request.getParameter("type"));
+
+			List<Camera> cameraList = cameraService.getCameraListByType(type);
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(cameraList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 增加摄像头和班级的关系
+	 */
+	@RequestMapping(value = "/doSaveClazzCamera.do")
+	public String doSaveClazzCamera(HttpServletResponse response, HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		/**
+		 * 接受前台选中摄像头
+		 */
+		String camera = request.getParameter("cameraIds");
+
+		String[] cameraArr = camera.split(",");
+
+		/**
+		 * 接受前台选中班级
+		 */
+		String[] clazzArr = request.getParameterValues("selectedObj");
+
+		List<CameraRelation> cameraRelationList = new ArrayList<CameraRelation>();
+
+		for (int a = 0; a < cameraArr.length; a++)
+		{
+			// 获取首字母
+			Integer cameraId = StringUtil.toint(cameraArr[a]);
+
+			for (int i = 0; i < clazzArr.length; i++)
+			{
+				// 获取首字母
+				Integer clazzId = StringUtil.toint(clazzArr[i].replace("C", ""));
+				CameraRelation cameraRelation = new CameraRelation();
+				cameraRelation.setCameraId(cameraId);
+				cameraRelation.setClazzId(clazzId);
+				cameraRelation.setCreateTime(TimeUtil.getInstance().now());
+				cameraRelationList.add(cameraRelation);
+
+			}
+		}
+
+		cameraService.addCameraRelation(0, cameraRelationList);
+		return toCameraManager(request, response, modelMap);
+	}
+
+	/**
+	 * 增加摄像头和人员的关系
+	 */
+	@RequestMapping(value = "/doSaveUserCamera.do")
+	public String doSaveUserCamera(HttpServletResponse response, HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		/**
+		 * 接受前台选中摄像头
+		 */
+		String camera = request.getParameter("cameraIds");
+
+		String[] cameraArr = camera.split(",");
+
+		/**
+		 * 接受前台选中班级
+		 */
+		String[] userArr = request.getParameterValues("selectedObj");
+
+		List<CameraRelation> cameraRelationList = new ArrayList<CameraRelation>();
+
+		for (int a = 0; a < cameraArr.length; a++)
+		{
+			// 获取首字母
+			Integer cameraId = StringUtil.toint(cameraArr[a]);
+
+			for (int i = 0; i < userArr.length; i++)
+			{
+				// 获取首字母
+				String firstChar = userArr[i].substring(0, 1);
+				if ("C".equals(firstChar))
+				{
+					// 获取班级ID;
+					String clazzId = userArr[i].substring(1);
+
+					List<User> studentList = studentService.getStudentListByClazzIdInStudentSMS(StringUtil.toint(clazzId));
+					for (User student : studentList)
+					{
+						CameraRelation cameraRelation = new CameraRelation();
+						cameraRelation.setCameraId(cameraId);
+						cameraRelation.setUserId(student.getUserId());
+						cameraRelation.setCreateTime(TimeUtil.getInstance().now());
+						cameraRelationList.add(cameraRelation);
+					}
+
+				} else if ("S".equals(firstChar))
+				{
+					// 获取接受學生ID 也就是userid
+					String userId = userArr[i].substring(1);
+					CameraRelation cameraRelation = new CameraRelation();
+					cameraRelation.setCameraId(cameraId);
+					cameraRelation.setUserId(StringUtil.toint(userId));
+					cameraRelation.setCreateTime(TimeUtil.getInstance().now());
+					cameraRelationList.add(cameraRelation);
+
+				}
+
+			}
+		}
+
+		cameraService.addCameraRelation(1, cameraRelationList);
+		return toCameraManager(request, response, modelMap);
+	}
+
+	/**
+	 * 删除设备
+	 */
+	@RequestMapping(value = "/deleteCamera.do")
+	public String deleteCamera(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			/**
+			 * 摄像头Id
+			 */
+			Integer cameraId = StringUtil.toint(request.getParameter("cameraId"));
+
+			boolean flag = false;
+
+			try
+			{
+				cameraService.deleteCamera(cameraId);
+				flag = true;
+			} catch (Exception e)
+			{
+				flag = false;
+				e.printStackTrace();
+			}
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(flag);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 加载地点list
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getPlaceList.do")
+	public String getPlaceList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			List<Place> placeList = placeService.getPlaceList();
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(placeList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 校验设备编码是否存在(添加设备时)
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/checkCameraCode.do")
+	public String checkCameraCode(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			String cameraCode = request.getParameter("cameraCode");
+			ResultInfo resultInfo = cameraService.checkCameraCode(cameraCode);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(resultInfo);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 校验设备编码是否存在(修改设备时)
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/checkCameraCodeByModify.do")
+	public String checkCameraCodeByModify(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			String cameraCode = request.getParameter("cameraCode");
+			String originalcode = request.getParameter("originalcode");
+
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("cameraCode", cameraCode);
+			paramMap.put("originalcode", originalcode);
+
+			ResultInfo resultInfo = cameraService.checkCameraCodeByModify(paramMap);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(resultInfo);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/***************** 电脑端接收 end *********************/
+
+	/***************** 手机端接收 begin *********************/
+	@RequestMapping(value = "/getCameraListByApiKey.do")
+	public String getCameraListByApiKey(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		RichHttpResponse<List<Place>> richHttpResponse = new RichHttpResponse<List<Place>>();
+		response.setHeader("Content-type", "application/json;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+			// 这边是利用apikey进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+				DBContextHolder.setDBType(schoolId);
+
+				// 判断有没有开启摄像头功能限制
+				boolean isTeacher = false;
+				boolean isParent = false;
+				boolean isStudent = false;
+				boolean hasPermission = false;
+				Integer status = 0;
+
+				// TODO 需要加上年级判断
+				OrderMessagePermission orderMessagePermission = orderMessagePermissionService.getMessagePermissionByMenuId("camera");
+				if (orderMessagePermission != null)
+				{
+					// 0不限制 1限制
+					status = orderMessagePermission.getStatus();
+				}
+
+				boolean schoolHasMessage = (boolean) smsService.getSmsServiceStatus().get("schoolHasMessage");// 学校是否有短信套餐
+				boolean isVirtualOpen = (boolean) smsService.getSmsServiceStatus().get("isVirtualOpen");// 学校虚拟套餐是否开启
+				boolean isSchoolSingleMsg = (boolean) smsService.getSmsServiceStatus().get("isSchoolSingleMsg");// 是否有学校单条类型套餐
+
+				List<Role> roleList = loginUser.getRoleList();
+				for (Role role : roleList)
+				{
+					String roleCode = role.getRoleCode();
+					if ((!"parent".equals(roleCode)) && (!"student".equals(roleCode)))
+					{
+						isTeacher = true;
+					}
+					if ("parent".equals(roleCode))
+					{
+						isParent = true;
+					}
+					if ("student".equals(roleCode))
+					{
+						isStudent = true;
+					}
+				}
+				
+				/*
+				 * 1.教师不受限制影响
+				 * 2.试用短信套餐是否开启和功能限制没有关系
+				 * 3.功能限制开启的情况下，学校没有套餐 或者有套餐的情况下家长已经购买 或者单条套餐还存在余额的情况下能够查看
+				 */
+				if (isTeacher)
+				{
+					hasPermission = true;
+				} else
+				{
+					//未缴纳服务费是否限制功能使用 0不限制 1限制
+					if (status == 0)// 不限制
+					{
+						hasPermission = true;
+					} else
+					{
+						if (schoolHasMessage)// 学校有短信套餐
+						{
+							if (isSchoolSingleMsg)// 是否有学校单条套餐 有判断条数
+							{
+								hasPermission = true;
+							} else
+							{
+								List<User> studentList = new ArrayList<User>();
+								if (isStudent)
+								{
+									studentList.add(loginUser);
+								} else if (isParent)
+								{
+									List<User> studentList_tmp = commonService.getAllChildrenByUserId(loginUser.getUserId());
+									studentList.addAll(studentList_tmp);
+								}
+								for (User student : studentList)
+								{
+									// 先判断学生有没有购买过
+									Map<String, Object> map = new HashMap<String, Object>();
+									map.put("userId", student.getUserId());
+									map.put("status", 0);
+									OrderMessageUser messageUser = orderMessageService.getOrderMessageUserByUserId(map);
+									if (messageUser != null)
+									{
+										if (messageUser.getType() == 0)
+										{
+											if (TimeUtil.nowDateIsBetween(messageUser.getStartTime(), messageUser.getEndTime()))
+											{
+												hasPermission = true;
+												break;
+											} else
+											{
+												hasPermission = false;
+											}
+
+										} else
+										{
+											if (messageUser.getCount() > 0)
+											{
+												hasPermission = true;
+												break;
+											} else
+											{
+												hasPermission = false;
+											}
+										}
+									}
+								}
+							}
+						} else
+						{
+							hasPermission = true;
+						}
+					}
+				}
+
+				List<Place> placeList = new ArrayList<Place>();
+				if (!hasPermission)
+				{
+					richHttpResponse.ResponseCode = 1000;
+					richHttpResponse.ResponseResult = "您还没有购买服务费，暂无权限查看该功能";
+				} else
+				{
+					SimpleDateFormat day = new SimpleDateFormat("yyyy-MM-dd");
+					SimpleDateFormat time = new SimpleDateFormat("HH:mm");
+
+					String dateDay = day.format(new Date());
+					String dateTime = time.format(new Date());
+
+					Date date1 = day.parse(dateDay);
+					Date date2 = time.parse(dateTime);
+
+					List<Place> list = cameraService.getPlaceList(loginUser.getUserId(), loginUser);
+					for (Place place : list)
+					{
+						List<Camera> cList = place.getCameraList();
+						List<Camera> cameraList = new ArrayList<Camera>();
+						for (Camera camera : cList)
+						{
+							// 返回 0 表示时间日期相同
+							// 返回 1 表示日期1>日期2
+							// 返回 -1 表示日期1<日期2
+
+							String startDay = camera.getStartDay();
+							String endDay = camera.getEndDay();
+
+							String startTime = camera.getStartTime();
+							String endTime = camera.getEndTime();
+							Date dateStartTime = time.parse(startTime);
+							Date dateEndTime = time.parse(endTime);
+							if (StringUtil.isEmpty(startDay) && StringUtil.isEmpty(endDay))
+							{
+								if (date2.getTime() >= dateStartTime.getTime() && date2.getTime() <= dateEndTime.getTime())
+								{
+									cameraList.add(camera);
+								}
+							} else if (!StringUtil.isEmpty(startDay) && StringUtil.isEmpty(endDay))
+							{
+								Date dateStartDay = day.parse(startDay);
+								if (dateStartDay.getTime() >= date1.getTime() && date2.getTime() >= dateStartTime.getTime() && date2.getTime() <= dateEndTime.getTime())
+								{
+									cameraList.add(camera);
+								}
+							} else if (StringUtil.isEmpty(startDay) && !StringUtil.isEmpty(endDay))
+							{
+								Date dateEndDay = day.parse(endDay);
+								if (dateEndDay.getTime() <= date1.getTime() && date2.getTime() >= dateStartTime.getTime() && date2.getTime() <= dateEndTime.getTime())
+								{
+									cameraList.add(camera);
+								}
+							} else
+							{
+								Date dateStartDay = day.parse(startDay);
+								Date dateEndDay = day.parse(endDay);
+								if (dateStartDay.getTime() <= date1.getTime() && dateEndDay.getTime() >= date1.getTime() && date2.getTime() >= dateStartTime.getTime()
+										&& date2.getTime() <= dateEndTime.getTime())
+								{
+									cameraList.add(camera);
+								}
+							}
+
+						}
+						if (cameraList.size() > 0)
+						{
+							place.setCameraList(cameraList);
+							placeList.add(place);
+						}
+					}
+				}
+				richHttpResponse.ResponseObject = placeList;
+			} else
+			{
+				richHttpResponse.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+			}
+			String json = GsonHelper.toJson(richHttpResponse);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			// e.printStackTrace();
+			logger.error("getCameraListByApiKey:" + e.getMessage());
+		}
+		return null;
+	}
+
+	/***************** 手机端接收 end *********************/
+}

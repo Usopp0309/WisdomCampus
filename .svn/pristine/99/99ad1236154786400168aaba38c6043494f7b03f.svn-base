@@ -1,0 +1,342 @@
+﻿$(function(){
+	//选择第一个tab
+	$("#userTab li:first").addClass("active");
+	//返回
+	$("#cancel").click(function(){
+		 window.location.href='javascript:history.go(-1);';
+	});
+	var h_v=$(window).height()-120;
+	$(".m_page_con").css({"min-height":h_v})
+	//////////////////////////////////////////////////////之上智慧校园新整理的js代码//////////////////////////////////////
+	setDivCenter();
+	
+	
+	//显示详情
+	$(".detal").on("click",function(){
+		if($(this).hasClass("open")){
+			$(this).parent().parent().next(".persionner_info").hide();
+			$(this).removeClass("open")
+		}else{
+			$(this).addClass("open")
+			$(".persionner_info").removeAttr("style");
+			$(this).parent().parent().next(".persionner_info").show();
+		}
+		
+	})
+	//多选dl_select more 单选dl_select one
+	$(".dl_select dd").on("click",function(){
+		if($(this).parent().hasClass("more")){
+			if($(this).hasClass("select")){
+				$(this).removeClass("select");
+			}else{
+				$(this).addClass("select");
+			}
+		}else if($(this).parent().hasClass("one")){
+				$(this).siblings().removeAttr("class");
+				$(this).addClass("select");
+		}
+	})
+	var h=$(".public_footer").outerHeight(true)+$(".header").outerHeight(true)+60;
+	var h_v=$(window).height()-h;
+	
+	$(".Fill_Card").css({"min-height":h_v+"px"});
+})
+function submit(data,url){
+			var f=null;
+			$.ajax({
+				url:url,
+				type:"post",
+				async: false, 
+				data:data,
+				dataType:"json",
+				error:function(){},
+				success:function(result){
+				f=result;	
+				}
+			});
+			return f;
+		}
+//二级菜单显示
+function loadSubMenu(id,name)
+{
+	$(".sale-info").parent().parent().hide();
+	$("."+id).show();
+	$(".submenu").find("h2").text(name);
+}
+//设置菜单背景
+function setActive(menu,submenu){
+	$(".page-sidebar-menu li").removeClass("open");
+	$(".page-sidebar-menu li[id='"+menu+"']").addClass("open");
+	$("#"+submenu).parent().addClass("active");
+	$("#"+submenu).closest(".sub-menu").css("display","block");
+	$("#"+submenu).closest(".sub-menu").prev().find(".arrow").addClass("open");
+	
+}
+
+//验证手机号
+function checkSubmitMobil(num) {
+	if (num == "") {
+	return false;
+	}
+	var flag1 = num.match(/^(((13[0-9]{1})|(14[4-5,7]{1})|(17[1,3,6-8]{1})|(15[0-9]{1})|(18[0-9]{1}))+\d{8})$/);
+	var flag2 = num.match(/^(((170[0-2,5,7-9]{1}))+\d{7})$/);
+	if (flag1 || flag2) {
+		return true;
+	}
+	return false;
+}
+
+//验证固定号码
+function checkTelePhone(num) {
+	if (num == "") {
+		return false;
+	}
+	var flag1 = num.match(/^((0\d{2,3})-)(\d{7,8})$/);
+	if (flag1) {
+		return true;
+	}
+	return false;
+}
+
+
+
+function getNowFormatDate(beginflag) {
+    var date = new Date();
+
+    var seperator1 = "-";
+
+    var seperator2 = ":";
+
+    var month = date.getMonth() + 1;
+
+    var strDate = date.getDate();
+
+	var minutes = "59" ;
+	var hours = "23";
+	var seconds = "59";
+	
+
+    if (month >= 1 && month <= 9) {
+
+        month = "0" + month;
+
+    }
+
+    if (strDate >= 0 && strDate <= 9) {
+
+        strDate = "0" + strDate;
+
+    }
+   
+    if(beginflag){
+		hours = "00";
+		minutes = "00";
+		seconds = "00";
+	}
+
+    var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+
+            + " " + hours + seperator2 + minutes + seperator2 + seconds;
+    return currentdate;
+
+} 
+//判断设备
+function IsPC() {
+	//1:pc,2:android,3:ios;
+    var userAgentInfo = navigator.userAgent;
+    var Agents = ["SymbianOS","iPhone","iPad","iPod"];
+    var Agents2 = ["Android","Windows Phone"];
+    var flag = 1;
+    for (var v = 0; v < Agents2.length; v++) {
+        if (userAgentInfo.indexOf(Agents2[v]) > 0) {
+            flag = 2;
+            break;
+        }
+    }
+    for (var v = 0; v < Agents.length; v++) {
+        if (userAgentInfo.indexOf(Agents[v]) > 0) {
+            flag = 3;
+            break;
+        }
+    }
+    return flag;
+}
+
+
+
+
+//让指定的弹框始终显示在屏幕正中间  
+function setDivCenter(){
+		$(".modal-dialog").css({'padding-top':"100px"});  
+} 
+/*
+ * @description    根据某个字段实现对json数组的排序
+ * @param   array  要排序的json数组对象
+ * @param   field  排序字段（此参数必须为字符串）
+ * @param   reverse 是否倒序（默认为false）
+ * @return  array  返回排序后的json数组
+*/
+function jsonSort(array, field, reverse) {
+  //数组长度小于2 或 没有指定排序字段 或 不是json格式数据
+  if(array.length < 2 || !field || typeof array[0] !== "object") return array;
+  //数字类型排序
+  if(typeof array[0][field] === "number") {
+    array.sort(function(x, y) { return x[field] - y[field]});
+  }
+  //字符串类型排序
+  if(typeof array[0][field] === "string") {
+    array.sort(function(x, y) { return x[field].localeCompare(y[field])});
+  }
+  //倒序
+  if(reverse) {
+    array.reverse();
+  }
+  return array;
+}
+
+/*
+ * @description    分页使用，根据操作类型，当前页数和总页数操作类型返回
+ * @param   type  first,previous,next,last
+ * @param   cPageInt  当前页数
+ * @param   totalPageInt 总页数
+ * @return  result  -1代表直接返回  不等于-1代表返回的当前页数
+*/
+function returnCPageInt(type,cPageInt,totalPageInt){
+	//跳转到首页
+	if (type == 'first')
+	{
+		if (cPageInt == 0)
+		{
+			return -1;
+		}
+		else if (cPageInt == 1)
+		{
+			return -1;
+		}
+		cPageInt = 1;
+	}
+	//上一页
+	if (type == 'previous')
+	{
+		//没有数据的的情况下
+		if (cPageInt ==0)
+		{
+			return -1;
+		//不是首页	
+		}
+		else if(cPageInt != 1)
+		{
+			cPageInt = cPageInt - 1;
+		}
+		else
+		{
+			return -1;
+		}
+	}
+	//下一页
+	if (type == 'next')
+	{
+		//不是尾页
+		if (cPageInt < totalPageInt)
+		{
+			cPageInt = cPageInt + 1;
+		}
+		else 
+		{
+			return -1;
+		}
+	}
+	//跳转到尾页
+	if (type == 'last')
+	{
+		if (cPageInt == totalPageInt)
+		{
+			return -1;
+		}
+		cPageInt = totalPageInt;
+	}
+	
+	return cPageInt;
+}
+//让指定的弹框始终显示在屏幕正中间  
+function letDivCenter(divName){
+        var top = ($(window.parent).height() - $(divName).height())/2;
+        var left = - ($(divName).width()/2);
+        var scrollTop = $(parent.document).scrollTop();   
+        $(divName).css( { position : 'absolute', 'top' : top + scrollTop,'margin-left':left} );  
+}
+//扩展的post请求提交
+function standardPost(url,args){
+	$("#tmpForm").remove();
+	var form = $("<form id='tmpForm' method='post'></form>"),
+    input;
+	form.attr({"action":url});
+	$.each(args,function(key,value){
+	    input = $("<input type='hidden'>");
+	    input.attr({"name":key});
+	    input.val(value);
+	    form.append(input);
+	});
+	form.append('<input type="submit" id="subtn" name="subtn" style="display:none;">');
+	$("body").append(form);
+	$("#subtn").click();
+}
+//获得当前时间
+function getNowFormatDate() {
+    var date = new Date();
+    var seperator1 = "-";
+    var seperator2 = ":";
+    var month = date.getMonth() + 1;
+    var strDate = date.getDate();
+    if (month >= 1 && month <= 9) {
+        month = "0" + month;
+    }
+    if (strDate >= 0 && strDate <= 9) {
+        strDate = "0" + strDate;
+    }
+    var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+            + " " + date.getHours() + seperator2 + date.getMinutes()
+            + seperator2 + date.getSeconds();
+    return currentdate;
+} 
+
+function getBeginNowFormatDate(beginflag) {
+    var date = new Date();
+
+    var seperator1 = "-";
+
+    var seperator2 = ":";
+
+    var month = date.getMonth() + 1;
+
+    var strDate = date.getDate();
+
+	var minutes = "59" ;
+	var hours = "23";
+	var seconds = "59";
+	
+
+    if (month >= 1 && month <= 9) {
+
+        month = "0" + month;
+
+    }
+
+    if (strDate >= 0 && strDate <= 9) {
+
+        strDate = "0" + strDate;
+
+    }
+   
+    if(beginflag){
+		hours = "00";
+		minutes = "00";
+		seconds = "00";
+	}
+
+    var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+
+            + " " + hours + seperator2 + minutes + seperator2 + seconds;
+    return currentdate;
+
+} 

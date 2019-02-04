@@ -1,0 +1,164 @@
+package com.guotop.palmschool.shopping.controller;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.guotop.palmschool.controller.BaseController;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.scheduler.entity.SchoolCountInfo;
+import com.guotop.palmschool.scheduler.service.CountService;
+import com.guotop.palmschool.service.AgencyService;
+import com.guotop.palmschool.shopping.entity.Orders;
+import com.guotop.palmschool.shopping.service.OrdersService;
+import com.guotop.palmschool.util.Pages;
+
+import dev.gson.GsonHelper;
+/**
+ * 财务报表
+ * @author jfy
+ * @date 2016年1月22日
+ */
+@Controller
+@RequestMapping("/financialStatements")
+public class FinancialStatementsController extends BaseController
+{
+	private Logger logger = LoggerFactory.getLogger(FinancialStatementsController.class);
+	@Resource
+	private OrdersService ordersService;
+	@Resource
+	private AgencyService agencyService;
+	@Resource
+	private CountService countService;
+	
+	/**
+	 * 进入财务报表页面
+	 * @return
+	 */
+	@RequestMapping(value="/toFinancialStatementsList.do")
+	public String toFinancialStatementsList()
+	{
+		return "finance/financial_statements";
+	}
+	/**
+	 * 加载各学校消费统计，代理商只能看到负责学校的统计数据
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value="/getFinancialStatementsList.do")
+	public String getFinancialStatementsList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("utf-8");
+		User login = (User)session.getAttribute("user");
+		Integer currentPage = 1;
+		try
+		{
+			currentPage = Integer.valueOf(request.getParameter("cPage"));
+		} catch (Exception e)
+		{
+			currentPage = 1;
+		}
+		String queryContent = request.getParameter("queryContent");
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		
+		paramMap.put("queryContent", queryContent);
+		boolean isPermission = false;
+		if("sysadmin".equals(login.getUsername()) || "sysadmin".equals(login.getUserName())){
+			//超级管理员
+			isPermission = true;
+		}else if(4 == login.getType()){
+			//财务人员
+			isPermission = true;
+			paramMap.put("userId", login.getUserId());
+		}
+		Pages<SchoolCountInfo> pages = new Pages<SchoolCountInfo>();
+		if(isPermission){
+			this.getPages().setPageSize(20);
+			pages = agencyService.getSchoolListByUserId(this.getPages().getPageSize(), currentPage, paramMap);
+			List<SchoolCountInfo> list = pages.getList();
+			if(!CollectionUtils.isEmpty(list)){
+				for(SchoolCountInfo sci:list){
+					DBContextHolder.setDBType(String.valueOf(sci.getSchoolId()));
+					//获取智慧校园服务费总额,palm_order_message_user和 platform.orders,orders表中status是要支付成功的
+					Double serviceTotalAmount = countService.getServiceTotalAmount(sci.getSchoolId(), null, null);
+					//TODO 等服务费扩张做完之后在放开
+//					sci.setServiceTotalAmount(serviceTotalAmount);
+					//获取智慧校园卡总数 //TODO 
+					Integer cardNumber = countService.getCardNumber(sci.getSchoolId(), null, null);
+//					sci.setCardNumber(cardNumber);
+					//获取卡押金总额 
+					Double cardTotalDepositAmount = countService.getCardTotalDepositAmount(sci.getSchoolId(), null, null);
+					 //TODO 等服务费扩张做完之后在放开
+//					sci.setCardTotalDepositAmount(cardTotalDepositAmount);
+				}
+			}
+			
+		}
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("pages", pages);
+		resultMap.put("isPermission", isPermission);
+		String json = GsonHelper.toJson(resultMap);
+		try
+		{
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			logger.error("加载各学校消费统计失败,错误信息如下:"+e.getMessage());
+		}
+		
+		return null;
+	}
+	/**
+	 * 查看学校消费详情
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value="/toFinancialStatementsDetail.do")
+	public String toFinancialStatementsDetail(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("utf-8");
+		String schoolId = request.getParameter("schoolId");
+		String condition = request.getParameter("condition");
+		if (schoolId == null || "".equals(schoolId))
+		{
+			return "finance/financial_statements";
+		}else
+		{
+			String schoolName = "";
+			HashMap<String,Object> params = new HashMap<String, Object>();
+			params.put("queryContent", condition);
+			params.put("schoolId", Long.valueOf(schoolId));
+			List<Orders> list = ordersService.getFinancialStatementsDetailListBySchoolId(params);
+			if (list != null && list.size() > 0)
+			{
+				schoolName = list.get(0).getSchoolName();
+			}
+			modelMap.addAttribute("schoolName", schoolName);
+			modelMap.addAttribute("list", list);
+			modelMap.addAttribute("schoolId", schoolId);
+			modelMap.addAttribute("condition", condition);
+			return "finance/financial_statements_detail";
+		}
+		
+	}
+}

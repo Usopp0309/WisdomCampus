@@ -1,0 +1,29 @@
+package com.guotop.palmschool.system.service;
+
+import java.util.Map;
+
+import com.guotop.palmschool.system.entity.Import;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 导入记录业务类
+ * @author admin
+ *
+ */
+public interface ImportService 
+{
+	/**
+	 * 页面加载导入记录列表
+	 * @param paramMap 参数map
+	 * @return 检测导入记录/分页
+	 */
+	public Pages loadImportList(int pageSize, int page, Map<String, Object> paramMap);
+	
+	/**
+	 * 新增导入bean
+	 * @param imp 待新增的导入bean
+	 */
+	public int addImport(Import imp);
+	
+
+}

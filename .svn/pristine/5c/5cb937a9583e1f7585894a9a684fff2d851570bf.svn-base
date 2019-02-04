@@ -1,0 +1,1254 @@
+package com.guotop.palmschool.meeting.controller;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.gson.Gson;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.constant.Cons.PUSHTYPE;
+import com.guotop.palmschool.controller.BaseController;
+import com.guotop.palmschool.dormitory.entity.DormitoryAbnormalTotal;
+import com.guotop.palmschool.entity.Permission;
+import com.guotop.palmschool.entity.Place;
+import com.guotop.palmschool.entity.School;
+import com.guotop.palmschool.entity.SmsDetail;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.meeting.entity.Meeting;
+import com.guotop.palmschool.meeting.entity.MeetingDetail;
+import com.guotop.palmschool.meeting.service.MeetingDetailService;
+import com.guotop.palmschool.meeting.service.MeetingService;
+import com.guotop.palmschool.rest.entity.PushItem;
+import com.guotop.palmschool.service.OrderMessageService;
+import com.guotop.palmschool.service.PlaceService;
+import com.guotop.palmschool.service.SchoolService;
+import com.guotop.palmschool.service.SmsService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.system.entity.InformationType;
+import com.guotop.palmschool.system.service.InformationTypeService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+import common.Logger;
+
+/**
+ * 会议安排控制类
+ * 
+ * @author
+ */
+@RequestMapping("/meeting")
+@Controller
+public class MeetingController extends BaseController
+{
+	private Logger log = Logger.getLogger(MeetingController.class);
+
+	@Resource
+	private MeetingService meetingService;
+
+	@Resource
+	private MeetingDetailService meetingDetailService;
+
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private PlaceService placeService;
+
+	@Resource
+	private UserService userService;
+
+	@Resource
+	private SchoolService schoolService;
+
+	@Resource
+	private InformationTypeService informationTypeService;
+
+	@Resource
+	private SmsService smsService;
+	
+	@Resource
+	private OrderMessageService orderMessageService;
+
+	/**
+	 * 进入会议安排页面
+	 */
+	@RequestMapping(value = "/toMeetingList.do")
+	public String toMeetingList()
+	{
+		return "meeting/meeting_list";
+	}
+
+	/**
+	 * 不同权限查看到不同的page 加载会议安排list 20151208
+	 */
+	@RequestMapping(value = "/loadMeetingList.do")
+	public String loadMeetingList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			/**
+			 * 会议名称
+			 */
+			String name = request.getParameter("name");
+
+			/**
+			 * 地点
+			 */
+			String placeName = request.getParameter("placeName");
+
+			User user = (User) session.getAttribute("user");
+
+			/**
+			 * 参数map
+			 */
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("name", name);
+			paramMap.put("placeName", placeName);
+			paramMap.put("userId", user.getUserId());
+			/**
+			 * 获取分页数据
+			 */
+			this.getPages().setPageSize(50);
+
+			Pages pages = meetingService.getMeetingByRole(this.getPages().getPageSize(), currentPage, paramMap, user);
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 进入增加会议页面 20151208
+	 */
+	@RequestMapping(value = "/toAddMeeting.do")
+	public String toAddMeeting(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		User user = (User) session.getAttribute("user");
+
+		/**
+		 * 存放页面隐藏域
+		 */
+		modelMap.addAttribute("user", user);
+		modelMap.addAttribute("userId", user.getUserId());
+
+		return "meeting/meeting_add";
+	}
+
+	/**
+	 * 执行增加会议逻辑 20151208
+	 */
+	@RequestMapping(value = "/doAddMeeting.do")
+	public String doAddMeeting(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+
+		try
+		{
+			request.setCharacterEncoding("UTF-8");
+		} catch (UnsupportedEncodingException e)
+		{
+			e.printStackTrace();
+		}
+
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		User user = (User) session.getAttribute("user");
+		School school = schoolService.getSchoolInfoBySchoolId(Long.valueOf(user.getSchoolId()));
+
+		/**
+		 * 会议名称
+		 */
+		String name = request.getParameter("name");
+
+		/**
+		 * 会议地点
+		 */
+		String place = request.getParameter("place");
+
+		/**
+		 * 开始时间
+		 */
+		String startTime = request.getParameter("startTime");
+
+		/**
+		 * 结束时间
+		 */
+		String endTime = request.getParameter("endTime");
+
+		// /**
+		// * 是否发送短信提醒
+		// */
+		// boolean flag = Boolean.parseBoolean(request.getParameter("sms"));
+
+		/**
+		 * 接受前台选中教师或部门
+		 */
+		String[] receiverArr = request.getParameterValues("selectedObj");
+
+		StringBuffer person = new StringBuffer();
+		// set集合用户保存所有接收者信息
+		Set<User> setUser = new HashSet<User>();
+		for (int i = 0; i < receiverArr.length; i++)
+		{
+			person.append(receiverArr[i] + ",");
+			// 获取首字母
+			String firstChar = receiverArr[i].substring(0, 1);
+			if ("D".equals(firstChar))
+			{
+				// 获取部门ID;
+				String departmentId = receiverArr[i].substring(1);
+
+				// 接下来是通过部门ID获取该年级下所有的老师信息
+				List<User> teacherList = commonService.getTeacherDetailByDepartmentIdInSms(Integer.valueOf(departmentId));
+				for (User teacher : teacherList)
+				{
+					setUser.add(teacher);
+				}
+
+			} else if ("T".equals(firstChar))
+			{
+				// 获取接受教师ID 也就是userid
+				String teacherId = receiverArr[i].substring(1);
+				User teacher = commonService.getUserDetailByUserId(Integer.valueOf(teacherId));
+				setUser.add(teacher);
+
+			}
+		}
+
+		/**
+		 * 设置会议信息
+		 */
+		Meeting meeting = new Meeting();
+		meeting.setName(name);
+		meeting.setPlace(place);
+		meeting.setStartTime(startTime);
+		meeting.setEndTime(endTime);
+		meeting.setCreateTime(formatter.format(new Date()));
+		meeting.setPerson(person.toString());
+		meeting.setUserId(user.getUserId());
+
+		/**
+		 * 添加会议,并且返回meetingId
+		 */
+		Integer meetingId = meetingService.addMeeting(meeting);
+
+		Integer placeId = Integer.valueOf(place);
+		Place placeList = placeService.selectPlaceListById(placeId);
+		String placeName = placeList.getName();
+
+		InformationType informationType = informationTypeService.getInformationTypeByInformationType(3);
+
+		PUSHTYPE p = PUSHTYPE.MEETINGPUSH;
+
+		// 下面启用线程发送正常短息
+		final InformationType informationTypeFinal = informationType;
+		final Set<User> receiverListFinal = setUser;
+		final User userFinal = user;
+		final PUSHTYPE pushFinal = p;
+		final String meetingNameFinal = name;
+		final String placeNameFinal = placeName;
+		final School schoolFinal = school;
+		final String startTimeFinal = startTime;
+		final String endTimeFinal = endTime;
+		final String placeFinal = place;
+		final Integer meetingIdFinal = meetingId;
+
+		new Thread(new Runnable()
+		{
+			public void run()
+			{
+				try
+				{
+					User user = userFinal;
+					DBContextHolder.setDBType(user.getSchoolId());
+
+					for (User attendee : receiverListFinal)
+					{
+						try
+						{
+							// 留言详情实体类
+							MeetingDetail meetingDetail = new MeetingDetail();
+							meetingDetail.setMeetingName(meetingNameFinal);
+							meetingDetail.setAttendeeId(attendee.getUserId());
+							meetingDetail.setAttenStatus(3);
+							meetingDetail.setAttendee(attendee.getRealName());
+							meetingDetail.setMeetingTime(startTimeFinal + "至" + endTimeFinal);
+							meetingDetail.setMeetingPlace(placeFinal);
+							meetingDetail.setMeetingId(meetingIdFinal);
+							meetingDetail.setCreateTime(TimeUtil.getInstance().now());
+							meetingDetailService.addMeetingDetail(meetingDetail);
+
+							if (informationTypeFinal.getType() == 1 || informationTypeFinal.getType() == 3)// 3发短信  推送    1只发短信
+							{
+								boolean schoolHasMessage = (boolean)smsService.getSmsServiceStatus().get("schoolHasMessage");//学校是否有短信套餐
+
+								boolean isVirtualOpen  = (boolean)smsService.getSmsServiceStatus().get("isVirtualOpen");//学校虚拟套餐是否开启
+
+								boolean isSchoolSingleMsg  = (boolean)smsService.getSmsServiceStatus().get("isSchoolSingleMsg");//是否有学校单条类型套餐
+								
+								// 给被选中参会者，发送参会通知：在线信息或离线短息提醒
+								String sendContent = attendee.getRealName() + "老师您好,请您于" + startTimeFinal + "前,到学校参加“" + meetingNameFinal + "”会议，会议地点：“" + placeNameFinal + "”,请及时参加。如有问题请及时和会议组织者" + user.getRealName() + "联系。" + schoolFinal.getSchoolName();
+
+								if(schoolHasMessage)//学校有短信套餐
+								{
+									if(isVirtualOpen)//虚拟套餐开启直接发送
+									{
+										// 调用短信接口
+										boolean flag = commonService.sendSmsByDB(user.getSchoolId(), PUSHTYPE.MEETINGPUSH, attendee.getPhone(), attendee.getUserId(), sendContent, null, informationTypeFinal.getType());
+										if (flag)
+										{
+											smsService.saveSmsDetail(sendContent, attendee, attendee, 0,"3");
+										} else
+										{
+											smsService.saveSmsDetail(sendContent, attendee, attendee, 1,"3");
+										}
+									}
+									else//虚拟套餐关闭
+									{
+										if(isSchoolSingleMsg)
+										{
+											//学校条数套餐剩余条数
+											Integer remainCount = orderMessageService.getRemainCountBySchoolIdForSchoolRange(user.getSchoolId());
+											if(null != remainCount && remainCount > 0)//有条数且大于0 直接发送
+											{
+												// 调用短信接口
+												// 调用短信接口
+												boolean flag = commonService.sendSmsByDB(user.getSchoolId(), PUSHTYPE.MEETINGPUSH, attendee.getPhone(), attendee.getUserId(), sendContent, null, informationTypeFinal.getType());
+												if (flag)
+												{
+													smsService.saveSmsDetail(sendContent, attendee, attendee, 0,"3");
+												} else
+												{
+													smsService.saveSmsDetail(sendContent, attendee, attendee, 1,"3");
+												}
+												orderMessageService.updateOrderMessageSchoolById(user.getSchoolId());
+											}
+											else
+											{
+												// "1":发送失败 "2":没有缴纳服务费
+												smsService.saveSmsDetail(sendContent, attendee, attendee, 1,"2");
+											}
+										}
+										else
+										{
+											// 调用短信接口
+											// 调用短信接口
+											boolean flag = commonService.sendSmsByDB(user.getSchoolId(), PUSHTYPE.MEETINGPUSH, attendee.getPhone(), attendee.getUserId(), sendContent, null, informationTypeFinal.getType());
+											if (flag)
+											{
+												smsService.saveSmsDetail(sendContent, attendee, attendee, 0,"3");
+											} else
+											{
+												smsService.saveSmsDetail(sendContent, attendee, attendee, 1,"3");
+											}
+										}
+									}
+								}
+								else
+								{
+									// 调用短信接口
+									// 调用短信接口
+									boolean flag = commonService.sendSmsByDB(user.getSchoolId(), PUSHTYPE.MEETINGPUSH, attendee.getPhone(), attendee.getUserId(), sendContent, null, informationTypeFinal.getType());
+									if (flag)
+									{
+										smsService.saveSmsDetail(sendContent, attendee, attendee, 0,"3");
+									} else
+									{
+										smsService.saveSmsDetail(sendContent, attendee, attendee, 1,"3");
+									}
+								}
+								
+								
+							} else if (informationTypeFinal.getType() == 2)// 只推送
+							{
+
+								// 给被选中参会者，发送参会通知：在线信息或离线短息提醒
+								String sendContent = attendee.getRealName() + "老师您好,请您于" + startTimeFinal + "前,到学校参加“" + meetingNameFinal + "”会议，会议地点：“" + placeNameFinal + "”,请及时参加。如有问题请及时和会议组织者" + user.getRealName() + "联系。" + schoolFinal.getSchoolName();
+
+								// 推送手机端消息
+								List<PushItem> list = new ArrayList<PushItem>();
+								PushItem pi = new PushItem();
+								pi.title = pushFinal.getName();
+								pi.PushContent = sendContent;
+								pi.PushType = pushFinal.getType();
+								pi.PushContentType = pushFinal.getContentType();
+								String channelId = attendee.getBaiduChannelId();
+								Integer deviceType = attendee.getDeviceType();
+								if (!StringUtil.isEmpty(channelId) && deviceType != null && deviceType != 0)
+								{
+									pi.channels = channelId;
+									pi.deviceType = String.valueOf(deviceType);
+								}
+								pi.receiverId = attendee.getUserId();
+								pi.schoolId = user.getSchoolId();
+								list.add(pi);
+
+								commonService.pushMsg(list, false);
+							}
+
+						} catch (Exception e)
+						{
+							log.error("发送短信失败,找不到对应接受人：" + attendee.getUserId() + "/r/n"+ e);
+						}
+
+					}
+
+				} catch (Exception e)
+				{
+					log.error("发送短信失败,找不到对应的学校！" + e);
+				}
+			}
+		}).start();
+
+		/**
+		 * 遍历所有接受留言的人，并保存到数据库
+		 */
+
+		return "meeting/meeting_list";
+	}
+
+	/**
+	 * 进入编辑会议页面 20151208
+	 */
+	@RequestMapping(value = "/toEditMeeting.do")
+	public String toEditMeeting(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		User user = (User) session.getAttribute("user");
+
+		/**
+		 * 会议的id
+		 */
+		Integer meetingId = Integer.valueOf(request.getParameter("meetingId"));
+
+		Meeting meeting = meetingService.selectMeetingByMeetingId(meetingId);
+
+		/**
+		 * 存放页面隐藏域
+		 */
+		modelMap.addAttribute("user", user);
+		modelMap.addAttribute("meeting", meeting);
+		modelMap.put("meetingId", meetingId);
+		return "meeting/meeting_edit";
+	}
+
+	/**
+	 * 执行编辑逻辑 20151208
+	 */
+	@RequestMapping(value = "/doEditMeeting.do")
+	public String doEditMeeting(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+
+		/**
+		 * 会议ID
+		 */
+		Integer meetingId = Integer.valueOf(request.getParameter("meetingId"));
+
+		/**
+		 * 会议内容
+		 */
+		String content = request.getParameter("content");
+
+		/**
+		 * 备注
+		 */
+		String remark = request.getParameter("remark");
+
+		/**
+		 * 设置会议信息
+		 */
+		Meeting meeting = new Meeting();
+		meeting.setId(meetingId);
+		meeting.setContent(content);
+		meeting.setRemark(remark);
+
+		/**
+		 * 修改会议
+		 */
+		meetingService.editMeeting(meeting);
+
+		List<MeetingDetail> meetingDetails = meetingDetailService.selectMeetingDetailByMeetingId(meetingId);
+		/**
+		 * 遍历所有接受留言的人，并保存到数据库
+		 */
+		for (MeetingDetail meetingDetail : meetingDetails)
+		{
+			// 留言详情实体类
+			meetingDetail.setContent(content);
+			meetingDetail.setMeetingId(meetingId);
+
+			meetingDetailService.updateMeetingDetail(meetingDetail);
+		}
+
+		return "meeting/meeting_list";
+	}
+
+	/**
+	 * 进入会议详情页面 20151208
+	 */
+	@RequestMapping(value = "/toDetailMeeting.do")
+	public String toDetailMeeting(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		User user = (User) session.getAttribute("user");
+
+		/**
+		 * 会议的id
+		 */
+		Integer meetingId = Integer.valueOf(request.getParameter("meetingId"));
+
+		Meeting meeting = meetingService.selectMeetingByMeetingId(meetingId);
+
+		/**
+		 * 存放页面隐藏域
+		 */
+		modelMap.addAttribute("user", user);
+		modelMap.addAttribute("meeting", meeting);
+		modelMap.addAttribute("meetingId", meetingId);
+
+		return "meeting/meeting_detail_list";
+	}
+
+	/**
+	 * 加载会议详情页面 20151208
+	 */
+	@RequestMapping(value = "/loadMeetingDetail.do")
+	public String loadMeetingDetailList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			User user = (User) session.getAttribute("user");
+
+			/**
+			 * 会议的id
+			 */
+			Integer meetingId = Integer.valueOf(request.getParameter("meetingId"));
+
+			/**
+			 * 查询条件
+			 */
+			String attenStatus = request.getParameter("attenStatus");
+
+			/**
+			 * 查询条件
+			 */
+			String queryContent = request.getParameter("queryContent");
+
+			/**
+			 * 参数map
+			 */
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("meetingId", meetingId);
+			paramMap.put("attenStatus", attenStatus);
+			paramMap.put("queryContent", queryContent);
+
+			/**
+			 * 获取分页数据
+			 */
+			this.getPages().setPageSize(50);
+
+			Pages pages = meetingDetailService.getMeetingDetailByMeetingId(this.getPages().getPageSize(), currentPage, paramMap, user);
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 进入修改会议页面
+	 */
+	@RequestMapping(value = "/toModifyMeeting.do")
+	public String toModifyMeeting(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+
+		/**
+		 * 会议的id
+		 */
+		Integer meetingId = Integer.valueOf(request.getParameter("meetingId"));
+
+		Meeting meeting = meetingService.selectMeetingByMeetingId(meetingId);
+		User user = (User) session.getAttribute("user");
+
+		/**
+		 * 存放页面隐藏域
+		 */
+		modelMap.addAttribute("user", user);
+		modelMap.addAttribute("meeting", meeting);
+		modelMap.addAttribute("schoolId", user.getSchoolId());
+		modelMap.put("meetingId", meetingId);
+		return "meeting/meeting_modify";
+	}
+
+	/**
+	 * 执行修改逻辑
+	 */
+	@RequestMapping(value = "/doModifyMeeting.do")
+	public String doModifyMeeting(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		/**
+		 * 会议ID
+		 */
+		Integer meetingId = Integer.valueOf(request.getParameter("meetingId"));
+
+		/**
+		 * 会议名称
+		 */
+		String name = request.getParameter("name");
+
+		/**
+		 * 会议地点
+		 */
+		String place = request.getParameter("place");
+
+		/**
+		 * 开始时间
+		 */
+		String startTime = request.getParameter("startTime");
+
+		/**
+		 * 结束时间
+		 */
+		String endTime = request.getParameter("endTime");
+
+		/**
+		 * 会议内容
+		 */
+		String content = request.getParameter("content");
+
+		/**
+		 * 备注
+		 */
+		String remark = request.getParameter("remark");
+
+		/**
+		 * 接受前台选中教师或年级
+		 */
+		String[] receiverArr = request.getParameterValues("selectedObj");
+
+		StringBuffer person = new StringBuffer();
+		// set集合用户保存所有接收者信息
+		Set<User> set = new HashSet<User>();
+		for (int i = 0; i < receiverArr.length; i++)
+		{
+			// 获取首字母
+			String firstChar = receiverArr[i].substring(0, 1);
+			if ("D".equals(firstChar))
+			{
+				// 获取部门ID;
+				String departmentId = receiverArr[i].substring(1);
+
+				// 接下来是通过部门ID获取该年级下所有的老师信息
+				List<User> teacherList = commonService.getTeacherDetailByDepartmentIdInSms(Integer.valueOf(departmentId));
+				for (User teacher : teacherList)
+				{
+					set.add(teacher);
+				}
+
+			} else if ("T".equals(firstChar))
+			{
+				// 获取接受教师ID 也就是userid
+				String teacherId = receiverArr[i].substring(1);
+				User teacher = commonService.getUserDetailByUserId(Integer.valueOf(teacherId));
+				set.add(teacher);
+
+			}
+		}
+
+		ArrayList<User> receiverList = new ArrayList<User>();
+		receiverList.addAll(set);
+
+		/**
+		 * 设置会议信息
+		 */
+		Meeting meeting = new Meeting();
+		meeting.setId(meetingId);
+		meeting.setName(name);
+		meeting.setPlace(place);
+		meeting.setStartTime(startTime);
+		meeting.setEndTime(endTime);
+		meeting.setContent(content);
+		meeting.setRemark(remark);
+		meeting.setCreateTime(formatter.format(new Date()));
+		meeting.setPerson(person.toString());
+
+		/**
+		 * 修改会议
+		 */
+		meetingService.updatedMeeting(meeting);
+
+		meetingDetailService.deleteMeetingDetail(meetingId);
+
+		/**
+		 * 遍历所有接受留言的人，并保存到数据库
+		 */
+		for (User attendee : set)
+		{
+			// 留言详情实体类
+			MeetingDetail meetingDetail = new MeetingDetail();
+			meetingDetail.setMeetingName(name);
+			meetingDetail.setContent(content);
+			meetingDetail.setAttendeeId(attendee.getId());
+			meetingDetail.setAttendee(attendee.getName());
+			meetingDetail.setMeetingTime(startTime + "至" + endTime);
+			meetingDetail.setMeetingPlace(place);
+			meetingDetail.setMeetingId(meetingId);
+			meetingDetail.setCreateTime(formatter.format(new Date()));
+
+			meetingDetailService.addMeetingDetail(meetingDetail);
+
+		}
+
+		return "meeting/meeting_list";
+	}
+
+	/**
+	 * 根据positionType查找会议id 用于添加会议时加载会议地点 20151207
+	 * 
+	 */
+	@RequestMapping(value = "/getMeetingPlaceListByPositionType.do")
+	public String getMeetingPlaceListByPositionType(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		String type = Cons.POSITIONTYPE_MEETING;
+
+		List<Place> placeList = placeService.getMeetingPlaceListByType(type);
+		try
+		{
+			Gson gson = new Gson();
+			String json = gson.toJson(placeList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 根据会议的id查找会议
+	 */
+	@RequestMapping(value = "/selectMeetingdetail.do")
+	public String selectMeetingdetail(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		Integer meetingId = Integer.valueOf(request.getParameter("meetingId"));
+
+		Meeting meetingdetail = meetingService.selectMeetingByMeetingId(meetingId);
+
+		// modelMap.put("Meetingdetail", Meetingdetail);
+
+		try
+		{
+			Gson gson = new Gson();
+			String json = gson.toJson(meetingdetail);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 根据会persionId查找会议参加人员
+	 */
+	@RequestMapping(value = "/selectMeetingPersonListByPersonId.do")
+	public String selectMeetingPersonListByPersonId(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		Integer meetingId = Integer.valueOf(request.getParameter("meetingId"));
+
+		Meeting meeting = meetingService.selectMeetingByMeetingId(meetingId);
+
+		String person = meeting.getPerson();
+
+		if (StringUtil.isEmpty(person))
+		{
+			return null;
+		}
+
+		String[] persons = person.split(",");
+
+		List<Meeting> list = new ArrayList<Meeting>();
+
+		for (String s : persons)
+		{
+			Meeting teachers = null;
+			if (s.startsWith("G"))
+			{ // Gn 某年级 (效果同AGn)
+				int gradeId = StringUtil.toint(s.substring(1));
+				if (gradeId > 0)
+				{
+					teachers = meetingService.selectGradeById(gradeId);
+					list.add((Meeting) teachers);
+				}
+				continue;
+			}
+
+			if (s.startsWith("T"))
+			{ // Tn 某教师
+				int teacherId = StringUtil.toint(s.substring(1));
+				if (teacherId > 0)
+				{
+					teachers = meetingService.selectTeacherById(teacherId);
+					list.add((Meeting) teachers);
+				}
+				continue;
+			}
+
+		}
+
+		try
+		{
+			Gson gson = new Gson();
+			String json = gson.toJson(list);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 进入会议报表页面
+	 */
+	@RequestMapping(value = "/toMeetingReport.do")
+	public String toMeetingReport()
+	{
+		return "meeting/meeting_report";
+	}
+
+	/**
+	 * 加载报表统计总数据
+	 */
+	@RequestMapping(value = "/loadWholeData.do")
+	public String loadWholeData(HttpServletResponse response)
+	{
+		try
+		{
+			DormitoryAbnormalTotal DormitoryAbnormalTotal = new DormitoryAbnormalTotal();
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(DormitoryAbnormalTotal);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/* 手机端 begin */
+
+	@RequestMapping(value = "/toMeetingListByHuxinId.do")
+	public String toMeetingListByHuxinId(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		modelMap.addAttribute("apiKey", apiKey);
+		modelMap.addAttribute("schoolId", schoolId);
+		User user = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+
+		if (user == null)
+		{
+			user = (User) session.getAttribute("user");
+
+			if (user != null)
+			{
+
+				modelMap.addAttribute("apiKeyTimeOut", "2");
+			} else
+			{
+				modelMap.addAttribute("apiKeyTimeOut", "1");
+				return "app/meeting/meeting_list_app";
+			}
+		} else
+		{
+
+			modelMap.addAttribute("apiKeyTimeOut", "2");
+		}
+
+		/*
+		 * 存session
+		 */
+		session.setAttribute("user", user);
+		DBContextHolder.setDBType(user.getSchoolId());
+
+		String path = null;
+
+		List<Permission> permissionList = user.getPermissionList();
+		for (Permission permission : permissionList)
+		{
+			if ("meetingArrangementManager".equals(permission.getPermissionCode()) || "admin".equals(permission.getPermissionCode()))
+			{
+				path = "app/meeting/meeting_list_app";
+				break;
+			}
+		}
+
+		/**
+		 * 分页信息
+		 */
+		Integer currentPage = 1;
+
+		try
+		{
+			currentPage = Integer.valueOf(request.getParameter("cPage"));
+		} catch (Exception e)
+		{
+			currentPage = 1;
+		}
+
+		/**
+		 * 会议名称、地点
+		 */
+		String queryContent = request.getParameter("queryContent");
+
+		/**
+		 * 参数map
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("queryContent", queryContent);
+		paramMap.put("userId", user.getUserId());
+
+		/**
+		 * 获取分页数据
+		 */
+		this.getPages().setPageSize(20);
+
+		List<Meeting> meetingList = meetingService.getMeetingByRoleAPP(this.getPages().getPageSize(), currentPage, paramMap, user);
+
+		currentPage = currentPage + 1;
+		modelMap.addAttribute("roleList", user.getRoleList());
+		modelMap.addAttribute("roleListSize", user.getRoleList().size());
+		modelMap.addAttribute("meetingList", meetingList);
+		modelMap.addAttribute("listSize", meetingList.size());
+		modelMap.addAttribute("cPage", currentPage);
+		modelMap.addAttribute("queryContent", queryContent);
+
+		return path;
+	}
+
+	/**
+	 * 加载更多List
+	 */
+	@RequestMapping(value = "/loadMoreMeetingListAPP.do")
+	public String loadMoreMeetingInoutListAPP(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		/**
+		 * 参数map
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			// 查询内容
+			String queryContent = null;
+
+			try
+			{
+				queryContent = request.getParameter("queryContent");
+			} catch (Exception e)
+			{
+				queryContent = null;
+			}
+
+			User user = (User) session.getAttribute("user");
+
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("queryContent", queryContent);
+
+			/**
+			 * 获取分页数据
+			 */
+			List<Meeting> list = meetingService.getMeetingByRoleAPP(this.getPages().getPageSize(), currentPage, paramMap, user);
+
+			currentPage = currentPage + 1;
+
+			modelMap.addAttribute("schoolId", schoolId);
+			modelMap.addAttribute("apiKey", apiKey);
+			modelMap.addAttribute("cPage", currentPage);
+			modelMap.addAttribute("queryContent", queryContent);
+			modelMap.addAttribute("meetingList", list);
+			modelMap.addAttribute("listSize", list.size());
+
+			Gson gson = new Gson();
+			String json = gson.toJson(modelMap);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@RequestMapping(value = "/toMeetingDetail.do")
+	public String toMeetingDetail(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			User user = (User) session.getAttribute("user");
+
+			/**
+			 * 会议的id
+			 */
+			Integer meetingId = Integer.valueOf(request.getParameter("meetingId"));
+
+			/**
+			 * 查询条件
+			 */
+			String attenStatus = request.getParameter("attenStatus");
+
+			/**
+			 * 查询条件
+			 */
+			String queryContent = request.getParameter("queryContent");
+
+			/**
+			 * 参数map
+			 */
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("meetingId", meetingId);
+			paramMap.put("attenStatus", attenStatus);
+			paramMap.put("queryContent", queryContent);
+
+			/**
+			 * 获取分页数据
+			 */
+			this.getPages().setPageSize(20);
+
+			List<MeetingDetail> list = meetingDetailService.getMeetingDetailByMeetingIdAPP(this.getPages().getPageSize(), currentPage, paramMap, user);
+
+			currentPage = currentPage + 1;
+			modelMap.addAttribute("meetingList", list);
+			modelMap.addAttribute("listSize", list.size());
+			modelMap.addAttribute("cPage", currentPage);
+			modelMap.addAttribute("queryContent", queryContent);
+			modelMap.addAttribute("meetingId", meetingId);
+			modelMap.addAttribute("attenStatus", attenStatus);
+			modelMap.addAttribute("schoolId", schoolId);
+			modelMap.addAttribute("apiKey", apiKey);
+
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return "app/meeting/meeting_detail_list_app";
+	}
+
+	/**
+	 * 加载更多会议详情列表
+	 */
+	@RequestMapping(value = "/loadMoreMeetingDetailListAPP.do")
+	public String loadMoreMeetingDetailListAPP(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			User user = (User) session.getAttribute("user");
+
+			/**
+			 * 会议的id
+			 */
+			Integer meetingId = Integer.valueOf(request.getParameter("meetingId"));
+
+			/**
+			 * 查询条件
+			 */
+			String attenStatus = request.getParameter("attenStatus");
+
+			/**
+			 * 查询条件
+			 */
+			String queryContent = request.getParameter("queryContent");
+
+			/**
+			 * 参数map
+			 */
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("meetingId", meetingId);
+			paramMap.put("attenStatus", attenStatus);
+			paramMap.put("queryContent", queryContent);
+
+			/**
+			 * 获取分页数据
+			 */
+			this.getPages().setPageSize(20);
+
+			List<MeetingDetail> list = meetingDetailService.getMeetingDetailByMeetingIdAPP(this.getPages().getPageSize(), currentPage, paramMap, user);
+
+			currentPage = currentPage + 1;
+			modelMap.addAttribute("meetingList", list);
+			modelMap.addAttribute("listSize", list.size());
+			modelMap.addAttribute("cPage", currentPage);
+			modelMap.addAttribute("queryContent", queryContent);
+			modelMap.addAttribute("meetingId", meetingId);
+			modelMap.addAttribute("attenStatus", attenStatus);
+
+			Gson gson = new Gson();
+			String json = gson.toJson(modelMap);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 进入会议详情搜索页面
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/toMeetingDetailSearch.do")
+	public String toDormitoryAbnormalSearchAPP(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		String meetingId = request.getParameter("meetingId");
+
+		modelMap.addAttribute("apiKey", apiKey);
+		modelMap.addAttribute("schoolId", schoolId);
+		modelMap.addAttribute("meetingId", StringUtil.toint(meetingId));
+
+		return "app/meeting/meeting_detail_list_search_app";
+	}
+}

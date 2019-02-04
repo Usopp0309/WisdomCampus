@@ -1,0 +1,156 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<head>
+	<title>会议记录</title>
+  	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+	<!--公共css开始-->
+	<%@ include file="/public_module/app_public_css.jsp"%>
+	<!--公共css结束--> 
+</head>
+
+<body id="body">
+
+	<div class="app_head">
+		<i class="m_icon-return icon_left" onclick="window.richbook.onFinish();"></i>会议记录
+	</div>
+	
+	<c:if test="${listSize == 0}">
+		<div class="null_con">
+			<img src="<%=basePath%>media/image_m/null.png">
+		</div>
+	</c:if>
+	
+	<c:if test="${listSize > 0}">
+	
+		<form action="<%=basePath%>meetingDetail/toMeetingDetailListByHuxinId.do" id="submitForm"  class="form-horizontal" method="post">
+		<ul class="inout_list">
+			<div class="p_search">
+				<input type="text" name="queryContent" pattern="会议名称、地点"> 
+					<i id="top_search" class="m_icon-search"></i>
+			</div>
+			
+			<c:forEach items="${meetingList}" var="m">
+			        <li>
+			        	<c:if test="${m.attenStatus == 0}">
+				           <em class="Push">正</em>
+				        </c:if>
+				        <c:if test="${m.attenStatus == 1}">
+				           <em class="late">迟</em>
+				        </c:if>
+				        <c:if test="${m.attenStatus == 3}">
+				           <em class="Leave">缺</em>
+				        </c:if>
+				        <c:if test="${m.attenStatus != 0 && m.attenStatus != 1 && m.attenStatus != 3}">
+				           <em class="Push">正</em>
+				        </c:if>
+				        <p class="top_p">
+				        	<span class="span_left">${m.meetingName}</span>
+				        	<span class="span_right">${m.meetingPlaceName}</span>
+				        </p>
+				        <p>
+					       	${m.meetingTime}
+				        </p>
+			        </li>
+			    </c:forEach>
+			    
+		</ul>
+		
+	  	<c:if test="${listSize >19}">
+			<a href="#" id="op_all_save" class="op_all_save" onclick="loadMoreList()">查看更多</a>
+		</c:if>
+		</form>
+	</c:if>
+	
+	<input type="hidden" id="cPage" name="cPage" value="${cPage}">
+	<input type="hidden" id="apiKey" name="apiKey" value="${apiKey}">
+	<input type="hidden" id="schoolId" name="schoolId" value="${schoolId}">
+	<input type="hidden" id="queryContent" name="queryContent" value="${queryContent}">
+	<input type="hidden" id="apiKeyTimeOut" value="${apiKeyTimeOut}">
+
+
+	</body>
+	<!--公共js开始-->
+	<%@ include file="/public_module/app_public_js.jsp"%>
+	<!--公共js结束-->  
+	
+	<script type="text/javascript">
+		$(function(){
+			$("#top_search").on("click",function(){
+				$("#cPage").val(1);
+				$("#submitForm").submit();
+			})
+
+			var timeOut = $("#apiKeyTimeOut").val();
+			if(timeOut == '1')
+			{
+				alert("您的apiKey已过期,您的账户可能被别人登陆，请修改密码或重新登陆");
+			}
+		})
+		
+		function loadMoreList()
+		{
+			var apiKey = $("#apiKey").val();
+			var schoolId = $("#schoolId").val();
+			var queryContent = $("#queryContent").val();
+			var cPage = $("#cPage").val();
+			
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>meetingDetail/loadMoreMeetingDetailAPP.do",
+				data:{
+						apiKey : apiKey,
+						schoolId : schoolId,
+						queryContent : queryContent,
+						cPage : cPage
+				},
+				success: function(data){
+					var data = eval("(" + data + ")");
+					
+	   				$("#queryContent").val(data.queryContent);
+	   				$("#cPage").val(data.cPage);
+	
+	   				var listSize = data.listSize;
+	   				if(listSize < 19)
+	   	   			{
+	   					$("#op_all_save").hide();
+	   	   	   		}
+					var appendHtml = '';
+					
+					$.each(data.meetingList, function(n, value) { 
+	
+						appendHtml += '<li>';
+						var status = value.attenStatus;
+				        if(status == 0)
+				        {
+			        		appendHtml += '<em class="Push">正</em>';
+			        	}else if(status == 1)
+				        {
+		        			appendHtml += '<em class="late">迟</em>';
+				        }else if(status == 3)
+				        {
+			        		appendHtml += '<em class="Leave">缺</em>';
+				        }else
+				        {
+			        		appendHtml += '<em class="Push">正</em>';
+				        }
+				        appendHtml += '<p class="top_p">';
+				        appendHtml += '<span class="span_left">'+value.meetingName+'</span>';
+				        appendHtml += '<span class="span_right">'+value.meetingPlaceName+'</span>';
+				        appendHtml += '</p>';
+				        appendHtml += '<p>'+value.meetingTime+'</p>';
+	       				appendHtml += '</li>';
+	      			}); 
+	      			
+	      			$(".inout_list").append(appendHtml);
+				},
+			});
+		}
+		
+	</script>
+
+
+
+
+</html>

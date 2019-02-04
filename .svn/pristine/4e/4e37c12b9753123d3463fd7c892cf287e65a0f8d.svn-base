@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="DeviceMonitor">
+
+    <typeAlias alias="deviceMonitor" type="com.guotop.palmschool.entity.DeviceMonitor"/>
+    
+
+	<!--服务重启时修改设备信息（用于实时查看设备是否处于工作状态）  -->
+	<update id="updateDevice" parameterClass="HashMap">
+		 update palm_device_monitor
+		    set threadId = null
+	</update>
+	
+	<!--设备连接时修改设备信息（用于实时查看设备是否处于工作状态）  -->
+	<update id="updateDeviceConnection" parameterClass="HashMap">
+		 update palm_device_monitor
+		    set status = #status#,
+		    	createTime = #createTime#,
+		        threadId = #threadId#
+		    where code = #deviceCode#    
+		    
+	</update>
+	
+	<insert id="addDeviceMonitor" parameterClass="deviceMonitor">
+	     insert into palm_device_monitor
+		(
+			code,
+			createTime,
+			status
+		)
+		values
+		(
+			#code#,
+			#createTime#,
+			#status#
+		)
+	</insert>
+	
+	<!--设备断开时修改设备信息（用于实时查看设备是否处于工作状态）  -->
+	<update id="updateDeviceDisconnect" parameterClass="HashMap">
+		 update palm_device_monitor
+		    set status = 2,
+		    	createTime = #createTime#,
+		        threadId = null
+		    where threadId = #threadId#
+	</update>
+	
+		
+	<!-- 查询设备工作状态 -->
+	<select id="selectDeviceMonitorList"  resultClass="deviceMonitor">
+	    
+<!-- 	 SELECT * FROM palm_device_monitor where 1=1 -->
+	    SELECT  code,status,threadId, DATE_FORMAT(createTime,"%Y-%m-%d %T") createTime,
+	            CONCAT(
+						CONVERT(TIMESTAMPDIFF(DAY,createTime, NOW()),char),'天',
+						CONVERT(MOD( TIMESTAMPDIFF(HOUR,createTime, NOW()),24),char),'小时',
+						CONVERT(MOD( TIMESTAMPDIFF(MINUTE,createTime, NOW()),60),char),'分'
+					 ) time FROM palm_device_monitor
+					 
+			where 1=1
+			
+           <isNotEmpty property="type">
+	             <!-- 开 -->
+				<isEqual property="type" compareValue="1">
+					 and status = 1
+				</isEqual>
+				 <!-- 关闭 -->
+				<isEqual property="type" compareValue="2">
+					and status = 2
+				</isEqual>
+				<!-- 全部  -->
+				<isEqual property="type" compareValue="0">
+					and status in (1,2)
+				</isEqual>
+		    </isNotEmpty>
+		     
+		    <isNotEmpty  property="queryContent">
+				and code  LIKE CONCAT('%',#queryContent#,'%')
+			</isNotEmpty>  
+		   
+	</select>
+	
+	<!--根据deviceCode删除device_school表 -->
+	<delete id="deleteDeviceByCode" parameterClass="String">
+		 delete from palm_device_monitor where code = #code#
+	</delete>
+	
+</sqlMap>

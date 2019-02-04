@@ -1,0 +1,47 @@
+package com.guotop.palmschool.replacerecharge.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.replacerecharge.service.ReplaceRechargeService;
+import com.guotop.palmschool.service.BaseService;
+
+/**
+ *  代充短息套餐业务实现类
+ *
+ */
+@Service("replaceRechargeService")
+public class ReplaceRechargeServiceImpl extends BaseService implements ReplaceRechargeService
+{
+
+	/**
+	 * 根据角色 和userId 查询对应班级的学生和家长信息（班主任、家长）
+	 * @param userId
+	 * @param roleCode
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> loadStudentByClazzId(Integer userId,String roleCode,String content,String permissionCode)
+	{
+		Map<String,Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("userId", userId);
+		paramMap.put("content", content);
+		List<User> userList = new ArrayList<User>();
+		if("parent".equals(roleCode))
+		{
+			userList = getBaseDao().selectListByObject("OrderMessage.getStudentListForParent", paramMap);
+		}
+		else
+		{
+			paramMap.put("permissionCode", permissionCode);
+			userList = getBaseDao().selectListByObject("OrderMessage.getStudentListForClassLeader", paramMap);
+		}
+		return userList;
+	}
+	
+}

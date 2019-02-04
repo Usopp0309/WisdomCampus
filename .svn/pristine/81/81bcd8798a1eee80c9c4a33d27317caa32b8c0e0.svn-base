@@ -1,0 +1,129 @@
+package com.guotop.palmschool.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.guotop.palmschool.entity.OrderMessage;
+import com.guotop.palmschool.entity.OrderMessageSchool;
+import com.guotop.palmschool.entity.OrderMessageUser;
+import com.guotop.palmschool.util.Pages;
+
+
+/**
+ * 设备业务类接口
+ *
+ */
+public interface OrderMessageService 
+{
+	
+	/**
+	 * 加载所有短信套餐List 分页
+	 * @param pageSize
+	 * @param currentPage
+	 * @param paramMap
+	 * @return
+	 */
+	public Pages getAllMessageList(int pageSize, int page, Map<String,Object> paramMap);
+	
+	/**
+	 * 获取短信套餐(不管套餐状态，因为套餐状态仅仅是用于是否能够在购买页面显示)
+	 */
+	public List<OrderMessage>  getProduct();
+	
+	/**
+	 * 根据用户Id获取对应的电话号码
+	 */
+	public String  getUserPhoneByUserId(Integer userId);
+	
+	/**
+	 * 根据状态获取短信套餐list
+	 * @param status 0:是 1:否
+	 * @param rangeObject 套餐范围0:学校,1:个人
+	 * @return
+	 */
+	public List<OrderMessage> getMessageListByStatus(int status,int rangeObject);
+	
+	/**
+	 * 根据id查找短信套餐
+	 */
+	public OrderMessage getMessageById(int id);
+	
+	/**
+	 * 根据userId和状态查找用户套餐使用情况
+	 * @param paramMap
+	 * @return
+	 */
+	public OrderMessageUser getOrderMessageUserByUserId(Map<String,Object> paramMap);
+	/**
+	 * 获得短信套餐表的数量
+	  @author chenyong
+	  @date 2016年10月9日 下午5:37:34
+	 * @return
+	 */
+	public Integer getPalmOrderMessageCount();
+	/**
+	 * 获得购买服务的学生人数
+	  @author chenyong
+	  @date 2016年10月10日 上午11:20:51
+	 * @return
+	 */
+	public Integer getOrderMessgeYesOrNo();
+	
+	/**
+	 * 增加短信套餐
+	 * @param orderMessage
+	 */
+	public void addOrderMessage(OrderMessage orderMessage);
+	
+	/**
+	 * 根据id修改短信套餐
+	 * @param orderMessage
+	 */
+	public void modifyMessageById(OrderMessage orderMessage);
+	
+	/**
+	 * 更新服务费状态
+	 */
+	public void updateVirtualMessage(String status);
+	
+	/**
+	 * 获取虚拟服务费状态
+	 */
+	public String getVirtualMessageStatus();
+	
+	
+	/**
+	 * 删除短信套餐
+	 * @param id
+	 */
+	public void deleteMessageById();
+	
+	/**
+	 * 在学校的短信套餐学校信息表里插入对应的用户信息
+	 */
+	public void saveOrderMessageSchool(OrderMessageSchool orderMessageSchool);
+	
+	/**
+	 * 修改学校的短信套餐学校信息表的中的状态为可用状态
+	 */
+	public void updateOrderMessageSchoolByOrederId(Integer orderId);
+	
+	/**
+	 * 查询出购买学校范围的条数套餐余量
+	 * @return
+	 */
+	public Integer getRemainCountBySchoolIdForSchoolRange(String schoolId);
+	
+	/**
+	 * 更新学校剩余条数
+	 * @param schoolId
+	 */
+	public void updateOrderMessageSchoolById(String schoolId);
+	
+	/**
+	 * 获取学校购买的条数套餐
+	 * @param schoolId
+	 * @return
+	 */
+	public List<OrderMessageSchool> getOrderMessageSchoolBySchoolId(String schoolId);
+}

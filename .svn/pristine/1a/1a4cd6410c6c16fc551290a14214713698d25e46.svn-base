@@ -1,0 +1,127 @@
+package com.guotop.palmschool.bluetooth.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.bluetooth.entity.BluetoothData;
+import com.guotop.palmschool.bluetooth.service.BluetoothDataService;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.util.Pages;
+
+@Service("bluetoothDataService")
+public class BluetoothDataServiceImpl extends BaseService implements BluetoothDataService {
+	
+	@Override
+	public void insertBathBluetoothData(List<BluetoothData> BluetoothDatas) {
+
+		this.getBaseDao().addObject("BluetoothData.insertBathBluetoothData", BluetoothDatas);
+	}
+
+	@Override
+	public void insertBluetoothData(BluetoothData BluetoothData) {
+
+		this.getBaseDao().addObject("BluetoothData.insertBluetoothData", BluetoothData);
+	}
+
+	@Override
+	public Pages<BluetoothData> getPageBluetoothData(int page, int pageSize, Map<String, Object> paramMap) {
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		int currentPage = Pages.countCurrentPage(page);
+		int allRow = 0;
+		// 解决ibatis框架的分页问题
+		// 起始数据坐标
+		paramMap.put("startIndex", offset);
+		// 单页数据量
+		paramMap.put("length", length);
+		allRow = (Integer) getBaseDao().selectObjectByObject("BluetoothData.getPageBluetoothDataCount", paramMap);
+		int totalPage = Pages.countTotalPage(pageSize, allRow);
+		Pages<BluetoothData> pages = new Pages<>();
+		pages.setPageSize(pageSize);
+		@SuppressWarnings("unchecked")
+		List<BluetoothData> list = this.getBaseDao().selectListByObject("BluetoothData.getPageBluetoothData", paramMap);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage) {
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+	/**
+	 * 获得指定学生的蓝牙手环数据
+	 * @author chenyong
+	 * @Time 2017年5月2日 下午1:40:02
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<BluetoothData> getStuDataByDate(Map<String, Object> map) {
+		
+		return this.getBaseDao().selectListByObject("BluetoothData.getStuDataByDate", map);
+	}
+	/**
+	 * 获得不同角色看到的数据
+	 * @author chenyong
+	 * @Time 2017年5月8日 上午9:43:29
+	 */
+	@Override
+	public Pages<BluetoothData> getPageStatisticsBluetoothData(int page, int pageSize, Map<String, Object> paramMap) {
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		int currentPage = Pages.countCurrentPage(page);
+		int allRow = 0;
+		// 解决ibatis框架的分页问题
+		// 起始数据坐标
+		paramMap.put("startIndex", offset);
+		// 单页数据量
+		paramMap.put("length", length);
+		allRow = (Integer) getBaseDao().selectObjectByObject("BluetoothData.getStatisticsBluetoothDataCount", paramMap);
+		int totalPage = Pages.countTotalPage(pageSize, allRow);
+		Pages<BluetoothData> pages = new Pages<>();
+		pages.setPageSize(pageSize);
+		@SuppressWarnings("unchecked")
+		List<BluetoothData> list = this.getBaseDao().selectListByObject("BluetoothData.getStatisticsBluetoothData", paramMap);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage) {
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+	/**
+	 * 一个学生的一次课程的蓝牙数据
+	 * @author chenyong
+	 * @Time 2017年5月8日 下午2:41:15
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<BluetoothData> getBluetoothDataByUserIdTimeId(Map<String,Object> map) {
+		
+		return this.getBaseDao().selectListByObject("BluetoothData.getBluetoothDataByUserIdTimeId", map);
+	}
+	/**
+	 * 根据课程时间获得不同的数据 
+	 * @author chenyong
+	 * @Time 2017年5月8日 下午2:42:25
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<BluetoothData> getGroupBluetoothDataByTimeId(Integer bluetoothCourseTimeId) {
+		
+		return this.getBaseDao().selectListByObject("BluetoothData.getGroupBluetoothDataByTimeId", bluetoothCourseTimeId);
+	}
+}

@@ -1,0 +1,43 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<head>
+	<title>会议记录</title>
+  	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+	<!--公共css开始-->
+	<%@ include file="/public_module/app_public_css.jsp"%>
+	<!--公共css结束--> 
+</head>
+<body id="body">
+
+	<div class="app_head">
+		<i class="m_icon-return icon_left"></i>会议记录
+		
+									
+		
+		
+	</div>
+	<div class="detail">
+		<span>会议名称</span>
+		<p>周前会议，工作安排</p>
+		<span>会议内容</span>
+		<p>周前会议，工作安排周前会议，工作安排周前会议，工作安排周前会议，工作安排周前会议，工作安排周前会议，工作安排周前会议，工作安排周前会议，工作安排周前会议，工作安排 </p>
+		<span>会议时间</span>
+		<p>2015-12-30 15:30</p>
+		<span>会议地点</span>
+		<p>会议室</p>
+		<span>会议状态</span>
+		<p>已结束</p>
+	</div>
+
+	</body>
+	<!--公共js开始-->
+	<%@ include file="/public_module/app_public_js.jsp"%>
+	<!--公共js结束-->  
+	
+
+
+
+
+</html>

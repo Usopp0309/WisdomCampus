@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="SystemLog">
+	<typeAlias alias="systemLog" type="com.guotop.palmschool.system.entity.SystemLog"/>
+
+	<resultMap class="com.guotop.palmschool.system.entity.SystemLog" id="result-systemLog">
+		<result property="id" column="id"/>
+		<result property="userId" column="userid"/>
+		<result property="ip" column="ip"/>	
+		<result property="operation" column="operation"/>
+		<result property="introduction" column="introduction"/>
+		<result property="createTime" column="createtime"/>
+		<result property="userName" column="userName"/>
+	</resultMap>
+	
+	<!-- 查找所有导入记录的数量 -->
+	<select id="selectSystemLogListCount" resultClass="Integer">
+		select count(1)
+			from palm_system_log
+	</select>
+	
+	<!-- 查找所有导入记录 -->
+	<select id="selectSystemLogList" resultMap="result-systemLog">
+		select s.*, u.realname as userName
+			from palm_system_log s, platform.user_detail u
+			where s.userid = u.userid
+			order by s.id desc
+	</select>
+	
+</sqlMap>

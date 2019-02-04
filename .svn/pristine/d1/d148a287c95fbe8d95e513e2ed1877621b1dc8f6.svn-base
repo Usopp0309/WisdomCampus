@@ -1,0 +1,156 @@
+package com.guotop.palmschool.bluetooth.controller;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFFont;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.guotop.palmschool.bluetooth.entity.BluetoothBracelet;
+import com.guotop.palmschool.bluetooth.entity.BluetoothStudent;
+import com.guotop.palmschool.bluetooth.service.BluetoothStudentService;
+import com.guotop.palmschool.bluetooth.service.BraceletService;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 蓝牙手环
+ * 
+ * @author cehnyong
+ *
+ */
+@RequestMapping("/bracelet")
+@Controller
+public class braceletController {
+
+	@Autowired
+	private BraceletService braceletService;
+
+	@Autowired
+	private BluetoothStudentService bluetoothStudentService;
+
+	/**
+	 * 进入蓝牙手环列表
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月24日 上午10:42:42
+	 */
+	@RequestMapping("/toBracelet.do")
+	public String toBracelet(Model model) {
+
+		return "asset/asset_bluetooth";
+
+	}
+
+	/**
+	 * 分页获得蓝牙手环数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月21日 下午6:18:39
+	 */
+	@RequestMapping("/getPageBracelet.do")
+	@ResponseBody
+	public void getPageBracelet(HttpServletResponse response, Integer page, Integer pageSize) {
+		Map<String, Object> paramMap = new HashMap<>();
+		Pages<BluetoothBracelet> pages = braceletService.getPageBluetoothBracelet(page, pageSize, paramMap);
+		try {
+			response.setCharacterEncoding("UTF-8");
+			response.getWriter().write(GsonHelper.toJson(pages));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	/**
+	 * 保存信息
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月24日 下午6:10:18
+	 */
+	@RequestMapping("/save.do")
+	@ResponseBody
+	public void save(HttpSession session, BluetoothBracelet bracelet, BluetoothStudent student, Integer id_,
+			HttpServletResponse response) {
+		User user = (User) session.getAttribute("user");
+		student.setUpdateUserId(user.getUserId());
+		bracelet.setUpdateUserId(user.getUserId());
+		String f="0";
+		try {
+			if (id_ != null) {// 修改
+				bracelet.setId(id_);
+				braceletService.updateById(bracelet, student);
+			} else {// 添加
+				braceletService.insertBluetoothBracelet(bracelet, student);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			f="500";
+		}
+		try {
+			response.getWriter().write(f);
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 导入蓝牙手环
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月24日 上午11:00:00
+	 */
+	@RequestMapping("/importBracelet.do")
+	@ResponseBody
+	public void importBracelet(Integer assetId, HttpSession session, @RequestParam MultipartFile braceletExce) {
+		List<BluetoothBracelet> lists = new ArrayList<>();
+		BluetoothBracelet bracelet = null;
+		try {
+			Workbook wb = WorkbookFactory.create(braceletExce.getInputStream());
+			Sheet st = null;
+			for (int sheetIndex = 0; sheetIndex < wb.getNumberOfSheets(); sheetIndex++) {
+				st = wb.getSheetAt(sheetIndex);
+				Row row1 = st.getRow(0);
+				for (int rowIndex = 1; rowIndex <= st.getLastRowNum(); rowIndex++) {
+					Row row = st.getRow(rowIndex);
+
+				}
+			}
+
+		} catch (InvalidFormatException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+}

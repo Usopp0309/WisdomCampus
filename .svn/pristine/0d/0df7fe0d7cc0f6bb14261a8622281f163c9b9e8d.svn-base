@@ -1,0 +1,696 @@
+package com.guotop.palmschool.shopping.controller;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFFont;
+import org.apache.poi.hssf.usermodel.HSSFRichTextString;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import com.google.gson.reflect.TypeToken;
+import com.guotop.palmschool.common.entity.Bill;
+import com.guotop.palmschool.controller.BaseController;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.entity.UserAccount;
+import com.guotop.palmschool.entity.UserAccountApplyCash;
+import com.guotop.palmschool.entity.UserAccountHistory;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.listener.StartupListener;
+import com.guotop.palmschool.rest.entity.PushItem;
+import com.guotop.palmschool.service.UserAccountService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.shopping.entity.Orders;
+import com.guotop.palmschool.shopping.service.OrdersService;
+import com.guotop.palmschool.util.HttpPostUtil;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+import com.guotop.palmschool.util.WebWriteFile;
+import com.richx.pojo.RichHttpResponse;
+
+import dev.gson.GsonHelper;
+
+/**
+ *个人钱包控制类
+ * 
+ * @author jfy
+ * @date 2016年3月23日
+ */
+@Controller
+@RequestMapping("/wallet")
+public class WalletController extends BaseController
+{
+	private Logger logger = LoggerFactory.getLogger(WalletController.class);
+	@Resource
+	private UserAccountService userAccountService;
+	@Resource
+	private OrdersService ordersService;
+	
+	@Resource
+	private UserService userService;
+	/**
+	 * 跳转到个人钱包支付
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value="/toPersonalWallet.do")
+	public String toPersonalWallet(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		User login = (User)session.getAttribute("user");
+		
+		String orderId = request.getParameter("WIDout_trade_no");
+		String goodsName = request.getParameter("WIDsubject");
+		String amount = request.getParameter("WIDtotal_fee");
+		
+		UserAccount ua = userAccountService.findUserAccountByUserId(login.getUserId());
+		if (ua == null)
+		{
+			modelMap.addAttribute("balance","0.0");
+		}else
+		{
+			modelMap.addAttribute("balance",ua.getBalance());
+		}
+		modelMap.addAttribute("orderId",orderId);
+		modelMap.addAttribute("goodsName",goodsName);
+		modelMap.addAttribute("amount",amount);
+		
+		return "shopping/personalWallet";
+	}
+	
+	/**
+	 * 付款
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value="/pay.do")
+	public String doPay(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("utf-8");
+		HashMap<String, Object> resultMap = new HashMap<String, Object>();
+		User login = (User)session.getAttribute("user");
+		String orderId = request.getParameter("orderId");
+		String passWord = request.getParameter("passWord");
+		String goodsName = request.getParameter("goodsName");
+		String md5PassWord = StringUtil.toMD5(passWord);
+		Integer userId = login.getUserId();
+		float amountF = 0.0f;
+		
+		try
+		{
+			UserAccount ua = userAccountService.findUserAccountByUserId(userId);
+			if (ua != null)
+			{
+				//根据订单号获取待支付额
+				Orders order = ordersService.getOrdersById(Integer.valueOf(orderId));
+				String amount = order.getAmount();
+				if (amount != null)
+				{
+					amountF = Float.valueOf(amount);
+				}
+				String balance = ua.getBalance();
+				if (balance != null)
+				{
+					float balanceF = Float.valueOf(balance);
+					//余额小于待支付金额，则不允许支付
+					if (amountF > balanceF)
+					{
+						resultMap.put("code", "-1");
+						resultMap.put("msg", "余额不足，请充值后再次购买！");
+						
+					}else
+					{
+						//判断支付密码是否正确
+						if (userAccountService.getUserAccountCountByUserIdAndPassWord(userId, md5PassWord) > 0)
+						{
+							float newBalance = balanceF-amountF;
+							ua.setBalance(String.valueOf(newBalance));
+							ua.setUpdateTime(TimeUtil.getInstance().now());
+							UserAccountHistory userAccountHistory = new UserAccountHistory();
+							userAccountHistory.setCreateTime(TimeUtil.getInstance().now());
+							userAccountHistory.setDescription("购买" + goodsName);
+							userAccountHistory.setOldBalance(String.valueOf(balanceF));
+							userAccountHistory.setNewBalance(String.valueOf(newBalance));
+							userAccountHistory.setUserId(ua.getUserId());
+							userAccountHistory.setType(2);
+							//更新个人账户
+							userAccountService.updateUserAccount(ua);
+							//记录账户变动记录
+							userAccountService.addUserAccountHistory(userAccountHistory);
+							//修改订单状态
+							order.setStatus(1);
+							order.setUpdateTime(TimeUtil.getInstance().now());
+							order.setChannel(3);
+							ordersService.updateOrders(order);
+							
+							List<PushItem> piList = new ArrayList<PushItem>();
+							// 如果是虚拟物品 则查找对应的学校 然后通过商品名称和学校的短信套餐进行匹配
+							// 如果相同则在该学校的短信套餐用户信息表里插入对应的用户信息
+							if (order.getIsVirtual() == 1 || order.getIsVirtual() == 5)
+							{
+								List<User> userList = StartupListener.ordersService.getUserSchoolIdByUserId(order.getUserId());
+
+								for(User user : userList)
+								{
+									// 根据设备查找数据源
+									DBContextHolder.setDBType(user.getSchoolId());
+									// 修改学校的短信套餐用户信息表的中的状态为可用状态
+									StartupListener.ordersService.updateOrderMessageUserByOrederId(Integer.valueOf(orderId));
+
+									PushItem pi = new PushItem();
+									pi.receiverId = user.getUserId();
+									pi.channels = user.getBaiduChannelId();
+									pi.deviceType = String.valueOf(user.getDeviceType());
+									pi.PushType = 17;
+									pi.PushContentType = 4;
+									pi.title = "付款成功";
+									pi.schoolId = String.valueOf(user.getSchoolId());
+									
+									if(order.getIsVirtual() == 1)
+									{
+										pi.PushContent = "您已成功购买" + order.getGoodsName() + "支付：" + order.getAmount() + "元！";
+									}
+									else
+									{
+										pi.PushContent = "您已成功代充服务费："+ order.getAmount() + "元！";
+										
+										List<User> userDetailList = StartupListener.ordersService.getMessageUserDetailByOrderId(Integer.valueOf(orderId));
+										for(User us : userDetailList)
+										{
+											PushItem pit = new PushItem();
+											pit.receiverId = us.getUserId();
+											pit.channels = us.getBaiduChannelId();
+											pit.deviceType = String.valueOf(us.getDeviceType());
+											pit.PushContent = "您好！"+user.getRealName()+"已成功为您代充服务费！";
+											pit.PushType = 17;
+											pit.PushContentType = 6;
+											pit.title = "付款成功";
+											pit.schoolId = String.valueOf(user.getSchoolId());
+											piList.add(pit);
+										}
+									}
+									piList.add(pi);
+									StartupListener.commonService.pushMsg(piList, false);// 消息推送
+									
+								}
+							}else if(order.getIsVirtual() == 6){//6购买学校单条套餐
+								//查询出学校
+								List<User> userList = StartupListener.ordersService.getUserSchoolIdByUserId(order.getUserId());
+								for(User user : userList)
+								{
+									// 根据设备查找数据源
+									DBContextHolder.setDBType(user.getSchoolId());
+									// 修改学校的短信套餐学校信息表的中的状态为可用状态
+									StartupListener.orderMessageService.updateOrderMessageSchoolByOrederId(Integer.valueOf(orderId));
+									
+									PushItem pi = new PushItem();
+									pi.receiverId = user.getUserId();
+									pi.channels = user.getBaiduChannelId();
+									pi.deviceType = String.valueOf(user.getDeviceType());
+									pi.PushType = 17;
+									pi.PushContentType = 4;
+									pi.title = "付款成功";
+									pi.schoolId = String.valueOf(user.getSchoolId());
+									pi.PushContent = "您已成功购买学校套餐" + order.getGoodsName() + "支付：" + order.getAmount() + "元！";
+									piList.add(pi);
+									StartupListener.commonService.pushMsg(piList, false);// 消息推送
+								}
+							}
+							
+							resultMap.put("code", "0");
+							resultMap.put("msg", "支付成功！");
+						}
+//						else if (md5PassWord.equals(StringUtil.toMD5("123456")))
+//						{
+//							resultMap.put("code", "2");
+//							resultMap.put("msg", "初始密码无法支付，请修改密码！");
+//						}
+						else 
+						{
+							resultMap.put("code", "1");
+							resultMap.put("msg", "支付密码错误，请重新输入！");
+						}
+					}
+				}
+				
+				response.getWriter().write(GsonHelper.toJson(resultMap));
+				response.getWriter().flush();
+			}
+		}catch(Exception e)
+		{
+			logger.error(e.getMessage());
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * 进入提现列表页面
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value="/toApplyCashList.do")
+	public String toApplyCashList(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		return "system/applyCash_list";
+	}
+	/**
+	 * 亦信页面
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value="/toYinApplyCashList.do")
+	public String toYinApplyCashList(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		return "system/applyCash_yixin_list";
+	}
+		
+	/**
+	 * 提现列表
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value="/getApplyCashList.do",method=RequestMethod.POST)
+	public String getApplyCashList(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		Map<String, String> paramMap = new HashMap<String, String>();
+		try
+		{
+			Integer cPage = 1;
+			try
+			{
+				cPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				cPage = 1;
+			}
+			//接收账户类型
+			String thirdType =request.getParameter("thirdType");
+			//提现申请状态
+			String applyStatus = request.getParameter("applyStatus");
+			// 查询内容
+			String queryContent = request.getParameter("queryContent");
+			// 开始时间
+			String startTime = request.getParameter("startTime");
+			int type = Integer.parseInt(request.getParameter("type"));
+			User loginUser = (User)session.getAttribute("user");
+			String schoolId = loginUser.getSchoolId();
+			paramMap.put("cPage", cPage+"");
+			paramMap.put("thirdType", thirdType);
+			paramMap.put("applyStatus", applyStatus);
+			paramMap.put("startTime", startTime);
+			paramMap.put("queryContent", queryContent);
+			
+			String postUrl = HttpPostUtil.getRichBookUrl()+"userAccount/getApplyCashList.do";
+			
+			String str = HttpPostUtil.postByForm(postUrl, paramMap);
+			RichHttpResponse<Pages<UserAccountApplyCash>> richResponse = GsonHelper.fromJson(str, new TypeToken<RichHttpResponse<Pages<UserAccountApplyCash>>>()
+					{
+					}.getType());
+			
+			Pages<UserAccountApplyCash> pages = richResponse.ResponseObject;
+			List<UserAccountApplyCash> list = pages.getList();
+			List<UserAccountApplyCash> newList = new ArrayList<UserAccountApplyCash>();
+			List<UserAccountApplyCash> yinList = new ArrayList<UserAccountApplyCash>();
+			if(!CollectionUtils.isEmpty(list)){
+				for(UserAccountApplyCash uaac : list){
+					try{
+						Map<String, Object> userMap = userService.getUserMapByUserId(uaac.getUserId(), Long.valueOf(schoolId));
+						
+						User user = (User) userMap.get("user");
+						String userInfo = (String) userMap.get("msg");
+						uaac.setUser(user);
+						uaac.setUserInfo(userInfo);
+						boolean isYinUser = (boolean) userMap.get("isYinUser");
+						boolean isLocalSchool = (boolean) userMap.get("isLocalSchool");
+						if(isLocalSchool ){
+							newList.add(uaac);
+						}else if(isYinUser){
+							yinList.add(uaac);
+						}
+					}catch(Exception e){
+						continue;
+					}
+				}
+			}
+			if(type == 0){//易信
+				pages.setList(yinList);
+			}else{//本地
+				pages.setList(newList);
+			}
+			
+			
+			String json = GsonHelper.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			logger.error("智慧校园获取提现列表失败,错误信息如下:"+e.getMessage());
+		}
+		return null;
+	}
+	
+	/**
+	 * 确认提现提现列表
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value="/doConfirmApplyCash.do",method=RequestMethod.POST)
+	public String doConfirmApplyCash(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		Map<String, String> paramMap = new HashMap<String, String>();
+		try
+		{
+			String applyId =request.getParameter("applyId");
+			String userId =request.getParameter("userId");
+			String status =request.getParameter("status");
+			String remark =request.getParameter("remark");
+			paramMap.put("applyId", applyId);
+			paramMap.put("userId", userId);
+			paramMap.put("status", status);
+			paramMap.put("remark", remark);
+			String postUrl = HttpPostUtil.getRichBookUrl()+"userAccount/doConfirmApplyCash.do";
+			String str = HttpPostUtil.postByForm(postUrl, paramMap);
+			RichHttpResponse<Pages> richResponse = GsonHelper.fromJson(str, new TypeToken<RichHttpResponse<Pages>>()
+					{
+					}.getType());
+			
+			int responseCode = richResponse.ResponseCode;
+			
+			String json = GsonHelper.toJson(responseCode);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			logger.error("智慧校园获取提现列表失败,错误信息如下:"+e.getMessage());
+		}
+		return null;
+	}
+	
+	/**
+	 * 根据条件导出所有提现人员
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value="/exportApplyCashUserList.do",method=RequestMethod.POST)
+	public void exportApplyCashUserList(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		Map<String, String> paramMap = new HashMap<String, String>();
+		try
+		{
+			//接收账户类型
+			String thirdType =request.getParameter("thirdType");
+			//提现申请状态
+			String applyStatus = request.getParameter("applyStatus");
+			// 查询内容
+			String queryContent = request.getParameter("queryContent");
+			// 开始时间
+			String startTime = request.getParameter("startTime");
+			
+			int type = Integer.parseInt(request.getParameter("type"));
+			
+			User loginUser = (User)session.getAttribute("user");
+			String schoolId = loginUser.getSchoolId();
+			paramMap.put("thirdType", thirdType);
+			paramMap.put("applyStatus", applyStatus);
+			paramMap.put("startTime", startTime);
+			paramMap.put("queryContent", queryContent);
+			
+			String postUrl = HttpPostUtil.getRichBookUrl()+"userAccount/getAllApplyCashList.do";
+			String str = HttpPostUtil.postByForm(postUrl, paramMap);
+			RichHttpResponse<List<UserAccountApplyCash>> richResponse = GsonHelper.fromJson(str, new TypeToken<RichHttpResponse<List<UserAccountApplyCash>>>()
+					{
+					}.getType());
+			
+			List<UserAccountApplyCash> list = richResponse.ResponseObject;
+			List<UserAccountApplyCash> newList = new ArrayList<UserAccountApplyCash>();
+			if(!CollectionUtils.isEmpty(list)){
+				for(UserAccountApplyCash uaac : list){
+					try{
+						Map<String, Object> userMap = userService.getUserMapByUserId(uaac.getUserId(), Long.valueOf(schoolId));
+						List<Bill> billList = ordersService.getBillListByUserId(uaac.getUserId());
+						User user = (User) userMap.get("user");
+						String userInfo = (String) userMap.get("msg");
+						uaac.setUser(user);
+						uaac.setUserInfo(userInfo);
+						uaac.setBillList(billList);
+						boolean isYinUser = (boolean) userMap.get("isYinUser");
+						boolean isLocalSchool = (boolean) userMap.get("isLocalSchool");
+						if(isLocalSchool && type == 1){//本学校提现
+							newList.add(uaac);
+						}
+						if(isYinUser && type == 0 ){//亦信用户提现
+							newList.add(uaac);
+						}
+					}catch(Exception e){
+						continue;
+					}
+				}
+			}
+			
+			/**
+			 * 初始化excel各项参数---begin
+			 */
+			// 创建Excel的工作书册 Workbook,对应到一个excel文档
+			HSSFWorkbook wb = new HSSFWorkbook();
+
+			// 创建Excel的工作sheet,对应到一个excel文档的tab
+			HSSFSheet sheet = wb.createSheet("提现人员列表");
+
+			// 创建字体样式
+			HSSFFont font = wb.createFont();
+
+			// 创建单元格样式
+			HSSFCellStyle style = wb.createCellStyle();
+
+			WebWriteFile.getInstance().init(wb, sheet, font, style);
+			/**
+			 * 初始化excel各项参数---end
+			 */
+			HSSFRow row = sheet.createRow(0);
+			row.setHeight((short) 500);// 设定行的高度
+			// 创建一个Excel的单元格
+			HSSFCell cell = row.createCell(0);
+			// 给Excel的单元格设置样式和赋值
+			cell.setCellValue("提现申请人");
+			
+			style.setWrapText(true);
+			cell = row.createCell(1);
+			cell.setCellValue("手机号");
+
+			style.setWrapText(true);
+			cell = row.createCell(2);
+			cell.setCellValue("申请人信息");
+			
+			style.setWrapText(true);
+			cell = row.createCell(3);
+			cell.setCellValue("提现金额");
+			
+			style.setWrapText(true);
+			cell = row.createCell(4);
+			cell.setCellValue("接收账户");
+			
+			style.setWrapText(true);
+			cell = row.createCell(5);
+			cell.setCellValue("申请时间");
+			
+			style.setWrapText(true);
+			cell = row.createCell(6);
+			cell.setCellValue("处理状态");
+			
+			style.setWrapText(true);
+			cell = row.createCell(7);
+			cell.setCellValue("账单列表");
+
+			
+			
+			/**
+			 * 将数据写入excel中---begin
+			 */
+			int i = 1;
+			for (UserAccountApplyCash uaac : newList)
+			{
+				row = sheet.createRow(i);
+				row.setHeight((short) 500);// 设定行的高度
+				style.setWrapText(true);
+				
+				style.setWrapText(true);
+				cell = row.createCell(0);
+				cell.setCellValue(uaac.getUserName());
+				
+				style.setWrapText(true);
+				cell = row.createCell(1);
+				if(uaac.getUser() == null){
+					cell.setCellValue("手机号为空");
+				}else{
+					cell.setCellValue(uaac.getUser().getBindPhone());
+				}
+				
+				style.setWrapText(true);
+				cell = row.createCell(2);
+				if(StringUtil.isEmpty(uaac.getUserInfo())){
+					cell.setCellValue("个人信息为空");
+				}else{
+					cell.setCellValue(uaac.getUserInfo());
+				}
+				
+				style.setWrapText(true);
+				cell = row.createCell(3);
+				if(uaac.getApplyCash() == null){
+					cell.setCellValue("没有提现金额");
+				}else{
+					cell.setCellValue(uaac.getApplyCash()+"元");
+				}
+				
+				style.setWrapText(true);
+				cell = row.createCell(4);
+				if(StringUtil.isEmpty(uaac.getThirdAccount())){
+					cell.setCellValue("没有接收账户");
+				}else{
+					if(uaac.getThirdType() == 1){
+						cell.setCellValue("支付宝账号:"+uaac.getThirdAccount());
+					}else{
+						cell.setCellValue("微信账号:"+uaac.getThirdAccount());
+					}
+				}
+				
+				style.setWrapText(true);
+				cell = row.createCell(5);
+				if(StringUtil.isEmpty(uaac.getCreateTime())){
+					cell.setCellValue("没有申请时间");
+				}else{
+					cell.setCellValue(uaac.getCreateTime());
+				}
+				
+				style.setWrapText(true);
+				cell = row.createCell(6);
+				//0,待处理 1，待付款 2，提现成功 3，提现失败 4，驳回
+				if(uaac.getApplyStatus() == 0){
+					cell.setCellValue("待处理");
+				}else if(uaac.getApplyStatus() == 1){
+					cell.setCellValue("待付款");
+				}else if(uaac.getApplyStatus() == 2){
+					cell.setCellValue("提现成功");
+				}else if(uaac.getApplyStatus() == 3){
+					cell.setCellValue("提现失败");
+				}else if(uaac.getApplyStatus() == 4){
+					cell.setCellValue("驳回");
+				}
+				
+				style.setWrapText(true);
+				cell = row.createCell(7);
+				if(CollectionUtils.isEmpty(uaac.getBillList())){
+					cell.setCellValue("还没有账单");
+				}else{
+					StringBuffer billSb = new StringBuffer();
+					for(Bill bill : uaac.getBillList()){
+						int typeId = bill.getTypeId();
+						int channel = bill.getChannel();
+						String typeName = "";
+						String channelName = "";
+						if(typeId == 1){
+							typeName = "充值";
+						}else if(typeId == 2){
+							typeName = "退款";
+						}else if(typeId == 3){
+							typeName = "资源云分成收入";
+						}else if(typeId == 4){
+							typeName = "转账收入";
+						}else if(typeId == 5){
+							typeName = "购买";
+						}else if(typeId == 6){
+							typeName = "提现";
+						}else if(typeId == 7){
+							typeName = "好友短信支出";
+						}else if(typeId == 8){
+							typeName = "转账支出";
+						}
+						//(0银联 1支付宝 2微支付 3个人账户)
+						if(channel == 0){
+							channelName = "银联";
+						}else if(channel == 1){
+							channelName = "支付宝";
+						}else if(channel == 2){
+							channelName = "微信";
+						}else if(channel == 3){
+							channelName = "亦信账户";
+						}
+						billSb.append("类型: "+typeName + " , 渠道: "+channelName+" , 金额: "+bill.getAmount()+" , 商品名称: "+bill.getGoodsName()+" , 交易时间: "+bill.getCreateTime()+"; \r\n");
+					}
+					cell.setCellValue(new HSSFRichTextString(billSb.toString()));
+				}
+				i++;
+			}
+			/**
+			 * 将数据写入excel中---end
+			 */
+
+			/**
+			 * 磁盘创建文件并生出输出流
+			 */
+			File fp = new File("D:\\report\\");
+			// 创建目录
+			if (!fp.exists())
+			{
+				fp.mkdirs();// 目录不存在的情况下，创建目录。
+			}
+			File file = new File("D:\\report\\" + new Date().getTime() + ".xls");
+			FileOutputStream os = new FileOutputStream(file);
+			wb.write(os);
+			os.close();
+
+			WebWriteFile.getInstance().write(file, response, "提现列表.xls");
+			file.delete();
+			
+		} catch (Exception e)
+		{
+			logger.error("导出提现人员列表失败,错误信息如下:"+e.getMessage());
+		}
+	}
+}

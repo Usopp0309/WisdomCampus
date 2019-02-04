@@ -1,0 +1,76 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>RichX智慧校园 - ${schoolName }</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+ 	<link href="<%=basePath%>assets/global/css/skin_m.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+	<%@include file="/public_module/header.jsp" %>
+	<div class="Fill_Card">
+		<div class="header">
+			
+			<div class="pablic_search_box Fill_Card_search_box">
+					<form action="<%=basePath%>financialStatements/toFinancialStatementsDetail.do" method="post" id="searchForm">
+						<button type="submit" class="fa fa-search search_submit"></button>
+						<input class="search_text" type="text" name="condition" placeholder="请输入商品名称、购买人..." value="${condition}"></input> 
+						<input type="hidden" name="schoolId" id="schoolId" value="${schoolId }">
+					</form>
+				</div>
+		</div>
+		<div class="con">
+			<h3>${schoolName }</h3>
+			<div class="tabbable tabbable-custom">
+			<p class="technical_support_title">
+				<span>商品名称</span> <span>数量</span> <span class="Response">购买人</span>
+				<span class="Response">交易时间</span> <span class="Response">交易金额</span>
+			</p>
+			<div class="tab-content" style="padding: 0px;">
+				
+					<div class="tab-pane active" id="tab_1_1">
+
+						<div id="accordion2" class="accordion in collapse" style="height: auto;">
+						
+							
+								<div class="accordion-group">
+									<div class="accordion-heading School_apply">
+											<c:forEach items="${list}" var="orders"> 
+												<p class="technical_support finance_border_bottom">
+													<span>${orders.goodsName}</span>
+													<span>${orders.counts}</span>
+													<span>${orders.receiver}</span> 
+													<span>${orders.createTime}</span>
+													<span class="Response">${orders.amount}</span>
+												</p>
+											</c:forEach>
+									</div>
+									
+								</div>
+						
+						</div>
+
+					</div>
+				
+				
+				
+			</div>
+
+		</div>
+		</div>
+		
+		
+	</div>
+	<%@include file="/public_module/footer.jsp" %>
+	<%@include file="/public_module/public_js.jsp" %>
+</body>
+</html>

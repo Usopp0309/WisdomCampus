@@ -1,0 +1,569 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+
+<!DOCTYPE html>
+
+<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+
+<!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+
+<!--[if !IE]><!--> <html lang="en"> <!--<![endif]-->
+
+<!-- BEGIN HEAD -->
+
+<head>
+
+	<title>食谱展示22</title>
+
+	<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+
+	<meta content="" name="description" />
+
+	<meta content="" name="author" />
+
+	<!-- BEGIN GLOBAL MANDATORY STYLES -->
+
+	<link href="<%=basePath %>media/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+
+	<link href="<%=basePath %>media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css"/>
+
+	<link href="<%=basePath %>media/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+
+	<link href="<%=basePath %>media/css/style-metro.css" rel="stylesheet" type="text/css"/>
+
+	<link href="<%=basePath %>media/css/style.css" rel="stylesheet" type="text/css"/>
+
+	<link href="<%=basePath %>media/css/style-responsive.css" rel="stylesheet" type="text/css"/>
+
+	<!-- <link href="<%=basePath %>media/css/default.css" rel="stylesheet" type="text/css" id="style_color"/> -->
+
+	<link href="<%=basePath %>media/css/uniform.default.css" rel="stylesheet" type="text/css"/>
+
+	<!-- END GLOBAL MANDATORY STYLES -->
+
+	<!-- BEGIN PAGE LEVEL STYLES -->
+
+	<link href="<%=basePath %>media/css/pricing-tables.css" rel="stylesheet" type="text/css"/>
+
+	<!-- END PAGE LEVEL STYLES -->
+
+	<link rel="stylesheet" type="text/css" href="<%=basePath %>media/css/select2_metro.css" />
+
+	<link rel="stylesheet" href="<%=basePath %>media/css/DT_bootstrap.css" />
+	
+	<!-- END PAGE LEVEL STYLES -->
+	<link href="<%=basePath %>media/metronic_css_m/system_m.css" rel="stylesheet" type="text/css" media="screen" />
+	<link rel="stylesheet" href="<%=basePath %>media/js_m/datetimepicker/jquery.datetimepicker.css" />
+	<link rel="shortcut icon" href="<%=basePath %>media/image/favicon.ico" />
+
+</head>
+
+<!-- END HEAD -->
+
+<!-- BEGIN BODY -->
+
+<body class="page-header-fixed" id="body">
+
+	<div class="container-fluid">
+
+		<div class="row-fluid">
+
+			<div class="span12">
+
+				<!-- BEGIN PAGE TITLE & BREADCRUMB-->
+				<ul class="breadcrumb">
+					<li><i class="icon-home"></i><a href="#">首页</a><i class="icon-angle-right"></i></li>
+					<li><a href="#">营养食谱</a><i class="icon-angle-right"></i></li>
+				</ul>
+
+			</div>
+
+		</div>
+
+		<div class="row-fluid">
+		
+			<div class="span12">
+						
+				<div class="tabbable tabbable-custom boxless">
+						
+					<div class="tab-content padding_0">
+								
+						<div class="tab-pane active" id="tab_4">
+
+							<div class="portlet box green">
+			
+								<div class="portlet-title">
+									<div class="caption"></i>营养食谱</div>
+									<div class="tools"><a href="javascript:;" class="collapse"></a></div>
+								</div>
+								
+								<div class="portlet-body search_box">
+									<!-- 查询表单begin -->
+									<form action="" class="form-horizontal" method="post" style="margin: 0px">
+										<div class="control-group margin-bottom_null">
+											<div class="public_search_row">
+													
+												<div class="width_20">
+											    	<span>选择时间:</span>
+													<div class="input_s">
+														<input type="text" size="16" class="public_input_s" name="day" id="day"/>
+													</div>
+												</div>
+												<div class="width_20">
+												<button type="button" class="btn blue" style="float:left;padding:5px 14px;" id="search"><i class="fa fa-search"></i>查找</button>
+											    	
+												</div>
+											</div>
+											
+										</div>
+									</form>
+									<!-- 查询表单end -->
+								</div>
+										
+							</div>
+							
+							<div class="row-fluid">
+								<div class="span10 food_list" style="margin:0px auto;float:none;">
+									<h3>
+										每周营养食谱
+										<span style="right:0px;font-size: 20px;" id="date"></span>
+										<a href="#static" onclick="favoriteFood()" data-toggle="modal">喜爱食物排名>></a>
+									</h3>
+									<!-- 喜爱食物排名弹框开始 -->
+									<div data-keyboard="false" data-backdrop="static" tabindex="-1" class="modal hide fade" id="static">
+									
+										<div class="modal-header">喜欢食物排名</div>
+										
+										<div class="modal-body">
+
+											<div class="tabbable tabbable-custom">
+												<div class="container-fluid">
+												<ul class="order row-fluid nav nav-tabs">
+													<li class="active"><a data-toggle="tab" href="#tab_1_1"><i class="fa fa-beer"></i>早餐</a></li>
+													<li><a data-toggle="tab" href="#tab_1_2"><i class="fa fa-ticket"></i>午餐</a></li>
+													<li><a data-toggle="tab" href="#tab_1_3"><i class="fa fa-lemon-o"></i>下午茶</a></li>
+													<li><a data-toggle="tab" href="#tab_1_4"><i class="fa fa-ellipsis-h"></i>其他</a></li>
+												</ul>
+												</div>
+												<div class="tab-content">
+	
+													<div id="tab_1_1" class="tab-pane active">
+													</div>
+	
+													<div id="tab_1_2" class="tab-pane">
+													</div>
+													
+													<div id="tab_1_3" class="tab-pane">
+													</div>
+													
+													<div id="tab_1_4" class="tab-pane">
+													</div>
+	
+												</div>
+	
+											</div>
+
+										</div>
+
+										<div class="modal-footer">
+											<button class="btn" data-dismiss="modal" type="button">关闭</button>
+										</div>
+
+									</div>
+									<table class="table table-bordered table-full-width Recipes" id="sample_1">
+			
+										<thead id="thead">
+										</thead>
+										
+										<tbody id="tbody">
+										</tbody>
+									</table>
+									
+								</div>
+								
+							</div>
+									
+						</div>
+								
+					</div>
+					
+				</div>
+				
+			</div>
+
+		</div>
+
+	</div>
+	<!-- END CONTAINER -->
+
+	<!-- BEGIN JAVASCRIPTS(Load javascripts at bottom, tdis will reduce page load time) -->
+
+	<!-- BEGIN CORE PLUGINS -->
+	<script src="<%=basePath %>media/js/jquery-2.1.1.min.js" type="text/javascript"></script>
+
+	<script src="<%=basePath %>media/js/jquery-migrate-1.2.1.min.js" type="text/javascript"></script>
+
+	<!-- IMPORTANT! Load jquery-ui-1.10.1.custom.min.js before bootstrap.min.js to fix bootstrap tooltip conflict with jquery ui tooltip -->
+
+	<script src="<%=basePath %>media/js/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>      
+
+	<script src="<%=basePath %>media/js/bootstrap.min.js" type="text/javascript"></script>
+
+	<!--[if lt IE 9]>
+
+	<script src="<%=basePath %>media/js/excanvas.min.js"></script>
+
+	<script src="<%=basePath %>media/js/respond.min.js"></script>  
+
+	<![endif]-->                    
+
+	<script src="<%=basePath %>media/js/jquery.slimscroll.min.js" type="text/javascript"></script>
+
+	<script src="<%=basePath %>media/js/jquery.blockui.min.js" type="text/javascript"></script>  
+
+	<script src="<%=basePath %>media/js/jquery.cookie.min.js" type="text/javascript"></script>
+
+	<script src="<%=basePath %>media/js/jquery.uniform.min.js" type="text/javascript" ></script>
+
+	<!-- END CORE PLUGINS -->
+
+	<!-- BEGIN PAGE LEVEL PLUGINS -->
+
+	<script type="text/javascript" src="<%=basePath %>media/js/select2.min.js"></script>
+
+	<script type="text/javascript" src="<%=basePath %>media/js/jquery.dataTables.min.js"></script>
+
+	<script type="text/javascript" src="<%=basePath %>media/js/DT_bootstrap.js"></script>
+
+	<!-- END PAGE LEVEL PLUGINS -->
+
+	<!-- BEGIN PAGE LEVEL SCRIPTS -->
+
+
+	
+	<script src="<%=basePath %>media/js/app.js" type="text/javascript"></script>
+	<script src="<%=basePath %>media/js/table-advanced.js" type="text/javascript"></script>  
+	<script src="<%=basePath %>media/js_m/datetimepicker/jquery.datetimepicker.js" type="text/javascript"></script>
+	<script src="<%=basePath %>media/js_m/public_js.js" type="text/javascript"></script> 
+	<script src="<%=basePath %>media/js/TableSorterV2.js"></script> 
+	
+	<script>
+		$(function(){
+			$('#day').datetimepicker({format:'Y-m-d',timepicker:false});
+			App.init();
+			//加载当前周的食谱
+			loadweekDish();
+			//查找数据
+			$("#search").click(function(){
+				loadweekDish();
+			});
+			
+	 })
+			
+	function loadweekDish()
+	{
+			var body = $("#body");
+			App.blockUI(body);
+			var day = $("#day").val();
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>recipe/loadWeekRecipe.do",
+				data:{
+						day : day
+					},
+				success: function(data){
+					//解锁UI
+          			App.unblockUI(body);
+					var list = $.parseJSON(data);
+					var appendHtml = '';
+					var theadHtml = '';
+					$("#date").text(list.currDay);
+					var recipeMap = list.recipeMap;
+					var mondayRecipe = recipeMap['星期一'];
+					var tuesdayRecipe = recipeMap['星期二'];
+					var wednesdayRecipe = recipeMap['星期三'];
+					var thursdayRecipe = recipeMap['星期四'];
+					var fridayRecipe = recipeMap['星期五'];
+					var saturdayRecipe = recipeMap['星期六'];
+					var sundayRecipe = recipeMap['星期日'];
+
+					//创建数组，用于保存周一到周日的菜谱
+					var recipeArr = new Array();
+					recipeArr.push(mondayRecipe);
+					recipeArr.push(tuesdayRecipe);
+					recipeArr.push(wednesdayRecipe);
+					recipeArr.push(thursdayRecipe);
+					recipeArr.push(fridayRecipe);
+					recipeArr.push(saturdayRecipe);
+					recipeArr.push(sundayRecipe);
+					
+					theadHtml += '<tr><th></th><th>早餐</th><th>午餐</th><th>下午茶</th><th>其他</th></tr>';
+					$("#thead").html(theadHtml);
+					$.each(recipeArr,function(n,value) {
+						appendHtml += '<tr">';
+						
+						if(n == '0'){
+							appendHtml += '<td class="day"><img src="<%=basePath%>media/image_m/day01.png"></td>';
+						}else if(n == '1'){
+							appendHtml += '<td class="day"><img src="<%=basePath%>media/image_m/day02.png"></td>';
+						}else if(n == '2'){
+							appendHtml += '<td class="day"><img src="<%=basePath%>media/image_m/day03.png"></td>';
+						}else if(n == '3'){
+							appendHtml += '<td class="day"><img src="<%=basePath%>media/image_m/day04.png"></td>';
+						}else if(n == '4'){
+							appendHtml += '<td class="day"><img src="<%=basePath%>media/image_m/day05.png"></td>';
+						}else if(n == '5'){
+							appendHtml += '<td class="day"><img src="<%=basePath%>media/image_m/day06.png"></td>';
+						}else if(n == '6'){
+							appendHtml += '<td class="day"><img src="<%=basePath%>media/image_m/day07.png"></td>';
+						}
+
+						appendHtml += '<td class="day_recipes">';
+						if(value.breakfastList.length > 0){
+							$.each(value.breakfastList, function(n, breakfast) 
+							{	
+								if(breakfast.picPath=="")
+								{
+									appendHtml += '<div class="food"><a href="javascript:;"><img id="img'+breakfast.id+'" src="<%=basePath%>media/image_m/null_img.jpg"></a>';
+								}else
+								{
+									appendHtml += '<div class="food"><a href="javascript:;"><img id="img'+breakfast.id+'" src="' + breakfast.picPath+'"></a>';
+								}
+								appendHtml += '<p><span class="foodName" >'+breakfast.dishName+'</span><i class="icon-thumbs-up" id="'+breakfast.id+'"></i></p>';
+								appendHtml += ' </div>';
+							});
+						}
+						appendHtml += '</td>';
+						appendHtml += '<td class="day_recipes">';
+						if(value.lunchList.length > 0){
+							$.each(value.lunchList, function(n, lunch) 
+							{
+								if(lunch.picPath=="")
+								{
+									appendHtml += '<div class="food"><a href="javascript:;"><img id="img'+lunch.id+'" src="<%=basePath%>media/image_m/null_img.jpg"></a>';
+								}else
+								{
+									appendHtml += '<div class="food"><a href="javascript:;"><img id="img'+lunch.id+'" src="' + lunch.picPath+'"></a>';
+								}
+								appendHtml += '<p><span class="foodName" >'+lunch.dishName+'</span><i class="icon-thumbs-up" id="'+lunch.id+'"></i></p>';
+								appendHtml += ' </div>';
+							});
+						}
+						
+						appendHtml += '</td>';
+						appendHtml += '<td class="day_recipes">';
+						if(value.snackList.length > 0){
+							$.each(value.snackList, function(n, snack) 
+							{	
+								if(snack.picPath=="")
+								{
+									appendHtml += '<div class="food"><a href="javascript:;"><img id="img'+snack.id+'" src="<%=basePath%>media/image_m/null_img.jpg"></a>';
+								}else
+								{
+									appendHtml += '<div class="food"><a href="javascript:;"><img id="img'+snack.id+'" src="' + snack.picPath+'"></a>';
+								}
+								appendHtml += '<p><span class="foodName" >'+snack.dishName+'</span><i class="icon-thumbs-up" id="'+snack.id+'"></i></p>';
+								appendHtml += ' </div>';
+							});
+						}
+						
+						appendHtml += '</td>';
+						appendHtml += '<td class="day_recipes">';
+						if(value.otherList.length > 0){
+							$.each(value.otherList, function(n, other) 
+							{
+										
+								if(other.picPath=="")
+								{
+									appendHtml += '<div class="food"><a href="javascript:;"><img id="img'+other.id+'" src="<%=basePath%>media/image_m/null_img.jpg"></a>';
+								}else
+								{
+									appendHtml += '<div class="food"><a href="javascript:;"><img id="img'+other.id+'" src="'+ other.picPath+'"></a>';
+								}
+								appendHtml += '<p><span class="foodName" >'+other.dishName+'</span><i class="icon-thumbs-up" id="'+other.id+'"></i></p>';
+								appendHtml += ' </div>';
+							});
+						}
+						
+						appendHtml += '</td>';
+						appendHtml += '</tr>';
+				  	}); 
+
+         			$("#tbody").html(appendHtml);
+         		 	$("#tbody tr:eq('0')").css({"background-color":"#e5f6df"});
+        			$("#tbody tr:eq('1')").css({"background-color":"#daefee"});
+        			$("#tbody tr:eq('2')").css({"background-color":"#e3eef8"});
+        			$("#tbody tr:eq('3')").css({"background-color":"#eae6f5"});
+        			$("#tbody tr:eq('4')").css({"background-color":"#fadfec"});
+        			$("#tbody tr:eq('5')").css({"background-color":"#fddedf"});
+        			$("#tbody tr:eq('6')").css({"background-color":"#fcf3e1"});
+        			$("#tbody tr:eq(0) td:eq(0)").css({"background-color":"#fff","color":"#89c66a"});
+        			$("#tbody tr:eq(1) td:eq(0)").css({"background-color":"#fff","color":"#62bbb7"});
+        			$("#tbody tr:eq(2) td:eq(0)").css({"background-color":"#fff","color":"#43b2f7"});
+        			$("#tbody tr:eq(3) td:eq(0)").css({"background-color":"#fff","color":"#a79ac9"});
+        			$("#tbody tr:eq(4) td:eq(0)").css({"background-color":"#fff","color":"#c7437e"});
+        			$("#tbody tr:eq(5) td:eq(0)").css({"background-color":"#fff","color":"#ef2938"});
+        			$("#tbody tr:eq(6) td:eq(0)").css({"background-color":"#fff","color":"#f4bd4d"});
+        			$(".table th:eq(1)").css({"color":"#62bbb5"});
+        			$(".table th:eq(2)").css({"color":"#f4bc4b"});
+        			$(".table th:eq(3)").css({"color":"#8ac66c"});
+        			$(".table th:eq(4)").css({"color":"#81C9DA"});
+        			
+        			$(".food i").on("click",function(){
+        				var id = $(this).attr("id");
+        				if($(this).attr("style")){
+        					$(this).removeAttr("style");
+        					delPraise(id);
+        				}else{
+        					$(this).css({"color":"#f5bc4b"})
+        					addPraise(id);
+        				}
+        			});
+				},
+			});
+	}
+
+	//点赞
+	function addPraise(id){
+		$.ajax({
+			type: "post",
+			url: "<%=basePath%>recipe/addPraise.do",
+			data:{
+				id : id
+			},
+			success: function(data){}
+		});
+	}
+	// 取消点赞
+	function delPraise(id){
+		$.ajax({
+			type: "post",
+			url: "<%=basePath%>recipe/delPraise.do",
+			data:{
+				id : id
+			},
+			success: function(data){}
+		});
+	}
+
+
+	//获取喜爱食物的排名
+	function favoriteFood(){
+		letDivCenter("#static");
+		$.ajax({
+			type: "post",
+			url: "<%=basePath%>recipe/loadFavoriteFood.do",
+			success: function(data)
+			{
+				var list = $.parseJSON(data);
+				var breakfastHtml = '';
+				var lunchHtml = '';
+				var snackHtml = '';
+				var otherHtml = '';
+				$.each(list.bList, function(b, breakfast) 
+				{
+					
+					breakfastHtml += '<div class="food_detail">';
+					if(b<3)
+					{
+						breakfastHtml += '<span class="num"><b class="num'+(b+1)+'">'+(b+1)+'</b></span>';
+					}else
+					{
+						breakfastHtml += '<span class="num"><b class="num">'+(b+1)+'</b></span>';
+					}
+					breakfastHtml += '<span class="name">'+breakfast.dishName+'<em class="no1"></em></span>';
+					if(breakfast.picPath=="")
+					{
+						breakfastHtml += '<span class="img"><img src="<%=basePath%>media/image_m/null_img.jpg"></span>';
+					}else
+					{
+						breakfastHtml += '<span class="img"><img src="'+ breakfast.picPath+'"></span>';
+					}
+					breakfastHtml += '<span class="good"><i class="icon-thumbs-up">'+breakfast.praiseCount+'</i></span>';
+					breakfastHtml += ' </div>';
+				});
+				$("#tab_1_1").html(breakfastHtml);
+				$.each(list.lList, function(l, lunch) 
+				{
+					
+					lunchHtml += '<div class="food_detail">';
+					if(l<3)
+					{
+						lunchHtml += '<span class="num"><b class="num'+(l+1)+'">'+(l+1)+'</b></span>';
+					}else
+					{
+						lunchHtml += '<span class="num"><b class="num">'+(l+1)+'</b></span>';
+					}
+					lunchHtml += '<span class="name">'+lunch.dishName+'<em class="no1"></em></span>';
+					if(lunch.picPath=="")
+					{
+						lunchHtml += '<span class="img"><img src="<%=basePath%>media/image_m/null_img.jpg"></span>';
+					}else
+					{
+						lunchHtml += '<span class="img"><img src="'+ lunch.picPath+'"></span>';
+					}
+					lunchHtml += '<span class="good"><i class="icon-thumbs-up">'+lunch.praiseCount+'</i></span>';
+					lunchHtml += ' </div>';
+					
+				});
+				$("#tab_1_2").html(lunchHtml);
+				$.each(list.sList, function(s, snack) 
+				{
+					
+					snackHtml += '<div class="food_detail">';
+					if(s<3)
+					{
+						snackHtml += '<span class="num"><b class="num'+(s+1)+'">'+(s+1)+'</b></span>';
+					}else
+					{
+						snackHtml += '<span class="num"><b class="num">'+(s+1)+'</b></span>';
+					}
+					snackHtml += '<span class="name">'+snack.dishName+'<em class="no1"></em></span>';
+					if(snack.picPath=="")
+					{
+						snackHtml += '<span class="img"><img src="<%=basePath%>media/image_m/null_img.jpg"></span>';
+					}else
+					{
+						snackHtml += '<span class="img"><img src="'+ snack.picPath+'"></span>';
+					}
+					snackHtml += '<span class="good"><i class="icon-thumbs-up">'+snack.praiseCount+'</i></span>';
+					snackHtml += ' </div>';
+				});
+				$("#tab_1_3").html(snackHtml);
+				$.each(list.oList, function(o, other) 
+				{
+					
+					otherHtml += '<div class="food_detail">';
+					if(o<3)
+					{
+						otherHtml += '<span class="num"><b class="num'+(o+1)+'">'+(o+1)+'</b></span>';
+					}else
+					{
+						otherHtml += '<span class="num"><b class="num">'+(o+1)+'</b></span>';
+					}
+					otherHtml += '<span class="name">'+other.dishName+'<em class="no1"></em></span>';
+					if(other.picPath=="")
+					{
+						otherHtml += '<span class="img"><img src="<%=basePath%>media/image_m/null_img.jpg"></span>';
+					}else
+					{
+						otherHtml += '<span class="img"><img src="'+ other.picPath+'"></span>';
+					}
+					otherHtml += '<span class="good"><i class="icon-thumbs-up">'+other.praiseCount+'</i></span>';
+					otherHtml += ' </div>';
+				}); 
+				$("#tab_1_4").html(otherHtml);
+			},
+		});
+	}
+	</script>
+	
+	
+
+	<!-- END JAVASCRIPTS -->
+
+<script type="text/javascript">  var _gaq = _gaq || [];  _gaq.push(['_setAccount', 'UA-37564768-1']);  _gaq.push(['_setDomainName', 'keenthemes.com']);  _gaq.push(['_setAllowLinker', true]);  _gaq.push(['_trackPageview']);  (function() {    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;    ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);  })();</script></body>
+
+<!-- END BODY -->
+
+</html>

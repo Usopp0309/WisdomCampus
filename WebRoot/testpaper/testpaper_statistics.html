@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name=”viewport” content=”width=device-width,user-scalable=no”/>
+    <title>学生答题情况统计</title>
+
+
+    <link rel="stylesheet" href="../library/jqmoblie/jquery.mobile-1.3.2.min.css" />
+    <script src="../library/jqmoblie/jquery-1.9.1.min.js"></script>
+    <script src="../library/jqmoblie/jquery.mobile-1.3.2.min.js"></script>
+    <script type="text/javascript" src="lib.js"></script>
+    <script type="text/javascript" src="testpaper_statistics.js"></script>
+    <script type="text/javascript" src="json2.js"></script>
+
+    <style type="text/css">
+        #paperContent div{
+            margin-top: 10px;
+        }
+        .folder{
+            margin-top: 20px;
+        }
+
+        .paperTitle{
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+    </style>
+</head>
+<body>
+<div class="paperTitle">
+    <h1><label id="schoolName"></label></h1>
+    <h2>学科：<label id="paperType"></label></h2>
+    <h3><label id="paperTitle"></label></h3>
+    <h4>本测试卷满分<label id="fullMark">100</label>分，考试时间为<label id="limitTime">60</label>分钟</h4>
+
+    <h5>姓名：<u><span id="userName"></span></u>&nbsp;&nbsp;学号：<u><span id="studentNumber"></span></u></h5>
+    <div id="studentPaperAnswer"></div>
+</div>
+
+<ul id="paperContent">
+
+</ul>
+<!-- div  style="margin-left: auto;margin-right: auto; width: 80px">
+    <button onclick="save()">提交数据</button>
+</div -->
+
+</body>
+
+</html>

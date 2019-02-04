@@ -1,0 +1,199 @@
+.paperDetail {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+.folderModel{
+    margin-right: 5px;
+    margin-left: -20px;
+}
+.folderModel ul{
+    margin-left: -30px;
+}
+
+.folderTitle{
+    font-size: 23px;
+    font-weight:bold;
+}
+.folderTitle input{
+    font-weight:bold;
+    font-size: 23px;
+    border-style:none;
+}
+.folderTitle input:hover{
+    border-style:dashed;
+}
+
+.topicBar {
+	width: 100px;
+	float: right;
+}
+
+.topicBarEditButton {
+	
+}
+
+.topicOptions input {
+	font-size: 18px;
+	border-style: groove;
+}
+
+.topicOptionsText {
+	margin-left: 20px;
+}
+
+.folder,.fillFolder,.selectFolder {
+	border-style: dashed;
+	border-width: 1px;
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.paperTitle {
+	font-weight: bold;
+	font-size: 23px;
+	text-align: center;
+}
+
+
+.paperTitle input {
+	font-weight: bold;
+	border-style: none;
+}
+
+.paperTitle input:hover {
+	border-style: dashed;
+}
+
+.schoolName {
+	height: 30px;
+}
+
+.schoolDetail {
+	text-align: center;
+	font-size: 40px;
+	margin-right: auto;
+	margin-right: auto;
+}
+
+.paperSubject {
+    margin-top: -10px;
+	font-size: 23px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.paperSubject input {
+	font-size: 22px;
+	width: auto;
+}
+
+.paperName {
+	font-size: 26px;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+}
+
+.paperName  input {
+    width : 1000px;
+	text-align:center;
+	font-size: 30px;
+}
+
+.paperLimitRemark {
+    margin-top: -15px;
+}
+
+.paperLimitRemark input {
+	font-size: 20px;
+}
+
+.paperLimitRemark select {
+	font-weight: bold;
+	font-size: 16px;
+}
+
+.userDetail {
+    margin-top: -15px;
+}
+
+.paperOperate {
+	width: 370px;
+	margin-right: auto;
+	margin-left: auto;
+}
+
+.topicProperty {
+	
+}
+
+.topicProperty input {
+	font-weight: bold;
+	font-size: 20px;
+	border-style: none;
+}
+
+.topicProperty input:hover {
+	border-style: dashed;
+}
+
+/* 题目统计样式 */
+.totalDetail{
+    /*width: 650px;*/
+    width: 490px;
+    height: 40px;
+    border: 2px solid #6E6E6E;
+
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+
+    -webkit-box-shadow: 1px 1px 1px rgba(0, 0, 0, .29), inset 1px 1px 1px rgba(255, 255, 255, .44);
+    -moz-box-shadow: 1px 1px 1px rgba(0, 0, 0, .29), inset 1px 1px 1px rgba(255, 255, 255, .44);
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, .29), inset 1px 1px 1px rgba(255, 255, 255, .44);
+
+    -webkit-transition: all 0.15s ease;
+    -moz-transition: all 0.15s ease;
+    -o-transition: all 0.15s ease;
+    -ms-transition: all 0.15s ease;
+    transition: all 0.15s ease;
+
+    margin-top: 10px;
+    margin-bottom: 3px;
+    background-color: #bcbcbc;
+}
+.sep0{
+    padding-left: 20px;
+}
+.sep1{
+    margin-left: 20px;
+    padding-left: 20px;
+    border-left: 1px solid #486c9c;
+}
+.sep2{
+    color: red;
+    cursor: pointer;
+    margin-left: 10px;
+    padding-left: 25px;
+    border-left: 1px solid #486c9c;
+}
+.myAnswer{
+	color: blue;
+}
+.paperComment{
+    margin-top: -15px;
+    margin-bottom: -10px;
+    font-size: 20px;
+}
+.paperComment textarea{
+    width: 700px;
+    font-size: 20px;
+}
+.explainDiv textarea{
+    width: 300px;
+}
+
+.topicOptionRedText{
+    color: #ff0000;
+}

@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Card">
+	<typeAlias alias="card" type="com.guotop.palmschool.entity.Card" />
+	<typeAlias alias="userCard" type="com.guotop.palmschool.entity.UserCard" />
+
+	<resultMap class="com.guotop.palmschool.entity.Card" id="result_cardList">
+		<result property="id" column="id" />
+		<result property="cardCode" column="cardCode" />
+		<result property="status" column="status" />
+		<result property="battery" column="battery" />
+		<result property="updatetime" column="updatetime" />
+		<result property="createtime" column="createtime" />
+		<result property="ower" column="ower" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.Card" id="result_cardCode">
+		<result property="cardCode" column="cardCode" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.Card" id="result_cardIm">
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.Card" id="result_card">
+		<result property="id" column="id" />
+		<result property="cardCode" column="cardCode" />
+		<result property="status" column="status" />
+		<result property="battery" column="battery" />
+		<result property="updatetime" column="updatetime" />
+		<result property="createtime" column="createtime" />
+	</resultMap>
+	
+	<!-- 查找电子卡数量  20151129-->
+	<select id="getCardListCount" parameterClass="java.util.HashMap" resultClass="Integer">
+		SELECT COUNT(1) FROM
+		(
+			SELECT tt.userid FROM
+			(
+				SELECT c.*, uc.userId FROM palm_card c
+					LEFT JOIN palm_user_card uc
+					ON c.id = uc.cardId
+			) tt
+			LEFT JOIN platform.user_detail  u
+				ON tt.userId = u.userId
+				WHERE 1 = 1
+			<isNotEmpty property="queryContent">
+			   AND( tt.cardCode LIKE CONCAT('%',#queryContent#,'%')
+			       OR u.realName LIKE CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>			
+			
+		) t
+	</select>
+	
+	<!-- 查找电子卡信息  20151129-->
+	<select id="getCardList" parameterClass="java.util.HashMap" resultMap="result_cardList">
+		SELECT tt.*, u.realName AS ower FROM
+		(
+			SELECT c.*, uc.userid FROM palm_card c
+				LEFT JOIN palm_user_card uc
+				    ON c.id = uc.cardId
+		) tt
+		  LEFT JOIN  platform.user_detail  u
+		     ON tt.userId = u.userId
+			  WHERE 1 = 1
+		     <isNotEmpty property="queryContent">
+			   AND( tt.cardCode LIKE CONCAT('%',#queryContent#,'%')
+			       OR u.realName LIKE CONCAT('%',#queryContent#,'%'))
+		    </isNotEmpty>		
+			LIMIT #startIndex#, #length# 
+	</select>
+
+	<!-- 根据年级Id查找所有电子卡信息 -->
+	<select id="selectCardById" parameterClass="Integer" resultClass="card">
+		SELECT c.* FROM palm_card c
+		  WHERE c.id = #cardId# 
+	</select>
+	
+	<!-- 根据年级code查找所有电子卡信息 -->
+	<select id="selectCardByCode" parameterClass="String" resultMap="result_cardIm">
+		SELECT COUNT(*) FROM palm_card WHERE cardCode = #code#
+	</select>
+	
+	<!-- 修改卡号 -->
+	<update id="modifyCard" parameterClass="HashMap">
+		update palm_card
+		set cardCode = #code#,
+		updatetime = #updatetime#,
+		status = #status#
+		where id = #cardId#	
+		
+	</update>
+	
+	<!-- 修改卡号 -->
+	<update id="modifyCardById" parameterClass="HashMap">
+		update palm_card
+		set cardCode = #code#
+		where id = #cardId#	
+	</update>
+	
+	<select id="selectCardIdByCardCode" parameterClass="String" resultClass="Integer">
+ 		select id from palm_card
+ 			where cardCode = #code#
+	</select>
+	
+	<!-- 表单校验 begin-->
+	<select id="checkCardCode" parameterClass="String" resultClass="Integer">
+ 		select 1 from palm_card
+ 			where cardCode = #code#
+	</select>
+	
+	<!-- 表单校验  end -->
+	
+	<!-- 后台校验 begin 20151124-->
+	<select id="checkCardCodeServer" parameterClass="String" resultClass="Integer">
+ 		select 1 from palm_user_card uc, palm_card c
+ 			where uc.cardid = c.id
+ 				and c.cardCode = #code# limit 1
+	</select>
+	
+	<!-- 后台校验 end -->
+	
+	<!-- 表单校验添加教师时 begin-->
+	<select id="checkCardCodeBycode" parameterClass="String" resultClass="Integer">
+ 		select 1 from palm_user_card uc, palm_card c
+ 			where uc.cardid = c.id
+ 			and c.cardCode = #code#
+	</select>
+	
+	<select id="selectCardCodeByTeacherId" parameterClass="Integer" resultMap="result_cardCode">
+ 		select c.cardCode from palm_user_card uc, palm_card c
+ 			where uc.cardid = c.id
+ 			and uc.userid = #teacherId#
+	</select>
+	
+	<!-- 后台校验 begin 20151126-->
+	<select id="checkModifyTeacherCardCodeByCardCode" parameterClass="HashMap" resultClass="Integer">
+ 		SELECT  * FROM palm_user_card uc, 
+ 		         (SELECT * FROM palm_card d 
+ 		         <isNotNull property="originalCardCode">
+ 		         <isNotEmpty property="originalCardCode">
+ 		         WHERE d.cardcode!=#originalCardCode#
+ 		         </isNotEmpty>
+ 		         </isNotNull>
+ 		         
+ 		         ) c
+ 			WHERE uc.cardid = c.id
+ 			and c.cardCode = #code#
+	</select>
+	
+	<!-- 后台校验 end -->
+	
+	<!-- 检查卡是否存在palm_card中 -->
+	<select id="checkCardExists" parameterClass="String" resultClass="Integer">
+ 		select 1 
+ 			from palm_card
+ 			where cardCode = #cardCode#
+	</select>
+	
+	<!-- 检查卡是否拥有持有者 -->
+	<select id="checkCardIsUsed" parameterClass="String" resultClass="Integer">
+ 		select 1 from palm_user_card uc, palm_card c
+ 			where uc.cardid = c.id
+ 			and c.cardCode = #cardCode#
+	</select>
+	
+	<!-- 根据用户Id查找电子卡列表   20151130-->
+	<select id="getCardListByUserId" parameterClass="Integer" resultMap="result_card">
+ 		select c.* from palm_user_card uc, palm_card c
+ 			where uc.cardId = c.id
+ 			and uc.userId = #userId#
+	</select>
+	<!-- 根据用户Id查找电子卡列表【福建专用】-->
+	<select id="getCardListByUserIdFj" parameterClass="Integer" resultMap="result_card">
+ 		select c.* from palm_user_card uc, palm_card c
+ 			where uc.cardId = c.id
+ 			and uc.userId = #userId#
+	</select>
+	<!-- 增加教师，学生时增加卡号  20151124-->
+	<insert id="addCard" parameterClass="card">
+		INSERT INTO palm_card
+		(
+			cardCode,
+			status,
+			battery,
+			updatetime,
+			createtime
+		)
+		VALUES
+		(
+			#cardCode#,
+			#status#,
+			#battery#,
+			#updatetime#,
+			#createtime#
+		)
+         <selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	<!-- 添加用户卡信息 20151124-->
+	<insert id="addUserCard" parameterClass="HashMap">
+		insert into palm_user_card
+		(
+			userId,
+			cardId
+		)
+		values
+		(
+			#userId#,
+			#cardId#
+		)
+	</insert>
+	
+	<!-- 根据用户ID删除用户与card之间的关联 20151126 -->
+	<delete id="deleteUserCard"  parameterClass="Integer">
+	     delete from palm_user_card 
+	     	where userid = #userId# 
+	</delete>
+	<!-- 根据用户ID删除用户与card之间的关联 和对应的卡号 -->
+	<delete id="deleteUserCardByUserId"  parameterClass="Integer">
+	     delete c,u from palm_user_card u, palm_card c where u.cardId = c.id and  u.userId = #userId#
+	</delete>
+	<!-- 根据cardId删除用户与card之间的关联 和对应的卡号 -->
+	<delete id="deleteUserCardByCardId"  parameterClass="Integer">
+	     delete c,u from palm_user_card u, palm_card c where u.cardId = c.id and  c.id = #cardId#
+	</delete>
+		
+	<!-- 根据用户Id查找对应的CardID  用于删除和用户关联的卡号 -->
+	<select id="getCardIdByUserId" parameterClass="Integer" resultClass="userCard">
+ 		select * from palm_user_card 
+ 			where userId = #userId#
+	</select>
+	<!-- 根据学生id查找电子卡列表  jfy 2015-11-28-->
+	<select id="getCardListByStudentId" parameterClass="Integer" resultMap="result_card">
+ 		select c.* from palm_user_card uc, palm_card c
+ 			where uc.cardid = c.id
+ 			and uc.userid = #studentId#
+	</select>
+	<!-- 根据卡号查找对应的用户  jfy 2015-11-28-->
+	<select id="getStudentIdByCardId" parameterClass="String" resultClass="String">
+ 		select uc.userId from palm_user_card uc, palm_card c
+ 			where uc.cardid = c.id
+ 			and c.cardCode = #cardCode#
+	</select>
+	
+
+	<!-- 更新卡与人员的关系 -->
+	<update id="updateCardUserId" parameterClass="HashMap">
+	update palm_user_card ud set ud.userId=#userId# where ud.cardId=#cardId#
+	</update>
+	
+	<!-- 智慧校园3.0 以下新代码  -->
+	
+	<!-- 根据卡号查找电子卡信息  update by shengyinjiang 20151125-->
+	<select id="getCardByCardCode" parameterClass="String" resultMap="result_card">
+		SELECT * FROM palm_card WHERE cardCode = #cardCode# and status=1
+	</select>
+	
+	<!-- 【卡号添加】的时候验证卡号是否已经存在-->
+	<select id="checkCardCodeIsExist" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(uc.userId) FROM palm_card c ,palm_user_card uc WHERE c.id = uc.cardId and c.status=1 and c.cardCode = #cardCode#
+	</select>
+	
+	<!-- 【卡号修改】的时候验证卡号是否已经存在-->
+	<select id="checkCardCodeIsExistInModifyCardCode" parameterClass="HashMap" resultClass="Integer">
+		SELECT count(d.cardCode) FROM (SELECT c.cardCode FROM palm_card c ,palm_user_card uc WHERE c.id = uc.cardId and c.status=1 and c.cardCode != #origCardCode#) d
+		where d.cardCode = #cardCode#
+	</select>
+</sqlMap>

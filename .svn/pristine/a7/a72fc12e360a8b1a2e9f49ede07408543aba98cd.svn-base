@@ -1,0 +1,19 @@
+package com.guotop.palmschool.service.impl;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.entity.YintowisdomLog;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.service.YintowisdomLogService;
+
+@Service("yintowisdomLogService")
+public class YintowisdomLogServiceImol extends BaseService implements YintowisdomLogService
+{
+
+	@Override
+	public void addYintowisdomLog(YintowisdomLog yintowisdomLog)
+	{
+		getBaseDao().addObject("YintowisdomLog.addYintowisdomLog", yintowisdomLog);
+	}
+
+}

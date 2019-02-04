@@ -1,0 +1,184 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>测试</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+</head>
+	<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+		<input class="themes" type="hidden" value="<%=ThemePath%>">
+	    <!-- 公共顶部开始-->
+	    <%@ include file="/public_module/public_header.jsp"%>    
+	    <!--公共顶部结束-->
+	    <div class="clearfix"> </div>
+	    <!-- 内容页开始 -->
+	    <div class="page-container">
+	        <!--主菜单开始-->
+	        <%@include file="/public_module/public_menu.jsp"%>
+	        <!--主菜单结束-->
+	        <div class="page-content-wrapper">
+	            <div class="page-content m_overflow_hidden m_page_content">
+	            	
+	            	<!-- 页面内容开始 -->
+	            	<div class="col-md-12 col-sm-12 m_page_con">
+	                <div class="page-bar m_margin_0_0_0_0">
+	                <%@include file="/public_module/public_config.jsp" %>
+	                    <ul class="page-breadcrumb">
+	                        <li><a href="">首页</a><i class="fa fa-circle"></i></li>
+	                        <li><a href="">平安校园</a><i class="fa fa-circle"></i></li>
+	                        <li><span>进出记录</span></li>
+	                    </ul>
+	                </div>
+	                <h3 class="page-title">进出记录</h3>
+	                <div class="row">
+	                    <div class="col-md-12 col-sm-12">
+	                    	<div class="m_margin_0_0_15_0">
+	                    		<!-- 角色切换开始 -->
+	                    		<ul class="nav nav-tabs"  id="userTab">
+	                                <li class="active">
+	                                    <a data-toggle="tab" aria-expanded="true">哈哈（老师）</a>
+	                                </li>
+	                                <li class="">
+	                                    <a data-toggle="tab" aria-expanded="false">哈哈（家长）</a>
+	                                </li>
+	                                <li class="">
+	                                    <a data-toggle="tab" aria-expanded="false">哈哈(学生)</a>
+	                                </li>
+	                            </ul>
+	                    		<!-- 角色切换结束 -->
+	                        </div>
+	                        <!-- 添加功能菜单开始 -->
+	                        <div class="portlet light form-fit m_margin_0_0_15_0">
+	                        	<button class="btn btn-default" type="button" data-toggle="modal" href="#small">添加账号</button>
+	                        	<button class="btn btn-default" type="button" data-toggle="modal" href="#small">删除账号</button>
+	                        	<button class="btn btn-default" type="button" data-toggle="modal" href="#small">添加电子卡</button>
+	                        	<button class="btn btn-default" type="button" data-toggle="modal" href="#small">删除电子卡</button>
+	                        </div>
+	                        <!-- 添加功能菜单结束 -->
+	                        <!-- 页面搜索开始 -->
+	                        <div class="portlet light form-fit bordered search_box">
+	                        	
+	                         <div class="row m_margin_10_auto">
+	
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">选择类型：</span>
+	                         		<select class="form-control m_select">
+	                                                <option>Option 1</option>
+	                                                <option>Option 2</option>
+	                                                <option>Option 3</option>
+	                                                <option>Option 4</option>
+	                                                <option>Option 5</option>
+	                                            </select>
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">选择类型：</span>
+	                         		<input class="m_input form-control" type="text">
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">选择类型：</span>
+	                         		<input class="m_input form-control" type="text">
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">选择类型：</span>
+	                         		<input class="m_input form-control" type="text">
+	                         	</div>
+	                         
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">选择类型：</span>
+	                         		<input class="m_input form-control" type="text">
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">选择类型：</span>
+	                         		<input class="m_input form-control" type="text">
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">选择类型：</span>
+	                         		<input class="m_input form-control" type="text">
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">选择类型：</span>
+	                         		<input class="m_input form-control" type="text">
+	                         	</div>
+	                         
+		                         <div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+			                         <button type="submit" class="btn green">确定</button>
+			                         <button type="button" class="btn default">取消</button>
+		                         </div>
+	                         </div>
+	                        </div>
+	                       	<div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption">
+	                                    <i class="fa fa-list"></i>进出记录列表</div>
+	                            </div>
+	                            <div class="portlet-body flip-scroll">
+	                                <table class="table table-bordered table-hover">
+	                                    <thead class="flip-content">
+	                                        <tr>
+	                                            <th>字段</th>
+	                                            <th>字段</th>
+	                                            <th>字段</th>
+	                                            <th>字段</th>
+	                                            <th>字段</th>
+	                                            <th>字段</th>
+	                                            <th>字段</th>
+	                                            <th>字段</th>
+	                                            <th>字段</th>
+	                                        </tr>
+	                                    </thead>
+	                                    <tbody id="tbody">
+
+										</tbody>
+	                                </table>
+	                            </div>
+	                        </div>
+	                       <!-- 列表展现开始 -->
+	                        <!-- 分页开始 -->
+	                        <%@include file="/public_module/public_page.jsp" %>
+	                        <!-- 分页结束 -->
+	                    </div>
+	                </div>
+	                </div>
+	                <!--页面内容结束 -->
+	            </div>
+	        </div>
+	        <!-- 亦信聊天开始 -->
+	    	<%@ include file="/public_module/public_QQ.jsp" %>
+	        <!-- 亦信聊天结束 -->
+	    </div>
+	    <!-- 内容页结束 -->
+	    <!-- 底部开始 -->
+	    <%@ include file="/public_module/public_footer.jsp" %>
+	    <!-- 底部结束 -->
+	    <!-- 弹窗开始  大小参数：modal-lg, modal-sm-->
+	    <div class="modal fade bs-modal-sm" id="small" tabindex="-1" role="dialog" aria-hidden="true">
+	        <div class="modal-dialog modal-sm">
+	            <div class="modal-content">
+	                <div class="modal-header">
+	                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+	                    <h4 class="modal-title">天窗标题</h4>
+	                </div>
+	                <div class="modal-body">弹窗主题</div>
+	                <div class="modal-footer">
+	                    <button type="button" class="btn dark btn-outline" data-dismiss="modal">确定</button>
+	                    <button type="button" class="btn green">取消</button>
+	                </div>
+	            </div>
+	            <!-- /.modal-content -->
+	        </div>
+	        <!-- /.modal-dialog -->
+	    </div>
+	    <!-- 弹窗结束 -->
+	</body>
+    <!-- 公共js开始 -->
+    <%@ include file="/public_module/public_js.jsp" %>
+    <!-- 公共js结束 -->
+</html>

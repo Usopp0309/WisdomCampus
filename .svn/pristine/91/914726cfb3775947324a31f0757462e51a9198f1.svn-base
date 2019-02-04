@@ -1,0 +1,968 @@
+package com.guotop.palmschool.schoolnews.controller;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.controller.BaseController;
+import com.guotop.palmschool.entity.Clazz;
+import com.guotop.palmschool.entity.Role;
+import com.guotop.palmschool.entity.School;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.schoolnews.entity.Reviewers;
+import com.guotop.palmschool.schoolnews.entity.SchoolNewsInfo;
+import com.guotop.palmschool.schoolnews.service.SchoolNewsLookService;
+import com.guotop.palmschool.schoolnews.util.QrcodeUtil;
+import com.guotop.palmschool.service.SchoolService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.HttpPostUtil;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+import com.richx.pojo.RichHttpResponse;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 校车管理控制类
+ */
+@RequestMapping("/schoolNewsLook")
+@Controller
+public class SchoolNewsLookController extends BaseController
+{
+	Logger log = LoggerFactory.getLogger(SchoolNewsLookController.class);
+
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private SchoolNewsLookService schoolNewsLookService;
+
+	@Resource
+	private SchoolService schoolService;
+
+	@Resource
+	private UserService userService;
+
+	/**
+	 * 进入新闻查看页面
+	 */
+	@RequestMapping(value = "/toSchoolNewsLook.do")
+	public String toSchoolNewsLook()
+	{
+		return "schoolnews/schoolnews_on_list";
+	}
+
+	/**
+	 * 进入报名页面
+	 */
+	@RequestMapping(value = "/applyInfoForward.do")
+	public String applyInfoForward(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String schoolId = request.getParameter("schoolId");
+		String newsId = request.getParameter("newsId");
+		if (null != session.getAttribute("user"))
+		{
+			User user = (User) session.getAttribute("user");
+			if (null != user.getSchoolId() && !"".equals(user.getSchoolId()))
+			{
+				schoolId = user.getSchoolId();
+			}
+		}
+		DBContextHolder.setDBType(schoolId);
+		School sc = schoolService.selectSchoolById(Long.valueOf(schoolId));
+		modelMap.put("school", sc);
+		modelMap.put("newsId", newsId);
+		return "applyInfo/addApplyInfo";
+	}
+
+	/**
+	 * 手机进入报名页面
+	 */
+	@RequestMapping(value = "/applyInfoPhone.do")
+	public String applyInfoPhone(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String schoolId = request.getParameter("schoolId");
+		String newsId = request.getParameter("newsId");
+		if (null != session.getAttribute("user"))
+		{
+			User user = (User) session.getAttribute("user");
+			if (null != user.getSchoolId() && !"".equals(user.getSchoolId()))
+			{
+				schoolId = user.getSchoolId();
+			}
+		}
+		DBContextHolder.setDBType(schoolId);
+		School sc = schoolService.selectSchoolById(Long.valueOf(schoolId));
+		SchoolNewsInfo sni = schoolNewsLookService.getSchoolNewsById(newsId);
+		modelMap.put("school", sc);
+		if (sni != null)
+		{
+			modelMap.put("newsTitle", sni.getNewsTitle());
+		}
+		modelMap.put("newsId", newsId);
+		return "app/schoolnews/addApplyInfoPhone";
+	}
+
+	/**
+	 * 进入新闻详情页面
+	 */
+	@RequestMapping(value = "/forwardDetail.do")
+	public String forwardDetail(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String newsId = request.getParameter("newsId");
+		String schoolId = request.getParameter("schoolId");
+		if (null != schoolId && !"".equals(schoolId))
+		{
+			School sc = schoolService.selectSchoolById(Long.valueOf(schoolId));
+			if (null != sc)
+			{
+				DBContextHolder.setDBType(schoolId);
+			}
+		} else
+		{
+			if (null != session.getAttribute("user"))
+			{
+				schoolId = ((User) session.getAttribute("user")).getSchoolId();
+				DBContextHolder.setDBType(schoolId);
+			}
+		}
+		SchoolNewsInfo sni = schoolNewsLookService.getSchoolNewsById(newsId);
+		if (null != sni)
+		{
+			Reviewers rw = new Reviewers();
+			rw.setNewsId(sni.getNewsId());
+			rw.setParentId("0");
+			int count = schoolNewsLookService.getCommentsCountByNewsId(rw);
+			modelMap.put("schoolNewsInfo", sni);
+			modelMap.put("commentsCount", count);
+			modelMap.put("schoolId", schoolId);
+		}
+		return "schoolnews/schoolnews_on_detail";
+	}
+
+	/**
+	 * 手机进入新闻详情页面
+	 */
+	@RequestMapping(value = "/forwardDetailPhone.do")
+	public String forwardDetailPhone(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String newsId = request.getParameter("newsId");
+		String schoolId = request.getParameter("schoolId");
+		if (null != schoolId && !"".equals(schoolId))
+		{
+			School sc = schoolService.selectSchoolById(Long.valueOf(schoolId));
+			if (null != sc)
+			{
+				DBContextHolder.setDBType(schoolId);
+			}
+		} else
+		{
+			if (null != session.getAttribute("user"))
+			{
+				schoolId = ((User) session.getAttribute("user")).getSchoolId();
+			}
+		}
+		SchoolNewsInfo sni = schoolNewsLookService.getSchoolNewsById(newsId);
+		if (null != sni)
+		{
+			Reviewers rw = new Reviewers();
+			rw.setNewsId(sni.getNewsId());
+			rw.setParentId("0");
+			int count = schoolNewsLookService.getCommentsCountByNewsId(rw);
+			modelMap.put("commentsCount", count);
+			modelMap.put("schoolNewsInfo", sni);
+			modelMap.put("schoolId", schoolId);
+		}
+
+		return "app/schoolnews/schoolnews_on_detail_phone";
+	}
+
+	/**
+	 * 查看是否回复
+	 */
+	@RequestMapping(value = "/getReplyList.do")
+	public void getReplyList(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String newsId = request.getParameter("newsId");
+		String parentId = request.getParameter("parentId");
+		Reviewers rw = new Reviewers();
+		rw.setNewsId(StringUtil.toint(newsId));
+		rw.setParentId(parentId);
+		int count = schoolNewsLookService.getCommentsCountByNewsId(rw);
+		Gson gson = new Gson();
+		String json = gson.toJson(count);
+		try
+		{
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 进入新闻评论页面
+	 */
+	@RequestMapping(value = "/forwardComments.do")
+	public String forwardComments(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String newsId = request.getParameter("newsId");
+		String schoolId = request.getParameter("schoolId");
+		DBContextHolder.setDBType(schoolId);
+		SchoolNewsInfo sni = schoolNewsLookService.getSchoolNewsById(newsId);
+		modelMap.put("schoolNewsInfo", sni);
+		modelMap.put("schoolId", schoolId);
+		return "schoolnews/newsComment_on_detail";
+	}
+
+	/**
+	 * 手机进入新闻评论页面
+	 */
+	@RequestMapping(value = "/forwardCommentsPhone.do")
+	public String forwardCommentsPhone(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String newsId = request.getParameter("newsId");
+		String schoolId = request.getParameter("schoolId");
+		DBContextHolder.setDBType(schoolId);
+		SchoolNewsInfo sni = schoolNewsLookService.getSchoolNewsById(newsId);
+		modelMap.put("schoolNewsInfo", sni);
+		modelMap.put("schoolId", schoolId);
+		return "app/schoolnews/newsComment_on_detail_phone";
+	}
+
+	/**
+	 * 异步获得评论
+	 */
+	@RequestMapping(value = "/getCommentsByAsync.do")
+	public void getCommentsByAsync(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			String schoolId = request.getParameter("schoolId");
+			DBContextHolder.setDBType(schoolId);
+			String parentId = request.getParameter("parentId");
+			String newsId = request.getParameter("newsId");
+			String myComments = request.getParameter("myComments");
+			String orderType = request.getParameter("orderType");
+			String detailComment = request.getParameter("detailComment");
+			User user = (User) session.getAttribute("user");
+			HashMap<String, Object> map = new HashMap<String, Object>();
+			map.put("newsId", newsId);
+			map.put("parentId", parentId);
+			map.put("orderType", orderType);
+			map.put("detailComment", detailComment);
+			if (null != myComments && !"".equals(myComments))
+			{
+				map.put("userId", user.getUserId());
+			}
+			List<Reviewers> list = schoolNewsLookService.getCommentsByNewsId(map);
+			Gson gson = new Gson();
+			String json = gson.toJson(list);
+
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 异步获得评论(手机端)
+	 */
+	@RequestMapping(value = "/getCommentsByAsyncPhone.do")
+	public void getCommentsByAsyncPhone(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			String schoolId = request.getParameter("schoolId");
+			DBContextHolder.setDBType(schoolId);
+			String parentId = request.getParameter("parentId");
+			String newsId = request.getParameter("newsId");
+			String myComments = request.getParameter("myComments");
+			String orderType = request.getParameter("orderType");
+			String detailComment = request.getParameter("detailComment");
+			User user = (User) session.getAttribute("user");
+			HashMap<String, Object> map = new HashMap<String, Object>();
+			map.put("newsId", newsId);
+			map.put("parentId", parentId);
+			map.put("orderType", orderType);
+			map.put("detailComment", detailComment);
+			if (null != myComments && !"".equals(myComments))
+			{
+				map.put("userId", user.getUserId());
+			}
+			List<Reviewers> list = schoolNewsLookService.getCommentsByNewsId(map);
+			for (Reviewers reviewers : list)
+			{
+				List<Reviewers> reviewersList = new ArrayList<Reviewers>();
+				reviewersList = schoolNewsLookService.getCommentsByParentId(reviewers.getCommentId());
+				reviewers.setReviewersList(reviewersList);
+			}
+
+			Gson gson = new Gson();
+			String json = gson.toJson(list);
+
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 异步获得我的评论
+	 */
+	@RequestMapping(value = "/getMyCommentByUserId.do")
+	public void getMyCommentByUserId(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			User user = (User) session.getAttribute("user");
+			HashMap<String, Object> map = new HashMap<String, Object>();
+			map.put("userId", user.getUserId());
+			List<Reviewers> list = schoolNewsLookService.getMyCommentByUserId(map);
+			map.put("headImg", user.getHeadImg());
+			map.put("list", list);
+			Gson gson = new Gson();
+			String json = gson.toJson(map);
+
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 删除评论
+	 */
+	@RequestMapping(value = "/deleteComments.do")
+	public void deleteComments(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		String commentId = request.getParameter("commentId");
+		schoolNewsLookService.updateReplayCountsForDelete(commentId);
+		schoolNewsLookService.deleteComments(commentId);
+		Gson gson = new Gson();
+		String json = gson.toJson("success");
+		try
+		{
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 添加评论
+	 */
+	@RequestMapping(value = "/addComment.do")
+	public void addComment(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			String newsId = request.getParameter("newsId");
+			String commentContent = request.getParameter("commentContent");
+			String commentType = request.getParameter("commentType");
+			String parentId = request.getParameter("parentId");
+			User user = (User) session.getAttribute("user");
+			Reviewers rv = new Reviewers();
+			SimpleDateFormat sdf = new SimpleDateFormat();
+			rv.setCreateTime(sdf.format(new Date()));
+			rv.setContent(commentContent);
+			rv.setNewsId(StringUtil.toint(newsId));
+			rv.setCommentType(commentType);
+			rv.setCommentUserId(user.getUserId().toString());
+			rv.setCommentUserName(user.getRealName());
+			rv.setParentId(parentId);
+			if (null != parentId && !"0".equals(parentId))
+			{
+				schoolNewsLookService.addCommentCount(parentId);
+			}
+			Integer commentId = schoolNewsLookService.addComment(rv);
+
+			Reviewers reviewers = schoolNewsLookService.getCommentByCommentId(commentId);
+			Gson gson = new Gson();
+			String json = gson.toJson(reviewers);
+
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 点赞
+	 */
+	@RequestMapping(value = "/addZan.do")
+	public void addZan(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String commentId = request.getParameter("commentId");
+		schoolNewsLookService.addZan(commentId);
+		Gson gson = new Gson();
+		String json = gson.toJson("success");
+		try
+		{
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 获得新闻
+	 */
+	@RequestMapping(value = "/getSchoolIdnexNews.do")
+	public void getSchoolIdnexNews(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+
+			String newsType = request.getParameter("newsType");
+
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("newsType", newsType);
+			User user = (User) session.getAttribute("user");
+			paramMap.put("createUserId", user.getUserId());
+			List<Role> roleList = user.getRoleList();
+			List<String> grade = new ArrayList<String>();
+			List<String> clazz = new ArrayList<String>();
+			// 新闻发布的范围T0表示全校教职工 P0全部家长 G开头表示年级 C开头表示班级
+			for (Role role : roleList)
+			{
+				if ("student".equals(role.getRoleCode()))
+				{// 学生
+					List<Clazz> listClass = user.getClazzList();
+					for (Clazz c : listClass)
+					{
+						grade.add("G" + c.getGradeId());
+						clazz.add("C" + c.getClazzId());
+					}
+				} else
+				{
+					if ("parent".equals(role.getRoleCode()))
+					{
+						paramMap.put("P0", "P0");
+					} else
+					{
+						paramMap.put("T0", "T0");
+					}
+				}
+			}
+			paramMap.put("grade", grade);
+			paramMap.put("clazz", clazz);
+			List<SchoolNewsInfo> list = schoolNewsLookService.getSchoolNewsIndexInfo(paramMap);
+			Gson gson = new Gson();
+			String json = gson.toJson(list);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 获得人员对应的新闻列表：管理员可查看全部，其他人查看自己发布的新闻
+	 */
+	@RequestMapping(value = "/getSchoolNews.do")
+	public void getSchoolNews(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			String createTime = request.getParameter("createTime");
+			String newsContent = request.getParameter("newsContent");
+			int currentPage;
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			String newsType = request.getParameter("newsType");
+			if ("0".equals(newsType))
+			{
+				newsType = "";
+			}
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("createTime", createTime);
+			paramMap.put("newsContent", newsContent);
+			paramMap.put("newsType", newsType);
+
+			User user = (User) session.getAttribute("user");
+			if (!commonService.hasAdminPermission(user))
+			{
+				paramMap.put("createUserId", user.getUserId());
+			}
+
+			Pages page = schoolNewsLookService.getSchoolNews(this.getPages().getPageSize(), currentPage, paramMap);
+			Gson gson = new Gson();
+			String json = gson.toJson(page);
+
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 生成二维码
+	 */
+	@RequestMapping(value = "/createCode.do")
+	public void createCode(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		String url = request.getParameter("url");
+		try
+		{
+			String imgPath = QrcodeUtil.createCode(url);
+			response.getWriter().write(imgPath);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 删除二维码
+	 */
+	@RequestMapping(value = "/deleteCodeImg.do")
+	public void deleteCodeImg(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		String urls = request.getParameter("urls");
+		try
+		{
+			for (int i = 0; i < urls.split(",").length; i++)
+			{
+				File file = new File(urls.split(",")[i]);
+				if (file.exists())
+				{
+					file.delete();
+				}
+			}
+			response.getWriter().write("success");
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 【手机端】根据传入的type类型查询 1、校园新闻，2、学校活动，3、学校招生信息 4、家长课堂
+	 */
+	@RequestMapping(value = "/getSchoolNewsListByApiKey.do")
+	public String getSchoolNewsListByApiKey(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		int port = request.getServerPort();
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<List<SchoolNewsInfo>> rhr = new RichHttpResponse<List<SchoolNewsInfo>>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		Integer newsType = StringUtil.toint(request.getParameter("newsType"));
+		// 每页显示几条
+		Integer number = StringUtil.toint(request.getParameter("number"));
+		// 从第几页开始
+		Integer page = StringUtil.toint(request.getParameter("page"));
+
+		try
+		{
+			String json;
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+				if (number == 0)
+				{
+					number = 10;
+				}
+				if (page == 0)
+				{
+					page = 1;
+				}
+
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+
+				School school = schoolService.getSchoolInfoBySchoolId(Long.valueOf(schoolId));
+				List<SchoolNewsInfo> list = schoolNewsLookService.getSchoolNewsByNewsType(number, page, newsType);
+
+				for (SchoolNewsInfo schoolNews : list)
+				{
+					String createTime = schoolNews.getCreateTime();
+
+					SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					try
+					{
+						Date date = formatter.parse(createTime);
+						schoolNews.setTime(date.getTime());
+					} catch (ParseException e)
+					{
+						e.printStackTrace();
+					}
+
+					String basePath = HttpPostUtil.getWisdomCampusUrl(port);
+					String newsSrc = basePath + "schoolNewsLook/forwardDetailPhone.do?newsId=" + schoolNews.getNewsId() + "&schoolId=" + schoolId;
+					schoolNews.setNewsSrc(newsSrc);
+					schoolNews.setSchoolName(school.getSchoolName());
+
+					if (newsType == 2)
+					{
+						Integer num = schoolNewsLookService.getCountByNewsId(schoolNews.getNewsId());
+						schoolNews.setNumber(num);
+					}
+				}
+
+				rhr.ResponseCode = 0;
+				rhr.ResponseObject = list;
+				rhr.ResponseResult = "获取成功";
+				json = GsonHelper.toJsonWithAnnotation(rhr);
+			} else
+			{
+				rhr.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		}
+		return null;
+	}
+
+	/**
+	 * 进入我要参加页面
+	 */
+	@RequestMapping(value = "/toTakePartInActivity.do")
+	public String toTakePartInActivity(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String schoolId = request.getParameter("schoolId");
+		String newsId = request.getParameter("newsId");
+		if (null != session.getAttribute("user"))
+		{
+			User user = (User) session.getAttribute("user");
+			if (null != user.getSchoolId() && !"".equals(user.getSchoolId()))
+			{
+				schoolId = user.getSchoolId();
+			}
+		}
+		DBContextHolder.setDBType(schoolId);
+		School sc = schoolService.selectSchoolById(Long.valueOf(schoolId));
+		SchoolNewsInfo sni = schoolNewsLookService.getSchoolNewsById(newsId);
+		modelMap.put("school", sc);
+		modelMap.put("newsId", newsId);
+		if (sni != null)
+		{
+			modelMap.put("newsTitle", sni.getNewsTitle());
+		}
+		return "applyInfo/take_part_in_activity";
+	}
+
+	/**
+	 * 手机进入我要参加页面
+	 */
+	@RequestMapping(value = "/toTakePartInActivityPhone.do")
+	public String toTakePartInActivityPhone(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String schoolId = request.getParameter("schoolId");
+		String newsId = request.getParameter("newsId");
+		if (null != session.getAttribute("user"))
+		{
+			User user = (User) session.getAttribute("user");
+			if (null != user.getSchoolId() && !"".equals(user.getSchoolId()))
+			{
+				schoolId = user.getSchoolId();
+			}
+		}
+		DBContextHolder.setDBType(schoolId);
+		School sc = schoolService.selectSchoolById(Long.valueOf(schoolId));
+		SchoolNewsInfo sni = schoolNewsLookService.getSchoolNewsById(newsId);
+		modelMap.put("school", sc);
+		modelMap.put("newsTitle", sni.getNewsTitle());
+		modelMap.put("newsId", newsId);
+		return "app/schoolnews/take_part_in_activity_phone";
+	}
+
+	/**
+	 * RichCloud获得最新的新闻
+	 * 
+	 * @author chenyong
+	 * @date 2016年8月8日 下午4:00:08
+	 * @param response
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping("/getNweNews.do")
+	public String getNweNews(HttpServletResponse response, HttpServletRequest request)
+	{
+		response.setContentType("application/json;charset=UTF-8");
+		BufferedReader br;
+		try
+		{
+			br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line);
+			}
+			String msgInfoStr = sb.toString();
+			Gson gson = new Gson();
+			Map<String, Object> param = gson.fromJson(msgInfoStr, new TypeToken<Map<String, Object>>()
+			{
+			}.getType());
+			int length = StringUtil.toint(param.get("length"));
+			String schoolId = (String) param.get("schoolId");
+			int newsType = StringUtil.toint(param.get("newsType"));
+			DBContextHolder.setDBType(schoolId);
+			param = new HashMap<String, Object>();
+			List<SchoolNewsInfo> list = schoolNewsLookService.getSchoolNewsByNewsType(length, 1, newsType);
+			String json = GsonHelper.toJson(list);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e1)
+		{
+			e1.printStackTrace();
+		}
+		return null;
+
+	}
+
+	/**
+	 * RichCloud根据主键获得最新的新闻
+	 * 
+	 * @author chenyong
+	 * @date 2016年8月8日 下午4:00:08
+	 * @param response
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping("/getNweNewsById.do")
+	public String getNweNewsById(HttpServletResponse response, HttpServletRequest request)
+	{
+		response.setContentType("application/json;charset=UTF-8");
+		BufferedReader br;
+		try
+		{
+			br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line);
+			}
+			String msgInfoStr = sb.toString();
+			Gson gson = new Gson();
+			Map<String, Object> param = gson.fromJson(msgInfoStr, new TypeToken<Map<String, Object>>()
+			{
+			}.getType());
+			String newsId = (String) (param.get("key"));
+			String schoolId = (String) param.get("schoolId");
+			DBContextHolder.setDBType(schoolId);
+			SchoolNewsInfo schoolNewsInfo = schoolNewsLookService.getSchoolNewsById(newsId);
+			String json = GsonHelper.toJson(schoolNewsInfo);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e1)
+		{
+			e1.printStackTrace();
+		}
+		return null;
+
+	}
+
+	/**
+	 * RichCloud分页获得最新的新闻
+	 * 
+	 * @author chenyong
+	 * @date 2016年8月8日 下午4:00:08
+	 * @param response
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping("/getPageNews.do")
+	public String getPageNews(HttpServletResponse response, HttpServletRequest request)
+	{
+		response.setContentType("application/json;charset=UTF-8");
+		BufferedReader br;
+		try
+		{
+			br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line);
+			}
+			String msgInfoStr = sb.toString();
+			Gson gson = new Gson();
+			Map<String, Object> param = gson.fromJson(msgInfoStr, new TypeToken<Map<String, Object>>()
+			{
+			}.getType());
+			int pageSize = StringUtil.toint(param.get("pageSize"));
+			int page = StringUtil.toint(param.get("page"));
+			String schoolId = (String) param.get("schoolId");
+			DBContextHolder.setDBType(schoolId);
+			Map<String, Integer> param1 = new HashMap<String, Integer>();
+			int newsType = StringUtil.toint(param.get("newsType"));
+			param1.put("newsType", newsType);
+			// param1.put("schoolId", Integer.valueOf(schoolId));
+			Pages pages = schoolNewsLookService.getRichCloundSchoolNews(pageSize, page, param1);
+			String json = GsonHelper.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e1)
+		{
+			e1.printStackTrace();
+		}
+		return null;
+
+	}
+
+	/**
+	 * 【手机端】根据传入的type类型查询 1、校园新闻，2、学校活动，3、学校招生信息 4、家长课堂 和 apikey获取用户对应的新闻List
+	 */
+	@RequestMapping(value = "/getPersonSchoolNewsListByApiKey.do")
+	public String getPersonSchoolNewsListByApiKey(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		int port = request.getServerPort();
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<List<SchoolNewsInfo>> rhr = new RichHttpResponse<List<SchoolNewsInfo>>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+//		Integer newsType = StringUtil.toint(request.getParameter("newsType"));
+
+		// 每页显示几条
+		Integer number = StringUtil.toint(request.getParameter("number"));
+		// 从那一条开始获取
+		Integer newsId = StringUtil.toint(request.getParameter("newsId"));
+
+		try
+		{
+			String json;
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+
+				if (number == 0)
+				{
+					number = 10;
+				}
+				
+				if(newsId == 0)
+				{
+					newsId = null;
+				}
+				School school = schoolService.getSchoolInfoBySchoolId(Long.valueOf(schoolId));
+				
+				Map<String, Object> paramMap = new HashMap<String, Object>();
+				
+				
+				paramMap.put("userId", loginUser.getUserId());
+				//从第几条开始 如果为0 则取前number条
+				paramMap.put("newsId", newsId);
+								
+				paramMap.put("number", number);
+				
+				List<SchoolNewsInfo> list = schoolNewsLookService.getPersonSchoolNewsListByUserId(paramMap);
+
+				for (SchoolNewsInfo schoolNews : list)
+				{
+					String createTime = schoolNews.getCreateTime();
+
+					SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					try
+					{
+						Date date = formatter.parse(createTime);
+						schoolNews.setTime(date.getTime());
+					} catch (ParseException e)
+					{
+						e.printStackTrace();
+					}
+
+					String basePath = HttpPostUtil.getWisdomCampusUrl(port);
+					String newsSrc = basePath + "schoolNewsLook/forwardDetailPhone.do?newsId=" + schoolNews.getNewsId() + "&schoolId=" + schoolId;
+					schoolNews.setNewsSrc(newsSrc);
+					schoolNews.setSchoolName(school.getSchoolName());
+
+//					if (newsType == 2)
+//					{
+//						Integer num = schoolNewsLookService.getCountByNewsId(schoolNews.getNewsId());
+//						schoolNews.setNumber(num);
+//					}
+				}
+
+				rhr.ResponseCode = 0;
+				rhr.ResponseObject = list;
+				rhr.ResponseResult = "获取成功";
+				json = GsonHelper.toJsonWithAnnotation(rhr);
+			} else
+			{
+				rhr.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		}
+		return null;
+	}
+}

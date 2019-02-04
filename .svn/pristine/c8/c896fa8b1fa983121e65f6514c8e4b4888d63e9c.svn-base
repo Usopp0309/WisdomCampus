@@ -1,0 +1,105 @@
+package com.guotop.palmschool.system.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.guotop.palmschool.entity.UserForYixinToWisdom;
+import com.guotop.palmschool.entity.YintowisdomLog;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.system.service.OnekeyYinToWisdomService;
+
+/**
+ * 亦信用户一键转为智慧校园服务费
+ * @author shengyinjiang
+ *
+ */
+@Service("onekeyYinToWisdomService")
+public class OneKeyYinToWisdomServiceImpl extends BaseService implements OnekeyYinToWisdomService
+{
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<UserForYixinToWisdom> getAllUserButWalletBalanceLessThan0(String schoolId)
+	{
+		return getBaseDao().selectListByObject("User.getAllUserButWalletBalanceLessThan0", schoolId);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<UserForYixinToWisdom> getAllUserButYinxinWalletBalanceGreaterThan0(String schoolId)
+	{
+		return getBaseDao().selectListByObject("User.getAllUserButYinxinWalletBalanceGreaterThan0", schoolId);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<UserForYixinToWisdom> getAllUserButWisdomWalletBalanceGreaterThan0(String schoolId)
+	{
+		return getBaseDao().selectListByObject("User.getAllUserButWisdomWalletBalanceGreaterThan0", schoolId);
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void noMoneySetYixinToWisdom(Integer yUserId, String yBindPhone, Integer wUserId,YintowisdomLog yintowisdomLog)
+	{
+		/*
+		 * 【沒有】餘額的亦信賬號處理邏輯如下
+		 * 步驟1.將亦信用戶的yBindphone更新到智慧校園賬號的wBindPhone
+		 * 步驟2.將好友更換成wUserId
+		 * 步驟3.刪除亦信賬戶(userbase和user_detail)
+		 * 步驟4.刪除亦信賬戶對應的user_account
+		 * 步驟5.刪除亦信賬戶對應的user_account_history
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("wUserId", wUserId);
+		paramMap.put("bindPhone", yBindPhone);
+		//步驟1
+		getBaseDao().updateObject("User.modifyBindPhoneByUserId", paramMap);
+		//步驟2
+		paramMap.put("yUserId", yUserId);
+		getBaseDao().updateObject("User.updateUserFriend1", paramMap);
+		getBaseDao().updateObject("User.updateUserFriend2", paramMap);
+		//步驟3
+		getBaseDao().deleteObject("User.delYinUserByUserId", yUserId);
+		//步驟4,步驟5聯表刪除
+		getBaseDao().deleteObject("UserAccount.delYinAccountByUserId", yUserId);
+		//添加日志
+		getBaseDao().addObject("YintowisdomLog.addYintowisdomLog", yintowisdomLog);
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void haveMoneySetYixinToWisdom(Integer yUserId, String yBindPhone, Integer wUserId,YintowisdomLog yintowisdomLog)
+	{
+		/*
+		 * 【有】餘額的亦信賬號處理邏輯如下
+		 * 步驟1.將亦信用戶的yBindphone更新到智慧校園賬號的wBindPhone
+		 * 步驟2.將好友更換成wUserId
+		 * 步驟3.將亦信賬戶對應的user_account的yUserId更新為wUserId
+		 * 步驟4.將亦信賬戶對應的user_account_history的yUserId更新為wUserId
+		 * 步驟5.刪除亦信用戶
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("wUserId", wUserId);
+		paramMap.put("bindPhone", yBindPhone);
+		//步驟1
+		getBaseDao().updateObject("User.modifyBindPhoneByUserId", paramMap);
+		//步驟2
+		paramMap.put("yUserId", yUserId);
+		getBaseDao().updateObject("User.updateUserFriend1", paramMap);
+		getBaseDao().updateObject("User.updateUserFriend2", paramMap);
+		//步驟3
+		getBaseDao().updateObject("UserAccount.updateUserAccountByUserIdForYinToWisdom", paramMap);
+		//步驟4
+		getBaseDao().updateObject("UserAccount.updateUserAccountHistoryByUserIdForYinToWisdom", paramMap);
+		//步驟5
+		getBaseDao().deleteObject("User.delYinUserByUserId", yUserId);
+		//添加日志
+		getBaseDao().addObject("YintowisdomLog.addYintowisdomLog", yintowisdomLog);
+	}
+
+}

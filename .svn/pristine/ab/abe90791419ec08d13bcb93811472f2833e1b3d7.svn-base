@@ -1,0 +1,59 @@
+package com.guotop.palmschool.bluetooth.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.bluetooth.entity.BluetoothData;
+import com.guotop.palmschool.bluetooth.service.BluetoothDataService;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.util.Pages;
+@Service("bluetoothDataService")
+public class BluetoothDataServiceImpl extends BaseService implements BluetoothDataService {
+
+	@Override
+	public void insertBathBluetoothData(List<BluetoothData> BluetoothDatas) {
+
+		this.getBaseDao().addObject("BluetoothData.insertBathBluetoothData", BluetoothDatas);
+	}
+
+	@Override
+	public void insertBluetoothData(BluetoothData BluetoothData) {
+
+		this.getBaseDao().addObject("BluetoothData.insertBluetoothData", BluetoothData);
+	}
+
+	@Override
+	public Pages<BluetoothData> getPageBluetoothData(int page, int pageSize, Map<String, Object> paramMap) {
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		int currentPage = Pages.countCurrentPage(page);
+		int allRow = 0;
+		// 解决ibatis框架的分页问题
+		// 起始数据坐标
+		paramMap.put("startIndex", offset);
+		// 单页数据量
+		paramMap.put("length", length);
+		allRow = (Integer) getBaseDao().selectObjectByObject("BluetoothData.getPageBluetoothDataCount", paramMap);
+		int totalPage = Pages.countTotalPage(pageSize, allRow);
+		Pages<BluetoothData> pages = new Pages<>();
+		pages.setPageSize(pageSize);
+		@SuppressWarnings("unchecked")
+		List<BluetoothData> list = this.getBaseDao().selectListByObject("BluetoothData.getPageBluetoothData", paramMap);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage) {
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+}

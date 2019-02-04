@@ -1,0 +1,143 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>RichX智慧校园 - 学校授权</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+ 	<link href="<%=basePath%>assets/global/css/skin_m.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+	<%@include file="/public_module/header.jsp" %>
+	<div class="Fill_Card">
+		<div class="header">
+			<div class="pablic_search_box Fill_Card_search_box">
+					<form action="<%=basePath %>school/toAuthorization.do" id="searchForm" method="post">
+						<button type="submit" class="fa fa-search search_submit"></button>
+						<input class="search_text" type="text" name="condition" placeholder="请输入学校名称..." value="${condition }"></input>
+						<input type="hidden" name="status" id="status" value="${status}">
+					</form>
+				</div>
+		</div>
+		<div class="con">
+			<h3>学校授权</h3>
+			<div class="tabbable tabbable-custom">
+				<ul class="nav nav-tabs">
+					<c:if test="${status eq '0' }">
+						<li class="active"><a  href="javascript:changeSatus('0')">待授权学校</a></li>
+						<li style="border-right:none!important"><a href="javascript:changeSatus('1')">已授权学校</a></li>
+					</c:if>
+					<c:if test="${status eq '1' }">
+						<li><a href="javascript:changeSatus('0')">待授权学校</a></li>
+						<li class="active" style="border-right:none!important"><a  href="javascript:changeSatus('1')">已授权学校</a></li>
+					</c:if>
+					
+				</ul>
+	
+				<%-- <div class="pablic_search_box Fill_Card_search_box">
+					<form action="<%=basePath %>school/toAuthorization.do" id="searchForm" method="post">
+						<button type="submit" class="fa fa-search search_submit"></button>
+						<input class="search_text" type="text" name="condition" placeholder="请输入学校名称..." value="${condition }"></input>
+						<input type="hidden" name="status" id="status" value="${status}">
+					</form>
+				</div> --%>
+	
+				<p class="Fill_Card_title content num4">
+					<span >学校名称</span>
+					<span>学校地址</span>
+					<span>销售/代理商</span>
+					<span class="Response">操作</span>
+				</p>
+				<div class="tab-content" style="padding: 0px;">
+					<c:if test="${status eq '0' }">
+						<div>
+							<c:forEach items="${schoolList }" var="shcool">
+								<form action="<%=basePath%>school/doAuthorization.do" method="post">
+									<p class="authorization_con">
+										<span class="shouquan">${shcool.schoolName }</span>
+										<span class=" shouquan address">${shcool.schoolAddress }</span>
+										<span class="shouquan">
+											<select class="select2_category"
+												data-placeholder="无" tabindex="1" style="width: 100%;"
+												name="agencyId" value="">
+													<option value="">无</option>
+													<c:forEach items="${agencyList }" var="agency">
+														<option value="${agency.id }">${agency.name }</option>
+													</c:forEach>
+											</select>
+										</span>
+										<span class="shouquan Response">
+											<button class="btn" type="submit" style="background-color:#3aa4f1;color:#fff;">确定</button> <input type="hidden" name="schoolId" value="${shcool.schoolId }" />
+										</span>
+									</p>
+								</form>
+		
+							</c:forEach>
+						</div>
+					</c:if>
+					<c:if test="${status eq '1' }">
+						<div >
+							<c:forEach items="${schoolList }" var="shcool1">
+								<form action="<%=basePath%>school/doAuthorization.do" method="post">
+									<p class="authorization_con">
+										<span class="shouquan">${shcool1.schoolName }</span> 
+										<span class="shouquan address">${shcool1.schoolAddress }</span>
+										<span class="shouquan">
+											<select   style="width: 100%;"	name="agencyId" value="${shcool1.id }" class="select2_category">
+												<option value="">无</option>
+												<c:forEach items="${agencyList }" var="agency1">
+													<c:if test="${shcool1.id eq  agency1.id}">
+													<option value="${agency1.id }" selected="selected">${agency1.name }</option>
+													</c:if>
+													<c:if test="${shcool1.id ne  agency1.id}">
+													<option value="${agency1.id }" >${agency1.name }</option>
+													</c:if>
+												</c:forEach>
+											</select>
+										</span>
+										<span class="shouquan Response">
+											<button class="btn" type="submit">确定</button>
+											<input type="hidden" name="schoolId" value="${shcool1.schoolId }" />
+										</span>
+									</p>
+								</form>
+		
+							</c:forEach>
+						</div>
+					</c:if>
+	
+	
+				</div>
+	
+			</div>
+		</div>
+	</div>
+	<%@include file="/public_module/footer.jsp" %>
+	</body>
+	<%@include file="/public_module/public_js.jsp" %>
+	<script type="text/javascript">
+		$(function() {
+			//导航定位
+			$(".menu_li a").removeClass("hover");
+			$("#menu4").addClass("hover");
+			
+			$(".authorization_con").on("click", function() {
+				$(this).find("button").addClass("blue");
+				$(this).siblings().find("button").removeClass("blue");
+			})
+		})
+		function changeSatus(obj){
+			$("#status").val(obj);
+			$("#searchForm").submit();
+		}
+	</script>
+
+</html>

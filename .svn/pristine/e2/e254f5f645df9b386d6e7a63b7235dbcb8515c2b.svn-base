@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="FriendSmsDetail">
+	<typeAlias alias="friendSmsdetail" type="com.guotop.palmschool.entity.FriendSmsDetail" />
+	
+	<!--新增转发短信详情内容 -->
+	<insert id="addFriendSmsDetail" parameterClass="friendSmsdetail">
+		insert into platform.friend_sms_detail
+		(
+		content,
+		createTime,
+		phone,
+		receiverId,
+		receiverName,
+		report,
+		reportTime,
+		senderId,
+		senderName,
+		sentTime,
+		seq,
+		smsId,
+		status,
+		type
+		)
+		values
+		(
+		#content#,
+		#createTime#,
+		#phone#,
+		#receiverId#,
+		#receiverName#,
+		#report#,
+		#reportTime#,
+		#senderId#,
+		#senderName#,
+		#sentTime#,
+		#seq#,
+		#smsId#,
+		#status#,
+		#type#
+		)
+	</insert>
+
+</sqlMap>

@@ -1,0 +1,562 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+        <meta charset="utf-8" />
+        <title>学生添加</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta content="width=device-width, initial-scale=1" name="viewport" />
+         <!--公共css开始-->
+		<%@ include file="/public_module/public_css_new.jsp"%>
+	 	<!--公共css结束--> 
+        </head>
+    <body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed">
+    	<input class="themes" type="hidden" value="<%=basePath%>">
+        <!-- 公共顶部开始-->
+        <%@ include file="/public_module/public_header.jsp"%>    
+        <!--公共顶部结束-->
+        <div class="clearfix"> </div>
+        <!-- 内容页开始 -->
+        <div class="page-container">
+            <!--主菜单开始-->
+            <%@include file="/public_module/public_menu.jsp"%>
+            <!--主菜单结束-->
+            <div class="page-content-wrapper">
+                <div class="page-content m_overflow_hidden m_page_content">
+                	<div class="col-md-12 col-sm-12 m_page_con">
+                    <div class="page-bar m_margin_0_0_0_0">
+                        <ul class="page-breadcrumb">
+                            <li><a href="<%=basePath %>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+                            <li><a href="">学校管理</a><i class="fa fa-circle"></i></li>
+                            <li><span>学生添加</span></li>
+                        </ul>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption"><i class="fa fa-list"></i>学生资料添加</div>
+	                            </div>
+	                            <div class="portlet-body m_overflow_hidden form-horizontal">
+	                                <div class="col-md-6 col-sm-12 col-lg-8">
+	                                	<div class="row">
+	                                		<div class="col-md-12 col-sm-12  col-lg-6">
+	                                			<div class="form-group">
+	                                                <label class="control-label col-md-4 col-lg-3">学号<span style="color: red;">*</span></label>
+	                                                <div class="col-md-8 col-lg-9">
+	                                                    <input type="text" class="form-control"  size="16" name="code" id="code"/>
+	                                                </div>
+	                                            </div>
+	                                		</div>
+	                                		<div class="col-md-12 col-sm-12 col-lg-6">
+	                                			<div class="form-group">
+	                                                <label class="control-label col-md-4 col-lg-3">姓名<span style="color: red;">*</span></label>
+	                                                <div class="col-md-8 col-lg-9">
+	                                                    <input type="text" class="form-control" size="16" name="name" id="name" />
+	                                                </div>
+	                                            </div>
+	                                		</div>
+	                                	</div>
+	                                	<div class="row">
+	                                		<div class="col-md-12 col-sm-12  col-lg-6">
+	                                			<div class="form-group">
+	                                                <label class="control-label col-md-4 col-lg-3">手机号</label>
+	                                                <div class="col-md-8 col-lg-9">
+	                                                    <input type="text" class="form-control" size="11" name="studentPhone" id="studentPhone"   />
+	                                                </div>
+	                                            </div>
+	                                		</div>
+	                                		<div class="col-md-12 col-sm-12  col-lg-6">
+	                                			<div class="form-group">
+	                                                <label class="control-label col-md-4 col-lg-3">班级<span style="color: red;">*</span></label>
+	                                                <div class="col-md-8 col-lg-9">
+	                                               <select class="form-control" tabindex="1" name="clazzname" tabindex="1" id="clazzSelect">
+												    
+											       </select>
+	                                                </div>
+	                                            </div>
+	                                		</div>
+	                                	</div>
+	                                	<div class="row">
+	                                		<div class="col-md-12 col-sm-12  col-lg-6">
+	                                			<div class="form-group">
+	                                                <label class="control-label col-md-4 col-lg-3">类型</label>
+	                                                <div class="col-md-8 col-lg-9">
+	                                              <select class="form-control" tabindex="1" name="type" id="type" >
+												    <option value="0">走读生</option>
+												    <option value="1">住宿生</option>
+											     </select>
+	                                                </div>
+	                                            </div>
+	                                		</div>
+	                                	</div>
+	                                </div>
+	                                <div class="col-md-6 col-sm-12 col-lg-4">
+	                                <div class="row">
+	                                		<div class="col-md-12 col-sm-12" id="studengtCard">
+	                                			<div class="form-group cardDiv">
+	                                                <label class="control-label col-md-3 col-lg-3">卡号</label>
+	                                                <div class="col-md-7 col-lg-7">
+	                                                    <input type="text" class="form-control" size="16" name="cardCode"/>
+	                                                </div>
+	                                                <div class="col-md-2 col-lg-2">
+	                                                    <a href="javascript:void(0);"  class="btn btn-icon-only red" onclick="appendCardAdd(this)">
+                                                            <i class="fa fa-plus"></i>
+                                                        </a>
+	                                                </div>
+	                                            </div>
+	                                		</div>
+	                                	</div>
+	                                </div>
+	                            </div>
+	                        </div>
+                            <div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption"><i class="fa fa-list"></i>家长资料添加</div>
+	                            </div>
+	                            <div class="portlet-body m_overflow_hidden form-horizontal">
+	                                <div class="row parents">
+	                                		<div class="col-md-12 col-sm-12 col-lg-6" id="deleteParent1">
+	                                			<div class="portlet">
+					                                <div class="portlet-title">
+					                                    <div class="caption">
+					                                        <span class="caption-subject font-dark">家长一</span>
+					                                    </div>
+					                                </div>
+					                                <div class="portlet-body">
+                                						<div class="col-md-6 col-sm-6 col-lg-5">
+                                							<div class="form-group m_overflow_hidden">
+				                                                <label class="control-label col-md-3 col-lg-4">手机</label>
+				                                                <div class="col-md-9 col-lg-8">
+				                                                    <input type="text" class="form-control" name="parent1Phone" id="parent1Phone" maxlength="11"/>
+				                                                </div>
+				                                            </div>
+				                                            <div class="form-group m_overflow_hidden">
+				                                                <label class="control-label col-md-3 col-lg-4">姓名</label>
+				                                                <div class="col-md-9 col-lg-8">
+				                                                    <input type="text" class="form-control" maxlength="50" name="parent1Name" id="parent1Name"/>
+				                                                </div>
+				                                            </div>
+				                                            <div class="form-group m_overflow_hidden">
+				                                                <label class="control-label col-md-3 col-lg-4">密码</label>
+				                                                <div class="col-md-9 col-lg-8">
+				                                                    <input type="text" class="form-control" placeholder="不写默认手机号" name="parent1Passwoed" id="parent1Passwoed"/>
+				                                                </div>
+				                                            </div>
+                                						</div>
+                                						<div class="col-md-6 col-sm-6 col-lg-7" id="parent1">
+                                							<div class="form-group m_overflow_hidden cardDiv">
+				                                                <label class="control-label col-md-3 col-lg-4">电子卡</label>
+				                                                <div class="col-md-7 col-lg-6">
+				                                                    <input type="text" class="form-control" name="cardCode"/>
+				                                                </div>
+				                                                <div class="col-md-2 col-lg-2">
+				                                                    <a href="javascript:;" class="btn btn-icon-only red"  onclick="appendCardAdd(this)">
+                                                                        <i class="fa fa-plus"></i>
+                                                                    </a>
+				                                                </div>
+				                                            </div>
+                                						</div>
+					                                </div>
+					                            </div>
+	                                		</div>
+	                                		<div class="col-md-12 col-sm-12 col-lg-6" id="deleteParent2">
+	                                			<div class="portlet">
+					                                <div class="portlet-title">
+					                                    <div class="caption">
+					                                        <span class="caption-subject font-dark">家长二</span>
+					                                    </div>
+					                                </div>
+					                                <div class="portlet-body">
+                                						<div class="col-md-6 col-sm-6">
+                                							<div class="form-group m_overflow_hidden">
+				                                                <label class="control-label col-md-3 col-lg-4">手机</label>
+				                                                <div class="col-md-9 col-lg-8">
+				                                                    <input type="text" class="form-control"  name="parent2Phone" id="parent2Phone" maxlength="11" />
+				                                                </div>
+				                                            </div>
+				                                            <div class="form-group m_overflow_hidden">
+				                                                <label class="control-label col-md-3 col-lg-4">姓名</label>
+				                                                <div class="col-md-9 col-lg-8">
+				                                                    <input type="text" class="form-control"  maxlength="50" name="parent2Name" id="parent2Name" />
+				                                                </div>
+				                                            </div>
+				                                            <div class="form-group m_overflow_hidden">
+				                                                <label class="control-label col-md-3 col-lg-4">密码</label>
+				                                                <div class="col-md-9 col-lg-8">
+				                                                    <input type="text" class="form-control"  placeholder="不写默认手机号" name="parent2Passwoed" id="parent2Passwoed" />
+				                                                </div>
+				                                            </div>
+                                						</div>
+                                						<div class="col-md-6 col-sm-6" id="parent2">
+                                							<div class="form-group m_overflow_hidden cardDiv">
+				                                                <label class="control-label col-md-3 col-lg-4">电子卡</label>
+				                                                <div class="col-md-7 col-lg-6">
+				                                                    <input type="text" class="form-control" name="cardCode"/>
+				                                                </div>
+				                                                <div class="col-md-2 col-lg-2">
+				                                                    <a href="javascript:;" class="btn btn-icon-only red"  onclick="appendCardAdd(this)">
+                                                                        <i class="fa fa-plus"></i>
+                                                                    </a>
+				                                                </div>
+				                                            </div>
+                                						</div>
+					                                </div>
+					                            </div>
+	                                		</div>
+	                                	</div>
+	                            </div>
+	                        </div>
+                            <!-- <div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption"><i class="fa fa-list"></i>接受短信添加</div>
+	                            </div>
+	                            <div class="portlet-body m_overflow_hidden form-horizontal">
+	                                <div class="row">
+	                                		<div class="col-md-4 col-sm-4">
+		                                		<div class="form-group m_overflow_hidden cardDiv">
+	                                                <label class="control-label col-md-3">手机号</label>
+	                                                <div class="col-md-7">
+	                                                    <input type="text" class="form-control"/>
+	                                                </div>
+	                                                <div class="col-md-2">
+	                                                    <a href="javascript:;" class="btn btn-icon-only red" onclick="appendCardAdd(this)">
+                                                         <i class="fa fa-plus"></i>
+                                                         </a>
+	                                                </div>
+	                                            </div>
+	                                		</div>
+	                                		
+	                                	</div>
+	                            </div>
+	                        </div> -->
+	                        <div class="clearfix m_text_align_conter m_margin_15_0">
+	                            <input type="button" class="btn green" value="保存" onclick="saveData();"/>
+	                            <button type="button" class="btn" id="cancel">返回</button>
+	                            <input type="hidden" value="${schoolId}" name="schoolId" id="schoolId"/>
+								<input type="hidden" value="${user.userId}" name="userId"/>
+								<input type="hidden" value="${user.roleCode}" name="roleId"/>
+	                        </div>
+                         </div>
+                   	</div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 亦信聊天开始 -->
+        	<%@ include file="/public_module/public_QQ.jsp" %>
+            <!-- 亦信聊天结束 -->
+        </div>
+        <!-- 内容页结束 -->
+        <!-- 底部开始 -->
+        <%@ include file="/public_module/public_footer.jsp" %>
+        <!-- 底部结束 -->
+    </body>
+        <!-- 公共js开始 -->
+        <%@ include file="/public_module/public_js.jsp" %>
+        <!-- 公共js结束 -->
+	<script src="<%=basePath%>assets/global/plugins/layer/layer.js"></script>
+	<script>
+	     var tag=0;
+		$(function(){  
+			loadSubMenu("schoolManager"); 
+			//选取当前菜单位置
+			setActive("schoolManager","studentParentManage"); 
+			loadAllClazzList();
+			$("#code").blur(function(){
+				validate();
+			});
+			$("#name").blur(function(){
+				validate();
+			});
+			$("#clazzSelect").blur(function(){
+				validate();
+			});
+		});
+		function validate(){
+			var code=$.trim($("#code").val());
+			if(code==""){
+				layer.tips("请输入学号","#code");
+				return false;
+			}else if(code!="" && checkCode(code)){
+				layer.tips("学号已存在","#code");
+				return false;
+			}
+			var name=$.trim($("#name").val());
+			if(name==""){
+				layer.tips("请输入学生姓名","#name");
+				return false;
+			}
+			var studentPhone=$.trim($("#studentPhone").val());
+			if(studentPhone!="" && !checkSubmitMobil(studentPhone)){
+				layer.tips("该号码格式不对","#studentPhone");
+				return false;
+			}
+			var clazzSelect=$.trim($("#clazzSelect").val());
+			if(clazzSelect==0){
+				layer.tips("请选择班级","#clazzSelect");
+				return false;
+			}
+			var parent1Phone=$.trim($("#parent1Phone").val());
+			var parent1Name=$.trim($("#parent1Name").val());
+			if(parent1Phone!="" && !checkSubmitMobil(parent1Phone)){
+				layer.tips("该号码格式不对","#parent1Phone");
+				return false;
+			}
+			if(parent1Phone!="" && parent1Name==""){
+				layer.tips("请输入家长名称","#parent1Name");
+				return false;
+			}
+			if(parent1Phone=="" && parent1Name!=""){
+				layer.tips("请输入绑定手机号","#parent1Phone");
+				return false;
+			}
+			var parent2Phone=$.trim($("#parent2Phone").val());
+			var parent2Name=$.trim($("#parent2Name").val());
+			if(parent2Phone!="" && !checkSubmitMobil(parent2Phone)){
+				layer.tips("该号码格式不对","#parent2Phone");
+				return false;
+			}
+			if(parent2Phone!="" && parent2Name==""){
+				layer.tips("请输入家长名称","#parent2Name");
+				return false;
+			}
+			if(parent2Phone=="" && parent2Name!=""){
+				layer.tips("请输入绑定手机号","#parent2Phone");
+				return false;
+			}
+			return true;
+		}
+		//获得学生的信息
+		function saveData(){
+			//验证通过
+			if(validate()){
+				//学生========================
+				var code=$.trim($("#code").val());
+				var name=$.trim($("#name").val());
+				var studentPhone=$.trim($("#studentPhone").val());
+				var clazzSelect=$.trim($("#clazzSelect").val());
+				var type=$.trim($("#type").val());
+				var studentCard=[];
+				var iscontine=true;
+				//电子卡
+				$("#studengtCard").find("input[name='cardCode']").each(function(){
+				var card=$.trim($(this).val());
+				if(card!="" && checkCardCode(card,null)){
+					layer.tips("该卡号已被使用",$(this));
+					iscontine=false;
+					return false;
+				}
+				studentCard.push(card);
+			    });
+				if(!iscontine){
+					return;
+				}
+				//家长1==================
+			    var parent1Phone=$.trim($("#parent1Phone").val());
+			    var parent1Name=$.trim($("#parent1Name").val());
+			    var parent1Passwoed=$.trim($("#parent1Passwoed").val());
+			    var parent1=[];
+			    var t1=null;
+			    if(parent1Phone!=""){
+			      t1=checkTeacherPhone(parent1Phone,null);
+			    }
+			    //电子卡
+				$("#parent1").find("input[name='cardCode']").each(function(){
+				var card=$.trim($(this).val());
+				if(card!="" && checkCardCode(card,null)){
+					layer.tips("该卡号已被使用",$(this));
+					iscontine=false;
+					return false;
+				}
+				parent1.push(card);
+			    });
+				if(!iscontine){
+					return;
+				}
+				//家长2==================
+			    var parent2Phone=$.trim($("#parent2Phone").val());
+			    var parent2Name=$.trim($("#parent2Name").val());
+			    var parent2Passwoed=$.trim($("#parent2Passwoed").val());
+			    var parent2=[];
+			    var t2=null;
+			    if(parent2Phone!=""){
+				      t2=checkTeacherPhone(parent2Phone,null);
+				  }
+			    //电子卡
+				$("#parent2").find("input[name='cardCode']").each(function(){
+				var card=$.trim($(this).val());
+				if(card!="" && checkCardCode(card,null)){
+					layer.tips("该卡号已被使用",$(this));
+					iscontine=false;
+					return false;
+				}
+				parent2.push(card);
+			    });
+				if(!iscontine){
+					return false;
+				}
+				var msg='';
+				if(t1!=null && t1.flag){//家长1号码被占用
+					msg='家长1：'+t1.msg;
+				}
+                if(t2!=null && t2.flag){//家长2号码被占用
+                	msg+='&nbsp;家长2：'+t2.msg;
+				}
+                if(parent1Phone=="" && parent2Phone==""){
+					layer.tips("最少添加一个家长","#parent1Phone");
+                	return false;
+                }
+			 var data={"code":code,"name":name,"studentPhone":studentPhone,"classId":clazzSelect,"type":type,"studentCard":studentCard.join(","),
+					"parentname":parent1Name,"phone":parent1Phone,"parent1Passwoed":parent1Passwoed,"parent1Card":parent1.join(","),"parent2name":parent2Name,"phone2":parent2Phone,
+					"parent2Passwoed":parent2Passwoed,"parent2Card":parent2.join(",")};
+			if((t1!=null && t1.flag) || (t2!=null && t2.flag)){
+			var ll=layer.confirm(msg+'，继续会将该学生设为该重复用户的小孩，是否继续？', {
+				  btn: ['确定','取消'] //按钮
+				}, function(){
+					layer.close(ll);
+					 submit(data);	
+				}, function(){});
+			}else{
+				     submit(data);
+			}
+			 }
+		}
+		function submit(data){
+			var indexlayer = layer.msg('正在保存数据,请稍候。。。',{icon: 16,time:0,shade:0.3});
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>student/doAddStudent.do",
+				dataType:"json",
+				async: false, 
+				data:data,
+				dataType:"json",
+				error:function(){
+					layer.close(indexlayer);	
+				},
+				success: function(data){
+					if(data=="1"){
+						setTimeout(function(){
+							layer.msg("添加学生成功",{icon:1,time:1000});
+							location.href="<%=basePath%>student/toStudentList.do";
+							layer.close(indexlayer);
+						},1000);
+					}else{
+						layer.msg("添加学生失败",{icon:2,time:1000});	
+					}
+				}
+			});	
+		}
+		//教职工手机判断
+		 function checkTeacherPhone(phone,name){
+			var flag="";
+			 $.ajax({
+					type: "post",
+					url: "<%=basePath%>teacher/checkTeacherPhone.do",
+					dataType:"json",
+					async: false, 
+					data:{
+						phone : phone,
+						name:name
+					},
+					success: function(data){
+						flag=data;
+					}
+				});
+			   return flag;
+		 }
+		function appendCardAdd(obj)
+			{
+					var	appendHtml ='<div class="form-group">';
+					appendHtml +='<label class="control-label col-md-3 col-lg-4"></label>';
+					appendHtml +='<div class="col-md-7 col-lg-6">';
+					appendHtml +='<input class="form-control" type="text" size="16" name="cardCode">';
+					appendHtml +='</div>';
+					appendHtml +='<div class="col-md-2 col-lg-2">';
+					appendHtml +='<a href="javascript:void(0);" onclick="removeCardAdd(this)" class="btn btn-icon-only grey-cascade">';
+					appendHtml +='<i class="fa fa-minus"></i>';
+					appendHtml +='</a>';
+					appendHtml +='</div>';
+					$(obj).closest(".cardDiv").after(appendHtml);
+			}
+			//删除新增卡号输入框		
+			function removeCardAdd(obj)
+			{
+			 		$(obj).parent().parent().remove();
+			}
+			//判断学生学号
+			function checkCode(code)
+			{
+				var flag = false;
+				$.ajax({
+					type: "post",
+					async:false, 
+					data:{
+						code : code,
+						schoolId : $("#schoolId").val()
+					},
+					dataType:"json",
+					url: "<%=basePath%>student/checkStudentByCode.do",
+					success: function(result)
+					{
+						flag=result
+					},
+				});
+				return flag;
+			}
+			//加载班级信息
+			function loadAllClazzList()
+			{
+				$.ajax({
+					type: "post",
+					url: "<%=basePath%>baseData/loadClazzList.do",
+					data:{
+						permissionCode : "studentParentAdd"
+					},
+					success: function(data)
+					{
+						var clazzList = $.parseJSON(data);
+						//年级select页面html
+						var clazzSelectHtml = '<option value="0">--请选择--</option>';
+						
+						$.each(clazzList, function(n, value)
+						 {  
+							clazzSelectHtml += '<option value="' + value.id + '">' + value.clazzName + '</option>';
+	          			 });
+						$("#clazzSelect").html(clazzSelectHtml);
+					},
+				});
+			}
+			//检查卡号
+			function checkCardCode(code,originalCardCode)
+			{
+				var flag = false;
+				$.ajax({
+					async:false, 
+					type: "post",
+					data:{
+						code : code,
+						originalCardCode : originalCardCode
+					},
+					url: "<%=basePath%>teacher/checkModifyTeacherCardCodeByCardCode.do",
+					success: function(data)
+					{
+						var result = eval("(" + data + ")");
+						//此卡号存在
+						if ("success" == result.resultCode)
+						{
+							flag = true;
+						}
+						else
+						{
+							flag = false;
+						}
+					},
+				});
+				return flag;
+			}
+	</script>
+</html>

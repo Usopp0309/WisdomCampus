@@ -1,0 +1,148 @@
+package com.guotop.palmschool.service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.guotop.palmschool.common.entity.ResultInfo;
+import com.guotop.palmschool.entity.Grade;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 年级业务类接口
+ * 
+ * @author zhou
+ *
+ */
+public interface GradeService
+{
+
+	/**
+	 * 通过年级名称查询要年级
+	 * 
+	 */
+	public Grade selectGradeByName(String gradeName);
+
+	/**
+	 * 加载所有的教师信息, 用于选择年级主任
+	 * 
+	 * @return 所有教师信息
+	 */
+	public List<User> selectAllTeacherList();
+
+	/**
+	 * 检查年级代码是否存在
+	 * 
+	 * @param code
+	 *            年级代码
+	 * @return 返回结果
+	 */
+	public ResultInfo checkGradeByCode(String code);
+
+	/**
+	 * 检查年级名是否存在
+	 * 
+	 * @param name
+	 *            年级名
+	 * @return 返回结果
+	 */
+	public ResultInfo checkGradeByName(String name);
+
+	/**
+	 * 查询条件查询年级记录 /分页查询
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @return 年级记录/分页 update by shengyinjiang 20151127
+	 */
+	public Pages getGradeList(int pageSize, int page, Map<String, Object> paramMap, User user);
+	
+	/**
+	 * 查询条件查询年级记录 
+	 * @return 年级记录
+	 *  update by shengyinjiang 20151129
+	 */
+	public List<Grade> getGradeList();
+
+	/**
+	 * 通过Id查询要修改年级
+	 * 
+	 * update by shengyinjiang 20151127
+	 * 
+	 */
+	public Grade getGradeById(Integer gradeId);
+
+	/**
+	 * 修改年级
+	 * 
+	 * update by shengyinjiang 20151127
+	 */
+	public void modifyGradeById(Map<String, Object> paramMap);
+
+	/**
+	 * 添加年级
+	 * 
+	 * @param grade
+	 *            待添加的年级
+	 * 
+	 * update by shengyinjiang 20151127
+	 * update by wangwei 20160722
+	 */
+	public Integer addGrade(Grade grade);
+	
+	/**
+	 * 添加年级(福建资源云)
+	 * 
+	 */
+	public Integer addGradeForFJ(Grade grade);
+
+	/**
+	 * 表单校验 入学年份是否存在
+	 * 
+	 *  update by shengyinjiang 20151127
+	 */
+	public ResultInfo checkGradeCreateYearInModify(Map<String, Object> paramMap);
+	
+	/**
+	 * 表单校验 入学年份是否存在
+	 * 
+	 *  update by shengyinjiang 20151127
+	 */
+	public ResultInfo checkGradeCreateYearInAdd(Map<String, Object> paramMap);
+	
+	/**
+	 * 表单校验 入学年份是否存在  FOR 福建资源云
+	 * 
+	 *  add by shengyinjiang 20161029
+	 */
+	public Integer getGradeIdCreateYearInAddForFJ(Map<String, Object> paramMap);
+	
+	/**
+	 * 根据年级名称获取年级ID
+	 * @param gradeName 年级名称
+	 * @return
+	 */
+	public String getGradeIdByGradeNameAndType(HashMap<String, Object> gradeMap);
+	/**
+	 * 根据用户ID获取年级信息
+	 * @param userId
+	 * @return
+	 */
+	public String getGradeByUserId(int userId);
+	
+	
+	/**
+	 * 根据角色查询对应的年级
+	 */
+	public List<Grade> getGradeListByUserIdAndRoleCode(Integer userId, String roleCode);
+	
+	/**
+	 * 查询条件查询年级记录 /分页查询【福建专用】
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @return 年级记录/分页 update by shengyinjiang 20151127
+	 */
+	public Pages getGradeListFJj(int pageSize, int page, Map<String, Object> paramMap, User user);
+}

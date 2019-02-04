@@ -1,0 +1,63 @@
+ul,li{list-style-type: none;}
+	.teacherSms_search{clear:both;}
+	.search_title{max-width:320px;float:left;line-height:30px;}
+	.search_input{float:left}
+	.checkAll{max-width: 100px;float:left;}
+	.radio input[type="radio"], .checkbox input[type="checkbox"] {float: left;margin-left: 0;}
+    .control-group button{ font-size:14px; padding:0 15px; margin:20px; display:block;}
+	.autocomplete{list-style-type:none; margin:0px; padding:0px; border:#008080 1px solid }
+	.autocomplete li{font-size:12px; font-family:"Lucida Console", Monaco, monospace; font-weight:bold; cursor:pointer; height:20px; line-height:20px}
+	.hovers{ background-color:#3368c4; color:fff}
+	
+	
+	
+	.teacherSms_add_button{text-align: center;dispaly:block;overflow:hidden;clear:both;}
+	.form .form-actions{padding-left:0px;}
+	.span_red{color:#f00; display: inline-block !important;float: none !important;width: auto !important;margin:0px!important;}
+	.accordion_list{margin:0px;padding:0px;border:1px solid #ddd;padding:0 10px 10px 10px;overflow:hidden;}
+	.accordion_list li{width:10%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+	.accordion_list .select{background-color:#f5f5f5}
+	.stack1_list{margin:0px;padding:0px;border:1px solid #ddd;padding:0 10px 10px 10px;overflow:hidden;}
+	.stack1_list li{width:15%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+	.stack1_list .select{background-color:#f5f5f5}
+	.accordion{margin:0px;}
+	.margin_right_5{margin:0 5px 0 0;}
+	.dispaly_in{display: inline-block;}
+	.Timing{display: inline-block;margin:0 0 0 10px;}
+	.teacherSms_list{margin:0px;padding:0px;border:1px solid #ddd;padding:0 10px 10px 10px;overflow:hidden;}
+	.teacherSms_list li{width:10%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+	.teacherSms_list .select{background-color:#f5f5f5}
+	#Popup{cursor: pointer;}
+	.all_checkbox{float:right}
+	.button_close{margin:20px 0 0 0!important;}
+	.float_right{float:right;margin: 0 15px 0 0 !important; padding: 10px 20px !important;}
+	/*当页面大于1200px 时，大屏幕，主要是PC 端*/
+@media (min-width: 1200px) and (max-width: 1400px) {
+		
+}
+/*在992 和1199 像素之间的屏幕里，中等屏幕，分辨率低的PC*/
+@media (min-width: 992px) and (max-width: 1199px) {
+	.accordion_list li{width:22%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+	.teacherSms_list li{width:22%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+		
+}
+/*在768 和991 像素之间的屏幕里，小屏幕，主要是PAD*/
+@media (min-width: 768px) and (max-width: 991px) {
+	.accordion_list li{width:22%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+	.teacherSms_list li{width:22%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+		
+}
+/*在480 和767 像素之间的屏幕里，超小屏幕，主要是手机*/
+@media (min-width: 480px) and (max-width: 767px) {
+	.portlet .form-horizontal .form-actions{padding-left:0px;}
+	.accordion_list li{width:21.7%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+	.teacherSms_list li{width:21.7%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+	
+}
+/*在小于480 像素的屏幕，微小屏幕，更低分辨率的手机*/
+@media (max-width: 479px) {
+	.portlet .form-horizontal .form-actions{padding-left:0px;}
+	.accordion_list li{width:28%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+	.teacherSms_list li{width:28%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+	
+}

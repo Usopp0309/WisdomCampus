@@ -1,0 +1,600 @@
+package com.guotop.palmschool.controller;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.gson.Gson;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.entity.OnlineMessage;
+import com.guotop.palmschool.entity.OnlineMessageDetail;
+import com.guotop.palmschool.entity.UnReadOnlineMessage;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.service.OnlineMessageService;
+import com.guotop.palmschool.service.StudentService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.RelativeDateFormat;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+
+/**
+ * 在线留言控制类
+ * 
+ * @author shengyinjiang
+ * 
+ */
+@RequestMapping("/online-message")
+@Controller
+public class OnlineController extends BaseController
+{
+
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private OnlineMessageService onlineMessageService;
+
+	@Resource
+	private StudentService studentService;
+
+	/**
+	 * 查看历史发送在线留言列表
+	 */
+	@RequestMapping(value = "/toSmsList.do")
+	public String toSmsList()
+	{
+		return "sms/onlineMessage_list";
+	}
+
+	/**
+	 * 加载历史发送在线留言列表
+	 */
+	@RequestMapping(value = "/loadSmsList.do")
+	public String loadSmsList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		/**
+		 * 参数map
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		try
+		{
+
+			/**
+			 * 查询类型
+			 */
+			String queryContent = String.valueOf(request.getParameter("queryContent"));
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			User user = (User) session.getAttribute("user");
+			String roleCode = request.getParameter("roleCode");
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("roleCode", roleCode);
+			paramMap.put("queryContent", queryContent);
+			Pages pages =null;
+			if(!StringUtil.isFjequals(user.getSchoolId())){//非福建
+				pages = onlineMessageService.loadSmsList(this.getPages().getPageSize(), currentPage, paramMap, user);
+			}else{
+				paramMap.put("fjSchoolId", user.getFjSchoolId());
+				pages = onlineMessageService.loadSmsListFj(this.getPages().getPageSize(), currentPage, paramMap, user);
+			}
+			
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+
+		}
+		return null;
+	}
+
+	/**
+	 * 进入发送在线留言查看详情页 add by lihua 2015/09/28
+	 */
+	@RequestMapping(value = "/toOnlineMessageDetailView.do")
+	public String toOnlineMessageDetailView(HttpServletRequest request, ModelMap modelMap)
+	{
+		Integer id = Integer.valueOf(request.getParameter("id"));
+
+		modelMap.put("id", id);
+
+		return "sms/onlineMessage_detailinfo";
+	}
+
+	/**
+	 * 查询 发送在线留言查看的详细信息
+	 */
+	@RequestMapping(value = "/loadSmsListDetail.do")
+	public String loadSmsListDetail(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		Integer messageId = Integer.parseInt(request.getParameter("messageId"));
+		List<OnlineMessageDetail> message = onlineMessageService.loadSmsListDetail(messageId);
+
+		/**
+		 * flush到页面
+		 */
+		Gson gson = new Gson();
+		String json = gson.toJson(message);
+		try
+		{
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 进入教师在线留言服务页面
+	 */
+	@RequestMapping(value = "/toTeacherSms.do")
+	public String toTeacherSms()
+	{
+		return "sms/teacherOnline_add";
+	}
+
+	/**
+	 * 新增留言发送相关 发送对象教师
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/doAddSms.do")
+	public String doAddSms(HttpServletRequest request, HttpSession session)
+	{
+		/*
+		 * 登录用户
+		 */
+		User user = (User) session.getAttribute("user");
+		/*
+		 * 接受前台发送的短信内容
+		 */
+		String content = request.getParameter("content");
+
+		/*
+		 * 接受前台选中教师或部门
+		 */
+		String[] receiverArr = request.getParameterValues("selectedObj");
+		boolean f=false;//是否是福建
+        if(StringUtil.isFjequals(user.getSchoolId())){
+        	f=true;
+        }else{
+        	f=false;
+        }
+		// set集合用户保存所有接收者信息
+		Set<User> set = new HashSet<User>();
+		for (int i = 0; i < receiverArr.length; i++)
+		{
+			// 获取首字母
+			String firstChar = receiverArr[i].substring(0, 1);
+			if ("D".equals(firstChar))
+			{
+				// 获取部门ID;
+				String departmentId = receiverArr[i].substring(1);
+
+				// 接下来是通过部门ID获取该年级下所有的老师信息
+				List<User> teacherList =null;
+				if(!f){//非福建
+					teacherList=commonService.getTeacherDetailByDepartmentIdInSms(Integer.valueOf(departmentId));
+				}else{//福建
+					teacherList=commonService.getTeacherDetailByDepartmentIdInSmsFj(Integer.valueOf(departmentId));
+				}
+				for (User teacher : teacherList)
+				{
+					set.add(teacher);
+				}
+
+			} else if ("T".equals(firstChar))
+			{
+				// 获取接受教师ID 也就是userid
+				String teacherId = receiverArr[i].substring(1);
+				User teacher =null;
+				if(!f){//非福建
+					teacher = commonService.getUserDetailByUserId(Integer.valueOf(teacherId));
+				}else{
+					teacher = commonService.getUserDetailByUserIdFj(Integer.valueOf(teacherId));	
+				}
+				set.add(teacher);
+			}
+		}
+
+		/*
+		 * 留言实体类
+		 */
+		OnlineMessage onlineMessage = new OnlineMessage();
+		onlineMessage.setContent(content);
+		onlineMessage.setSenderId(user.getUserId());
+		onlineMessage.setSenderName(user.getRealName());
+		onlineMessage.setModule(Cons.MODULE_SCHOOLAFFAIRS);
+		String now = TimeUtil.getInstance().now();
+		onlineMessage.setSentTime(now);
+		onlineMessage.setCreateTime(now);
+
+		/*
+		 * 保存到数据库, 并且返回onlineMessageId
+		 */
+		int onlineMessageId = onlineMessageService.addSms(onlineMessage);
+
+		/*
+		 * 遍历所有接受留言的人，并保存到数据库
+		 */
+		for (User receiver : set)
+		{
+			// 留言详情实体类
+			OnlineMessageDetail onlineMessageDetail = new OnlineMessageDetail();
+			onlineMessageDetail.setContent(content);
+			onlineMessageDetail.setSenderId(user.getUserId());
+			onlineMessageDetail.setSenderName(user.getRealName());
+			onlineMessageDetail.setReceiverId(receiver.getUserId());
+			onlineMessageDetail.setReceiverName(receiver.getRealName());
+			onlineMessageDetail.setStatus(Integer.valueOf(Cons.PRE_ONLINEMESSAGE_TYPE_DONING));
+			onlineMessageDetail.setOnlineMessageId(onlineMessageId);
+			onlineMessageDetail.setCreateTime(now);
+			onlineMessageDetail.setSentTime(now);
+			onlineMessageService.addSmsDetail(onlineMessageDetail);
+
+		}
+
+		return toSmsList();
+	}
+
+	/**
+	 * 进入学生留言服务页面
+	 */
+	@RequestMapping(value = "/toStudentSms.do")
+	public String toStudentSms()
+	{
+		return "sms/studentOnline_add";
+	}
+
+	/**
+	 * 新增在线留言发送相关 发送对象学生
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/doAddSmsForStudent.do")
+	public String doAddSmsForStudent(HttpServletRequest request, HttpSession session)
+	{
+
+		// 登录用户
+		User user = (User) session.getAttribute("user");
+		/*
+		 * 接受前台发送的短信内容
+		 */
+		String content = request.getParameter("content");
+
+		/**
+		 * 接受前台选中學生或班級
+		 */
+		String[] receiverArr = request.getParameterValues("selectedObj");
+
+		// set集合用户保存所有接收者信息
+		Set<User> set = new HashSet<User>();
+		for (int i = 0; i < receiverArr.length; i++)
+		{
+			// 获取首字母
+			String firstChar = receiverArr[i].substring(0, 1);
+			if ("C".equals(firstChar))
+			{
+				// 获取班级ID;
+				String clazzId = receiverArr[i].substring(1);
+
+				// 接下来是通过班级ID获取该班级下所有的学生信息(这里包含学生家长手机号，学生和家长是一对多)
+				List<User> studentList = studentService.getStudentListWithPartentPhoneByClazzIdInStudentSMS(Integer.valueOf(clazzId));
+				for (User student : studentList)
+				{
+					set.add(student);
+				}
+
+			} else if ("S".equals(firstChar))
+			{
+				// 获取接受學生ID 也就是userid
+				String studentId = receiverArr[i].substring(1);
+				// 接下来是通过学生ID获取该学生信息(这里包含学生家长手机号，学生和家长是一对多)
+				List<User> studentList = studentService.getStudentListWithPartentPhoneByIdInStudentSMS(Integer.valueOf(studentId));
+				for (User student : studentList)
+				{
+					set.add(student);
+				}
+
+			}
+		}
+
+		/**
+		 * 留言实体类
+		 */
+		OnlineMessage onlineMessage = new OnlineMessage();
+		onlineMessage.setContent(content);
+		onlineMessage.setSenderId(user.getUserId());
+		onlineMessage.setSenderName(user.getRealName());
+		onlineMessage.setModule(Cons.MODULE_STUDENTSERVICE);
+		String now = TimeUtil.getInstance().now();
+		onlineMessage.setSentTime(now);
+		onlineMessage.setCreateTime(now);
+
+		/**
+		 * 保存到数据库, 并且返回onlineMessageId
+		 */
+		int onlineMessageId = onlineMessageService.addSms(onlineMessage);
+
+		/**
+		 * 遍历所有接受留言的人，并保存到数据库
+		 */
+		for (User receiver : set)
+		{
+			// 留言详情实体类
+			OnlineMessageDetail onlineMessageDetail = new OnlineMessageDetail();
+			onlineMessageDetail.setContent(content);
+			onlineMessageDetail.setSenderId(user.getUserId());
+			onlineMessageDetail.setSenderName(user.getRealName());
+			onlineMessageDetail.setReceiverId(receiver.getUserId());
+			onlineMessageDetail.setReceiverName(receiver.getRealName() + "_家长:" + receiver.getParentname());
+			onlineMessageDetail.setStatus(Integer.valueOf(Cons.PRE_ONLINEMESSAGE_TYPE_DONING));
+			onlineMessageDetail.setOnlineMessageId(onlineMessageId);
+			onlineMessageDetail.setCreateTime(now);
+			onlineMessageDetail.setSentTime(now);
+
+			onlineMessageService.addSmsDetail(onlineMessageDetail);
+
+		}
+
+		return toSmsList();
+	}
+
+	/**
+	 * 首页右上角未读在线留言显示
+	 */
+	@RequestMapping(value = "/unReadOnlineMessage.do")
+	public String unReadOnlineMessage(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			
+			Integer userId = Integer.valueOf(request.getParameter("userId"));
+			String roleCode = request.getParameter("roleCode");
+
+			
+			List<Integer> receiverIdList = new ArrayList<Integer>();
+			//家长可以看到所有小孩的信息
+			if("parent".equals(roleCode)){
+				//家长通过userId,查询他所有小孩的id
+				List<User> allChildren = commonService.getAllChildrenByUserId(userId);
+				for(User children : allChildren){
+					receiverIdList.add(children.getUserId());
+				}
+				
+			}
+			//其余看到的是自己
+			else{
+				receiverIdList.add(userId);
+			}
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("receiverIdList", receiverIdList);
+			List<OnlineMessageDetail> unReadOnlineMessageListThree = onlineMessageService.selectUnReadOnlineMessageByUserIdLimitThree(map);
+			List<OnlineMessageDetail> unReadOnlineMessageList = onlineMessageService.selectUnReadOnlineMessageByUserId(map);
+			
+			UnReadOnlineMessage unReadOnlineMessage = new UnReadOnlineMessage();
+			
+			// 循环设置接收到留言的时间到现在的时间间隔
+			for (OnlineMessageDetail onlineMessageDetail : unReadOnlineMessageListThree)
+			{
+				String timeInterval = RelativeDateFormat.format(formatter.parse(onlineMessageDetail.getSentTime()));
+				onlineMessageDetail.setTimeInterval(timeInterval);
+			}
+			unReadOnlineMessage.setList(unReadOnlineMessageListThree);
+			unReadOnlineMessage.setUnReadOnlineMessageCount(unReadOnlineMessageList.size());
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(unReadOnlineMessage);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+
+		}
+		return null;
+
+	}
+
+	/**
+	 * 进入个人中心 留言服务页面,通过查看所有留言进入该页面
+	 */
+	@RequestMapping(value = "/toOnlineMessageCenter.do")
+	public String toOnlineMessageCenter(HttpServletRequest request, ModelMap modelMap, HttpSession session)
+	{
+		// 该方法做用通过传递过来的userId和roleCode 用于获取所有的留言（按时间倒序）
+		Integer userId = Integer.valueOf(request.getParameter("userId"));
+		String roleCode = request.getParameter("roleCode");
+
+		/*
+		 * 添加到model中
+		 */
+		modelMap.addAttribute("userId", userId);
+		modelMap.addAttribute("roleCode", roleCode);
+
+		return "sms/acceptOnlineMessage";
+	}
+
+	/**
+	 * 进入个人中心 留言服务页面,通过查看所有未阅读留言进入该页面
+	 */
+	@RequestMapping(value = "/toAcceptAllOnlineMessage.do")
+	public String toAcceptAllOnlineMessage(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		// 该方法做用通过传递过来的userId和roleId 用于获取所有的留言（按时间倒序）
+		response.setCharacterEncoding("UTF-8");
+		Gson gson = new Gson();
+		/*
+		 * 参数map
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		Integer userId = Integer.valueOf(request.getParameter("userId"));
+		String roleCode = request.getParameter("roleCode");
+		String status = null;
+		try{
+			status = request.getParameter("status");
+		}catch(Exception e){
+			status = null;
+		}
+		
+		// 分页信息
+		Integer currentPage = 1;
+		try
+		{
+			currentPage = Integer.valueOf(request.getParameter("cPage"));
+		} catch (Exception e)
+		{
+			currentPage = 1;
+		}
+		
+		List<Integer> ids = new ArrayList<Integer>();
+		//家长可以看到所有小孩的信息
+		if("parent".equals(roleCode)){
+			//家长通过userId,查询他所有小孩的id
+			List<User> allChildren = commonService.getAllChildrenByUserId(userId);
+			for(User children : allChildren){
+				ids.add(children.getUserId());
+			}
+		}
+		//其余j看到的是自己
+		else{
+			ids.add(userId);
+		}
+
+		Pages pages = new Pages();
+		paramMap.put("receiverIdList", ids);
+		paramMap.put("status", status);
+		// status == null的时候返回所有消息
+		this.getPages().setPageSize(5);
+		pages = onlineMessageService.selectOnlineMessageByUserId(this.getPages().getPageSize(), currentPage, paramMap);
+
+		try
+		{
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 通过id进入在线留言查看详情 add by shengyinjiang 2015/12/14
+	 */
+	@RequestMapping(value = "/toOnlineMessageById.do")
+	public String toOnlineMessageById(HttpServletRequest request, ModelMap modelMap)
+	{
+		Integer id = Integer.valueOf(request.getParameter("id"));
+
+		OnlineMessageDetail onlineMessageDetail = onlineMessageService.loadOnlineMessageDetailById(id);
+		// 并且把状态改为已读 status==0
+		onlineMessageService.updateOnlineMessageStatusById(id);
+		modelMap.put("onlineMessageDetail", onlineMessageDetail);
+
+		return "sms/acceptOnlineMessageDetail";
+	}
+
+	/**
+	 * 通过id将接受的留言状态更改为已读 add by shengyinjiang 2015/09/28
+	 */
+	@RequestMapping(value = "/toUpdateStatusById.do")
+	public String updateStatusById(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		Integer id = Integer.valueOf(request.getParameter("id"));
+
+		Integer userId = Integer.valueOf(request.getParameter("userId"));
+		String roleCode = request.getParameter("roleCode");
+
+		// 更新状态
+		onlineMessageService.updateOnlineMessageStatusById(id);
+		/*
+		 * 添加到model中
+		 */
+		modelMap.addAttribute("userId", userId);
+		modelMap.addAttribute("roleCode", roleCode);
+		return "sms/acceptOnlineMessage";
+	}
+
+	/**
+	 * 通过id将接受的留言状态更改为已读 add by shengyinjiang 2015/09/28
+	 */
+	@RequestMapping(value = "/toUpdateStatus.do")
+	public String toUpdateStatus(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		/*
+		 * 参数map
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		
+		Integer userId = Integer.valueOf(request.getParameter("userId"));
+		String roleCode = request.getParameter("roleCode");
+
+		
+		List<Integer> ids = new ArrayList<Integer>();
+		//家长可以看到所有小孩的信息
+		if("parent".equals(roleCode)){
+			//家长通过userId,查询他所有小孩的id
+			List<User> allChildren = commonService.getAllChildrenByUserId(userId);
+			for(User children : allChildren){
+				ids.add(children.getUserId());
+			}	
+		}
+		//其余看到的是自己
+		else{
+			ids.add(userId);
+		}
+		paramMap.put("receiverIdList", ids);
+		// 更新状态
+		onlineMessageService.updateOnlineMessageStatus(paramMap);
+		
+		//添加到model中
+		modelMap.addAttribute("userId", userId);
+		modelMap.addAttribute("roleCode", roleCode);
+		return "sms/acceptOnlineMessage";
+	}
+
+}

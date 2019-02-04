@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="MorningCheck">
+	<typeAlias alias="morningCheck" type="com.guotop.palmschool.entity.MorningCheck" />
+	
+	<resultMap class="com.guotop.palmschool.entity.MorningCheck" id="result_list">
+		<result property="id" column="id"/>
+		<result property="userId" column="userId"/>
+		<result property="name" column="name"/>
+		<result property="teacherName" column="teacherName"/>
+		<result property="leaderName" column="leaderName"/>
+		<result property="clazzName" column="clazzName"/>
+		<result property="state" column="state"/>
+		<result property="createTime" column="createTime"/>
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.MorningCheck" id="result_check_list">
+		<result property="id" column="id"/>
+		<result property="userId" column="userId"/>
+		<result property="temperature" column="temperature"/>
+		<result property="spirit" column="spirit"/>
+		<result property="oralCavity" column="oralCavity"/>
+		<result property="surface" column="surface"/>
+		<result property="teacherId" column="teacherId"/>
+		<result property="createTime" column="createTime"/>
+		<result property="state" column="state"/>
+		<result property="cardCode" column="cardCode"/>
+		<result property="teacherCardCode" column="teacherCardCode"/>
+	</resultMap>
+	
+	
+	<!-- 增加晨检信息 20160130-->
+	<insert id="addMorningCheckInfo" parameterClass="morningCheck">
+		INSERT INTO palm_morningcheck
+		(
+			userId,
+			temperature,
+			spirit,
+			oralCavity,
+			surface,
+			teacherId,
+			createTime,
+			state,
+			cardCode,
+			teacherCardCode
+		)
+		VALUES
+		(
+			#userId#,
+			#temperature#,
+			#spirit#,
+			#oralCavity#,
+			#surface#,
+			#teacherId#,
+			#createTime#,
+			#state#,
+			#cardCode#,
+			#teacherCardCode#
+		)
+         <selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	<select id="getCheckList4Admin" parameterClass="HashMap" resultMap="result_list">		
+		select m.id,m.userId, getClazzName(sc.clazzId) clazzName,platform.getRealName(c.leaderId) leaderName, platform.getRealName(m.teacherId) teacherName,
+		platform.getRealName(m.userId) name,m.state,DATE_FORMAT(m.createTime,"%Y-%m-%d %T") createTime FROM palm_morningcheck m, palm_student_clazz sc, palm_clazz c, platform.user_detail ud 
+		where m.userId = sc.userId and sc.clazzId=c.id and m.userId=ud.userId
+		<isNotNull property="queryContent">
+		<isNotEmpty prepend="and" property="queryContent">
+			 ud.realName like concat('%',#queryContent#,'%')
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="clazzId">
+		<isNotEmpty prepend="and" property="clazzId">
+			 c.id=#clazzId#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="startTime">
+		<isNotEmpty prepend="and" property="startTime">
+			m.createTime >= #startTime#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="endTime">
+		<isNotEmpty prepend="and" property="endTime">
+			m.createTime &lt; = #endTime#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="state">
+		<isNotEmpty prepend="and" property="state">
+			m.state=#state#
+		</isNotEmpty>
+		</isNotNull> 
+		order by m.createTime desc
+		<isNotNull property="startIndex">
+		<isNotEmpty prepend="" property="startIndex">
+			limit #startIndex#,#length#
+		</isNotEmpty>
+		</isNotNull>
+	</select>
+	<select id="getCheckCount4Admin" parameterClass="HashMap" resultClass="Integer">		
+		select count(*) FROM palm_morningcheck m, palm_student_clazz sc, palm_clazz c, platform.user_detail ud 
+		where m.userId = sc.userId and sc.clazzId=c.id and m.userId=ud.userId
+		<isNotNull property="queryContent">
+		<isNotEmpty prepend="and" property="queryContent">
+			 ud.realName like concat('%',#queryContent#,'%')
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="clazzId">
+		<isNotEmpty prepend="and" property="clazzId">
+			 c.id=#clazzId#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="startTime">
+		<isNotEmpty prepend="and" property="startTime">
+			m.createTime >= #startTime#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="endTime">
+		<isNotEmpty prepend="and" property="endTime">
+			m.creatTime &lt; = #endTime#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="state">
+		<isNotEmpty prepend="and" property="state">
+			m.state=#state#
+		</isNotEmpty>
+		</isNotNull> 
+		order by m.createTime desc
+		<isNotNull property="startIndex">
+		<isNotEmpty prepend="" property="startIndex">
+			limit #startIndex#,#length#
+		</isNotEmpty>
+		</isNotNull>
+	</select>
+	<select id="getCheckList4Parent" parameterClass="HashMap" resultMap="result_list">		
+		select m.id,m.userId, getClazzName(sc.clazzId) clazzName,platform.getRealName(c.leaderId) leaderName, platform.getRealName(m.teacherId) teacherName,platform.getRealName(m.userId) name,
+		m.state,DATE_FORMAT(m.createTime,"%Y-%m-%d %T") createTime 
+  	FROM palm_morningcheck m, palm_student_clazz sc, palm_clazz c, platform.user_detail ud, platform.student_parent sp 
+  	where m.userId = sc.userId and sc.clazzId=c.id and m.userId=ud.userId and m.userId=sp.userId
+ 		and sp.parent_userId=#userId#
+		<isNotNull property="queryContent">
+		<isNotEmpty prepend="and" property="queryContent">
+			 ud.realName like concat('%',#queryContent#,'%')
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="clazzId">
+		<isNotEmpty prepend="and" property="clazzId">
+			 c.id=#clazzId#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="startTime">
+		<isNotEmpty prepend="and" property="startTime">
+			m.createTime >= #startTime#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="endTime">
+		<isNotEmpty prepend="and" property="endTime">
+			m.createTime &lt;= #endTime#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="state">
+		<isNotEmpty prepend="and" property="state">
+			m.state=#state#
+		</isNotEmpty>
+		</isNotNull> 
+		order by m.createTime desc
+		<isNotNull property="startIndex">
+		<isNotEmpty prepend="" property="startIndex">
+			limit #startIndex#,#length#
+		</isNotEmpty>
+		</isNotNull>
+	</select>
+	<select id="getCheckCount4Parent" parameterClass="HashMap" resultClass="Integer">		
+		select count(*)
+  	FROM palm_morningcheck m, palm_student_clazz sc, palm_clazz c, platform.user_detail ud, platform.student_parent sp 
+  	where m.userId = sc.userId and sc.clazzId=c.id and m.userId=ud.userId and m.userId=sp.userId
+ 		and sp.parent_userId=#userId#
+		<isNotNull property="queryContent">
+		<isNotEmpty prepend="and" property="queryContent">
+			 ud.realName like concat('%',#queryContent#,'%')
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="clazzId">
+		<isNotEmpty prepend="and" property="clazzId">
+			 c.id=#clazzId#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="startTime">
+		<isNotEmpty prepend="and" property="startTime">
+			m.createTime >= #startTime#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="endTime">
+		<isNotEmpty prepend="and" property="endTime">
+			m.createTime &lt;= #endTime#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="state">
+		<isNotEmpty prepend="and" property="state">
+			m.state=#state#
+		</isNotEmpty>
+		</isNotNull> 
+		order by m.createTime desc
+		<isNotNull property="startIndex">
+		<isNotEmpty prepend="" property="startIndex">
+			limit #startIndex#,#length#
+		</isNotEmpty>
+		</isNotNull>
+	</select>
+	<select id="getCheckList4Other" parameterClass="HashMap" resultMap="result_list">		
+		select m.id,m.userId,getClazzName(sc.clazzId) clazzName,platform.getRealName(c.leaderId) leaderName, platform.getRealName(m.teacherId) teacherName,
+		platform.getRealName(m.userId) name,m.state,DATE_FORMAT(m.createTime,"%Y-%m-%d %T") createTime FROM palm_morningcheck m, palm_student_clazz sc, palm_clazz c, platform.user_detail ud 
+		where m.userId = sc.userId and sc.clazzId=c.id and m.userId=ud.userId
+		<isNotNull property="clazzIds">
+		<isNotEmpty prepend="and" property="clazzIds">
+			sc.clazzId IN 
+	       <iterate open="(" close=")" conjunction="," property="clazzIds" > 
+	           #clazzIds[]# 
+	       </iterate> 
+     	</isNotEmpty>
+	     </isNotNull>
+	 	<isEmpty prepend="and" property="clazzIds">
+			sc.clazzId is null
+	 	</isEmpty>
+		
+		<isNotNull property="queryContent">
+		<isNotEmpty prepend="and" property="queryContent">
+			 ud.realName like concat('%',#queryContent#,'%')
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="clazzId">
+		<isNotEmpty prepend="and" property="clazzId">
+			 c.id=#clazzId#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="startTime">
+		<isNotEmpty prepend="and" property="startTime">
+			m.createTime >= #startTime#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="endTime">
+		<isNotEmpty prepend="and" property="endTime">
+			m.createTime &lt;= #endTime#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="state">
+		<isNotEmpty prepend="and" property="state">
+			m.state=#state#
+		</isNotEmpty>
+		</isNotNull> 
+		order by m.createTime desc
+		<isNotNull property="startIndex">
+		<isNotEmpty prepend="" property="startIndex">
+			limit #startIndex#,#length#
+		</isNotEmpty>
+		</isNotNull>
+	</select>
+	<select id="getCheckCount4Other" parameterClass="HashMap" resultClass="Integer">		
+		select count(*) FROM palm_morningcheck m, palm_student_clazz sc, palm_clazz c, platform.user_detail ud 
+		where m.userId = sc.userId and sc.clazzId=c.id and m.userId=ud.userId 
+		<isNotEmpty prepend="and" property="clazzIds">
+			sc.clazzId IN 
+	       <iterate open="(" close=")" conjunction="," property="clazzIds" > 
+	           #clazzIds[]# 
+	       </iterate> 
+     	</isNotEmpty>
+	 	<isEmpty prepend="and" property="clazzIds">
+			sc.clazzId is null
+	 	</isEmpty>
+		
+		<isNotNull property="queryContent">
+		<isNotEmpty prepend="and" property="queryContent">
+			 ud.realName like concat('%',#queryContent#,'%')
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="clazzId">
+		<isNotEmpty prepend="and" property="clazzId">
+			 c.id=#clazzId#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="startTime">
+		<isNotEmpty prepend="and" property="startTime">
+			m.createTime >= #startTime#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="endTime">
+		<isNotEmpty prepend="and" property="endTime">
+			m.creatTime &lt;= #endTime#
+		</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="state">
+		<isNotEmpty prepend="and" property="state">
+			m.state=#state#
+		</isNotEmpty>
+		</isNotNull> 
+		
+	</select>
+	<select id="getDetailInfoByUserId" resultMap="result_check_list" parameterClass="HashMap">
+		select * from palm_morningcheck where userId = #userId# and createTime <![CDATA[ <= ]]> #endDate#
+	</select>
+	<select id="getDetailInfoById" resultClass="morningCheck" parameterClass="Integer">
+		select m.userId,m.cardCode,m.teacherCardCode,getClazzName(sc.clazzId) clazzName,platform.getRealName(c.leaderId) leaderName,m.teacherId, platform.getRealName(m.teacherId) teacherName,
+		platform.getRealName(m.userId) name,m.oralCavity,m.spirit,m.surface,m.temperature FROM palm_morningcheck m, palm_student_clazz sc, palm_clazz c
+		where m.userId = sc.userId and sc.clazzId=c.id and m.id=#id#
+	</select>
+	<select id="getPhoneByUserId" resultClass="String" parameterClass="Integer">
+		select phone from platform.userbase where userid=#userId#
+	</select>
+</sqlMap>

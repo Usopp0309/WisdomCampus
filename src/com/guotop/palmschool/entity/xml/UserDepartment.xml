@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="UserDepartment">
+	<typeAlias alias="userDepartment" type="com.guotop.palmschool.entity.UserDepartment" />
+
+	<resultMap class="com.guotop.palmschool.entity.UserDepartment" id="result_user_department">
+		<result property="id" column="id" />
+		<result property="departmentId" column="departmentId" />
+		<result property="userId" column="userId" />
+	</resultMap>
+	
+	<!-- 根据部门的id和教师id 判断该部门是否存在该人员  20151127-->
+	<select id="getTeacherByUserIdAndDepartmentId" parameterClass="HashMap" resultMap="result_user_department">
+		select *  from palm_user_department where departmentId = #departmentId# and userId = #userId#
+	</select>
+	
+	<!-- 删除部门时判断除了本部门和未分组里是否存在-->
+	<select id="getTeacherList" parameterClass="Integer" resultMap="result_user_department">
+		select *  from palm_user_department where departmentId != #departmentId# and departmentId != 0
+	</select>
+	
+	<!-- 根据部门人员的id查部门列表 20151127 -->
+	<select id="selectDepartListForDelete" parameterClass="java.lang.Integer" resultMap="result_user_department">
+		SELECT * FROM palm_user_department WHERE userId =#id#
+	</select>
+	
+	<!-- 根据用户Id和部门Id修改部门  20151127-->
+	<update id="modifyDepartmentByUserId" parameterClass="HashMap">
+		update palm_user_department
+		set departmentId = #departmentId#
+		where userId = #userId#	
+	</update>
+	
+	<!-- 根据部门Id和UserId删除用户和部门之间得分关系 20151127 -->
+	<delete id="deleteUserFromDepartmentByUserIdAndDepartmentId" parameterClass="HashMap">
+	     delete from palm_user_department where userId = #userId# and departmentId = #departmentId#
+	</delete>
+	
+	<!-- 根据部门人员的id查部门列表 20160111 -->
+	<select id="getUserDeparmentId" parameterClass="java.lang.Integer" resultMap="result_user_department">
+		SELECT * FROM palm_user_department WHERE userId =#userId#
+	</select>
+	<!-- 删除教师与部门关联 20160223 -->
+	<delete id="delUserAndDepartLink" parameterClass="Integer">
+		delete from palm_user_department where userId = #userId#
+	</delete>
+</sqlMap>

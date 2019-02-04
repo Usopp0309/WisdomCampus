@@ -1,0 +1,222 @@
+package com.guotop.palmschool.thread;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.guotop.palmschool.check.entity.Stay;
+import com.guotop.palmschool.check.entity.Total;
+import com.guotop.palmschool.listener.StartupListener;
+
+
+
+/**
+ * 考勤统计线程
+ * @author zhou
+ */
+public class TotalHandler extends Thread
+{
+	private Log logger = LogFactory.getLog(TotalHandler.class);
+	
+	boolean flag = true;
+	
+	/**
+	 * 构造函数
+	 * 启动线程
+	 */
+	public TotalHandler()
+	{
+		this.start();
+	}
+	
+	public void run()
+	{
+		logger.info("统计进程启动");
+		
+		while (flag)
+		{
+			try
+			{
+				if (isDayStart()) {
+					totalByDay();
+
+					if (isWeekStart())
+						totalByWeek();
+
+					if (isMonthStart())
+						totalByMonth();
+				}
+//				StartupListener.totalService.totalByPersonDay("2015-09-18", 2);
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+			
+			try 
+			{
+				/**
+				 * 线程休眠
+				 */
+				sleep(100000);
+			}
+			catch (InterruptedException e) 
+			{
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	
+	// 一天的开始
+	private boolean isDayStart() {
+		Calendar cal = Calendar.getInstance();
+		int hour = cal.get(Calendar.HOUR_OF_DAY);
+
+		if (hour == 2) // 每天2:00统计前一天信息
+			return true;
+
+		return false;
+	}
+
+	// 一周的开始
+	private boolean isWeekStart() {
+		Calendar cal = Calendar.getInstance();
+		int day = cal.get(Calendar.DAY_OF_WEEK);
+
+		if (day == Calendar.SUNDAY) // 每周日统计上周信息（周日-周六）
+			return true;
+
+		return false;
+	}
+
+	// 一月的开始
+	private boolean isMonthStart() {
+		Calendar cal = Calendar.getInstance();
+		int date = cal.get(Calendar.DAY_OF_MONTH);
+
+		if (date == 1) // 每月1日统计上月信息
+			return true;
+
+		return false;
+	}
+	
+	
+	
+	/**
+	 * 按天统计考勤
+	 */
+	private void totalByDay()
+	{
+		logger.info("按天统计考勤信息开始");
+		
+		
+		int userType; // 人员类型，1:教师，2:学生
+		int type; // 统计类别，0:全校，1:年级，2:班级，3:个人
+		int periodType = 1; // 统计类型，0:月，1:日，2:周
+
+		for (userType = 1; userType <= 2; userType++) 
+		{
+			for (type = 3; type >= 0; type--) 
+			{
+				if (userType == 1 && type == 2)
+					continue;
+				
+				HashMap<String , Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("userType", userType);
+				paramMap.put("type", type);
+				paramMap.put("periodType", periodType);
+				
+				SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd");
+				
+				Total total = StartupListener.totalService.getLastTotal(paramMap);
+				Date time = null;
+				if (total != null)
+				{
+					try 
+					{
+						time = sdf.parse(total.getPeriodTime());// 时间
+					} catch (ParseException e) 
+					{
+						e.printStackTrace();
+					} 
+				}
+				
+				Date start = null;
+				if (time != null)
+				{
+					Calendar cal = Calendar.getInstance();
+					cal.setTime(time);
+					cal.add(Calendar.DATE, 1); // 从第二天开始
+					start = new Date(cal.getTimeInMillis());
+				} else 
+				{
+					Stay stay = StartupListener.totalService.getFirstStay(userType);
+					if (stay != null) 
+					{
+						try
+						{
+							start = sdf.parse(stay.getInTime());
+						}catch (ParseException e) 
+						{
+							e.printStackTrace();
+						}
+						
+						if (start == null)
+						{
+							stay.getOutTime();
+						}
+				    }
+				}
+				if (start != null)
+				{
+					int t = StartupListener.totalService.totalDay(start, userType,
+							type);
+					logger.info("统计["
+							+ (userType == 1 ? "教师" : "学生")
+							+ "]["
+							+ (type == 0 ? "全校" : type == 1 ? "年级"
+									: type == 2 ? "班级" : "个人") + "][天]共计生成 "
+							+ t + " 条统计信息");
+				}
+			}
+		}
+		
+		logger.info("按天统计考勤信息结束");
+	}
+	
+	/**
+	 * 按周统计考勤
+	 */
+	private void totalByWeek()
+	{
+		logger.info("按周统计考勤信息开始");
+		
+		logger.info("按周统计考勤信息结束");
+	}
+	
+	/**
+	 * 按月统计考勤
+	 */
+	private void totalByMonth()
+	{
+		logger.info("按月统计考勤信息开始");
+		
+		
+		
+		logger.info("按月统计考勤信息结束");
+	}
+	
+	/**
+	 * 关闭线程
+	 */
+	public void stopThread()
+	{
+		flag = false;
+	}
+}

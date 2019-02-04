@@ -1,0 +1,1104 @@
+package com.guotop.palmschool.replacerecharge.controller;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.json.JSONException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.guotop.palmschool.check.entity.TeacherAttendance;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.controller.BaseController;
+import com.guotop.palmschool.entity.Clazz;
+import com.guotop.palmschool.entity.OrderMessage;
+import com.guotop.palmschool.entity.OrderMessageClazz;
+import com.guotop.palmschool.entity.OrderMessageUser;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.replacerecharge.service.ReplaceRechargeService;
+import com.guotop.palmschool.service.ClazzService;
+import com.guotop.palmschool.service.OrderMessageService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.shopping.entity.Orders;
+import com.guotop.palmschool.shopping.service.OrdersService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.PreciseCompute;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+import com.richx.pojo.RichHttpResponse;
+import com.sun.mail.iap.Literal;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 代充值短信套餐控制类 (智慧校园服务 )
+ *
+ */
+@RequestMapping("/replaceRecharge")
+@Controller
+public class ReplaceRechargeController extends BaseController
+{
+
+	private Logger log = LoggerFactory.getLogger(ReplaceRechargeController.class);
+
+	@Resource
+	private OrderMessageService orderMessageService;
+
+	@Resource
+	private OrdersService ordersService;
+
+	@Resource
+	private UserService userService;
+
+	@Resource
+	private ReplaceRechargeService replaceRechargeService;
+
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private ClazzService clazzService;
+
+	/**
+	 * 进入代充短信套餐页面
+	 */
+	@RequestMapping(value = "/toReplaceRecharge.do")
+	public String toReplaceRecharge(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		User user = (User) session.getAttribute("user");
+		modelMap.addAttribute("schoolId", user.getSchoolId());
+		return "replacerecharge/replace_recharge";
+	}
+
+	/**
+	 * 进入代充短信套餐页面
+	 */
+	@RequestMapping(value = "/loadReplaceRecharge.do")
+	public String loadReplaceRecharge(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy");
+		try
+		{
+			User user = (User) session.getAttribute("user");
+
+			String roleCode = request.getParameter("roleCode");
+
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("status", 0);
+			map.put("rangeObject", 1);
+			map.put("roleCode", roleCode);
+			map.put("user", user);
+			map.put("userId", user.getUserId());
+			map.put("schoolId", user.getSchoolId());
+			map.put("permissionCode", "replaceRechargeManager");
+
+			// 查询出服务范围是个人的套餐
+			List<OrderMessage> messageList = orderMessageService.getMessageListByStatus(map);
+			for (OrderMessage orderMessage : messageList)
+			{
+				if ("3509020027".equals(user.getSchoolId()) || "3201140009".equals(user.getSchoolId()))
+				{
+					if (!StringUtil.isEmpty(orderMessage.getStartTime()))
+					{
+						orderMessage.setStartTime(formatter.format(formatter.parse(orderMessage.getStartTime())));
+					}
+					if (!StringUtil.isEmpty(orderMessage.getEndTime()))
+					{
+						orderMessage.setEndTime(formatter.format(formatter.parse(orderMessage.getEndTime())) + "学年");
+					}
+				}
+			}
+			Gson gson = new Gson();
+			String json = gson.toJson(messageList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 根据班主任和家长所在班级的Id查询对应的学生
+	 */
+	@RequestMapping(value = "/loadStudentByClazzId.do")
+	public String loadStudentByClazzId(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+
+			User user = (User) session.getAttribute("user");
+			String roleCode = request.getParameter("roleCode");
+			String content = request.getParameter("content");
+			Integer orderMessageId = StringUtil.toint(request.getParameter("orderMessageId"));
+			
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("user",user);
+			paramMap.put("userId",user.getUserId());
+			paramMap.put("roleCode",roleCode);
+			paramMap.put("content",content);
+			paramMap.put("orderMessageId",orderMessageId);
+			paramMap.put("schoolId",user.getSchoolId());
+			
+			List<User> userList = replaceRechargeService.getStudentListByParam(paramMap, "replaceRechargeManager");
+			
+			Gson gson = new Gson();
+			String json = gson.toJson(userList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 进入付款页面
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/toOrderMessagePay.do")
+	public String toOrderMessagePay(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("utf-8");
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		try
+		{
+
+			User user = (User) session.getAttribute("user");
+			Integer productId = StringUtil.toint(request.getParameter("productId"));
+			Integer count = StringUtil.toint(request.getParameter("count"));
+
+			Map<String, String> studentMap = GsonHelper.fromJson(request.getParameter("studentList"), Map.class);
+
+			OrderMessage mess = orderMessageService.getMessageById(productId);
+			int sum = studentMap.size();
+			double price = 0;
+			if (mess.getType() == 0)
+			{
+				// price = mess.getPrice() * sum;
+				// long l = Math.round(price * 100); // 四舍五入
+				// price = l / 100.0; // 注意：使用 100.0 而不是 100
+				price = PreciseCompute.mul(mess.getPrice(), sum);
+			} else if (mess.getType() == 1)
+			{
+				// price = mess.getPrice() * count * sum;
+				// long l = Math.round(price * 100); // 四舍五入
+				// price = l / 100.0; // 注意：使用 100.0 而不是 100
+				price = PreciseCompute.mul(mess.getPrice() * count, sum);
+			}
+
+			String phone = orderMessageService.getUserPhoneByUserId(user.getUserId());
+			Orders orders = new Orders();
+			orders.setGoodsName(mess.getName());
+			orders.setAmount(String.valueOf(price));
+			orders.setCounts(1);
+			orders.setReceiver(user.getRealName());
+			orders.setPhone(phone);
+			orders.setUserId(user.getUserId());
+			orders.setCreateTime(formatter.format(new Date()));
+			orders.setIsVirtual(5);
+			int ordersId = ordersService.addOrders(orders);
+
+			for (Map.Entry<String, String> entry : studentMap.entrySet())
+			{
+				String studentId = entry.getKey();
+				String studentName = entry.getValue();
+
+				// 获得的是自1970-1-01 00:00:00.000 到当前时刻的时间距离,类型为long
+				long ct = System.currentTimeMillis();
+				String currentTime = String.valueOf(ct);
+
+				// 代充的情况下，由于传递过来的是学生Id，先把学生添加到palm_order_message_user表
+				OrderMessageUser messUser = new OrderMessageUser();
+				messUser.setName(mess.getName());
+				messUser.setRealName(studentName);
+				messUser.setUserId(Integer.valueOf(studentId));
+				messUser.setStartTime(mess.getStartTime());
+				messUser.setEndTime(mess.getEndTime());
+				messUser.setType(mess.getType());
+				messUser.setCount(count);
+				messUser.setCreateTime(TimeUtil.getInstance().now());
+				messUser.setOrderId(ordersId);
+				messUser.setStatus(1);
+				messUser.setMessageId(productId);
+				messUser.setReplaceUserId(user.getUserId());
+				messUser.setReplaceRealName(user.getRealName());
+				messUser.setFamilyId(String.valueOf(studentId) + currentTime);
+				ordersService.saveOrderMessageUser(messUser);
+				
+			}
+
+			modelMap.addAttribute("amount", price);
+			modelMap.addAttribute("goodsName", mess.getName());
+			modelMap.addAttribute("ordersId", ordersId);
+			return "ordermessage/sms_order_pay";
+		} catch (JSONException e)
+		{
+			e.printStackTrace();
+		}
+		return "ordermessage/sms_order_pay";
+	}
+
+	/**
+	 * 【手机端】根据userId 和roleCode 获取对应的学生和家长信息
+	 */
+	@RequestMapping(value = "/getStudentListByApiKey.do")
+	public String getStudentListByApiKey(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<Collection<Clazz>> rhr = new RichHttpResponse<Collection<Clazz>>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		String content = request.getParameter("content");
+		Integer orderMessageId = StringUtil.toint(request.getParameter("productId"));
+		try
+		{
+			String json;
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+				
+				Map<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("userId",loginUser.getUserId());
+				paramMap.put("orderMessageId",orderMessageId);
+				paramMap.put("schoolId",schoolId);
+				paramMap.put("content",content);
+				paramMap.put("permissionCode","replaceRechargeManager");
+				
+				List<User> userList = replaceRechargeService.getStudentListForApp(paramMap);
+				
+				Map<Integer, User> userMap = new HashMap<Integer, User>();
+				Map<Integer, Clazz> clazzMap = new HashMap<Integer, Clazz>();
+
+				for (User user : userList)
+				{
+					Integer userId = user.getUserId();
+					if (userMap.containsKey(userId))
+					{
+						// 学生已经存在的情况下直接下一个循环
+						continue;
+					} else
+					{
+						if (user.getType() == null)
+						{
+							user.setType(0);// 可选择
+						} else
+						{
+							user.setType(1);
+						}
+						userMap.put(userId, user);
+					}
+					Integer clazzId = user.getClazzId();
+					if (!clazzMap.containsKey(clazzId))
+					{
+						Clazz clazz = new Clazz();
+						clazz.setClazzId(clazzId);
+						clazz.setClazzName(user.getClazzName());
+						List<User> studentList = new ArrayList<User>();
+						studentList.add(user);
+						clazz.setStudentList(studentList);
+						clazzMap.put(clazzId, clazz);
+					} else
+					{
+						Clazz clazz = clazzMap.get(clazzId);
+						clazz.getStudentList().add(user);
+					}
+
+				}
+				Collection<Clazz> clazzList = clazzMap.values();
+				List<Clazz> newClazzlist = new ArrayList<Clazz>(clazzList);
+				Collections.sort(newClazzlist, new Comparator<Clazz>()
+						{
+							public int compare(Clazz c1, Clazz c2)
+							{
+								return c1.getClazzId().compareTo(c2.getClazzId());
+							}
+						});
+				rhr.ResponseCode = 0;
+				rhr.ResponseObject = newClazzlist;
+				rhr.ResponseResult = "获取成功";
+				json = GsonHelper.toJson(rhr);
+			} else
+			{
+				rhr.ResponseCode = -1;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		}
+		return null;
+	}
+
+//	/**
+//	 * TODO IOS和安卓版本更新之后需要删除 【手机端】根据userId 和roleCode 获取对应的学生和家长信息
+//	 */
+//	@RequestMapping(value = "/getStudentByClazzIdByApiKey.do")
+//	public String getStudentByClazzIdByApiKey(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+//	{
+//		response.setCharacterEncoding("UTF-8");
+//		response.setContentType("application/json;charset=UTF-8");
+//		RichHttpResponse<List<User>> rhr = new RichHttpResponse<List<User>>();
+//		String apiKey = request.getParameter("apiKey");
+//		String schoolId = request.getParameter("schoolId");
+//		try
+//		{
+//			String json;
+//			// 这边是利用apikey 进行模拟登录
+//			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+//			if (loginUser != null)
+//			{
+//				session.setAttribute("user", loginUser);
+//				DBContextHolder.setDBType(loginUser.getSchoolId());
+//
+//				String roleCode = request.getParameter("roleCode");
+//				String content = request.getParameter("content");
+//				List<User> userList = replaceRechargeService.loadStudentByClazzId(loginUser.getUserId(), roleCode, content, "replaceRechargeManager");
+//				for (User user : userList)
+//				{
+//					if (user.getType() == null)
+//					{
+//						user.setType(0);// 可选择
+//					} else
+//					{
+//						user.setType(1);
+//					}
+//				}
+//
+//				rhr.ResponseCode = 0;
+//				rhr.ResponseObject = userList;
+//				rhr.ResponseResult = "获取成功";
+//				json = GsonHelper.toJsonWithAnnotation(rhr);
+//			} else
+//			{
+//				rhr.ResponseCode = -1;
+//				rhr.ResponseObject = null;
+//				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+//				json = GsonHelper.toJson(rhr);
+//			}
+//			response.getWriter().write(json);
+//			response.getWriter().flush();
+//		} catch (IOException e)
+//		{
+//			log.error("json转换失败：" + e.getMessage());
+//		}
+//		return null;
+//	}
+
+	/**
+	 * 【手机端】进入支付页面
+	 */
+	@RequestMapping(value = "/toOrderMessagePayByApiKey.do")
+	public String toOrderMessagePayByApiKey(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<Map<String, Object>> rhr = new RichHttpResponse<Map<String, Object>>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		try
+		{
+			String json;
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+
+				Integer productId = StringUtil.toint(request.getParameter("productId"));
+				Integer count = StringUtil.toint(request.getParameter("count"));
+
+				String studentListJson = request.getParameter("studentList");
+
+				List<User> studentList = GsonHelper.fromJson(studentListJson, new TypeToken<ArrayList<User>>()
+				{
+				}.getType());
+
+				OrderMessage mess = orderMessageService.getMessageById(productId);
+
+				int sum = studentList.size();
+				double price = 0;
+				if (mess.getType() == 0)
+				{
+					// price = mess.getPrice() * sum;
+					// long l = Math.round(price * 100); // 四舍五入
+					// price = l / 100.0; // 注意：使用 100.0 而不是 100
+					price = PreciseCompute.mul(mess.getPrice(), sum);
+				} else if (mess.getType() == 1)
+				{
+					// price = mess.getPrice() * count * sum;
+					// long l = Math.round(price * 100); // 四舍五入
+					// price = l / 100.0; // 注意：使用 100.0 而不是 100
+					price = PreciseCompute.mul(mess.getPrice() * count, sum);
+				}
+
+				String phone = orderMessageService.getUserPhoneByUserId(loginUser.getUserId());
+				Orders orders = new Orders();
+				orders.setGoodsName(mess.getName());
+				orders.setAmount(String.valueOf(price));
+				orders.setCounts(1);
+				orders.setReceiver(loginUser.getRealName());
+				orders.setPhone(phone);
+				orders.setUserId(loginUser.getUserId());
+				orders.setCreateTime(TimeUtil.getInstance().now());
+				orders.setIsVirtual(5);
+
+				int ordersId = ordersService.addOrders(orders);
+
+				if (!CollectionUtils.isEmpty(studentList))
+				{
+					for (User student : studentList)
+					{
+						// 获得的是自1970-1-01 00:00:00.000 到当前时刻的时间距离,类型为long
+						long ct = System.currentTimeMillis();
+						String currentTime = String.valueOf(ct);
+
+						// 手机端代充的情况下，由于传递过来的是学生Id，先把学生添加到palm_order_message_user表
+						OrderMessageUser messUser = new OrderMessageUser();
+						messUser.setName(mess.getName());
+						messUser.setRealName(student.getRealName());
+						messUser.setUserId(student.getUserId());
+						messUser.setStartTime(mess.getStartTime());
+						messUser.setEndTime(mess.getEndTime());
+						messUser.setType(mess.getType());
+						messUser.setCount(count);
+						messUser.setCreateTime(TimeUtil.getInstance().now());
+						messUser.setOrderId(ordersId);
+						messUser.setStatus(1);
+						messUser.setMessageId(productId);
+						messUser.setReplaceUserId(loginUser.getUserId());
+						messUser.setReplaceRealName(loginUser.getRealName());
+						messUser.setFamilyId(String.valueOf(student.getUserId()) + currentTime);
+						ordersService.saveOrderMessageUser(messUser);
+					}
+				}
+
+				Map<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("amount", price);
+				paramMap.put("goodsName", mess.getName());
+				paramMap.put("ordersId", ordersId);
+
+				rhr.ResponseCode = 0;
+				rhr.ResponseObject = paramMap;
+				rhr.ResponseResult = "获取成功";
+				json = GsonHelper.toJsonWithAnnotation(rhr);
+			} else
+			{
+				rhr.ResponseCode = -1;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("提交订单失败：" + e.getMessage());
+		}
+		return null;
+	}
+
+	/********** 服务费设置begin **************/
+	/**
+	 * 进入服务费列表页面
+	 */
+	@RequestMapping(value = "/toServiceFeeList.do")
+	public String toServiceFeeList(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+
+		String virtualstatus = orderMessageService.getVirtualMessageStatus();
+		modelMap.addAttribute("status", virtualstatus);
+		return "system/service_fee_list";
+	}
+
+	/**
+	 * 加载所有的短信 分页
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getAllMessageList.do")
+	public String getAllMessageList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = StringUtil.toint(request.getParameter("cPage"));
+
+			/**
+			 * 搜索内容
+			 */
+			String queryContent = request.getParameter("queryContent");
+
+			/**
+			 * 类型
+			 */
+			String type = request.getParameter("type");
+
+			/**
+			 * 状态
+			 */
+			String status = request.getParameter("status");
+
+			User user = (User) session.getAttribute("user");
+
+			/**
+			 * 参数
+			 */
+			HashMap<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("queryContent", queryContent);
+			paramMap.put("type", type);
+			paramMap.put("status", status);
+			paramMap.put("user", user);
+			paramMap.put("userId", user.getUserId());
+
+			this.getPages().setPageSize(10);
+
+			Pages pages = orderMessageService.getAllMessageList(this.getPages().getPageSize(), currentPage, paramMap);
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 删除短信套餐
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/deleteMessage.do")
+	public String deleteMessage(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			boolean flag = false;
+
+			try
+			{
+				orderMessageService.deleteMessageClazz();
+				orderMessageService.deleteOrderMessage();
+				flag = true;
+			} catch (Exception e)
+			{
+				flag = false;
+				e.printStackTrace();
+			}
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(flag);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 进入增加短信套餐页面
+	 */
+	@RequestMapping(value = "/toAddMessage.do")
+	public String toAddMessage(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		return "system/service_fee_add";
+	}
+
+	/**
+	 * 执行增加增加短信套餐逻辑
+	 */
+	@RequestMapping(value = "/doAddMessage.do")
+	public String doAddMessage(HttpServletResponse response, HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+
+		response.setCharacterEncoding("UTF-8");
+
+		/**
+		 * 服务范围0:学校,1:个人
+		 */
+		Integer rangeObject = StringUtil.toint(request.getParameter("rangeObject"));
+
+		/**
+		 * 名称
+		 */
+		String name = request.getParameter("name");
+
+		/**
+		 * 价格
+		 */
+		String price = request.getParameter("price");
+
+		/**
+		 * 类型
+		 */
+		Integer type = StringUtil.toint(request.getParameter("type"));
+
+		/**
+		 * 开始日期
+		 */
+		String startTime = request.getParameter("startTime");
+
+		/**
+		 * 结束日期
+		 */
+		String endTime = request.getParameter("endTime");
+
+		OrderMessage orderMessage = new OrderMessage();
+		orderMessage.setName(name);
+		orderMessage.setPrice(Double.valueOf(price));
+		orderMessage.setStatus(0);
+		orderMessage.setType(type);
+		orderMessage.setRangeObject(rangeObject);
+		if (type == 0)
+		{
+			orderMessage.setStartTime(startTime);
+			orderMessage.setEndTime(endTime);
+		}
+		orderMessage.setCreateTime(TimeUtil.getInstance().now());
+
+		// 添加套餐
+		Integer orderMessageId = orderMessageService.addOrderMessage(orderMessage);
+
+		/**
+		 * 年级或班级的数组
+		 */
+		String[] selectedObjArr = request.getParameterValues("selectedObj");
+
+		if (selectedObjArr != null)
+		{
+			for (int i = 0; i < selectedObjArr.length; i++)
+			{
+
+				if (selectedObjArr[i].startsWith("G"))
+				{
+					// 获取年级ID;
+					Integer gradeId = StringUtil.toint(selectedObjArr[i].substring(1));
+					List<Clazz> clazzList = clazzService.getClazzListByGradeId(gradeId);
+					for (Clazz clazz : clazzList)
+					{
+						OrderMessageClazz orderMessageClazz = new OrderMessageClazz();
+						orderMessageClazz.setOrderMessageId(orderMessageId);
+						orderMessageClazz.setClazzId(clazz.getId());
+						orderMessageClazz.setCreateTime(TimeUtil.getInstance().now());
+						orderMessageService.addOrderMessageClazz(orderMessageClazz);
+					}
+				} else if (selectedObjArr[i].startsWith("C"))
+				{
+					OrderMessageClazz orderMessageClazz = new OrderMessageClazz();
+					orderMessageClazz.setOrderMessageId(orderMessageId);
+					orderMessageClazz.setClazzId(StringUtil.toint(selectedObjArr[i].substring(1)));
+					orderMessageClazz.setCreateTime(TimeUtil.getInstance().now());
+					orderMessageService.addOrderMessageClazz(orderMessageClazz);
+				}
+			}
+		}
+
+		String virtualstatus = orderMessageService.getVirtualMessageStatus();
+		modelMap.addAttribute("status", virtualstatus);
+		return "system/service_fee_list";
+	}
+
+	/**
+	 * 进入修改短信套餐页面
+	 */
+	@RequestMapping(value = "/modifyMessage.do")
+	public String modifyMessage(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+
+		Integer id = Integer.valueOf(request.getParameter("id"));
+
+		// 根据id查询对应的短信套餐
+		OrderMessage message = orderMessageService.getMessageById(id);
+
+		if (message.getRangeObject() == 1)
+		{
+			List<OrderMessageClazz> selectedClazzList = orderMessageService.getSelectedClazzListByOrderMessageId(id);
+			modelMap.addAttribute("selectedClazzList", selectedClazzList);
+		}
+		/**
+		 * 存放页面隐藏域
+		 */
+		modelMap.addAttribute("id", id);
+		modelMap.addAttribute("message", message);
+
+		return "system/service_fee_modify";
+	}
+
+	/**
+	 * 执行增加增加短信套餐逻辑
+	 */
+	@RequestMapping(value = "/doModifyMessage.do")
+	public String doModifyMessage(HttpServletResponse response, HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+
+		response.setCharacterEncoding("UTF-8");
+
+		/**
+		 * id
+		 */
+		Integer id = Integer.valueOf(request.getParameter("id"));
+
+		/**
+		 * 名称
+		 */
+		String name = request.getParameter("name");
+
+		/**
+		 * 价格
+		 */
+		String price = request.getParameter("price");
+
+		/**
+		 * 服务范围0:学校,1:个人
+		 */
+		Integer rangeObject = StringUtil.toint(request.getParameter("rangeObject"));
+		/**
+		 * 类型
+		 */
+		Integer type = StringUtil.toint(request.getParameter("type"));
+
+		/**
+		 * 状态status
+		 */
+		Integer status = StringUtil.toint(request.getParameter("status"));
+
+		/**
+		 * 开始日期
+		 */
+		String startTime = request.getParameter("startTime");
+
+		/**
+		 * 结束日期
+		 */
+		String endTime = request.getParameter("endTime");
+
+		OrderMessage orderMessage = new OrderMessage();
+		orderMessage.setId(id);
+		orderMessage.setName(name);
+		orderMessage.setPrice(Double.valueOf(price));
+		orderMessage.setStatus(status);
+		orderMessage.setType(type);
+		orderMessage.setRangeObject(rangeObject);
+		if (type == 0)
+		{
+			orderMessage.setStartTime(startTime);
+			orderMessage.setEndTime(endTime);
+		}
+		orderMessage.setUpdateTime(TimeUtil.getInstance().now());
+		orderMessageService.modifyMessageById(orderMessage);
+
+		/**
+		 * 年级或班级的数组
+		 */
+		String[] selectedObjArr = request.getParameterValues("selectedObj");
+
+		Map<String, Object> parem = new HashMap<String, Object>();
+		parem.put("orderMessageId", id);
+		if (selectedObjArr != null)
+		{
+			orderMessageService.deleteMessageGradeByOrderMessageId(id);
+
+			for (int i = 0; i < selectedObjArr.length; i++)
+			{
+
+				if (selectedObjArr[i].startsWith("G"))
+				{
+					// 获取年级ID;
+					Integer gradeId = StringUtil.toint(selectedObjArr[i].substring(1));
+					List<Clazz> clazzList = clazzService.getClazzListByGradeId(gradeId);
+					for (Clazz clazz : clazzList)
+					{
+						parem.put("clazzId", clazz.getId());
+						OrderMessageClazz orderMessageClazz = orderMessageService.getMessageClazzByClazzIdAndOrderMessageId(parem);
+						if (orderMessageClazz == null)
+						{
+							orderMessageClazz = new OrderMessageClazz();
+							orderMessageClazz.setOrderMessageId(id);
+							orderMessageClazz.setClazzId(clazz.getId());
+							orderMessageClazz.setCreateTime(TimeUtil.getInstance().now());
+							orderMessageService.addOrderMessageClazz(orderMessageClazz);
+						}
+					}
+				} else if (selectedObjArr[i].startsWith("C"))
+				{
+					Integer clazzId = StringUtil.toint(selectedObjArr[i].substring(1));
+					parem.put("clazzId", clazzId);
+					OrderMessageClazz orderMessageClazz = orderMessageService.getMessageClazzByClazzIdAndOrderMessageId(parem);
+					if (orderMessageClazz == null)
+					{
+						orderMessageClazz = new OrderMessageClazz();
+						orderMessageClazz.setOrderMessageId(id);
+						orderMessageClazz.setClazzId(clazzId);
+						orderMessageClazz.setCreateTime(TimeUtil.getInstance().now());
+						orderMessageService.addOrderMessageClazz(orderMessageClazz);
+					}
+				}
+			}
+		}
+
+		String virtualstatus = orderMessageService.getVirtualMessageStatus();
+		modelMap.addAttribute("status", virtualstatus);
+		return "system/service_fee_list";
+	}
+
+	/**
+	 * 是否开启虚拟套餐
+	 */
+	@RequestMapping(value = "/updateVirtualMessage.do")
+	public void updateVirtualMessage(HttpServletResponse response, HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+
+		response.setCharacterEncoding("UTF-8");
+		String status = request.getParameter("status");
+		boolean flag = true;
+		try
+		{
+			orderMessageService.updateVirtualMessage(status);
+		} catch (Exception e)
+		{
+			flag = false;
+		}
+		Gson gson = new Gson();
+		try
+		{
+			String json = gson.toJson(flag);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/********** 服务费设置end **************/
+	
+	
+	
+	
+	
+	/********** 手机端begin **************/
+	
+	/**
+	 * 【手机端】获取所有的短信套餐（服务费购买列表 针对家长）
+	 */
+	@RequestMapping(value = "/getOrderMessageListByApiKeyForParent.do")
+	public String getOrderMessageListByApiKeyForParent(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<List<OrderMessage>> rhr = new RichHttpResponse<List<OrderMessage>>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy");
+		try
+		{
+			String json;
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+				
+				Map<String, Object> map = new HashMap<String, Object>();
+				map.put("status", 0);
+				map.put("rangeObject", 1);
+				map.put("schoolId", loginUser.getSchoolId());
+				map.put("userId", loginUser.getUserId());
+
+				List<OrderMessage> messageList = new ArrayList<OrderMessage>();
+				
+				List<User> studentList = userService.getStudentListByParentIdAndSchoolId(map);
+				
+				String phone = orderMessageService.getUserPhoneByUserId(loginUser.getUserId());
+				if (studentList.size() > 0)
+				{
+					for (User student : studentList)
+					{
+						student.setPhone(phone);
+						map.put("clazzId", student.getClazzId());
+						// 查询出服务范围是个人的套餐
+						List<OrderMessage> orderMessageList = orderMessageService.getMessageListByClazzIdForParent(map);
+						for (OrderMessage orderMessage : orderMessageList)
+						{
+							if ("3509020027".equals(schoolId) || "3201140009".equals(schoolId))
+							{
+								if (!StringUtil.isEmpty(orderMessage.getStartTime()))
+								{
+									orderMessage.setStartTime(formatter.format(formatter.parse(orderMessage.getStartTime())));
+								}
+								if (!StringUtil.isEmpty(orderMessage.getEndTime()))
+								{
+									orderMessage.setEndTime(formatter.format(formatter.parse(orderMessage.getEndTime())) + "学年");
+								}
+							}
+							orderMessage.setUser(student);
+							messageList.add(orderMessage);
+						}
+					}
+				}
+				
+				rhr.ResponseCode = 0;
+				rhr.ResponseObject = messageList;
+				rhr.ResponseResult = "获取成功";
+				json = GsonHelper.toJsonWithAnnotation(rhr);
+			} else
+			{
+				rhr.ResponseCode = -1;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		}
+		return null;
+	}
+	
+	/**
+	 * 【手机端】获取所有的短信套餐（服务费代充列表 针对家长、班主任）
+	 */
+	@RequestMapping(value = "/getOrderMessageListByApiKeyForCLassLeader.do")
+	public String getOrderMessageListByApiKeyForCLassLeader(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<List<OrderMessage>> rhr = new RichHttpResponse<List<OrderMessage>>();
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy");
+		try
+		{
+			String json;
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+				
+				Map<String, Object> map = new HashMap<String, Object>();
+				map.put("status", 0);
+				map.put("rangeObject", 1);
+				map.put("schoolId", loginUser.getSchoolId());
+				map.put("userId", loginUser.getUserId());
+				map.put("permissionCode", "replaceRechargeManager");
+				// 查询出服务范围是个人的套餐
+				List<OrderMessage> messageList = orderMessageService.getMessageListByStatusForApp(map);
+				for (OrderMessage orderMessage : messageList)
+				{
+					if ("3509020027".equals(schoolId) || "3201140009".equals(schoolId))
+					{
+						if (!StringUtil.isEmpty(orderMessage.getStartTime()))
+						{
+							orderMessage.setStartTime(formatter.format(formatter.parse(orderMessage.getStartTime())));
+						}
+						if (!StringUtil.isEmpty(orderMessage.getEndTime()))
+						{
+							orderMessage.setEndTime(formatter.format(formatter.parse(orderMessage.getEndTime())) + "学年");
+						}
+					}
+				}
+				rhr.ResponseCode = 0;
+				rhr.ResponseObject = messageList;
+				rhr.ResponseResult = "获取成功";
+				json = GsonHelper.toJsonWithAnnotation(rhr);
+			} else
+			{
+				rhr.ResponseCode = -1;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(rhr);
+			}
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		}
+		return null;
+	}
+	
+	
+	/********** 手机端end **************/
+	
+	
+	
+	
+}

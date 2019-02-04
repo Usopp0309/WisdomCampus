@@ -1,0 +1,167 @@
+﻿$(function(){
+	//选择第一个tab
+	$("#userTab li:first").addClass("active");
+	/*$("#userTab li").on("click",function(){
+		$("#userTab li").removeClass("active");
+		$(this).addClass("active");
+		var _id=$(this).index();
+		if(_id==0){
+				$(".portlet").removeClass("yellow")
+				$(".portlet").addClass("blue")
+			}else{
+				$(".portlet").removeClass("blue");
+				$(".portlet").addClass("yellow");
+			}
+	})*/
+	//////////////////////////////////////////////////////之上智慧校园新整理的js代码//////////////////////////////////////
+
+	
+	
+	
+	
+	
+	
+	var h=$(".public_footer").outerHeight(true)+$(".header").outerHeight(true)+60;
+	var h_v=$(window).height()-h;
+	
+	$(".Fill_Card").css({"min-height":h_v+"px"});
+	$(".page-sidebar-menu a").on("click",function(){
+		  var speed=200;
+	    $('body,html').animate({ scrollTop: 0 }, speed);
+	})
+	$(".pagination-right a").on("click",function(){
+		  var speed=200;
+		  $("body,html",parent.document).animate({ scrollTop: 0 }, speed);
+	})
+	//计算二级栏目最小高度
+	$(".m_main").css("min-height",($(window).height()-$(".footer").outerHeight(true)));
+})
+//回车查询
+function m_enter(node,target){
+	$("#"+node).keypress(function(event){
+		if(event.which == "13")    
+    	{
+			$("#"+target).click();
+			return false;
+    	}
+	});	
+}
+
+function autoheight(){
+	if (IsPC()==1){
+		$("#mainPage",parent.document).attr("height","762px");
+		var s_height=$(document.body).outerHeight(true)+30;
+		if(s_height>762){
+			$("#mainPage",parent.document).attr("height",s_height);
+		}
+	}
+}
+function checkSubmitMobil(num) {
+	if (num == "") {
+	return false;
+	}
+	var flag1 = num.match(/^(((13[0-9]{1})|(14[0-9]{1})|(17[1,3,6-8]{1})|(15[0-3]{1})|(15[5-9]{1})|(18[0-9]{1}))+\d{8})$/);
+	var flag2 = num.match(/^(((170[0-2,5,7-9]{1}))+\d{7})$/);
+	if (flag1 || flag2) {
+		return true;
+	}
+	return false;
+} 
+
+function getNowFormatDate(beginflag) {
+
+    var date = new Date();
+
+    var seperator1 = "-";
+
+    var seperator2 = ":";
+
+    var month = date.getMonth() + 1;
+
+    var strDate = date.getDate();
+
+	var minutes = "59" ;
+	var hours = "23";
+	var seconds = "59";
+	
+
+    if (month >= 1 && month <= 9) {
+
+        month = "0" + month;
+
+    }
+
+    if (strDate >= 0 && strDate <= 9) {
+
+        strDate = "0" + strDate;
+
+    }
+   
+    if(beginflag){
+		hours = "00";
+		minutes = "00";
+		seconds = "00";
+	}
+
+    var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+
+            + " " + hours + seperator2 + minutes + seperator2 + seconds;
+
+    return currentdate;
+
+} 
+function IsPC() {
+	//1:pc,2:android,3:ios;
+    var userAgentInfo = navigator.userAgent;
+    var Agents = ["SymbianOS","iPhone","iPad","iPod"];
+    var Agents2 = ["Android","Windows Phone"];
+    var flag = 1;
+    for (var v = 0; v < Agents2.length; v++) {
+        if (userAgentInfo.indexOf(Agents2[v]) > 0) {
+            flag = 2;
+            break;
+        }
+    }
+    for (var v = 0; v < Agents.length; v++) {
+        if (userAgentInfo.indexOf(Agents[v]) > 0) {
+            flag = 3;
+            break;
+        }
+    }
+    return flag;
+}
+
+
+
+
+//让指定的弹框始终显示在屏幕正中间  
+function letDivCenter(divName){
+        var top = ($(window.parent).height() - $(divName).height())/2;
+        var left = - ($(divName).width()/2);
+        var scrollTop = $(parent.document).scrollTop();   
+        $(divName).css( { position : 'absolute', 'top' : top + scrollTop,'margin-left':left} );  
+} 
+/*
+ * @description    根据某个字段实现对json数组的排序
+ * @param   array  要排序的json数组对象
+ * @param   field  排序字段（此参数必须为字符串）
+ * @param   reverse 是否倒序（默认为false）
+ * @return  array  返回排序后的json数组
+*/
+function jsonSort(array, field, reverse) {
+  //数组长度小于2 或 没有指定排序字段 或 不是json格式数据
+  if(array.length < 2 || !field || typeof array[0] !== "object") return array;
+  //数字类型排序
+  if(typeof array[0][field] === "number") {
+    array.sort(function(x, y) { return x[field] - y[field]});
+  }
+  //字符串类型排序
+  if(typeof array[0][field] === "string") {
+    array.sort(function(x, y) { return x[field].localeCompare(y[field])});
+  }
+  //倒序
+  if(reverse) {
+    array.reverse();
+  }
+  return array;
+}

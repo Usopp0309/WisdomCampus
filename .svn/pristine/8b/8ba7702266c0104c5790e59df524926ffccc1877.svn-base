@@ -1,0 +1,81 @@
+package com.guotop.palmschool.bluetooth.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.bluetooth.entity.BluetoothStudent;
+import com.guotop.palmschool.bluetooth.service.BluetoothStudentService;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.util.Pages;
+
+@Service("bluetoothStudentService")
+public class BluetoothStudentServiceImpl extends BaseService implements BluetoothStudentService {
+
+	@Override
+	public void insertBathBluetoothStudent(List<BluetoothStudent> bluetoothStudents) {
+		this.getBaseDao().addObject("BluetoothStudent.insertBathBluetoothStudent", bluetoothStudents);
+	}
+
+	@Override
+	public void insertBluetoothStudent(BluetoothStudent bluetoothStudent) {
+		this.getBaseDao().addObject("BluetoothStudent.insertBluetoothStudent", bluetoothStudent);
+	}
+
+	/**
+	 * 根据手环Mac更新数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月24日 下午6:37:40
+	 */
+	@Override
+	public void updateByBluetoothBraceletId(BluetoothStudent bluetoothStudent) {
+		this.getBaseDao().updateObject("BluetoothStudent.updateByBluetoothBraceletId", bluetoothStudent);
+	}
+
+	/**
+	 * 判断该手环是否有使用者
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月24日 下午6:40:45
+	 */
+	@Override
+	public Integer getCountByBluetoothBraceletId(Integer bluetoothBraceletId) {
+
+		return (Integer) this.getBaseDao().selectObject("BluetoothStudent.getCountByBluetoothBraceletId", bluetoothBraceletId);
+	}
+
+	@Override
+	public Pages<BluetoothStudent> getPageBluetoothStudent(int page, int pageSize, Map<String, Object> paramMap) {
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		int currentPage = Pages.countCurrentPage(page);
+		int allRow = 0;
+		// 解决ibatis框架的分页问题
+		// 起始数据坐标
+		paramMap.put("startIndex", offset);
+		// 单页数据量
+		paramMap.put("length", length);
+		allRow = (Integer) getBaseDao().selectObjectByObject("BluetoothStudent.getPageBluetoothStudentCount", paramMap);
+		int totalPage = Pages.countTotalPage(pageSize, allRow);
+		Pages<BluetoothStudent> pages = new Pages<>();
+		pages.setPageSize(pageSize);
+		@SuppressWarnings("unchecked")
+		List<BluetoothStudent> list = this.getBaseDao().selectListByObject("BluetoothStudent.getPageBluetoothStudent",
+				paramMap);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage) {
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+}

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="UserDataChangeRecords">
+	<typeAlias alias="userDataChangeRecords" type="com.guotop.palmschool.entity.UserDataChangeRecords" />
+	<resultMap class="com.guotop.palmschool.entity.UserDataChangeRecords" id="resultRecords">
+		<result property="id" column="id"/>
+		<result property="objectId" column="objectId"/>
+		<result property="oprateType" column="oprateType"/>
+		<result property="ctime" column="ctime"/>
+		<result property="status" column="status"/>
+		<result property="failCount" column="failCount"/>
+		<result property="syncTarget" column="syncTarget"/>
+		<result property="syncTime" column="syncTime"/>
+	</resultMap>       
+	<insert id="save" parameterClass="userDataChangeRecords" >
+		insert into 
+		user_data_change_records
+		(objectId,oprateType,ctime,status,failCount,syncTarget,syncTime)
+		values
+		(#objectId#,#oprateType#,#ctime#,#status#,#failCount#,#syncTarget#,#syncTime#)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<delete id="delete" parameterClass="Integer">
+		delete from user_data_change_records where id=#id#
+	</delete>
+	<!--根据当前objectId查询未同步的add或update操作记录  -->
+	<select id="findNoSyncByObjectId" parameterClass="Integer" resultMap="resultRecords">
+		select * from user_data_change_records where objectId=#id# and oprateType in('0','1') and `status`='0'
+	</select>
+	<!--根据当前objectId查询未同步的update操作记录  -->
+	<select id="findUpdateNoSyncByObjectId" parameterClass="Integer" resultMap="resultRecords">
+		select * from user_data_change_records where objectId=#id# and oprateType ='1' and `status`='0'
+	</select>
+	<!--根据当前objectId查询未同步的add操作记录  -->
+	<select id="findAddNoSyncByObjectId" parameterClass="Integer" resultMap="resultRecords">
+		select * from user_data_change_records where objectId=#id# and oprateType ='0' and `status`='0'
+	</select>
+</sqlMap>

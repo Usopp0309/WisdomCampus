@@ -1,0 +1,219 @@
+package com.guotop.palmschool.asset.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.guotop.palmschool.asset.entity.Asset;
+import com.guotop.palmschool.asset.entity.AssetImport;
+import com.guotop.palmschool.asset.entity.AssetRepair;
+import com.guotop.palmschool.asset.entity.AssetRepairImg;
+import com.guotop.palmschool.asset.entity.AssetServiceman;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.util.Pages;
+
+
+public interface AssetService 
+{
+	
+	/**
+	 * 获取资产列表（分页）
+	 * @param page
+	 * @param pageSize
+	 * @param paramMap
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	public Pages getAssetList( int page,int pageSize,int personOrschool,User user,Map<String, Object> paramMap);
+	
+	/**
+	 * 获取资产导入列表（分页）
+	 * @param page
+	 * @param pageSize
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	public Pages getImportList(int page,int pageSize);
+	
+	/**
+	 * 添加资产
+	 * @param asset
+	 */
+	public Integer addAsset(Asset asset);
+	
+	/**
+	 * 修改资产
+	 * @param asset
+	 */
+	public void modifyAsset(Asset asset);
+	
+	/**
+	 * 根据ID获取资产详情
+	 * @param id
+	 * @return
+	 */
+	public Asset getAssetDetailById(Integer id);
+	
+	/**
+	 * 根据报修类型获取对应的资产列表
+	 * @param type
+	 * @return
+	 */
+	public List<Asset>getAllAssetListByType(Map<String,Object> paramMap);
+	
+	/**
+	 * 删除资产信息
+	 * @param id
+	 * @return
+	 */
+	public void deleteAssetById(Integer id);
+	/**
+	 * 删除维修人员 或者 安全隐患检查人员
+	 * @param id
+	 * @return
+	 */
+	public void deleteAssetServicemanById(Integer servicemanId);
+	
+	/**
+	 * 根据资产assetId删除资产维修信息
+	 * @param assetId
+	 * @return
+	 */
+	public void deleteAssetRepairByAssetId(Integer assetId);
+	
+	/**
+	 * 验证编码是否存在
+	 * @param paramMap
+	 * @return
+	 */
+	public boolean checkCode(Map<String,Object> paramMap);
+	
+	/**
+	 * 添加资产导入信息
+	 * @param imp
+	 */
+	public void addAssetImport(AssetImport imp);
+	
+	/**
+	 * 根据用户ID查询是否为维修人员
+	 * @param userId
+	 * @return
+	 */
+	public boolean isServiceman(Integer userId);
+	
+	/**
+	 * 根据用户ID查询是否为维修人员领导
+	 * @param userId
+	 * @return
+	 */
+	public boolean isServicemanLeader(Integer userId);
+	
+	/**
+	 * 添加维修信息
+	 * @param repair
+	 * @return
+	 */
+	public Integer addAssetRepair(AssetRepair repair);
+	
+	/**
+	 * 添加维修信息图片
+	 * @param repairImg
+	 */
+	public void addAssetRepairImg(AssetRepairImg repairImg);
+	
+	/**
+	 * 获取维修人员列表（分页）
+	 * @param page
+	 * @param pageSize
+	 * @param paramMap
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	public Pages getServicemanList( int page,int pageSize,Map<String, Object> paramMap);
+	
+	/**
+	 * 根据type获取对应的维修人员
+	 * @param type
+	 * @return
+	 */
+	public List<AssetServiceman>getAllServicemanListByType(Integer type);
+	
+	/**
+	 * 根据维修人员ID获取对应的负责人用户推送消息
+	 * @param servicemanId
+	 * @return
+	 */
+	public List<User> getLeaderListByServicemanIdForPush(Integer servicemanId,int type);
+	
+	/**
+	 * 添加维修人员
+	 * @param serviceman
+	 */
+	public void addAssetServiceman(AssetServiceman serviceman);
+	
+	/**
+	 * 根据userId和维修类型查看维修人员是否已经存在
+	 */
+	public boolean isExistServicemanByServicemanIdAndType(Integer servicemanId,Integer type);
+	
+	/**
+	 * 根据登录人获取维修列表
+	 */
+	@SuppressWarnings("rawtypes")
+	public Pages getAssetRepairList(int page, int pageSize,String personnelType,User user,Map<String, Object> paramMap);
+	
+	/**
+	 * 维修人员获取自己看到维修列表/领导看到自己的维修审核列表
+	 * @param page
+	 * @param pageSize
+	 * @param personnelType
+	 * @param user
+	 * @param paramMap
+	 * @return
+	 */
+	public Pages getAssetRepairListByPersonnelType(int page, int pageSize,String personnelType,User user,Map<String, Object> paramMap);
+	/**
+	 * 根据ID获取维修详情
+	 * @param id
+	 * @return
+	 */
+	public AssetRepair getAssetRepairDetailById(Integer id);
+	
+	/**
+	 * 根据ID获取维修详情
+	 * @param id
+	 * @return
+	 */
+	public List<AssetRepairImg> getAssetRepairImgListByRepairId(Integer id);
+	
+	public void updateAsserRepair(AssetRepair repair);
+	
+	/**
+	 * 获取人员类型
+	 * @return
+	 */
+	public String getPersonnelType(User user);
+	
+	/******************APP使用**********************/
+	
+	/**
+	 * 获取自己或学校资产列表
+	 * @param personOrschool
+	 * @param paramMap
+	 * @return
+	 */
+	public List<Asset> getAssetListForApp(int personOrschool,Map<String,Object> paramMap);
+	
+	/**
+	 * 根据人员类型不同获取对应的报修单
+	 * @param personType
+	 * @param userId
+	 * @return
+	 */
+	public List<AssetRepair> getAssetRepairList(int personType,int userId);
+	/**
+	 * 导出资产二维码
+	 * @author chenyong
+	 * @Time 2017年2月28日 上午10:21:31
+	 */
+    public List<Asset> getAssetQcode(int personOrschool,User user, Map<String,Object> paramMap);
+}

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Photo">
+	<typeAlias alias="photo" type="com.guotop.palmschool.classphotoalbum.entity.Photo" />
+
+	<!--添加上传记录-->
+	<insert id="addPhoto" parameterClass="photo">
+		insert into palm_photo
+		(
+		photoName,
+		photoDesc,
+		photoPath,
+		recordsId,
+		albumId,
+		createUserId,
+		createUserName,
+		mediaType,
+		mediaSecordUrl
+		)
+		values
+		(
+		#photoName#,
+		#photoDesc#,
+		#photoPath#,
+		#recordsId#,
+		#albumId#,
+		#createUserId#,
+		#createUserName#,
+		#mediaType#,
+		#mediaSecordUrl#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="photoId">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert> 
+	
+	<insert id="addPhotoBATCH" parameterClass="java.util.List">
+		insert into palm_photo
+		(
+		photoName,
+		photoDesc,
+		photoPath,
+		recordsId,
+		albumId,
+		createUserId,
+		createUserName,
+		mediaType,
+		mediaSecordUrl
+		)
+		values
+	    <iterate conjunction=",">  
+	        (
+	        #photoList[].photoName#,
+			#photoList[].photoDesc#, 
+			#photoList[].photoPath#, 
+			#photoList[].recordsId#,
+			#photoList[].albumId#,
+			#photoList[].createUserId#,
+			#photoList[].createUserName#,
+			#photoList[].mediaType#,
+			#photoList[].mediaSecordUrl#
+	        )
+	    </iterate> 
+	</insert> 
+	
+	
+	<!-- 查找该上传记录的所有对应的图片-->
+	<select id="getPhotoListByRecordsId" parameterClass="java.util.HashMap" resultClass="photo">
+		SELECT * FROM palm_photo WHERE recordsId = #recordsId#
+	</select>
+	
+	<!-- 根据上传记录的records找出班级相册中的所有照片 -->
+	<select id="getPhotoAllListByRecordsId" parameterClass="java.util.HashMap" resultClass="photo">
+		SELECT p.*,cpa.albumName,cpa.createUserName,cpa.createTime,ud.headImg
+		FROM palm_photo p,palm_class_photo_album cpa ,platform.user_detail ud 
+		WHERE p.albumId = cpa.albumId 
+		AND cpa.createUserId = ud.userId
+		AND cpa.albumId IN (SELECT albumId FROM palm_upload_records WHERE recordsId = #recordsId#)
+	</select>
+	
+	<!-- 根据albumId删除相片和对应的评论 -->
+	<delete id="deletePhotoByAlbumId" parameterClass="Integer">
+	    delete p,c from palm_photo p LEFT JOIN palm_records_comment c ON p.photoId = c.photoId  where p.albumId =#albumId#
+	</delete>
+	
+	<!-- 根据recordsId删除相片和对应的评论 -->
+	<delete id="deletePhotoByRecordsId" parameterClass="Integer">
+	    delete p,c from palm_photo p LEFT JOIN palm_records_comment c ON p.photoId = c.photoId  where p.recordsId =#recordsId#
+	</delete>
+	
+	<!-- 根据albumId加载所有的照片 -->
+	<select id="getPhotoDetailByAlbumId" parameterClass="Integer" resultClass="photo">
+		SELECT * FROM palm_photo WHERE albumId = #albumId#
+	</select>
+	<!-- 根据albumId加载所有的照片和评论 -->
+	<select id="getPhotoListAndCommentListByAlbumId" parameterClass="Integer" resultClass="photo">
+		SELECT photo.*,ud.headImg,rc.commentId,rc.parentId,
+		rc.commentType,rc.content,rc.commentUserId, rc.commentUserName,
+		rc.createTime,rc.commentReplyId,rc.commentReplyUserId,rc.commentReplyUserName
+		FROM palm_photo photo LEFT JOIN palm_records_comment rc ON photo.photoId = rc.photoId
+		LEFT JOIN platform.user_detail ud ON rc.commentUserId = ud.userId
+		WHERE photo.albumId = #albumId#
+		ORDER BY photo.photoId ASC , rc.createTime ASC
+	</select>
+
+	
+	<!-- 根据albumId加载所有的照片取最后一条 -->
+	<select id="getPhotoByAlbumId" parameterClass="Integer" resultClass="photo">
+		SELECT * FROM palm_photo WHERE albumId = #albumId# limit 1
+	</select>
+	
+	<!-- 根据photoId删除相片和对应的评论 -->
+	<delete id="deletePhotoByPhotoId" parameterClass="Integer">
+	    DELETE p,c FROM palm_photo p LEFT JOIN palm_records_comment c  ON p.photoId = c.photoId WHERE p.photoId =#photoId#
+	</delete>
+	
+	<!-- 修改相照片 -->
+	<update id="modifyPhotoByPhotoId" parameterClass="photo">
+		 update palm_photo
+		    set photoName = #photoName#,
+		        photoDesc = #photoDesc#
+		    where photoId = #photoId#	
+	</update>	
+	
+	<!-- 根据recordsId批量修改相照片 -->
+	<update id="savePhotoByRecordsId" parameterClass="photo">
+		 update palm_photo
+		    set 
+			    recordsId = #recordsId#
+			    <isNotEmpty property="photoName">
+				    ,photoName = #photoName#
+			    </isNotEmpty>
+			    <isNotEmpty property="photoDesc">
+				    ,photoDesc = #photoDesc#
+			    </isNotEmpty>
+		    where recordsId = #recordsId#	
+	</update>
+	
+	<!-- 根据相片id查询对应记录Id下面的所有照片 -->
+	<select id="getPhotoList" parameterClass="Integer" resultClass="photo">
+		SELECT * FROM palm_photo WHERE recordsId = (select recordsId from palm_photo where photoId = #photoId# )
+	</select>
+	
+	
+	<!-- 根据相片id查询照片 -->
+	<select id="getPhotoByPhotoId" parameterClass="Integer" resultClass="photo">
+		SELECT * FROM palm_photo WHERE photoId = #photoId# 
+	</select>
+	
+</sqlMap>

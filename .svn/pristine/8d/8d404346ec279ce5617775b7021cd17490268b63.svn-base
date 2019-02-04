@@ -1,0 +1,438 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+
+<!DOCTYPE html>
+
+<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+
+<!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+
+<!--[if !IE]><!--> <html lang="en"> <!--<![endif]-->
+
+<head>
+
+	<title>首页信息</title>
+
+	<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+
+	<link href="<%=basePath%>media/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+
+	<link href="<%=basePath%>media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css"/>
+
+	<link href="<%=basePath%>media/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+
+	<link href="<%=basePath%>media/css/style-metro.css" rel="stylesheet" type="text/css"/>
+
+	<link href="<%=basePath%>media/css/DT_bootstrap.css" rel="stylesheet" />
+	<link href="<%=basePath%>media/m_font/style.css" rel="stylesheet" >
+	<link href="<%=basePath%>media/metronic_css_m/system_m.css" rel="stylesheet" type="text/css" media="screen" />
+</head>
+
+<body>
+
+			<div class="container-fluid">
+
+				<div class="row-fluid">
+
+					<div class="span12">
+						
+						<h4 class="page-title">
+
+							欢迎登陆智慧校园
+
+						</h4>
+						
+						<ul class="breadcrumb">
+
+							<li>
+
+								<i class="icon-home"></i>
+
+								<a href="#">首页</a> 
+
+							</li>
+
+						</ul>
+
+					</div>
+
+				</div>
+				<div class="" style="width:100%;height:100%;">
+					<div class="app_head">
+						<i class="m_icon-return icon_left" onclick="window.richbook.onFinish();"></i>智慧校园主页
+					</div>
+				<ul class="tool">
+					<r:right rightCode="abnormal">
+					<li>
+							<a id="h1" href="<%=basePath %>abnormal/toAbnormalList.do">
+								<span class="yichang_baojing"><p>异常信息</p></span>
+							</a>
+					</li>
+					</r:right>
+					<r:right rightCode="inoutManager">
+					<li>
+						
+							<a id="h2" href="<%=basePath %>inout/toInoutList.do">
+								<span class="jinchu_jilu"><p>进出记录</p></span>
+								
+							</a>
+					
+					</li>
+					</r:right>
+					<r:right rightCode="leaveApplyManager">
+					<li>
+							<a id="h3" href="<%=basePath %>leave/toLeaveList.do">
+								<span class="qingjia"><p>在线请假</p></span>
+								
+							</a>
+						
+						
+					</li>
+					</r:right>
+					<r:right rightCode="studentMessageManager">
+					<li>
+					
+							<a id="h4" href="<%=basePath %>sms/toStudentSms.do" >
+								<span class="xuesheng_duanxing_fuwu">
+									<p>学生短信服务</p>
+								</span>
+							</a>
+						
+					</li>
+					</r:right>
+					<r:right rightCode="studentParentManager">
+					<li>
+					
+							<a id="h5" href="<%=basePath %>student/toStudentList.do">
+								<span class="xuesheng_jiazhang_guanli"><p>学生家长管理</p></span>
+								
+							</a>
+						
+					</li>
+					</r:right>
+					<r:right rightCode="announcementManager">
+					<li>
+						
+							<a  id="h6" href="<%=basePath %>announcement/toAnnouncementList.do">
+								<span class="zaixian_gonggao"><p>在线公告</p></span>
+							</a>
+						
+					</li>
+					</r:right>
+					<r:right rightCode="attendanceStatisticsManager">
+					<li>
+						
+							<a  id="h7" href="<%=basePath %>check/toCheckReport.do">
+								<span class="kaoqing_tongji"><p>考勤统计</p></span>
+							</a>
+					
+					</li>
+					</r:right>
+					<r:right rightCode="schoolBusOnManager">
+					<li>
+						
+							<a  id="h8" href="<%=basePath %>schoolbus/toSchoolBusOnList.do">
+								<span class="xiaoche_jilu"><p>校车记录</p></span>
+							</a>
+						
+					</li>
+					</r:right>
+					
+					<c:if test="${school.schoolCategory =='0' }">
+						<li>
+							<a href="<%=basePath %>todayActivity/toTodayActivity.do">
+								<span class="zaixian_kechengbiao"><p>每日活动</p></span>
+							</a>
+						</li>
+					</c:if>
+					<c:if test="${school.schoolCategory =='1' || school.schoolCategory =='2'}">
+						<li>
+							<a href="<%=basePath %>curriculum/toSetCurriculum.do">
+								<span class="zaixian_kechengbiao"><p>在线课程表</p></span>
+							</a>
+						</li>
+					</c:if>
+					
+					<li >
+						
+							<a href="<%=basePath %>jsp/camero/camero_list.jsp" id="video">
+								<span class="shipin_zhibo"><p>视频直播</p></span>
+								
+							</a>
+						
+					</li>
+					<r:right rightCode="meetingRecordManager">
+					<li>
+						
+							<a id="h9" href="<%=basePath %>meetingDetail/toMeetingDetailList.do">
+								<span class="huiyi_guanli"><p>会议管理</p></span>
+							</a>
+						
+					</li>
+					</r:right>
+					<r:right rightCode="dormitoryInoutManager">
+					<li>
+						
+							<a id="h10" href="<%=basePath %>dormitory/toDormitoryInoutList.do">
+							<span class="shuse_guanli"><p>宿舍管理</p></span>
+							</a>
+						
+					</li>
+					</r:right>
+					<li>
+						
+							<a id="h11" href="<%=basePath %>user/toModifyPassword.do">
+								<span class="xitong_guanli"><p>密码修改</p></span>
+								
+							</a>
+						
+					</li>
+					<r:right rightCode="yktTotalManager">
+					<li>
+						<a id="h12" href="<%=basePath %>ykt/toYktTotalList.do">
+							<span class="tianjia_mokuai"><p>校园一卡通</p></span>
+						</a>
+					</li>
+					
+					</r:right>
+					
+					<li><a href="http://score.richx.cn/user/doLoginFromCampus.do?param=${sessionScope.user.uuserId }&schoolId=${sessionScope.user.schoolId}" target="blank"><span class="chengji_fenxi"><p>转到成绩分析系统</p></span></a></li>
+<%-- 					<li><a href="http://login.richx.cn:8090/AchievementAnalysis/user/doLoginFromCampus.do?param=${sessionScope.user.uuserId }&schoolId=${sessionScope.user.schoolId}" target="blank"><span class="chengji_fenxi"><p>转到成绩分析系统</p></span></a></li> --%>
+					<li><a href="javascript:void(0);" onclick="backIndex();"  ><span class="zhihui_xiaoyuan"> <p>返回智慧校园</p></span></a></li>
+					<!-- onclick="returnHomePage()" -->
+				</ul>
+				</div>
+			</div>
+			
+		<input type="hidden" id="uuserId" value="${sessionScope.user.uuserId}">
+		
+	<script src="<%=basePath %>media/js/jquery-2.1.1.min.js" type="text/javascript"></script>
+
+	<script src="<%=basePath %>media/js/jquery-migrate-1.2.1.min.js" type="text/javascript"></script>
+
+	<script src="<%=basePath %>media/js/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>      
+
+	<script src="<%=basePath %>media/js/bootstrap.min.js" type="text/javascript"></script>
+
+	<!--[if lt IE 9]>
+
+	<script src="<%=basePath %>media/js/excanvas.min.js"></script>
+
+	<script src="<%=basePath %>media/js/respond.min.js"></script>  
+
+	<![endif]-->                    
+
+	   
+    <script type="text/javascript" src="<%=basePath %>media/js_m/public_js.js"></script>
+	<script src="<%=basePath %>media/js/app.js"></script>
+	<script type="text/javascript">
+
+		$(document).ready(function(){    
+			App.init();
+	 		autoheight();
+	 		if(IsPC()==2){
+	 	 		$(".app_head").css({"display":"block"});
+				$("#h1,#h4,#h5,#h6,#h11,#h12,#video").parent().hide();
+				$("#h2").attr("href","<%=basePath%>inout/toInoutListByHuxinId.do");
+				$("#h3").attr("href","<%=basePath%>leave/toLeaveAppList.do"); 
+				$("#h7").attr("href","<%=basePath%>check/toTeacherCheckListByHuxinId.do"); 
+				$("#h8").attr("href","<%=basePath%>schoolbus/toSchoolBusOnListByHuxinId.do"); 
+				$("#h9").attr("href","<%=basePath%>meetingInout/toMeetingInoutByHuxinId.do"); 
+				$("#h10").attr("href","<%=basePath%>dormitory/toDormitoryInoutListByHuxinId.do"); 
+				$("#icon_left").attr("onclick","window.richbook.onFinish();");
+			}else if(IsPC()==3){
+				$(".inout_list").css({"margin":"70px auto 0"}); 
+				$(".app_head").css({"padding-top":"24px"});
+				$(".icon_left,.icon_right").css({"top":"24px"});
+				//window.location.href="ios.jsp";
+				$("#h1,#h4,#h5,#h6,#h11,#h12,#video").parent().hide();
+				$("#h2").attr("href","<%=basePath%>inout/toInoutListByHuxinId.do");
+				$("#h3").attr("href","<%=basePath%>leave/toLeaveAppList.do"); 
+				$("#h7").attr("href","<%=basePath%>check/toTeacherCheckListByHuxinId.do"); 
+				$("#h8").attr("href","<%=basePath%>schoolbus/toSchoolBusOnListByHuxinId.do"); 
+				$("#h9").attr("href","<%=basePath%>meetingInout/toMeetingInoutByHuxinId.do"); 
+				$("#h10").attr("href","<%=basePath%>dormitory/toDormitoryInoutListByHuxinId.do"); 
+				$("#icon_left").attr("onclick","iosBack();");
+			}
+			 	
+			$(".tool li").hover(function(){
+				$(this).css({"background-color":"#ccc"});
+				$(this).find("p").css({"color":"#3aa4f1"});
+			},function(){
+				$(this).removeAttr("style");
+				$(this).find("p").removeAttr("style");
+			}) 
+			var userId = window.parent.$("#userTab li.active").find('a').attr("attr1");
+			var roleId = window.parent.$("#userTab li.active").find('a').attr("attr2");
+
+			var username = window.parent.$("#userTab li.active").find('a').html();
+
+			$("#welcome").html("您好！ "+username);
+			 loadFrame(roleId);
+			loadData(userId, roleId); 
+		});
+		function backIndex(){
+			parent.location.href="<%=basePath %>user/doLogin.do";
+		}
+		function iosBack(){
+			window.location.href="ios.jsp";
+		} 
+		
+	
+		//加载模块信息
+		 function loadFrame(roleId)
+		{
+			var roleIdInt = parseInt(roleId);
+			switch(roleIdInt)
+			{ 
+				// 超级管理员
+				case 1 : 
+					$("#firstLine_firstColumn").show();
+					$("#firstLine_secondColumn_superAdmin").show();
+					$("#secendLine_superAdmin").show();
+					$("#fourLine_firstColumn").show();
+					$("#fourLine_secondColumn").show();
+					$("#fiveLine").show();
+					break; 
+				//学校系统管理员
+				case 2 : 
+					$("#firstLine_firstColumn").show();
+					$("#firstLine_secondColumn").show();
+					$("#secendLine_schoolAdmin").show();
+					$("#thirdLine_firstColumn").show();
+					$("#thirdLine_secondColumn_schoolAdmin").show();
+					break; 
+				//校长
+				case 3 : 
+					$("#firstLine_firstColumn").show();
+					$("#firstLine_secondColumn").show();
+					$("#secendLine_schoolMaster").show();
+					$("#thirdLine_firstColumn").show();
+					$("#thirdLine_secondColumn").show();
+					break;
+				//班主任 
+				case 4 : 
+					$("#firstLine_firstColumn").show();
+					$("#firstLine_secondColumn").show();
+					$("#secendLine_clazzMaster").show();
+					$("#thirdLine_firstColumn").show();
+					$("#thirdLine_secondColumn").show();
+					break; 
+				//普通教师 
+				case 5 : 
+					$("#firstLine_firstColumn").show();
+					$("#firstLine_secondColumn").show();
+					$("#thirdLine_firstColumn").show();
+					$("#thirdLine_secondColumn").show();
+					break; 
+				//家长
+				case 6 : 
+					$("#firstLine_firstColumn").show();
+					$("#firstLine_secondColumn").show();
+					$("#thirdLine").show();
+					$("#thirdLine_firstColumn").show();
+					$("#thirdLine_secondColumn").show();
+					break; 
+				//学生
+				case 7 : 
+					$("#firstLine_firstColumn").show();
+					$("#firstLine_secondColumn").show();
+					$("#thirdLine").show();
+					$("#thirdLine_firstColumn").show();
+					$("#thirdLine_secondColumn").show();
+					break;
+				//年级主任 
+				case 8 : 
+					$("#firstLine_firstColumn").show();
+					$("#firstLine_secondColumn").show();
+					$("#secendLine_gradeMaster").show();
+					$("#thirdLine_firstColumn").show();
+					$("#thirdLine_secondColumn").show();
+					break;
+				default : 
+					break;
+			} 
+		} 
+
+		//加载模块数据
+		 function loadData(userId, roleId)
+		{
+			var roleIdInt = parseInt(roleId);
+			switch(roleIdInt)
+			{ 
+				// 超级管理员
+				case 1 : 
+					loadLastSystemAnnouncement();
+					break; 
+				//学校系统管理员
+				case 2 : 
+
+					loadLastSystemAnnouncement();
+					break; 
+				//校长
+				case 3 : 
+					loadLastSystemAnnouncement();
+					break;
+				//班主任 
+				case 4 : 
+					loadLastSystemAnnouncement();
+					break; 
+				//普通教师 
+				case 5 : 
+					loadLastSystemAnnouncement();
+					break; 
+				//家长
+				case 6 : 
+					loadLastSystemAnnouncement();
+					break; 
+				//学生
+				case 7 : 
+					loadLastSystemAnnouncement();
+					break;
+				//年级主任 
+				case 8 : 
+					loadLastSystemAnnouncement();
+					break;
+				default : 
+					break;
+			} 
+		} 
+
+		//加载公告信息
+		 function loadLastSystemAnnouncement()
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>main/loadLastSystemAnnouncement.do",
+				success: function(data){
+					var announcement = eval("(" + data + ")");
+					$("#announcementContent").html(announcement.content);
+					$("#announcementContent1").html(announcement.content);
+				},
+			});
+		} 
+
+		//加载各项参数
+		 function loadParameters(userId, roleId)
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>main/loadParameters.do",
+				data : {
+					userId : userId,
+					roleId : roleId
+				},
+				success: function(data){
+					var parameters = eval("(" + data + ")");
+
+					$("#teacherAbnormalCount").val(parameters.teacherAbnormal);
+					$("#teacherLeaveArriveCount").val(parameters.teacherAbnormal);
+					$("#leaveAudit").val(parameters.leaveAudit);
+					$("#studentAbnormalCount").val(parameters.studentAbnormal);
+				},
+			});
+		} 
+	</script>
+</body>
+<script type="text/javascript">  var _gaq = _gaq || [];  _gaq.push(['_setAccount', 'UA-37564768-1']);  _gaq.push(['_setDomainName', 'keenthemes.com']);  _gaq.push(['_setAllowLinker', true]);  _gaq.push(['_trackPageview']);  (function() {    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;    ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);  })();</script>
+</html>

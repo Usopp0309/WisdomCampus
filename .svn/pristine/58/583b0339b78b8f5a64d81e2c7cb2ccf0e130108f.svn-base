@@ -1,0 +1,106 @@
+package com.guotop.palmschool.controller;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.guotop.palmschool.entity.OrderMessagePermission;
+import com.guotop.palmschool.entity.OrderMessagePermissionDetail;
+import com.guotop.palmschool.service.OrderMessagePermissionService;
+import com.guotop.palmschool.util.StringUtil;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 未购买服务费对应的菜单限制详情
+ * 
+ * @author chenyong
+ *
+ */
+@RequestMapping("/orderMessagePermission")
+@Controller
+public class OrderMessagePermissionController {
+
+	@Autowired
+	private OrderMessagePermissionService orderMessagePermissionService;
+
+	/**
+	 * 进入服务费权限设置页面
+	 * 
+	 * @author chenyong
+	 * @Time 2017年2月18日 下午2:03:04
+	 */
+	@RequestMapping("/toPayPermissionSet.do")
+	public String toPayPermissionSet(HttpSession session, Model model) {
+		List<OrderMessagePermission> list = orderMessagePermissionService.getOrderMessagePermissionList();
+		model.addAttribute("list", list);
+		return "system/payPermissionSet";
+	}
+
+	/**
+	 * 根据menuId获得详细
+	 * 
+	 * @author chenyong
+	 * @Time 2017年2月18日 下午4:07:31
+	 */
+	@RequestMapping("/getOrderMessagePermissionDetail.do")
+	@ResponseBody
+	public void getOrderMessagePermissionDetail(String menuId, HttpServletResponse response) {
+		List<OrderMessagePermissionDetail> list = orderMessagePermissionService
+				.getOrderMessagePermissionDetailListByMenuId(menuId);
+		try {
+			response.setCharacterEncoding("UTF-8");
+			response.getWriter().write(GsonHelper.toJson(list));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 添加或修改数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年2月18日 下午4:18:04
+	 */
+	@RequestMapping("/doOrderMessagePermissionDetail.do")
+	@ResponseBody
+	public void doOrderMessagePermissionDetail(String menuId, Integer status, String strContent,
+			HttpServletResponse response) {
+		String f = "1";
+		List<OrderMessagePermissionDetail> orderMessagePermissionDetailList = new ArrayList<>();
+		try {
+			orderMessagePermissionService.updateOrderMessagePermission(status, menuId);
+			if (!StringUtil.isEmpty(strContent)) {
+				String[] grade = strContent.split(",");
+				OrderMessagePermissionDetail orderMessagePermissionDetail = null;
+				for (String string : grade) {
+					orderMessagePermissionDetail = new OrderMessagePermissionDetail();
+					orderMessagePermissionDetail.setMenuId(menuId);
+					orderMessagePermissionDetail.setGradeId(Integer.parseInt(string));
+					orderMessagePermissionDetailList.add(orderMessagePermissionDetail);
+				}
+			}
+			orderMessagePermissionService.addOrderMessagePermissionDetailBATCH(orderMessagePermissionDetailList,
+					menuId);
+		} catch (Exception e) {
+			f = "0";
+			e.printStackTrace();
+		}
+		try {
+			response.getWriter().write(f);
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+}

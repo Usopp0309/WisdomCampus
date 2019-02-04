@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="PersonAlbum">
+	<typeAlias alias="personAlbum" type="com.guotop.palmschool.personAlbum.entity.PersonAlbum" />
+	<typeAlias alias="personPhoto" type="com.guotop.palmschool.personAlbum.entity.PersonPhoto" />
+
+
+	<!--添加个人相册-->
+	<insert id="addPersonAlbum" parameterClass="personAlbum">
+		insert into palm_person_album
+		(
+			albumName,
+			albumDesc,
+			albumPath,
+			userId,
+			userName,
+			updateTime,
+			createTime
+		)
+		values
+		(
+			#albumName#,
+			#albumDesc#,
+			#albumPath#,
+			#userId#,
+			#userName#,
+			#updateTime#,
+			#createTime#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="albumId">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	<!-- 根据userId查询对应的相册 -->
+	<select id="getPersonAlbumListByUserId" parameterClass="Integer" resultClass="personAlbum">
+	    SELECT a.*,(SELECT COUNT(*) FROM palm_person_photo p WHERE a.albumId = p.albumId ) photoNum
+	       FROM palm_person_album a 
+	         WHERE a.userId = #userId# ORDER BY a.createTime DESC,a.updateTime DESC
+	</select>
+	
+	<!-- 根据albumId加载所有的照片取最后一条 -->
+	<select id="getPersonPhotoByAlbumId" parameterClass="Integer" resultClass="personPhoto">
+		SELECT * FROM palm_person_photo WHERE albumId = #albumId# limit 1
+	</select>
+	
+	<!-- 根据albumId删除相册 -->
+	<delete id="deletePersonAlbumByAlbumId" parameterClass="Integer">
+	    delete from palm_person_album where albumId = #albumId#	
+	</delete>
+	
+	<!-- 根据albumId删除相片 -->
+	<delete id="deletePersonPhotoByAlbumId" parameterClass="Integer">
+	    delete from palm_person_photo where albumId =#albumId#
+	</delete>
+	
+	<!-- 修改相册 -->
+	<update id="modifyPersonAlbumByAlbumId" parameterClass="personAlbum">
+		 update palm_person_album
+		    set albumName = #albumName#,
+		        albumDesc = #albumDesc#,
+		        updateTime = #updateTime#
+		    where albumId = #albumId#	
+	</update>	
+	
+	<!--添加个人相片-->
+	<insert id="addPersonPhoto" parameterClass="personPhoto">
+		insert into palm_person_photo
+		(
+			photoName,
+			photoDesc,
+			photoPath,
+			userId,
+			userName,
+			albumId,
+			mediaType,
+			mediaSecordUrl
+		)
+		values
+		(
+			#photoName#,
+			#photoDesc#,
+			#photoPath#,
+			#userId#,
+			#userName#,
+			#albumId#,
+			#mediaType#,
+			#mediaSecordUrl#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="photoId">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	<insert id="addPersonPhotoBATCH" parameterClass="java.util.List">
+		insert into palm_person_photo
+		(
+			photoName,
+			photoDesc,
+			photoPath,
+			userId,
+			userName,
+			albumId,
+			mediaType,
+			mediaSecordUrl
+		)
+		values
+	    <iterate conjunction=",">  
+	        (
+	        #photoList[].photoName#,
+			#photoList[].photoDesc#, 
+			#photoList[].photoPath#, 
+			#photoList[].userId#,
+			#photoList[].userName#,
+			#photoList[].albumId#,
+			#photoList[].mediaType#,
+			#photoList[].mediaSecordUrl#
+	        )
+	    </iterate> 
+	</insert>
+	
+	<!-- 根据albumId查询对应的相册 -->
+	<select id="getPersonAlbumByAlbumId" parameterClass="Integer" resultClass="personAlbum">
+	    select a.*,ud.headImg from palm_person_album a, platform.user_detail ud where a.userId=ud.userId and a.albumId = #albumId# 
+	</select>
+	
+	<!-- 根据albumId查询对应的相片 -->
+	<select id="getPersonPhotoDetailByAlbumId" parameterClass="Integer" resultClass="personPhoto">
+	    select * from palm_person_photo where albumId = #albumId# 
+	</select>
+	
+	<!-- 设置相册封面 -->
+	<update id="setPersonAlbumCover" parameterClass="HashMap">
+		 update palm_person_album
+		    set albumPath = #albumPath#
+		    where albumId = #albumId#	
+	</update>
+	
+	<!-- 修改相照片 -->
+	<update id="modifyPersonPhotoByPhotoId" parameterClass="personPhoto">
+		 update palm_person_photo
+		    set photoName = #photoName#,
+		        photoDesc = #photoDesc#
+		    where photoId = #photoId#	
+	</update>
+	
+	<!-- 根据photoId删除相片 -->
+	<delete id="deletePersonPhotoByPhotoId" parameterClass="Integer">
+	    delete from palm_person_photo where photoId =#photoId#
+	</delete>
+	
+	<!-- 根据photoId查询对应的相片 -->
+	<select id="getPersonPhotoByPhotoId" parameterClass="Integer" resultClass="personPhoto">
+	    select * from palm_person_photo where photoId = #photoId#
+	</select>
+	
+	<!-- 根据相册名称和userId 查询相册-->
+	<select id="getPersonAlbumByUserIdAndAlbumName" parameterClass="HashMap" resultClass="personAlbum">
+	    select * from palm_person_album where userId = #userId# and albumName = #albumName# 
+	</select>
+	
+	<!--班级相册分享到个人相册-->
+	<insert id="sharePhoto" parameterClass="java.util.List">
+		insert into palm_person_photo (photoName,photoPath,userId,userName,albumId,mediaType,mediaSecordUrl) values
+	    <iterate conjunction=",">  
+	        (#photoList[].photoName#,
+	        #photoList[].photoPath#,
+	        #photoList[].userId#,
+	        #photoList[].userName#,
+	        #photoList[].albumId#,
+	        #photoList[].mediaType#,
+	        #photoList[].mediaSecordUrl#)
+	    </iterate>  
+	</insert>
+	
+	
+
+</sqlMap>

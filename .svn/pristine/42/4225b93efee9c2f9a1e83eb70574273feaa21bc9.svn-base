@@ -1,0 +1,67 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name=”viewport” content=”width=device-width,user-scalable=no”/>
+    <title>在线练习题</title>
+    <!--<script type="text/javascript" src="jqmoblie/jquery-1.9.1.min.js"></script>-->
+    <script type="text/javascript" src="lib.js"></script>
+    <script type="text/javascript" src="testpaper.js"></script>
+    <script type="text/javascript" src="json2.js"></script>
+
+
+
+    <style type="text/css">
+        #paperContent div{
+            margin-top: 10px;
+        }
+        .folder{
+            margin-top: 20px;
+        }
+
+        .paperTitle{
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+        .ui-page {
+            backface-visibility:hidden;
+            -webkit-backface-visibility:hidden;
+            -moz-backface-visibility:hidden;
+        }
+
+    </style>
+
+
+
+</head>
+
+<script>
+
+
+</script>
+
+<body>
+    <div class="paperTitle">
+        <h1><label id="schoolName"></label></h1>
+        <h2>学科：<label id="paperType"></label></h2>
+        <h3><label id="paperTitle"></label></h3>
+        <h4>本测试卷满分<label id="fullMark">100</label>分，考试时间为<label id="limitTime"></label>分钟</h4>
+
+        <h5>姓名：<u><span id="userName"></span></u>&nbsp;&nbsp;学号：<u><span id="studentNumber"></span></u></h5>
+    </div>
+
+     <ul id="paperContent">
+
+     </ul>
+     <div style="text-align: center;">
+         <button onclick="save()" style="width: 100px;height: 80px">提交试卷</button>
+     </div>
+
+</body>
+
+<script type="text/javascript">
+   nv.startGetData();
+</script>
+
+</html>

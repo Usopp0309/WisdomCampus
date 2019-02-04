@@ -1,0 +1,243 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>蓝牙手环</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->
+ 	<style type="text/css">
+ 	    .useing{color:#f92d68 }
+ 	    .unusing{color:#666 }
+ 	    .returned{color:#ff8212 }
+ 	    .state input{margin: 15px;}
+ 	</style>    
+</head>
+	<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+		<input class="themes" type="hidden" value="<%=ThemePath%>">
+		<input  type="hidden" value="${schoolId}" id=schoolId>
+	    <!-- 公共顶部开始-->
+	    <%@ include file="/public_module/public_header.jsp"%>    
+	    <!--公共顶部结束-->
+	    <div class="clearfix"> </div>
+	    <!-- 内容页开始 -->
+	    <div class="page-container">
+	        <!--主菜单开始-->
+	        <%@include file="/public_module/public_menu.jsp"%>
+	        <!--主菜单结束-->
+	        <div class="page-content-wrapper">
+	            <div class="page-content m_overflow_hidden m_page_content">
+	            	
+	            	<!-- 页面内容开始 -->
+	            	<div class="col-md-12 col-sm-12 m_page_con">
+	                <div class="page-bar m_margin_0_0_0_0">
+	                    <ul class="page-breadcrumb">
+	                        <li><a href="<%=basePath%>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+	                        <li><a href="<%=basePath%>asset/toAssetInfoList.do">资产管理</a><i class="fa fa-circle"></i></li>
+	                        <li><span>蓝牙手环</span></li>
+	                    </ul>
+	                </div>
+	                <h3 class="page-title">蓝牙手环</h3>
+	                <div class="row">
+	                    <div class="col-md-12 col-sm-12">
+	                    	<div class="m_margin_0_0_15_0">
+	                    		<!-- 角色切换开始 -->
+	                    		<ul class="nav nav-tabs"  id="userTab">
+	                                <c:forEach items="${sessionScope.user.roleList}" var="roleList">
+									<r:right rightCode="assetInfoListManager">
+										<c:if test="${roleList.roleCode ne 'parent' && roleList.roleCode ne 'student'}">
+											<li class="roleLi">
+												<a attr1="${sessionScope.user.userId}" attr2="${roleList.roleCode}" attr3="${sessionScope.user.permissionList}" >${sessionScope.user.realName}(${roleList.roleName})
+											</a>
+											</li>
+										</c:if>
+									</r:right>
+								</c:forEach>	
+	                            </ul>
+	                    		<!-- 角色切换结束 -->
+	                        </div>
+	                        
+	                        <!-- 添加功能菜单开始 -->
+	                        <div class="portlet light form-fit m_margin_0_0_15_0">
+                               <a class="btn btn-default" href="<%=basePath%>asset/toCreateTime.do">创建时间</a>
+	                           <a class="btn btn-default" href="<%=basePath%>asset/toHistoryRecord.do">历史记录</a>
+	                        </div>
+	                        <!-- 添加功能菜单结束 -->
+	                        
+	                         <div class="portlet box green m_margin_15_auto_0">
+	                         
+	                            <div class="portlet-title">
+	                                <div class="caption">
+	                                  <i class="fa fa-list"></i>手环列表</div>
+	                                </div>
+	                            </div>
+	                           
+	                             <div class="portlet light form-fit m_margin_0_0_15_0" style="margin-top: 10px;">
+		                               <a class="btn btn-default" href="<%=basePath%>asset/toCreateTime.do">删除</a>
+			                           <a class="btn btn-default" href="<%=basePath%>asset/toHistoryRecord.do">修改状态</a>
+	                             </div>
+	                           
+	                            <div class="portlet-body flip-scroll">
+	                                <table class="table table-hover table-bordered table-condensed" cellpadding="0" cellspacing="0">
+					                       <thead>
+					                            <th><input type="radio" name="bluebooth_radio"/></th>
+					                            <th>蓝牙地址</th>
+					                            <th>蓝牙编号</th>
+					                            <th>单位</th>
+					                            <th>使用学生</th>
+					                            <th>所在班级</th>
+					                            <th>领取时间</th>
+					                            <th>使用时间</th>
+					                            <th>状态</th>
+					                            <th>编辑</th>
+					                      </thead>
+					                      
+					                       <tbody id="tbody">
+					                       <tr>
+					                            <td><input type="radio" name="bluebooth_radio" /></td>
+					                            <td>54545</td>
+					                            <td>01</td>
+					                            <td>台</td>
+					                            <td>张三</td>
+					                            <td>一班</td>
+					                            <td>2017-4-17 14:00</td>
+					                            <td>2017-4-17 17:00</td>
+					                            <td><span class="useing">使用中</span></td>
+					                            <td>
+					                                <a class="btn btn-success btn-sm" data-toggle="modal" data-target="#update">修改</a>
+					                                <a class="btn btn-success btn-sm" data-toggle="modal" data-target="#updateState">修改状态</a>
+					                            </td>
+					                       </tr>
+					                       <tr>
+					                            <td><input type="radio" name="bluebooth_radio"/></td>
+					                            <td>54545</td>
+					                            <td>02</td>
+					                            <td>台</td>
+					                            <td>张三</td>
+					                            <td>二班</td>
+					                            <td>2017-4-17 14:00</td>
+					                            <td>2017-4-17 16:00</td>
+					                            <td><span class="unuseing">未使用</span></td>
+					                            <td>
+					                                <a class="btn btn-success btn-sm" data-toggle="modal" data-target="#update">修改</a>
+					                                <a class="btn btn-success btn-sm" data-toggle="modal" data-target="#updateState">修改状态</a>
+					                            </td>
+					                       </tr>
+					                       <tr>
+					                            <td><input type="radio" name="bluebooth_radio"/></td>
+					                            <td>54545</td>
+					                            <td>03</td>
+					                            <td>台</td>
+					                            <td>张三</td>
+					                            <td>三班</td>
+					                            <td>2017-4-17 14:00</td>
+					                            <td>2017-4-17 15:00</td>
+					                            <td><span class="returned">已归还</span></td>
+					                            <td>
+					                                <a class="btn btn-success btn-sm" data-toggle="modal" data-target="#update">修改</a>
+					                                <a class="btn btn-success btn-sm" data-toggle="modal" data-target="#updateState">修改状态</a>
+					                            </td>
+					                       </tr>
+					                      
+					                       </tbody>
+					                   </table>
+	                              </div>
+	                          </div>
+	                           <!-- 分页开始 -->
+	                            <%@include file="/public_module/public_page.jsp" %>
+	                          <!-- 分页结束 -->
+	                          
+	                          <!-- 修改状态弹窗 start-->
+	                                <div class="modal fade" id="updateState" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+								          <div class="modal-dialog" role="document">
+								              <div class="modal-content">
+								                  <div class="modal-body">
+								                     <div style="text-align: center;" class="state">
+									                      <input type="radio" name="useState" id="useing"/><em class="useing">使用中</em>
+									                      <input type="radio" name="useState" id="unused"/><em class="unusing">未使用</em>
+									                      <input type="radio" name="useState" id="returned"/><em class="returned">已归还</em>
+								                      </div>    
+								                   </div>
+								                  <div class="modal-footer" style="border-top:none;margin-right: 70px;">
+								                      <button type="button" class="btn btn-default" data-dismiss="modal">取消修改</button>
+								                      <button type="button" class="btn btn-success">确认修改</button>
+								                  </div>
+								              </div>
+								          </div>
+							       </div>
+                             <!--修改状态弹窗end  -->
+                             
+                             
+                             <!-- 修改弹窗 start-->
+	                                <div class="modal fade" id="update" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+								          <div class="modal-dialog" role="document">
+								              <div class="modal-content">
+								                <div class="modal-body">
+								                  <form action="#" method="post" id="addForm" class="form-horizontal">
+			                                        <div class="form-body">
+			                                            <div class="form-group">
+			                                                <label class="control-label col-md-3 col-lg-3" for="inputSuccess">使用手环时间 </label>
+			                                                <input type="date" style="margin-left: 16px;">---<input type="date"/>
+			                                                 
+														</div>
+			                                             <div class="form-group">
+			                                                <label class="control-label col-md-3 col-lg-3">选择班级</label>
+			                                                <div class="col-md-9 col-lg-4" style="width: 75%;">
+			                                                    <select class="form-control">
+					                                            </select>  
+			                                                </div>
+			                                            </div>
+			                                            <div class="form-group">
+			                                                <label class="control-label col-md-3 col-lg-3" for="inputSuccess">筛选条件 </label>
+			                                                <div class="col-md-9 col-lg-4" style="width: 75%;">
+			                                                	<input type="text" class="form-control asset_depict"></textarea>
+															</div>
+			                                            </div>
+			                                            <div class="form-group">
+			                                                <label class="control-label col-md-3 col-lg-3">使用对象</label>
+			                                                <div class="col-md-4 col-lg-2" style="width: 30%;">
+			                                                    <select class="form-control sms_select" multiple="multiple" tabindex="1"></select>
+			                                                </div>
+			                                                <div class="col-md-1 col-lg-1" style="width:15%">
+																<button type="button" class="btn default btn-block" id="addAsset" style="display:block"><i class="fa fa-angle-right"></i></button>
+																<button type="button" class="btn default btn-block" id="removeAsset" style="display:block"><i class="fa fa-angle-left"></i></button>
+			  													<button type="button" class="btn green btn-block" id="addAllAsset" style="display:block"><i class="fa fa-angle-double-right"></i></button>
+			  													<button type="button" class="btn green btn-block" id="removeAllAsset" style="display:block"><i class="fa fa-angle-double-left"></i></button>
+															</div>
+															<div class="col-md-4 col-lg-2" style="width:30%;">	
+																<select class="form-control sms_select" multiple="multiple" id="selectedObjAsset" name="selectedObjAsset"></select>
+																<select class="form-control sms_select" multiple="multiple" tabindex="1" id="toSelectObj1Asset" style="display : none"></select>	
+															</div> 
+			                                            </div>
+			                                         </div>
+                                      </form>
+								                    
+								                   </div>
+								                  <div class="modal-footer" style="border-top:none;margin-right: 70px;">
+								                      <button type="button" class="btn btn-default" data-dismiss="modal">取消修改</button>
+								                      <button type="button" class="btn btn-success">确认修改</button>
+								                  </div>
+								              </div>
+								          </div>
+							       </div>
+                             <!--修改弹窗end  -->
+	                          
+	                      </div>
+	                  </div>
+	               </div>
+	          </div>
+	      </div>
+	    <!-- 底部开始 -->
+	    <%@ include file="/public_module/public_footer.jsp" %>
+	    <!-- 底部结束 -->
+	</body>
+    <!-- 公共js开始 -->
+    <%@ include file="/public_module/public_js.jsp" %>
+    <!-- 公共js结束 -->
+</html>

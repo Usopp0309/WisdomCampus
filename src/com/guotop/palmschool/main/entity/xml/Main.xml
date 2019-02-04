@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Main">
+	<!-- 校长权限 -->
+	<!-- 老师考勤异常 -->	
+	<select id="selectStudentAbnormalCount" resultClass="Integer">
+		select count(*) from palm_abnormal a, palm_user u, palm_user_role ur
+			where a.userid = u.id
+			and u.id = ur.userid
+			and ur.roleid = 7
+	</select>
+	
+	<select id="selectTeacherAbnormalCount" resultClass="Integer">
+		select count(*) from palm_abnormal a, palm_user u, palm_user_role ur
+			where a.userid = u.id
+			and u.id = ur.userid
+			and ur.roleid in (4, 5, 8)
+	</select>
+	
+	<select id="selectLeaveAuditCount" parameterClass="Integer" resultClass="Integer">
+		select count(*) from palm_leave 
+			where audit = #userId#
+	</select>
+	
+</sqlMap>

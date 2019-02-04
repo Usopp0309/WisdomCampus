@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="News">
+	<typeAlias alias="news" type="com.guotop.palmschool.entity.News" />
+	<resultMap class="com.guotop.palmschool.entity.News" id="result_news">
+		<result property="id" column="id"/>
+		<result property="title" column="title"/>
+		<result property="content" column="content"/>
+		<result property="imgPath" column="imgPath"/>
+	</resultMap>
+	<!-- 增加教师，学生时增加卡号  20151124-->
+	<insert id="addNews" parameterClass="news">
+		INSERT INTO palm_news
+		(
+			title,
+			content,
+			imgPath,
+			createTime,
+			createUserId
+		)
+		VALUES
+		(
+			#title#,
+			#content#,
+			#imgPath#,
+			#createTime#,
+			#createUserId#
+		)
+         <selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	<select id="getNewsList" resultClass="com.guotop.palmschool.entity.News" parameterClass="Long">
+		select * from palm_news order by createTime desc limit 1;
+	</select>
+	<!-- 获得最新的几条新闻 -->
+	  <select id="getNewsListLimit" resultClass="com.guotop.palmschool.entity.News" parameterClass="java.lang.Integer">
+		select id,title,createTime, imgPath from palm_news where status=0 order by createTime desc limit #length# 
+	 </select>
+	<select id="getPageNewsList" resultMap="result_news" parameterClass="HashMap">
+		select id,title,content, imgPath from palm_news where status=0  order by createTime desc  #startIndex# , #length#
+	</select>
+	<select id="getPageNewsListCount" resultClass="Integer">
+		select count(*) from palm_news where status=0  
+	</select>
+</sqlMap>

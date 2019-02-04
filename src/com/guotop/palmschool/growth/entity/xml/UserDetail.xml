@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="UserDetail">
+	<typeAlias alias="userDetail" type="com.guotop.palmschool.growth.entity.UserDetail" />
+	
+	<!--根据ID查找学生信息 -->
+	<select id="getDetail" resultClass="userDetail" parameterClass="HashMap">
+		select pud.*,ud.birthday , ud.sex,ud.nickName from palm_user_detail pud, platform.user_detail ud  
+		where pud.userId=ud.userId and ud.userId=#userId# and pud.growthId=#growthId#
+	</select>
+	<insert id="addDetail" parameterClass="userDetail">
+		insert into palm_user_detail(
+			growthId,
+			userId,
+			createTime
+		)values(
+			#growthId#,
+			#userId#,
+			now()
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	<update id="updateUserDetailInfo" parameterClass="userDetail">
+		update platform.user_detail set sex=#sex#
+		<isNotEmpty prepend="," property="birthday">
+			birthday=#birthday#
+		</isNotEmpty>
+		<isNotEmpty prepend="," property="nickName">
+			nickName=#nickName#
+		</isNotEmpty>
+		 where userId=#userId#
+	</update>
+	<update id="updateUserDetail" parameterClass="userDetail">
+		update palm_user_detail set zoodiac=#zoodiac#,bloodType=#bloodType#,favorite=#favorite#,imgPath=#imgPath# where id=#id#
+	</update>
+</sqlMap>

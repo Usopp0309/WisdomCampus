@@ -1,0 +1,1257 @@
+package com.guotop.palmschool.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.entity.Card;
+import com.guotop.palmschool.entity.Clazz;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.entity.UserRole;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.service.CardService;
+import com.guotop.palmschool.service.ClazzService;
+import com.guotop.palmschool.service.StudentService;
+import com.guotop.palmschool.service.UserDataChangeRecordsService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+
+@Service("studentService")
+public class StudentServiceImpl extends BaseService implements StudentService
+{
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private UserDataChangeRecordsService userDataChangeRecordsService;
+	
+	@Resource
+	private ClazzService clazzService;
+	
+	@Resource
+	private UserService userService;
+	
+	@Resource
+	private CardService cardService;
+	
+	private String syncObject = "1";		//同步对象1：学生
+	
+	private String operationClass = "student";	//操作对象
+	/**
+	 * 查询条件查询学生记录 /分页查询
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @return 学生记录/分页
+	 * 
+	 *         jfy 20151211
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages getStudentListByRole(int pageSize, int page, Map<String, Object> paramMap, User user)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<User> list = new ArrayList<User>();
+		/**
+		 * 新增权限划分
+		 */
+		String userType = (String) paramMap.get("userType");
+		if (userType.equals("student"))
+		{// 查询学生
+			List<Integer> clazzIds =null;
+			paramMap.put("clazzIds", clazzIds);
+			/**
+			 * 学校管理员，校长权限
+			 */
+			if (!commonService.hasAdminPermission(user))
+			{
+				clazzIds = commonService.getIdsByUserIdAndPermissionCode(user.getUserId(), "studentParentManager", 0);
+				paramMap.put("clazzIds", clazzIds);
+			}
+				allRow = (Integer) this.getBaseDao().selectObjectByObject("User.getStudentListCount", paramMap);
+				totalPage = Pages.countTotalPage(pageSize, allRow);
+
+				final int offset = Pages.countOffset(pageSize, page);
+				final int length = pageSize;
+				currentPage = Pages.countCurrentPage(page);
+				// 解决ibatis框架的分页问题
+				// 起始数据坐标
+				paramMap.put("startIndex", offset);
+				// 单页数据量
+				paramMap.put("length", length);
+				list = this.getBaseDao().selectListByObject("User.getStudentList", paramMap);
+				List<Integer> listuserId=new ArrayList<Integer>();
+				List<User> listParent=new ArrayList<User>();
+				for (User user2 : list)
+				{
+					listuserId.add(user2.getUserId());
+				}
+				if(listuserId.size()>0){
+					listParent=this.getBaseDao().selectListByObject("User.getParentByStudent", listuserId);
+				}
+				List<User> parentList;
+				User us=null;
+				if(listParent.size()>0){
+					for (User u : list)
+					{
+						for (User p : listParent)
+						{
+							if(p.getUserId().toString().equals(u.getUserId().toString())){
+								parentList=u.getParentList();
+								if(parentList!=null && parentList.size()>0){
+									 us=new User();
+									 us.setPhone(p.getPhone());
+									 us.setParentname(p.getRealName());
+									 parentList.add(us);
+								}else{
+									 parentList=new ArrayList<User>();
+									 us=new User();
+									 us.setPhone(p.getPhone());
+									 us.setParentname(p.getRealName());
+									 parentList.add(us);
+									 u.setParentList(parentList);
+								}
+							}
+						}
+					}
+				}
+				for (User u : list)
+				{
+					parentList=u.getParentList();
+					if(parentList==null || parentList.size()==0){
+						parentList=new ArrayList<User>();
+						 us=new User();
+						 us.setPhone("");
+						 us.setParentname("");
+						 parentList.add(us);
+						 u.setParentList(parentList);
+					}
+				}
+			
+				/*List<Integer> clazzIds = commonService.getIdsByUserIdAndPermissionCode(user.getUserId(), "studentParentManager", 0);
+				if (clazzIds != null && clazzIds.size() > 0)
+				{
+					paramMap.put("clazzIds", clazzIds);
+					allRow = this.getBaseDao().getAllRowCountByCondition("User.getStudentListByClazzIds", paramMap);
+					totalPage = Pages.countTotalPage(pageSize, allRow);
+
+					final int offset = Pages.countOffset(pageSize, page);
+					final int length = pageSize;
+					currentPage = Pages.countCurrentPage(page);
+					list = this.getBaseDao().queryForPageByCondition("User.getStudentListByClazzIds", paramMap, offset, length);
+				}*/
+		} else
+		// 查询家长
+		{
+			/**
+			 * 学校管理员，校长权限
+			 */
+			if (commonService.hasAdminPermission(user))
+			{
+				allRow = (Integer) this.getBaseDao().selectObjectByObject("User.getParentListCount", paramMap);
+				totalPage = Pages.countTotalPage(pageSize, allRow);
+
+				final int offset = Pages.countOffset(pageSize, page);
+				final int length = pageSize;
+				currentPage = Pages.countCurrentPage(page);
+
+				// 解决ibatis框架的分页问题
+				// 起始数据坐标
+				paramMap.put("startIndex", offset);
+				// 单页数据量
+				paramMap.put("length", length);
+
+				list = this.getBaseDao().selectListByObject("User.getParentList", paramMap);
+			} else
+			{
+				List<Integer> clazzIds = commonService.getIdsByUserIdAndPermissionCode(user.getUserId(), "studentParentManager", 0);
+				paramMap.put("clazzIds", clazzIds);
+				if (clazzIds != null && clazzIds.size() > 0)
+				{
+					allRow = this.getBaseDao().getAllRowCountByCondition("User.getParentListByClazzId", paramMap);
+					totalPage = Pages.countTotalPage(pageSize, allRow);
+
+					final int offset = Pages.countOffset(pageSize, page);
+					final int length = pageSize;
+					currentPage = Pages.countCurrentPage(page);
+					list = this.getBaseDao().queryForPageByCondition("User.getParentListByClazzId", paramMap, offset, length);
+				}
+			}
+		}
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+	/**
+	 * 查询条件查询学生记录 /分页查询
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @return 学生记录/分页
+	 * 
+	 *         jfy 20151211
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages getStudentListByRoleFj(int pageSize, int page, Map<String, Object> paramMap, User user)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<User> list = new ArrayList<User>();
+		/**
+		 * 新增权限划分
+		 */
+		String userType = (String) paramMap.get("userType");
+		if (userType.equals("student"))
+		{// 查询学生
+			List<Integer> clazzIds =null;
+			paramMap.put("clazzIds", clazzIds);
+			/**
+			 * 学校管理员，校长权限
+			 */
+			if (!commonService.hasAdminPermissionFj(user))
+			{
+				clazzIds = commonService.getIdsByUserIdAndPermissionCodeFj(user.getUserId(), "studentParentManager", 0,user.getFjSchoolId());
+				paramMap.put("clazzIds", clazzIds);
+			}
+				allRow = (Integer) this.getBaseDao().selectObjectByObject("User.getStudentListCountFj", paramMap);
+				totalPage = Pages.countTotalPage(pageSize, allRow);
+
+				final int offset = Pages.countOffset(pageSize, page);
+				final int length = pageSize;
+				currentPage = Pages.countCurrentPage(page);
+				// 解决ibatis框架的分页问题
+				// 起始数据坐标
+				paramMap.put("startIndex", offset);
+				// 单页数据量
+				paramMap.put("length", length);
+				list = this.getBaseDao().selectListByObject("User.getStudentListFj", paramMap);
+				List<Integer> listuserId=new ArrayList<Integer>();
+				List<User> listParent=new ArrayList<User>();
+				for (User user2 : list)
+				{
+					listuserId.add(user2.getUserId());
+				}
+				if(listuserId.size()>0){
+					paramMap.put("studentUserId", listuserId);
+					listParent=this.getBaseDao().selectListByObject("User.getParentByStudentFj", listuserId);
+				}
+				List<User> parentList;
+				User us=null;
+				if(listParent.size()>0){
+					for (User u : list)
+					{
+						for (User p : listParent)
+						{
+							if(p.getUserId().toString().equals(u.getUserId().toString())){
+								parentList=u.getParentList();
+								if(parentList!=null && parentList.size()>0){
+									 us=new User();
+									 us.setPhone(p.getPhone());
+									 us.setParentname(p.getRealName());
+									 parentList.add(us);
+								}else{
+									 parentList=new ArrayList<User>();
+									 us=new User();
+									 us.setPhone(p.getPhone());
+									 us.setParentname(p.getRealName());
+									 parentList.add(us);
+									 u.setParentList(parentList);
+								}
+							}
+						}
+					}
+				}
+				for (User u : list)
+				{
+					parentList=u.getParentList();
+					if(parentList==null || parentList.size()==0){
+						parentList=new ArrayList<User>();
+						 us=new User();
+						 us.setPhone("");
+						 us.setParentname("");
+						 parentList.add(us);
+						 u.setParentList(parentList);
+					}
+				}
+			
+				/*List<Integer> clazzIds = commonService.getIdsByUserIdAndPermissionCode(user.getUserId(), "studentParentManager", 0);
+				if (clazzIds != null && clazzIds.size() > 0)
+				{
+					paramMap.put("clazzIds", clazzIds);
+					allRow = this.getBaseDao().getAllRowCountByCondition("User.getStudentListByClazzIds", paramMap);
+					totalPage = Pages.countTotalPage(pageSize, allRow);
+
+					final int offset = Pages.countOffset(pageSize, page);
+					final int length = pageSize;
+					currentPage = Pages.countCurrentPage(page);
+					list = this.getBaseDao().queryForPageByCondition("User.getStudentListByClazzIds", paramMap, offset, length);
+				}*/
+		} else
+		// 查询家长
+		{
+			/**
+			 * 学校管理员，校长权限
+			 */
+			if (commonService.hasAdminPermission(user))
+			{
+				allRow = (Integer) this.getBaseDao().selectObjectByObject("User.getParentListCountFj", paramMap);
+				totalPage = Pages.countTotalPage(pageSize, allRow);
+
+				final int offset = Pages.countOffset(pageSize, page);
+				final int length = pageSize;
+				currentPage = Pages.countCurrentPage(page);
+
+				// 解决ibatis框架的分页问题
+				// 起始数据坐标
+				paramMap.put("startIndex", offset);
+				// 单页数据量
+				paramMap.put("length", length);
+
+				list = this.getBaseDao().selectListByObject("User.getParentListFj", paramMap);
+			} else
+			{
+				List<Integer> clazzIds = commonService.getIdsByUserIdAndPermissionCodeFj(user.getUserId(), "studentParentManager",0,user.getFjSchoolId());
+				paramMap.put("clazzIds", clazzIds);
+				if (clazzIds != null && clazzIds.size() > 0)
+				{
+					allRow = this.getBaseDao().getAllRowCountByCondition("User.getParentListByClazzIdFj", paramMap);
+					totalPage = Pages.countTotalPage(pageSize, allRow);
+
+					final int offset = Pages.countOffset(pageSize, page);
+					final int length = pageSize;
+					currentPage = Pages.countCurrentPage(page);
+					list = this.getBaseDao().queryForPageByCondition("User.getParentListByClazzIdFj", paramMap, offset, length);
+				}
+			}
+		}
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+	/**
+	 * 添加学生
+	 * 
+	 * @param student
+	 *            待添加的学生
+	 * @param paramMap
+	 *            参数map
+	 * @param cardList
+	 *            电子卡的列表
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public Integer addStudent(User student, String[] cardCodes)
+	{
+		// //保存学生信息
+		Integer studentId = userService.addUserBase(student);
+		// 同步openfire
+		String voipAccount = commonService.registerOpenFire(student.getUuserId());
+		student.setVoipAccount(voipAccount);
+		student.setUserId(studentId);
+		userService.addUserDetail(student);// userdetail表
+		
+		HashMap<String, Object> studentMap = new HashMap<String, Object>();
+		studentMap.put("userId", studentId);
+		studentMap.put("schoolId", student.getSchoolId());
+		userService.addUserAndSchoolLink(studentId, Long.valueOf(student.getSchoolId()));// user_school表
+		
+		studentMap.remove("schoolId");
+		addUserAndClazzLink(studentId,student.getClazzId());// palm_student_clazz表
+		studentMap.remove("clazzId");
+		studentMap.put("roleCode", student.getRoleCode());
+
+		/*
+		 * 添加user_role对应的信息 update by syj 20151217
+		 */
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("userId", studentId);
+		paramMap.put("roleCode", student.getRoleCode());
+		commonService.addUserRole(paramMap);
+
+		if (null != cardCodes)
+		{
+			for (String cardCode : cardCodes)
+			{
+				if (!StringUtil.isEmpty(cardCode))
+				{
+					commonService.addUserAndCardLink(cardCode, studentId);
+				}
+			}
+		}
+
+		studentMap.clear();
+		studentMap = null;
+		
+		return studentId;
+	}
+
+	/**
+	 * 保存家长信息
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public Integer addParent(User parentUser, String[] cardCodes)
+	{
+		Integer parentId = userService.addUserBase(parentUser);
+		// 同步openfire
+		String voipAccount = commonService.registerOpenFire(parentUser.getUuserId());
+		parentUser.setVoipAccount(voipAccount);
+		parentUser.setUserId(parentId);
+		userService.addUserDetail(parentUser);// userdetail表
+		
+		HashMap<String, Object> parentMap = new HashMap<String, Object>();
+		parentMap.put("userId", parentId);
+		parentMap.put("schoolId", parentUser.getSchoolId());
+		userService.addUserAndSchoolLink(parentId, Long.valueOf(parentUser.getSchoolId()));// user_school表
+		
+		parentMap.remove("schoolId");
+		parentMap.put("roleCode", parentUser.getRoleCode());
+		/*
+		 * 添加user_role对应的信息 update by syj 20151217
+		 */
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("userId", parentId);
+		paramMap.put("roleCode", parentUser.getRoleCode());
+		commonService.addUserRole(paramMap);
+
+		if (null != cardCodes)
+		{
+			for (String cardCode : cardCodes)
+			{
+				if (!StringUtil.isEmpty(cardCode))
+				{
+					commonService.addUserAndCardLink(cardCode, parentId);
+				}
+			}
+		}
+
+		/*
+		 * 添加user_phones对应的信息
+		 */
+		parentMap.remove("permissionCode");
+
+		parentMap.clear();
+		parentMap = null;
+		return parentId;
+	}
+
+	/**
+	 * 保存家长信息1
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public Integer addParent1(User parentUser, String[] cardCodes, boolean isExistInSchool)
+	{
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("userId", parentUser.getUserId());
+		paramMap.put("schoolId", parentUser.getSchoolId());
+		userService.addUserAndSchoolLink(parentUser.getUserId(), Long.valueOf(parentUser.getSchoolId()));// user_school表
+
+		/*
+		 * 添加user_role对应的信息
+		 */
+		paramMap.put("roleCode", parentUser.getRoleCode());
+		commonService.addUserRole(paramMap);
+
+		if (null != cardCodes)
+		{
+			for (String cardCode : cardCodes)
+			{
+				if (!StringUtil.isEmpty(cardCode))
+				{
+					commonService.addUserAndCardLink(cardCode, parentUser.getUserId());
+				}
+			}
+		}
+
+		paramMap.clear();
+		paramMap = null;
+		return parentUser.getUserId();
+	}
+
+	/**
+	 * 导入时添加学生
+	 * 如果家长存在的话添加相关的关系
+	 * @param 待添加的学生
+	 *            update by shengyinjiang 20151125
+	 *            isChangeClass :false不是换班，true:是换班导入
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public void addStudentParentImport(User studentBase, User studentDetail, 
+			List<User> studentParentBaseList, List<User> studentParentDetailList, 
+			List<Card> cardList, List<Card> parent1Card,
+			List<Card> parent2Card, Map<String, Object> paramMap_student,
+			Map<String, Object> paramMap_studentParent,boolean isChangeClass)
+	{
+
+		long schoolId = Long.valueOf(paramMap_student.get("schoolId").toString());
+		
+		// 学生--------------------------------------------------------------------------------------------------
+		// 添加userbase中的学生信息
+		Integer studentId = userService.addUserBase(studentBase);
+
+		// 添加user_detail中的学生详细信息
+		// 同步openfire
+		String voipAccount1 = commonService.registerOpenFire(studentBase.getUuserId());
+		studentDetail.setUserId(studentId);
+		studentDetail.setVoipAccount(voipAccount1);
+		userService.addUserDetail(studentDetail);// userdetail表
+		
+		// 添加user_role user_permission
+		HashMap<String, Object> paramMap_user_role = new HashMap<String, Object>();
+		paramMap_user_role.put("userId", studentId);
+		paramMap_user_role.put("roleCode", "student");
+		commonService.addUserRole(paramMap_user_role);
+
+		//添加学生和班级的关系
+		addUserAndClazzLink(studentId, Integer.valueOf(paramMap_student.get("clazzId").toString()));
+		
+		// 添加user_school对应的信息
+		userService.addUserAndSchoolLink(studentId, schoolId);
+
+		// 添加card对应的信息 和user_card对应的信息
+		for (Card card : cardList)
+		{
+			String cardcode = card.getCardCode();
+			if (!StringUtil.isEmpty(cardcode))
+			{
+				if(isChangeClass){
+					commonService.addUserAndCardLinkWhenNewImport(cardcode, studentId);	
+				}else{
+					commonService.addUserAndCardLink(cardcode, studentId);
+				}
+				
+			}
+		}
+		// 家长----------------------------------------------------------------------------------------------------
+		/*
+		 * 添加前需要判断家长是否已经存在，原因是有可能是教师，或者他还有一个小孩在这个学校 添加userbase中的家长信息 先通过
+		 * 家长姓名和手机号码 查找该家长是否已经包含
+		 */
+		for (int i = 0; i < studentParentBaseList.size(); i++)
+		{
+			User parent = studentParentBaseList.get(i);
+			User parentDetail = studentParentDetailList.get(i);
+
+			Integer studentParentId = userService.addUserBase(parent);
+			// 同步openfire
+			String voipAccount2 = commonService.registerOpenFire(parent.getUuserId());
+			parentDetail.setVoipAccount(voipAccount2);
+			parentDetail.setUserId(studentParentId);
+			userService.addUserDetail(parentDetail);// userdetail表
+
+			// user_role user_permission
+			HashMap<String, Object> paramMap_user_role_parent = new HashMap<String, Object>();
+			paramMap_user_role_parent.put("userId", studentParentId);
+			paramMap_user_role_parent.put("roleCode", "parent");
+			commonService.addUserRole(paramMap_user_role_parent);
+			
+			// user_school
+			userService.addUserAndSchoolLink(studentParentId, schoolId);
+
+			// 添加家长和学生关系
+			addStudentAndParentLink(studentId, studentParentId);
+
+			// 添加家长card对应的信息 和user_card对应的信息
+			if (i == 0)
+			{
+				for (Card parentCard : parent1Card)
+				{
+					String parentCardcode = parentCard.getCardCode();
+					commonService.addUserAndCardLinkWhenNewImport(parentCardcode, studentParentId);
+				}
+			} else if (i == 1)
+			{
+				for (Card parentCard : parent2Card)
+				{
+					String parentCardcode = parentCard.getCardCode();
+					commonService.addUserAndCardLinkWhenNewImport(parentCardcode, studentParentId);
+				}
+			}
+		}
+	}
+
+	// 添加学生家长对应关系
+	public void addStudentAndParentLink(Integer studentId, Integer parentId)
+	{
+		/*
+		 * 添加student_parent对应的信息
+		 */
+		if (!isExistsStudentAndParentLink(studentId, parentId))
+		{
+			Map<String, Object> paramMap_student_parent = new HashMap<String, Object>();
+			paramMap_student_parent.put("userId", studentId);// 学生id
+			paramMap_student_parent.put("parent_userId", parentId);// 家长id
+			getBaseDao().addObject("User.addStudent_Parent", paramMap_student_parent);
+		}
+
+	}
+	
+	// 添加学生家长对应关系 For 福建
+	public void addStudentAndParentLinkForFJ(Integer studentId, Integer parentId)
+	{
+		/*
+		 * 添加student_parent对应的信息
+		 */
+		if (!isExistsStudentAndParentLinkForFJ(studentId, parentId))
+		{
+			Map<String, Object> paramMap_student_parent = new HashMap<String, Object>();
+			paramMap_student_parent.put("userId", studentId);// 学生id
+			paramMap_student_parent.put("parent_userId", parentId);// 家长id
+			getBaseDao().addObject("User.addStudent_ParentForFJ", paramMap_student_parent);
+		}
+
+	}
+
+	// 修改学生信息 2015-11-29
+	@Transactional(rollbackFor = Exception.class)
+	public void modifyStudentById(Map<String, Object> paramMap)
+	{
+		getBaseDao().updateObject("User.modifyUserDetailById", paramMap);// 修改user_detail
+		getBaseDao().updateObject("User.modifyStudentClazz", paramMap);// 修改palm_student_clazz
+		getBaseDao().updateObject("User.modifyStudentPhoneByUserId", paramMap);// 修改userbase
+	}
+
+	/**
+	 * 根据学生ID查找电子卡列表
+	 * 
+	 * @param studentId
+	 * @param List
+	 *            <Card> 电子卡列表
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Card> getCardListByStudentId(Integer studentId)
+	{
+		return getBaseDao().selectListByObject("Card.getCardListByStudentId", studentId);
+	}
+
+	/**
+	 * 通过学号来查询学生信息
+	 */
+	public User selectStudentByCode(String code)
+	{
+		return (User) getBaseDao().selectObjectByObject("User.selectStudentByCode", code);
+	}
+
+	/**
+	 * 表单校验相关---begin
+	 */
+
+	// 修改家长信息
+	@Transactional(rollbackFor = Exception.class)
+	public void modifyParent(HashMap<String, Object> paramMap)
+	{
+		//String oldPhone = (String) paramMap.get("oldPhone");
+		//String newPhone = (String) paramMap.get("phone");
+		getBaseDao().updateObject("User.modifyStudentPhoneByUserId", paramMap);// 修改userbase
+		//getBaseDao().updateObject("User.modifyParentPhoneByUserId", paramMap);// userbase表
+		getBaseDao().updateObject("User.modifyUserPhoneByUserIdAndOldPhone", paramMap);//user_phone表
+		getBaseDao().updateObject("User.modifyParentRealNameByUserId", paramMap);// user_detail表
+	}
+
+	/**
+	 * 根据用户id获取班级ID jfy 2015-11-30
+	 */
+	public User getParentByUserId(Integer userId)
+	{
+		return (User) getBaseDao().selectObject("User.getParentInfoByUserId", userId);
+	}
+
+	/**
+	 * 根据code 和 学校id 获取userId 和realName
+	 * 
+	 * shengyinjiang 2015-12-07
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> getUserByCode(HashMap<String, Object> paramMap)
+	{
+		return (List<User>) getBaseDao().selectListByObject("User.getUserByCode", paramMap);
+	}
+
+	/**
+	 * 根据学生id 获取家长的realName 和phone shengyinjiang 2015-12-03
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> getParentByStudentId(Integer studentId)
+	{
+		return getBaseDao().selectListByObject("User.getParentByStudentId", studentId);
+	}
+
+	/**
+	 * 根据clazzId 找到该班级下所有学生
+	 * 
+	 * @param paramMap
+	 * @return
+	 * 
+	 *         update syj 20151207
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> getStudentListByClazzIdInStudentSMS(Integer clazzId)
+	{
+		Map<String,Object> parMap = new HashMap<String, Object>();
+		parMap.put("clazzId", clazzId);
+		return (List<User>) getBaseDao().selectListByObject("User.getStudentListByClazzIdInStudentSMS", parMap);
+	}
+
+	/**
+	 * 根据clazzId 找到该班级下已评论所有学生(幼儿园教师评价使用)
+	 * 
+	 * @param paramMap
+	 * @return
+	 * 
+	 *         syj 20160317
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> getAlreadyCommentStudentListByClazzIdInEvaluation(HashMap<String, Object> paramMap)
+	{
+		return (List<User>) getBaseDao().selectListByObject("User.getAlreadyCommentStudentListByClazzIdInEvaluation", paramMap);
+	}
+
+	/**
+	 * 根据clazzId 找到该班级下未评论所有学生(幼儿园教师评价使用)
+	 * 
+	 * @param paramMap
+	 * @return
+	 * 
+	 *         syj 20160317
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> getNoCommentStudentListByClazzIdInEvaluation(HashMap<String, Object> paramMap)
+	{
+		return (List<User>) getBaseDao().selectListByObject("User.getNoCommentStudentListByClazzIdInEvaluation", paramMap);
+	}
+
+	/**
+	 * 根据clazzId 找到该班级下所有学生 这次包含家长信息，一个学生对应多个家长
+	 * 
+	 * @param paramMap
+	 * @return update syj 20151207
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> getStudentListWithPartentPhoneByClazzIdInStudentSMS(Integer clazzId)
+	{
+		return (List<User>) getBaseDao().selectListByObject("User.getStudentListWithPartentPhoneByClazzIdInStudentSMS", clazzId);
+	}
+
+	/**
+	 * 根据学生ID 所有学生详细信息（ 包含家长手机号码，一个学生对应多个家长）
+	 * 
+	 * @param paramMap
+	 * @return update syj 20151207
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> getStudentListWithPartentPhoneByIdInStudentSMS(Integer userId)
+	{
+
+		return (List<User>) getBaseDao().selectListByObject("User.getStudentListWithPartentPhoneByIdInStudentSMS", userId);
+
+	}
+
+	/**
+	 * 根据年级ID查找到学生bean
+	 * 
+	 * @param id
+	 *            学生ID
+	 * @return 查找到的学生bean
+	 * 
+	 *         syj 20151208
+	 */
+	public User getStudentById(Integer studentId)
+	{
+		return (User) getBaseDao().selectObjectByObject("User.getStudentById", studentId);
+	}
+
+
+	public void addUserAndSchoolLinkForFJ(Integer userId, Long schoolId)
+	{
+		if(!isExistsInSchoolForFJ(userId, schoolId)){
+			HashMap<String, Object> map = new HashMap<String, Object>();
+			map.put("userId", userId);
+			map.put("schoolId", schoolId);
+			map.put("type", 1);
+			getBaseDao().addObject("User.addUserSchoolForFJ", map);
+		}
+	}
+
+	/**
+	 * 添加人员与班级关系
+	 * @param userId
+	 * @param clazzId
+	 */
+	public void addUserAndClazzLink(Integer userId, Integer clazzId){
+		if (isExistsInClazz(userId, clazzId));
+		{
+			//班级关系存在直接删除关系
+			deleteUserAndClazzLinkByUserId(userId);
+		}
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("userId", userId);
+		map.put("clazzId", clazzId);
+		getBaseDao().addObject("User.addStudentClazz", map);
+	}
+	
+	@Override
+	public void deleteUserAndClazzLinkByUserId(Integer userId){
+		getBaseDao().deleteObject("Clazz.deleteUserAndClazzLinkByUserId", userId);
+	}
+
+	public boolean isExistsInSchoolForFJ(Integer userId, long schoolId)
+	{
+		boolean flag = false;
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("userId", userId);
+		map.put("schoolId", schoolId);
+		Integer count = (Integer) getBaseDao().selectObjectByObject("User.getCountByUserIdAndSchoolIdForFJ", map);
+		if (count > 0)
+		{
+			flag = true;
+		}
+		return flag;
+
+	}
+	
+	
+	/**
+	 * 查看学生和班级是否关联
+	 * @param userId
+	 * @param clazzId
+	 * @return true：有关系  false：没有关系
+	 */
+	public boolean isExistsInClazz(Integer userId,Integer clazzId){
+		boolean flag = false;
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("userId", userId);
+		map.put("clazzId", clazzId);
+		Integer count = (Integer) getBaseDao().selectObjectByObject("User.getCountByUserIdAndClazzId", map);
+		if (count > 0)
+		{
+			flag = true;
+		}
+		return flag;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<User> getParentListByClazzId(Integer clazzId,String schoolId)
+	{
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+		if(null != clazzId){
+			ArrayList<Integer> clazzIds = new ArrayList<Integer>();
+			clazzIds.add(clazzId);
+			paramMap.put("clazzIds", clazzIds);
+		}
+		paramMap.put("schoolId", schoolId);
+		List<User> parentList = this.getBaseDao().selectListByObject("User.getParentListByClazzId", paramMap);
+		return parentList;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<User> getParentListByClazzIdInRICHBOOK(Integer clazzId)
+	{
+		List<User> parentList = this.getBaseDao().selectListByObject("User.getParentListByClazzIdInRICHBOOK", clazzId);
+		return parentList;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<User> getStudentListByClazzIdInRICHBOOK(Integer clazzId)
+	{
+		List<User> parentList = this.getBaseDao().selectListByObject("User.getStudentListByClazzIdInRICHBOOK", clazzId);
+		return parentList;
+	}
+
+	public boolean isExistsStudentAndParentLink(int studentId, int parentId)
+	{
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("studentId", studentId);
+		map.put("parentId", parentId);
+		int count = (Integer) getBaseDao().selectObjectByObject("User.isExistsStudentAndParentLink", map);
+		//一个学生只能有两个家长
+		if (count > 0 && count <=2)
+		{
+			return true;
+		} else
+		{
+			return false;
+		}
+	}
+	
+	public boolean isExistsStudentAndParentLinkForFJ(int studentId, int parentId)
+	{
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("studentId", studentId);
+		map.put("parentId", parentId);
+		int count = (Integer) getBaseDao().selectObjectByObject("User.isExistsStudentAndParentLinkForFJ", map);
+		//一个学生只能有两个家长
+		if (count > 0 && count <=2)
+		{
+			return true;
+		} else
+		{
+			return false;
+		}
+	}
+	
+	
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<User> getStudentListByParentId(int userId)
+	{
+		return getBaseDao().selectListByObject("User.getStudentListByParentId", userId);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void delUser(HashMap<String, Object> map)
+	{
+		Integer userId = (Integer) map.get("userId");
+		Long schoolId = (Long)map.get("schoolId");
+		// 获取角色列表
+		List<UserRole> roleList = getBaseDao().selectListByObject("UserRole.getUserRoleByUserId", (Integer) map.get("userId"));
+		// 是否为学生
+		boolean isStudent = false;
+		for (UserRole ur : roleList)
+		{
+			if (ur.getRoleCode()!=null && ur.getRoleCode().equals("student"))
+			{
+				isStudent = true;
+				break;
+			}
+		}
+		// 若是学生，则删除学生角色、家长关系、对应学校关系，同时判断其家长
+		if (isStudent)
+		{
+			// 删除人与学校关联
+			userService.delUserAndSchoolLink(userId, schoolId);
+			// 删除角色
+			map.put("roleCode", "student");
+			userService.deleteUserRole(userId, "student");
+			//清空学生的学号
+			userService.deleteUserCode(userId);
+			getBaseDao().updateObject("User.deleteUserbaseCode", userId);
+			// 获取家长信息
+			List<User> parentList = getBaseDao().selectListByObject("User.getParentByStudentId", userId);
+			// 删除与家长关联
+			delStudentAndParentLinkByStudentId(userId);
+			//删除学生的权限
+			userService.deleteUserRolePermission(userId,"student");
+			// 循环家长，查看家长是否还有其余学生关联，若有，则不删除该家长与学校关联及家长角色，否则，则删除家长与学校关联及家长角色
+			for (User parent : parentList)
+			{
+				if ((Integer) getBaseDao().selectObject("User.getStudentCountByParentId", parent.getUserId()) <= 0)
+				{
+					// 删除角色
+					map.put("roleCode", "parent");
+					map.put("userId", parent.getUserId());
+					userService.deleteUserRole(parent.getUserId(), "parent");
+				}
+				// 判断家长是否有其余角色，若有，则不删除家长与学校关联
+				List<UserRole> parentRoleList = getBaseDao().selectListByObject("UserRole.getUserRoleByUserId", parent.getUserId());
+				if (parentRoleList != null && parentRoleList.size() > 0)
+				{
+
+				} else
+				{
+					map.put("userId", parent.getUserId());
+					userService.delUserAndSchoolLink(parent.getUserId(), schoolId);
+				}
+			}
+		} else
+		{
+			List<User> userList=getBaseDao().selectListByObject("User.getStudentListByParentId", userId);//根据家长获得小孩
+			 //如果不止一个小孩家长的角色保留
+			if(userList!=null && userList.size()<=1){//最多一个小孩
+				// 删除角色
+				map.put("roleCode", "parent");
+				userService.deleteUserRole(userId, "parent");
+				//删除权限
+				userService.deleteUserRolePermission(userId,"parent");
+			}
+			// 判断家长是否有其余角色，若有，则不删除家长与学校关联
+			List<UserRole> parentRoleList = getBaseDao().selectListByObject("UserRole.getUserRoleByUserId", (Integer) map.get("userId"));
+			if (parentRoleList != null && parentRoleList.size() > 0)
+			{
+			} else
+			{
+				userService.delUserAndSchoolLink(userId, schoolId);
+			}
+			// 删除与孩子关联
+			delStudentAndParentLinkByParentId(userId);
+		}
+		//删除卡关系 和对应的卡号
+		cardService.deleteCardByUserId(userId);
+	}
+
+	@Override
+	public User getStudentByPalmUserNameAndName(String palmUserName,String name)
+	{
+		HashMap<String, String> param = new HashMap<String, String>();
+		param.put("palmUserName", palmUserName);
+		param.put("realName", name);
+		User student = (User) getBaseDao().selectObjectByObject("User.getStudentByPalmUserNameAndName", param);
+		return student;
+	}
+
+	public void addUserRoleLink(Integer userId, String roleCode)
+	{
+		HashMap<String, Object> param = new HashMap<String, Object>();
+		param.put("userId", userId);
+		param.put("roleCode", roleCode);
+		List<UserRole> userRoleList = commonService.getUserRoleByUserIdAndRoleCode(param);
+		if (CollectionUtils.isEmpty(userRoleList)){
+			getBaseDao().addObject("UserRole.addUserRole", param);
+		}
+	}
+
+	/**
+	 * [学生身份]根据clazzId 和家长userId找到该班级下自己的信息
+	 * @param pageSize
+	 * @param page
+	 * @param paramMap
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages getStudentListByClazzIdListAndStudentIdInEvaluate(int pageSize, int page, Map<String, Object> paramMap)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<User> list = new ArrayList<User>();
+		allRow = (Integer) this.getBaseDao().selectObjectByObject("User.getStudentListCountByClazzIdListAndStudentIdInEvaluate", paramMap);
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		currentPage = Pages.countCurrentPage(page);
+
+		paramMap.put("startIndex", offset);
+		paramMap.put("length", length);
+		list = this.getBaseDao().selectListByObject("User.getStudentListByClazzIdListAndStudentIdInEvaluate", paramMap);
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+	
+	/**
+	 * [家长身份]根据clazzId 和家长userId找到该班级下自己的小孩
+	 * @param pageSize
+	 * @param page
+	 * @param paramMap
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages getStudentListByClazzIdListAndParentUserIdInEvaluate(int pageSize, int page, Map<String, Object> paramMap)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<User> list = new ArrayList<User>();
+		allRow = (Integer) this.getBaseDao().selectObjectByObject("User.getStudentListCountByClazzIdListAndParentUserIdInEvaluate", paramMap);
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		currentPage = Pages.countCurrentPage(page);
+
+		paramMap.put("startIndex", offset);
+		paramMap.put("length", length);
+		list = this.getBaseDao().selectListByObject("User.getStudentListByClazzIdListAndParentUserIdInEvaluate", paramMap);
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+	/**
+	 * [除家长，学生身份之外的身份]根据clazzId 找到该班级下所有学生
+	 * 
+	 * @param pageSize
+	 * @param page
+	 * @param paramMap
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages getStudentListByClazzIdListInEvaluate(int pageSize, int page, Map<String, Object> paramMap)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<User> list = new ArrayList<User>();
+		allRow = (Integer) this.getBaseDao().selectObjectByObject("User.getStudentListCountByClazzIdListInEvaluate", paramMap);
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		currentPage = Pages.countCurrentPage(page);
+
+		paramMap.put("startIndex", offset);
+		paramMap.put("length", length);
+		list = this.getBaseDao().selectListByObject("User.getStudentListByClazzIdListInEvaluate", paramMap);
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	@Override
+	public List<User> getEvaluateDetailById(Integer valueOf) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	/**
+	 * 初始化detail的参数
+	 * @param user
+	 * @param userDetail
+	 * @return
+	 */
+	public Map<String, String> putDetailMap(User user)
+	{
+		Map<String, String> detailMap = new HashMap<String, String>();
+		detailMap.put("userId", String.valueOf(user.getUserId()));
+		detailMap.put("boarder", String.valueOf(user.getSchoolType()));
+		detailMap.put("userName", user.getRealName());
+		detailMap.put("classId", String.valueOf(user.getClazzId()));
+		Clazz clazz = clazzService.getClazzById(user.getClazzId());
+		detailMap.put("className", clazz.getClazzName());
+		detailMap.put("gradeId", String.valueOf(clazz.getGradeId()));
+		detailMap.put("gradeName", clazz.getGradeName());
+		detailMap.put("createTime", TimeUtil.getInstance().now());
+		detailMap.put("updateTime", user.getUpdateTime());
+		detailMap.put("studentNumber", user.getCode());
+		return detailMap;
+	}
+	
+	/**
+	 * 初始化modify detail的参数
+	 * @param user
+	 * @param userDetail
+	 * @return
+	 */
+	public Map<String, String> putModifyDetailMap(User user)
+	{
+		Map<String, String> detailMap = new HashMap<String, String>();
+		detailMap.put("userId", String.valueOf(user.getUserId()));
+		detailMap.put("boarder", String.valueOf(user.getSchoolType()));
+		detailMap.put("userName", user.getRealName());
+		detailMap.put("classId", String.valueOf(user.getClazzId()));
+		Clazz clazz = clazzService.getClazzById(user.getClazzId());
+		detailMap.put("className", clazz.getClazzName());
+		detailMap.put("studentNumber", user.getCode());
+		detailMap.put("updateTime", TimeUtil.getInstance().now());
+		detailMap.put("passWord", user.getPassword());
+		return detailMap;
+	}
+    /**
+     * 根据学号和真实名称获得数据
+      @author chenyong
+      @date 2016年9月21日 下午5:57:16
+     * @param map
+     * @return
+     */
+	@Override
+	public User getUserByCodeRealName(Map<String, Object> map)
+	{
+		return (User) getBaseDao().selectObjectByObject("User.getUserByCodeRealName", map);
+	}
+
+	/**
+	 * 获得所有的可用年级的所有学生
+	 * @author chenyong
+	 * @Time 2016年12月21日 上午11:11:28
+	 */
+	public List<User> getAllStudentList(){
+		@SuppressWarnings("unchecked")
+		List<User> list = this.getBaseDao().selectListByObject("User.getAllStudentList",null);
+		return list;
+	}
+
+	
+	@Override
+	public void delStudentAndParentLinkByStudentId(Integer studentId){
+		getBaseDao().deleteObject("User.delStudentAndParentLinkByStudentId", studentId);
+	}
+	
+	@Override
+	public void delStudentAndParentLinkByParentId(Integer parentId){
+		getBaseDao().deleteObject("User.delStudentAndParentLinkByParentId", parentId);
+	}
+	
+	@Override
+	public void delStudentAndParentLinkByStudentIdAndParentId(Integer studentId,Integer parentId){
+		Map<String, Integer> parMap = new HashMap<String, Integer>();
+		parMap.put("studentId", studentId);
+		parMap.put("parentId", parentId);
+		getBaseDao().deleteObject("User.delStudentAndParentLinkByStudentIdAndParentId", parMap);
+	}
+}

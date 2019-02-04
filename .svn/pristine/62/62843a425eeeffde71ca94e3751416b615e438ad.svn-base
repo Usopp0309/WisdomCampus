@@ -1,0 +1,350 @@
+package com.guotop.palmschool.util;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONException;
+
+import com.google.gson.reflect.TypeToken;
+import com.guotop.palmschool.bluetooth.entity.BluetoothData;
+import com.guotop.palmschool.bluetooth.entity.custom.BraceletConnectNodes;
+import com.guotop.palmschool.bluetooth.entity.custom.BraceletReciveData;
+import com.guotop.palmschool.bluetooth.entity.custom.BraceletReciveSubData;
+import com.guotop.palmschool.bluetooth.entity.custom.TokenData;
+
+import dev.gson.GsonHelper;
+
+/*
+ * 蓝牙手环工具类
+ * @author syj
+ *
+ */
+public class BlueToothUtil
+{
+	private static final String ACCOUNT = "tester";
+	private static final String PASSWORD = "10b83f9a2e823c47";
+	private static final String URL_TEST = "http://demo.cassianetworks.com/";// 测试服务器地址或者内网ip
+	private static final String URL = "http://api.cassianetworks.com/";// 真实服务器地址
+
+	/**
+	 * 
+	 * @param isTest
+	 *            是否是测试环境
+	 * @return
+	 */
+	public static String getAccessToken(boolean isTest)
+	{
+		String access_token = "";
+		try
+		{
+			String postUrl = "";
+			if (isTest)
+			{
+				postUrl = URL_TEST + "oauth2/token";
+			} else
+			{
+				postUrl = URL + "oauth2/token";
+			}
+			HttpClient httpclient = HttpClients.createDefault();
+			HttpPost httppost = new HttpPost(postUrl);
+			// 解决中文乱码问题
+			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+			nvps.add(new BasicNameValuePair("grant_type", "client_credentials"));
+			// 封装表单
+			httppost.setEntity(new UrlEncodedFormEntity(nvps, "utf-8"));
+			httppost.setHeader("Authorization", encodeHttpBasic(ACCOUNT, PASSWORD));
+			// 将参数传入post方法中 3
+			HttpResponse hr = httpclient.execute(httppost);
+			HttpEntity respose = hr.getEntity();
+			InputStream instreams = respose.getContent();
+			String str = HttpPostUtil.convertStreamToString(instreams);
+			TokenData tokenData = GsonHelper.fromJson(str, new TypeToken<TokenData>()
+			{
+			}.getType());
+
+			access_token = tokenData.getAccess_token();
+		} catch (JSONException e)
+		{
+			e.printStackTrace();
+		} catch (ClientProtocolException e1)
+		{
+			e1.printStackTrace();
+		} catch (IOException e1)
+		{
+			e1.printStackTrace();
+		}
+		return access_token;
+	}
+
+	/**
+	 * 客户端对Http Basic验证的 Header进行编码.
+	 */
+	private static String encodeHttpBasic(String userName, String password)
+	{
+		String encode = userName + ":" + password;
+		return "Basic " + Encodes.encodeBase64(encode.getBytes());
+	}
+
+	/**
+	 * 获取蓝牙路由器上连接的蓝牙手环的mac地址列表
+	 * 
+	 * @param isTest
+	 *            是否是测试环境
+	 * @param accessToken
+	 *            验证token
+	 * @param hubMacAddress
+	 *            蓝牙路由器mac地址
+	 * @return
+	 */
+	public static List<String> getConnectDevices(boolean isTest, String accessToken, String hubMacAddress)
+	{
+		List<String> macAddressList = new ArrayList<String>();
+		String getUrl = "";
+		if (isTest)
+		{
+			getUrl = URL_TEST + "gap/nodes/?connection_state=connected&mac=" + hubMacAddress + "&access_token=" + accessToken;
+		} else
+		{
+			getUrl = URL + "gap/nodes/?connection_state=connected&mac=" + hubMacAddress + "&access_token=" + accessToken;
+		}
+		try
+		{
+			String jsonData = HttpPostUtil.doGet(getUrl);
+			BraceletConnectNodes nodes = GsonHelper.fromJson(jsonData, new TypeToken<BraceletConnectNodes>()
+			{
+			}.getType());
+			List<BraceletConnectNodes.BraceletConnectStatus> list = nodes.getNodes();
+			if (CollectionUtil.isEmpty(list))
+			{
+				return macAddressList;
+			}
+
+			for (BraceletConnectNodes.BraceletConnectStatus status : list)
+			{
+				macAddressList.add(status.getId());
+			}
+		} catch (JSONException e)
+		{
+			e.printStackTrace();
+		}
+		return macAddressList;
+	}
+
+	/**
+	 * 调用后蓝牙路由器会与指定mac地址的设备断连
+	 * 
+	 * @param isTest
+	 *            是否是测试环境
+	 * @param accessToken
+	 *            验证token
+	 * @param hubMacAddress
+	 *            蓝牙路由器mac地址
+	 * @param macAddress
+	 *            蓝牙设备mac地址
+	 * @return
+	 */
+	public static String disConnect(boolean isTest, String accessToken, String hubMacAddress, String macAddress)
+	{
+		String result = "";
+		String getUrl = "";
+		if (isTest)
+		{
+			getUrl = URL_TEST + "/gap/nodes/" + macAddress + "/connection?mac=" + hubMacAddress + "&access_token=" + accessToken;
+		} else
+		{
+			getUrl = URL + "gap/nodes/" + macAddress + "/connection?mac=" + hubMacAddress + "&access_token=" + accessToken;
+		}
+		String jsonData = HttpPostUtil.doDelete(getUrl);
+		result = jsonData;
+		return result;
+	}
+
+	/**
+	 * 蓝牙路由器“扫描"get请求
+	 * 
+	 * @param isTest
+	 * @param hubMacAddress
+	 *            蓝牙路由器mac地址
+	 * @param macList
+	 *            蓝牙手环mac地址集合
+	 * @param accessToken
+	 * @return
+	 */
+	public static Map<String, BluetoothData> doScan(boolean isTest, String hubMacAddress, List<String> macList, String accessToken)
+	{
+		Map<String, BluetoothData> parmMap = new HashMap<String, BluetoothData>();
+		if (CollectionUtil.isEmpty(macList))
+		{
+			return parmMap;
+		}
+		// 一个手环至少有五行，其中只有一行有效果，预设是60个手环，设置扫描400行数据
+		int readTimes = 40;
+		StringBuffer sbBuffer = new StringBuffer();
+		int listSize = macList.size();
+		for (int i = 0; i < listSize; i++)
+		{
+			String macAddress = macList.get(i);
+			if ((i + 1) == listSize)
+			{
+				sbBuffer.append(macAddress);
+			} else
+			{
+				sbBuffer.append(macAddress + ",");
+			}
+		}
+		String getUrl = "";
+		if (isTest)
+		{
+			readTimes = 40;
+			getUrl = URL_TEST + "gap/nodes?event=1&mac=" + hubMacAddress + "&filter_mac=" + sbBuffer.toString() + "&access_token=" + accessToken;
+		} else
+		{
+			readTimes = 400;
+			getUrl = URL + "gap/nodes?event=1&mac=" + hubMacAddress + "&filter_mac=" + sbBuffer.toString() + "&access_token=" + accessToken;
+		}
+		HttpClient httpclient = HttpClients.createDefault();
+		HttpGet httpget = new HttpGet(getUrl);
+		try
+		{
+			HttpResponse hr = httpclient.execute(httpget);
+			HttpEntity respose = hr.getEntity();
+			InputStream instreams = respose.getContent();
+			String line = null;
+			try
+			{
+				int time = 0;
+				BufferedReader reader = new BufferedReader(new InputStreamReader(instreams, "utf-8"));
+				while ((line = reader.readLine()) != null)
+				{
+					time++;
+					line = line.trim();
+					if (StringUtils.isNotBlank(line) && (!line.contains("keep-alive")) && (!line.contains("retry")))
+					{
+						BluetoothData bData = parseBluetoothData(line);
+						if (bData != null)
+						{
+							String macAddress = bData.getBraceletMac();
+							if (!parmMap.containsKey(macAddress))
+							{
+								parmMap.put(macAddress, bData);
+							} else
+							{
+								continue;
+							}
+						}
+					}
+					if (listSize == parmMap.size())
+					{
+						break;
+					}
+					if (readTimes == time)
+					{
+						break;
+					}
+				}
+			} catch (IOException e)
+			{
+				e.printStackTrace();
+			} finally
+			{
+				httpget.releaseConnection();
+			}
+			return parmMap;
+		} catch (ClientProtocolException e1)
+		{
+			e1.printStackTrace();
+		} catch (IOException e1)
+		{
+			e1.printStackTrace();
+		}
+
+		return parmMap;
+	}
+
+	/**
+	 * 解析扫描接口得出的数据
+	 * 
+	 * @param data
+	 * @return
+	 * @throws JSONException
+	 */
+	private static BluetoothData parseBluetoothData(String data)
+	{
+		BluetoothData bData = null;
+		String jsonData = data.substring(data.indexOf("{"), data.lastIndexOf("}") + 1);
+		try
+		{
+			BraceletReciveData reciveData = GsonHelper.fromJson(jsonData, new TypeToken<BraceletReciveData>()
+			{
+			}.getType());
+			String braceletData = reciveData.getScanData();
+			String braceletMac = "";
+			if (!CollectionUtil.isEmpty(reciveData.getBdaddrs()))
+			{
+				for (BraceletReciveSubData object : reciveData.getBdaddrs())
+				{
+					braceletMac = object.getBdaddr();
+				}
+			}
+			if ((!"null".equals(braceletData)) && StringUtils.isNotBlank(braceletData) && StringUtils.isNotBlank(braceletMac))
+			{
+				int dataLength = braceletData.length();
+				bData = new BluetoothData();
+				bData.setBraceletMac(braceletMac);
+				// 获取16进制【卡路里】并转成10进制
+				BigInteger srch1 = new BigInteger(braceletData.substring(dataLength - 6, dataLength), 16);
+				bData.setCalorie(Double.valueOf(srch1.toString()) / 10);
+				// 获取16进制【步数】并转成10进制
+				BigInteger srch2 = new BigInteger(braceletData.substring(dataLength - 12, dataLength - 6), 16);
+				bData.setSteps(Integer.valueOf(srch2.toString()));
+				// 获取16进制【心率】并转成10进制
+				BigInteger srch3 = new BigInteger(braceletData.substring(dataLength - 14, dataLength - 12), 16);
+				bData.setHeartRate(Integer.valueOf(srch3.toString()));
+			}
+		} catch (JSONException e)
+		{
+			// .....
+		}
+		return bData;
+	}
+
+	public static void main(String[] args) throws JSONException, InterruptedException
+	{
+		String token = getAccessToken(true);
+		List<String> list = getConnectDevices(true, token, "CC:1B:E0:E0:23:20");
+		if (!CollectionUtil.isEmpty(list))
+		{
+			for (String macAddress : list)
+			{
+				disConnect(true, token, "CC:1B:E0:E0:23:20", macAddress);
+			}
+		}
+		Thread.sleep(1000);
+		List<String> macList = new ArrayList<String>();
+		macList.add("F2:EA:B5:FA:2B:3A");
+		macList.add("F3:71:47:90:56:1D");
+		macList.add("CD:8E:60:C4:80:79");
+		Map<String, BluetoothData> parmMap = doScan(true, "CC:1B:E0:E0:23:20", macList, token);
+		System.out.println(parmMap.get("F2:EA:B5:FA:2B:3A").getBraceletMac() + ";" + parmMap.get("F2:EA:B5:FA:2B:3A").getSteps());
+		System.out.println(parmMap.get("F3:71:47:90:56:1D").getBraceletMac() + ";" + parmMap.get("F3:71:47:90:56:1D").getSteps());
+		System.out.println(parmMap.get("CD:8E:60:C4:80:79").getBraceletMac() + ";" + parmMap.get("CD:8E:60:C4:80:79").getSteps());
+	}
+}

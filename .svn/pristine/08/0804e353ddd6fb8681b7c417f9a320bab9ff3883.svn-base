@@ -1,0 +1,214 @@
+package com.guotop.palmschool.thread;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.guotop.palmschool.check.cons.CheckCons;
+import com.guotop.palmschool.entity.Inout;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.listener.StartupListener;
+
+/**
+ * UDP接收端 实验学校 接收读卡器发送过来的进出校记录数据
+ * 
+ */
+public class TCPServerSY extends Thread
+{
+
+	private static final Log log = LogFactory.getLog(TCPServer.class);
+
+	private static ServerSocket server = null;
+
+	protected final static int PORT = 13131;
+
+	private static boolean signal = true;
+
+	private static List<SocketHandle> sockets = new ArrayList<SocketHandle>();
+
+	/**
+	 * 注入配置项 0:使用ip地址 1:使用设备号
+	 */
+	private String ipSwitch;
+
+	public TCPServerSY()
+	{
+		if (server == null)
+		{
+			try
+			{
+				server = new ServerSocket(PORT);
+				server.setSoTimeout(1000);
+				this.start();
+			} catch (Exception e)
+			{
+				log.error("启动TCPServerSY失败", e);
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void run()
+	{
+		log.info("TCPServerSY启动");
+		while (server != null && signal)
+		{
+			Socket socket = null;
+			try
+			{
+				socket = server.accept();
+			} catch (Exception e)
+			{
+			}
+			if (socket != null)
+			{
+				SocketHandle sh = new SocketHandle(socket);
+				sockets.add(sh);
+			}
+		}
+		log.info("TCPServerSY结束");
+	}
+
+	public void disconnect()
+	{
+		signal = false;
+		this.interrupt();
+		try
+		{
+			for (SocketHandle s : sockets)
+			{
+				s.close();
+			}
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		try
+		{
+			server.close();
+			server = null;
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	private void trun(String code, int status, String ip)
+	{
+		// 智慧校园2表示出
+		if (status == 0)
+		{
+			status = 2;
+		}
+
+		Inout inout = new Inout();
+		inout.setCode(code);
+		inout.setStatus(status);
+		String position = "";
+
+		// ipSwitch 0 IP 1 deviceCode 设备号
+		ipSwitch = "0";
+		if (CheckCons.IPSWITCH_DEVICECODE.equals(ipSwitch))
+		{
+			// 记录设备号
+			position = "";
+		} else
+		{
+			// 记录ip
+//			position = ip;
+			position = "/192.168.201.6";
+		}
+
+		// 根据设备查找数据源
+		DBContextHolder.setDBType("3213240089");
+		StartupListener.inoutService.addInout(inout, ipSwitch, position,true);
+	}
+
+	class SocketHandle extends Thread
+	{
+		private Socket socket = null;
+		private InputStream in = null;
+		private String ip = null;
+
+		public SocketHandle(Socket socket)
+		{
+			this.socket = socket;
+			this.ip = socket.getInetAddress().toString();
+			this.start();
+		}
+
+		public void run()
+		{
+			log.info("第一实验学校Socket[" + this.getName() + "]开始：" + ip);
+
+			try
+			{
+				in = socket.getInputStream();
+			} catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+
+			if (in != null)
+			{
+				while (true)
+				{
+					if (socket.isClosed())
+						break;
+					try
+					{
+						byte[] b = new byte[12]; // 和消息长相同
+						int size = in.read(b);
+						if (size > 0)
+						{
+							String data = new String(b).trim();
+							if (data.length() == 12 && data.startsWith("041"))
+							{
+								String code = data.substring(0, 10);
+								//电压 0:电压偏低  1:电压正常
+								//TODO 需要更新设备电压状态
+//								int voltage = data.charAt(11) - 48;
+								//进出状态
+								int status = data.charAt(11) - 48;
+								trun(code, status, ip);
+							}
+						}
+					} catch (IOException e)
+					{
+						continue;
+					}
+				}
+			}
+
+			log.info("第一实验学校Socket[" + this.getName() + "]结束：" + ip);
+			sockets.remove(this);
+		}
+
+		public void close()
+		{
+			try
+			{
+				in.close();
+			} catch (IOException e1)
+			{
+				e1.printStackTrace();
+			}
+			try
+			{
+				socket.close();
+				socket = null;
+			} catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+			this.interrupt();
+		}
+	}
+
+}

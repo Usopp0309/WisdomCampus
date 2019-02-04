@@ -1,0 +1,48 @@
+package com.guotop.palmschool.service.impl;
+
+import java.util.HashMap;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.entity.UserAccount;
+import com.guotop.palmschool.entity.UserAccountHistory;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.service.UserAccountService;
+
+/**
+ * 个人账户接口
+ *
+ */
+@Service("userAccountService")
+public class UserAccountServiceImpl extends BaseService implements UserAccountService
+{
+	public void addUserAccount(UserAccount userAccount)
+	{
+		getBaseDao().addObject("UserAccount.addUserAccount", userAccount);
+	}
+
+	public void addUserAccountHistory(UserAccountHistory userAccountHistory)
+	{
+		getBaseDao().addObject("UserAccountHistory.addUserAccountHistory", userAccountHistory);
+	}
+
+	public void updateUserAccount(UserAccount userAccount)
+	{
+		getBaseDao().updateObject("UserAccount.updateUserAccount", userAccount);
+	}
+
+	public UserAccount findUserAccountByUserId(Integer userId)
+	{
+		return (UserAccount) getBaseDao().selectObjectByObject("UserAccount.getUserAccount", userId);
+	}
+
+	@Override
+	public int getUserAccountCountByUserIdAndPassWord(Integer userId, String passWord)
+	{
+		// TODO Auto-generated method stub
+		HashMap<String,  Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("userId", userId);
+		paramMap.put("passWord", passWord);
+		return (int)getBaseDao().selectObjectByObject("UserAccount.getUserAccountCountByUserIdAndPassWord", paramMap);
+	}
+}

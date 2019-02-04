@@ -1,0 +1,552 @@
+package com.guotop.palmschool.controller;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.guotop.palmschool.common.controller.BaseUploadController;
+import com.guotop.palmschool.entity.Agency;
+import com.guotop.palmschool.entity.School;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.entity.UserBoundSchool;
+import com.guotop.palmschool.service.AgencyService;
+import com.guotop.palmschool.service.SchoolService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.StringUtil;
+import com.richx.pojo.RichHttpResponse;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 学校管理控制类
+ * 
+ * @author jfy
+ *
+ */
+@RequestMapping("/school")
+@Controller
+public class SchoolController extends BaseUploadController
+{
+	private Logger log = LoggerFactory.getLogger(SchoolController.class);
+
+	@Resource
+	private SchoolService schoolService;
+
+	@Resource
+	private AgencyService agencyService;
+
+	@Resource
+	private UserService userService;
+
+	/**
+	 * 进入学校管理页面
+	 */
+	@RequestMapping(value = "/toSchoolInfoConfig.do")
+	public String toSchoolList(HttpSession session, ModelMap modelMap)
+	{
+		User loginUser = (User) session.getAttribute("user");
+		String schoolId = loginUser.getSchoolId();
+		if (schoolId == null || schoolId.equals(""))
+		{
+			schoolId = "0";
+		}
+		School schoolInfo = schoolService.getSchoolInfoBySchoolId(Long.valueOf(schoolId));
+		modelMap.addAttribute("schoolInfo", schoolInfo);
+		return "school/modify_school_info";
+	}
+
+	/**
+	 * 修改学校信息
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "/doModifyInfo.do")
+	public String doModifySchoolInfo(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		User loginUser = (User) session.getAttribute("user");
+		String schoolId = loginUser.getSchoolId();
+		HashMap<String, Object> map = new HashMap<String, Object>();
+
+		String savePath = getTempRoot() + "\\" + schoolId + "\\schoolInfo\\";
+		File file = new File(savePath);
+		// 判断上传文件的保存目录是否存在
+		if (!file.exists() && !file.isDirectory())
+		{
+			// 创建目录
+			file.mkdirs();
+		}
+		try
+		{
+			// 使用Apache文件上传组件处理文件上传步骤：
+			// 1、创建一个DiskFileItemFactory工厂
+			DiskFileItemFactory factory = new DiskFileItemFactory();
+			// 2、创建一个文件上传解析器
+			ServletFileUpload upload = new ServletFileUpload(factory);
+			// 解决上传文件名的中文乱码
+			upload.setHeaderEncoding("UTF-8");
+			// 3、判断提交上来的数据是否是上传表单的数据
+			if (!ServletFileUpload.isMultipartContent(request))
+			{
+				// 按照传统方式获取数据
+				map.put("status", 1);
+				return null;
+			}
+			// 4、使用ServletFileUpload解析器解析上传数据，解析结果返回的是一个List<FileItem>集合，每一个FileItem对应一个Form表单的输入项
+			List<FileItem> list = upload.parseRequest(request);
+			String schoolName = "";
+			String schoolAddress = "";
+			String schoolTelephone = "";
+			String createDate = "";
+			String introduction = "";
+			String president = "";
+			String headmasterMotto = "";
+			String schoolBadge = "";
+			String headmasterMottoPhoto = "";
+			String introductionImg = "";
+			for (FileItem item : list)
+			{
+				// 如果fileitem中封装的是普通输入项的数据
+				if (item.isFormField())
+				{
+					String name = item.getFieldName();
+					if ("schoolName".equals(name))
+					{
+						schoolName = item.getString("UTF-8");
+					} else if ("schoolAddress".equals(name))
+					{
+						schoolAddress = item.getString("UTF-8");
+					} else if ("schoolTelephone".equals(name))
+					{
+						schoolTelephone = item.getString("UTF-8");
+					} else if ("createDate".equals(name))
+					{
+						createDate = item.getString("UTF-8");
+					} else if ("introduction".equals(name))
+					{
+						introduction = item.getString("UTF-8");
+					} else if ("president".equals(name))
+					{
+						president = item.getString("UTF-8");
+					} else if ("headmasterMotto".equals(name))
+					{
+						headmasterMotto = item.getString("UTF-8");
+					}
+				} else
+				{// 如果fileitem中封装的是上传文件
+					// 得到上传的文件名称，
+					String fieldName = item.getFieldName();
+					String filename = item.getName();
+					if (filename == null || filename.trim().equals(""))
+					{
+						continue;
+					}
+					// 注意：不同的浏览器提交的文件名是不一样的，有些浏览器提交上来的文件名是带有路径的，如：
+					// c:\a\b\1.txt，而有些只是单纯的文件名，如：1.txt
+					// 处理获取到的上传文件的文件名的路径部分，只保留文件名部分
+					filename = filename.substring(filename.lastIndexOf("\\") + 1);
+					// 获取item中的上传文件的输入流
+					InputStream in = item.getInputStream();
+					// 创建一个文件输出流
+					FileOutputStream out = new FileOutputStream(savePath + "\\" + filename);
+					// 创建一个缓冲区
+					byte buffer[] = new byte[1024];
+					// 判断输入流中的数据是否已经读完的标识
+					int len = 0;
+					// 循环将输入流读入到缓冲区当中，(len=in.read(buffer))>0就表示in里面还有数据
+					while ((len = in.read(buffer)) > 0)
+					{
+						// 使用FileOutputStream输出流将缓冲区的数据写入到指定的目录(savePath + "\\"
+						// + filename)当中
+						out.write(buffer, 0, len);
+					}
+					
+					if ("schoolBadge".equals(fieldName))
+					{
+						schoolBadge = "/upload/" + schoolId + "/schoolInfo/" + filename;
+					} else if ("headmasterMottoPhoto".equals(fieldName))
+					{
+						headmasterMottoPhoto = "/upload/" + schoolId + "/schoolInfo/" + filename;
+					} else if ("introductionImg".equals(fieldName))
+					{
+						introductionImg = "/upload/" + schoolId + "/schoolInfo/" + filename;
+					}
+					
+					// 关闭输入流
+					in.close();
+					// 关闭输出流
+					out.close();
+				}
+
+			}
+			School schoolInfo = new School();
+			schoolInfo.setCreateDate(createDate);
+			schoolInfo.setHeadmasterMotto(headmasterMotto);
+			schoolInfo.setIntroduction(introduction);
+			schoolInfo.setPresident(president);
+			schoolInfo.setSchoolAddress(schoolAddress);
+			schoolInfo.setSchoolName(schoolName);
+			schoolInfo.setSchoolTelephone(schoolTelephone);
+			schoolInfo.setSchoolId(Long.valueOf(schoolId));
+			schoolInfo.setHeadmasterMottoPhoto(headmasterMottoPhoto);
+			schoolInfo.setIntroductionImg(introductionImg);
+			schoolInfo.setSchoolBadge(schoolBadge);
+
+			schoolService.updataSchoolDetail(schoolInfo);
+
+			return toSchoolList( session,  modelMap);
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+
+		}
+		return null;
+	}
+
+	@Override
+	public String getCommandName()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/**
+	 * 进入学校授权页面
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/toAuthorization.do")
+	public String toAuthorization(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		User loginUser = (User) session.getAttribute("user");
+		String condition = request.getParameter("condition");
+		String status = request.getParameter("status");
+		if (status == null || status.equals(""))
+		{
+			status = "0";
+		}
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("condition", condition);
+		// 判断是否为超管
+		if (loginUser.getUsername().equals("sysadmin"))
+		{
+			List<Agency> schoolList = new ArrayList<Agency>();
+			if (status.equals("0"))
+			{
+				// 获取所有未绑定代理商学校列表
+				schoolList = schoolService.getAllSchoolWithoutAuthentication(map);
+			} else
+			{
+				schoolList = schoolService.getAllSchoolWithAuthentication(map);
+			}
+			// 获取所有代理商列表
+			List<Agency> agencyList = agencyService.getAgencyList();
+			modelMap.addAttribute("schoolList", schoolList);
+			modelMap.addAttribute("agencyList", agencyList);
+			modelMap.addAttribute("status", status);
+			modelMap.addAttribute("condition", condition);
+		}
+
+		return "system/authorization";
+	}
+
+	/**
+	 * 学校绑定代理商
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/doAuthorization.do")
+	public String doAuthorization(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String schoolId = request.getParameter("schoolId");
+		String agencyId = request.getParameter("agencyId");
+		if (!StringUtil.isEmpty(agencyId))
+		{
+			boolean flag = schoolService.isExistBySchoolId(Long.valueOf(schoolId));
+			if (!flag)
+			{
+				schoolService.addSchoolAndAgencyLink(Long.valueOf(schoolId), Integer.valueOf(agencyId));
+			} else
+			{
+				schoolService.modifySchoolAndAgencyLink(Long.valueOf(schoolId), Integer.valueOf(agencyId));
+			}
+		}
+		return toAuthorization(request, response, session, modelMap);
+	}
+
+	/**
+	 * 进入技术支持页面
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/toTechnicalSupport.do")
+	public String toTechnicalSupport(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		User loginUser = (User) session.getAttribute("user");
+		String condition = request.getParameter("condition");
+		String status = request.getParameter("status");
+		if (status == null || status.equals(""))
+		{
+			status = "0";
+		}
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("condition", condition);
+		// 判断是否为超管
+		if (loginUser.getUsername().equals("sysadmin"))
+		{
+			List<Agency> schoolList = new ArrayList<Agency>();
+			if (status.equals("0"))
+			{
+				// 获取所有未绑定技术支持的学校（也就是已经绑定代理商，但没有绑定技术支持）
+				schoolList = schoolService.getAllSchoolWithoutTechnicalSupport(map);
+			} else
+			{
+				schoolList = schoolService.getAllSchoolWithTechnicalSupport(map);
+			}
+			// 获取所有代理商对应的技术支持人员列表
+			for (Agency agency : schoolList)
+			{
+				List<User> supportUserList = agencyService.getSupportUserListByAgencyId(agency.getId());
+				agency.setSupportUserList(supportUserList);
+			}
+
+			modelMap.addAttribute("schoolList", schoolList);
+			modelMap.addAttribute("status", status);
+			modelMap.addAttribute("condition", condition);
+		}
+
+		return "system/technicalSupport";
+	}
+
+	/**
+	 * 学校绑定技术支持人员
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/doTechnicalSupport.do")
+	public String doTechnicalSupport(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String schoolId = request.getParameter("schoolId");
+		String new_supportUserId = request.getParameter("supportUserId");
+		String orig_supportUserId = request.getParameter("orig_supportUserId");
+
+		if (!StringUtil.isEmpty(new_supportUserId))
+		{
+			if (new_supportUserId.equals(orig_supportUserId))
+			{
+				return "system/authorization";
+			}
+
+			HashMap<String, Object> map = new HashMap<String, Object>();
+			map.put("schoolId", Long.valueOf(schoolId));
+			if (orig_supportUserId != null && !"".equals(orig_supportUserId))
+			{
+				map.put("orig_supportUserId", Integer.valueOf(orig_supportUserId));
+			}
+			// 判断原先是否存在该学校和技术支持的关系
+			boolean flag = schoolService.isExistSupportBySchoolId(map);
+			if (!flag)
+			{
+				schoolService.addSchoolAndSupport(Long.valueOf(schoolId), Integer.valueOf(new_supportUserId));
+			} else
+			{
+				if (orig_supportUserId != null && !"".equals(orig_supportUserId))
+				{
+					schoolService.modifySchoolAndSupport(Long.valueOf(schoolId), Integer.valueOf(new_supportUserId), Integer.valueOf(orig_supportUserId));
+				}
+			}
+		}
+
+		return toTechnicalSupport(request, response, session, modelMap);
+	}
+
+	/**
+	 * 添加用户和学校入学年份的关系
+	 */
+	@RequestMapping(value = "/addUserSchoolByHuxin.do")
+	public String getAddressListByApiKey(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<Object> rhr = new RichHttpResponse<Object>();
+		String schoolId = request.getParameter("schoolId");
+		String year = request.getParameter("year");
+		String json;
+		String apiKey = request.getParameter("apiKey");
+		// 根据apikey查询用户
+		User loginUser = userService.getHuxinUserByApiKey(apiKey);
+		try
+		{
+
+			
+			
+			if (loginUser != null)
+			{
+				School school = schoolService.getSchoolInfoBySchoolId(Long.valueOf(schoolId));
+
+				UserBoundSchool userBoundSchool = new UserBoundSchool();
+				userBoundSchool.setUserId(loginUser.getUserId());
+				userBoundSchool.setSchoolId(Long.valueOf(schoolId));
+				userBoundSchool.setSchoolCategory(school.getSchoolCategory());
+				userBoundSchool.setYear(year);
+
+				String result = schoolService.getUserBoundSchool(userBoundSchool);
+				int code = 1;
+				if (StringUtil.isEmpty(result))
+				{
+					schoolService.addUserBoundSchool(userBoundSchool);
+					result = "添加成功";
+					code = 0;
+				}
+				
+				rhr.ResponseCode = code;
+				rhr.ResponseResult = result;
+				rhr.ResponseObject = "";
+				json = GsonHelper.toJsonWithAnnotation(rhr);
+			} else
+			{
+				rhr.ResponseCode = -1;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = "用户不存在";
+				json = GsonHelper.toJsonWithAnnotation(rhr);
+			}
+			
+
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("获取失败：" + e.getMessage());
+		}
+		return null;
+	}
+
+	/**
+	 * 删除用户和学校入学年份的关系
+	 */
+	@RequestMapping(value = "/deleteUserSchoolByHuxin.do")
+	public String deleteUserSchoolByHuxin(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<Object> rhr = new RichHttpResponse<Object>();
+		String schoolId = request.getParameter("schoolId");
+		String apiKey = request.getParameter("apiKey");
+		// 根据apikey查询用户
+		User loginUser = userService.getHuxinUserByApiKey(apiKey);
+		String json;
+		try
+		{
+
+			
+			if (loginUser != null)
+			{
+				UserBoundSchool userBoundSchool = new UserBoundSchool();
+				userBoundSchool.setUserId(loginUser.getUserId());
+				userBoundSchool.setSchoolId(Long.valueOf(schoolId));
+				schoolService.deleteUserSchoolByHuxin(userBoundSchool);
+
+				rhr.ResponseCode = 0;
+				rhr.ResponseResult = "删除成功";
+				rhr.ResponseObject = "";
+				json = GsonHelper.toJsonWithAnnotation(rhr);
+			} else
+			{
+				rhr.ResponseCode = -1;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = "用户不存在";
+				json = GsonHelper.toJsonWithAnnotation(rhr);
+			}
+
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("获取失败：" + e.getMessage());
+		}
+		return null;
+	}
+
+	/**
+	 * 删除用户和学校入学年份的关系
+	 */
+	@RequestMapping(value = "/getUserSchoolByApiKey.do")
+	public String getUserSchoolByApiKey(HttpServletRequest request, HttpSession session, ModelMap modelMap, HttpServletResponse response)
+	{
+
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		RichHttpResponse<List<UserBoundSchool>> rhr = new RichHttpResponse<List<UserBoundSchool>>();
+		String apiKey = request.getParameter("apiKey");
+		String json;
+
+		// 根据apikey查询用户
+		User loginUser = userService.getHuxinUserByApiKey(apiKey);
+		try
+		{
+
+			if (loginUser != null)
+			{
+
+				List<UserBoundSchool> list = schoolService.getUserSchoolByApiKey(loginUser.getUserId());
+				rhr.ResponseCode = 0;
+				rhr.ResponseResult = "获取成功";
+				rhr.ResponseObject = list;
+				json = GsonHelper.toJsonWithAnnotation(rhr);
+			} else
+			{
+				rhr.ResponseCode = -1;
+				rhr.ResponseObject = null;
+				rhr.ResponseResult = "用户不存在";
+				json = GsonHelper.toJsonWithAnnotation(rhr);
+			}
+
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			log.error("json转换失败：" + e.getMessage());
+		} catch (Exception e)
+		{
+			log.error("获取失败：" + e.getMessage());
+		}
+		return null;
+	}
+}

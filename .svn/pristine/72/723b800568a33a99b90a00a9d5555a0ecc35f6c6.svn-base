@@ -1,0 +1,16 @@
+package com.guotop.palmschool.service;
+
+import java.util.List;
+
+import com.guotop.palmschool.entity.Groups;
+
+public interface GroupsService
+{
+	public Integer addGroups(Groups groups);
+
+	public List<Integer> getGroupsBySchoolIdAndDepartmentId(Long schoolId, Integer departmentId);
+	
+	public List<Integer> getGroupsBySchoolIdAndClazzId(Long schoolId, Integer clazzId);
+	
+	public Groups getLastlyGroups();
+}

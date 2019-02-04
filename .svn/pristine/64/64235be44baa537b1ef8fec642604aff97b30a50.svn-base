@@ -1,0 +1,1305 @@
+package com.guotop.palmschool.asset.controller;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.mail.Session;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+import com.google.gson.Gson;
+import com.guotop.palmschool.asset.entity.Asset;
+import com.guotop.palmschool.asset.entity.AssetRepair;
+import com.guotop.palmschool.asset.entity.AssetRepairImg;
+import com.guotop.palmschool.asset.entity.AssetServiceman;
+import com.guotop.palmschool.asset.service.AssetService;
+import com.guotop.palmschool.asset.tool.Type;
+import com.guotop.palmschool.asset.tool.Units;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.constant.Cons.PUSHTYPE;
+import com.guotop.palmschool.asset.tool.AssetType;
+import com.guotop.palmschool.controller.BaseController;
+import com.guotop.palmschool.entity.Department;
+import com.guotop.palmschool.entity.Role;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.rest.entity.PushItem;
+import com.guotop.palmschool.service.DepartmentService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.FileUploadUtil;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+import com.sun.mail.imap.protocol.Status;
+
+/**
+ * 资产控制类
+ * 
+ * @author 陈士鹏
+ */
+@RequestMapping("/asset")
+@Controller
+public class AssetController extends BaseController
+{
+	@Resource
+	private AssetService assetService;
+
+	@Resource
+	private UserService userService;
+
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private DepartmentService departmentService;
+
+	/**
+	 * 资产记录页面
+	 */
+	@RequestMapping(value = "/toAssetInfoList.do")
+	public String toAssetInfoList()
+	{
+		return "asset/asset_list";
+	}
+
+	/**
+	 * 资产导入页面
+	 */
+	@RequestMapping(value = "/toAssetImport.do")
+	public String toAssetImport()
+	{
+		return "asset/asset_import";
+	}
+
+	/**
+	 * 资产添加页面
+	 */
+	@RequestMapping(value = "/toAssetAdd.do")
+	public String toAssetAdd()
+	{
+		return "asset/asset_add";
+	}
+
+	/**
+	 * 维修列表页面
+	 */
+	@RequestMapping(value = "/toAssetRepairList.do")
+	public String toAssetRepairList()
+	{
+		return "asset/asset_repair_list";
+	}
+
+	/**
+	 * 维修人员列表页面
+	 */
+	@RequestMapping(value = "/toAssetServicemanList.do")
+	public String toAssetServicemanList()
+	{
+		return "asset/asset_serviceman_list";
+	}
+
+	/**
+	 * 进入添加维修人员列表页面
+	 */
+	@RequestMapping(value = "/toAddAssetServiceman.do")
+	public String toAddAssetServiceman()
+	{
+		return "asset/asset_serviceman_add";
+	}
+
+	/**
+	 * 资产报修页面
+	 */
+	@RequestMapping(value = "/toAssetRepair.do")
+	public String toAssetRepair(HttpSession session, ModelMap modelMap)
+	{
+		User user = (User) session.getAttribute("user");
+		if (commonService.hasAdminPermission(user))// 如果是管理员权限表示报修人是领导
+		{
+			modelMap.addAttribute("personnelType", "leader");
+		} else
+		{
+			boolean flag = false;
+			List<Role> roleList = user.getRoleList();
+			for (Role role : roleList)
+			{
+				if (role.getRoleCode().equals("departManager"))// 如果有部门管理员权限表示报修人是领导
+				{
+					flag = true;
+					break;
+				}
+			}
+
+			// 根据用户ID判断是否有管理的部门
+			boolean isDapartLeader = departmentService.checkIsDapartLeaderByUserId(user.getUserId());
+
+			if (flag || isDapartLeader)// 报修人为领导
+			{
+				modelMap.addAttribute("personnelType", "leader");
+			} else// 不是领导 判断是否为维修人员还是普通人员
+			{
+				boolean isServiceman = assetService.isServiceman(user.getUserId());
+				if (isServiceman)
+				{
+					modelMap.addAttribute("personnelType", "serviceman");
+				} else
+				{
+					modelMap.addAttribute("personnelType", "repair");
+				}
+			}
+		}
+
+		modelMap.addAttribute("realName", user.getRealName());
+		modelMap.addAttribute("phone", user.getPhone());
+		modelMap.addAttribute("userId", user.getUserId());
+		return "asset/asset_repair";
+	}
+
+	/**
+	 * 获取资产列表（分页）
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	@RequestMapping(value = "/getAssetList.do")
+	public String getAssetList(HttpServletRequest request, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			String name = request.getParameter("name");
+			String code = request.getParameter("code");
+			String type = request.getParameter("type");
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("page"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			int pageSize = StringUtil.toint(request.getParameter("pageSize"));
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("name", name);
+			params.put("code", code);
+			params.put("type", type);
+
+			Pages pages = assetService.getAssetList(currentPage, pageSize, params);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 获取资产导入列表
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	@RequestMapping(value = "/getImportList.do")
+	public String getImportList(HttpServletRequest request, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("page"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			int pageSize = StringUtil.toint(request.getParameter("pageSize"));
+
+			Pages pages = assetService.getImportList(currentPage, pageSize);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 添加资产
+	 */
+	@RequestMapping(value = "/doAddAsset.do")
+	public String doAddAsset(HttpServletRequest request, HttpSession session)
+	{
+		String code = request.getParameter("code");
+		String name = request.getParameter("name");
+		String manufacturer = request.getParameter("manufacturer");
+		String spec = request.getParameter("spec");
+		String model = request.getParameter("model");
+		Integer type = Integer.valueOf(request.getParameter("type"));
+		String units = request.getParameter("units");
+		Integer count = Integer.valueOf(request.getParameter("count"));
+		Double price = Double.valueOf(request.getParameter("price"));
+		Integer respPersonId = Integer.valueOf(request.getParameter("respPersonId"));
+		String respPerson = request.getParameter("respPerson");
+		String site = request.getParameter("site");
+		String buyDate = request.getParameter("buyDate");
+		String qualityDate = request.getParameter("qualityDate");
+		String remark = request.getParameter("remark");
+		Asset asset = new Asset();
+		asset.setBuyDate(buyDate);
+		asset.setCode(code);
+		asset.setCount(count);
+		asset.setCreateTime(TimeUtil.getInstance().now());
+		asset.setModel(model);
+		asset.setName(name);
+		asset.setManufacturer(manufacturer);
+		asset.setPrice(price);
+		asset.setQualityDate(qualityDate);
+		asset.setRemark(remark);
+		asset.setRespPerson(respPerson);
+		asset.setRespPersonId(respPersonId);
+		asset.setSite(site);
+		asset.setSpec(spec);
+		asset.setType(type);
+		asset.setUnits(units);
+		assetService.addAsset(asset);
+		return "redirect:/asset/toAssetInfoList.do";
+	}
+
+	/**
+	 * 修改资产
+	 */
+	@RequestMapping(value = "/modifyAsset.do")
+	public String modifyAsset(HttpServletRequest request, HttpServletResponse response)
+	{
+		try
+		{
+			Integer assetId = Integer.valueOf(request.getParameter("assetId"));
+			String code = request.getParameter("code");
+			String name = request.getParameter("name");
+			String manufacturer = request.getParameter("manufacturer");
+			Integer type = Integer.valueOf(request.getParameter("type"));
+			Integer respPersonId = Integer.valueOf(request.getParameter("respPersonId"));
+			String respPerson = request.getParameter("respPerson");
+			String spec = request.getParameter("spec");
+			String model = request.getParameter("model");
+			String units = request.getParameter("units");
+			String site = request.getParameter("site");
+			String buyDate = request.getParameter("buyDate");
+			String qualityDate = request.getParameter("qualityDate");
+			String remark = request.getParameter("remark");
+			Integer count = Integer.valueOf(request.getParameter("count"));
+			Double price = Double.valueOf(request.getParameter("price"));
+
+			Asset asset = new Asset();
+			asset.setId(assetId);
+			asset.setBuyDate(buyDate);
+			asset.setCode(code);
+			asset.setCount(count);
+			asset.setManufacturer(manufacturer);
+			asset.setUpdateTime(TimeUtil.getInstance().now());
+			asset.setModel(model);
+			asset.setName(name);
+			asset.setPrice(price);
+			asset.setQualityDate(qualityDate);
+			asset.setRemark(remark);
+			asset.setRespPerson(respPerson);
+			asset.setRespPersonId(respPersonId);
+			asset.setSite(site);
+			asset.setSpec(spec);
+			asset.setType(type);
+			asset.setUnits(units);
+			assetService.modifyAsset(asset);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(true);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 根据资产ID获取资产详情
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/getAssetDetailById.do")
+	public String getAssetDetailById(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			Integer id = StringUtil.toint(request.getParameter("id"));
+
+			Asset asset = assetService.getAssetDetailById(id);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(asset);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 根据资产类型获取资产列表
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/getAllAssetListByType.do")
+	public String getAllAssetListByType(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			Integer type = StringUtil.toint(request.getParameter("type"));
+
+			List<Asset> assetList = assetService.getAllAssetListByType(type);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(assetList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 根据资产ID获取资产详情
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/deleteAssetById.do")
+	public String deleteAssetById(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			Integer id = StringUtil.toint(request.getParameter("id"));
+
+			assetService.deleteAssetById(id);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(true);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 添加维修列表
+	 */
+	@RequestMapping(value = "/doAddAssetRepair.do")
+	public String doAddAssetRepair(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		try
+		{
+			User user = (User) session.getAttribute("user");
+			Integer userId = Integer.valueOf(request.getParameter("userId"));
+			String realName = request.getParameter("realName");
+			String phone = request.getParameter("phone");
+			Integer type = Integer.valueOf(request.getParameter("type"));
+			Double price = 0.00;
+			try
+			{
+				price = Double.valueOf(request.getParameter("price"));
+			} catch (Exception e)
+			{
+				price = 0.00;
+			}
+			String personnelType = request.getParameter("personnelType");// leader领导,serviceman维修人员,repair普通报修人员
+			String remark = request.getParameter("remark");
+
+			/**
+			 * 资产数组
+			 */
+			String[] assetArr = request.getParameter("assetArr").split(",");
+			/**
+			 * 维修人员数据
+			 */
+			String[] servicemanArr = request.getParameter("servicemanArr").split(",");
+
+			List<AssetRepairImg> repairImgList = new ArrayList<>();
+			SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+			MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+			boolean flag = false;
+			for (Iterator<String> it = multipartRequest.getFileNames(); it.hasNext();)
+			{
+				String key = (String) it.next();
+				MultipartFile imgFile = multipartRequest.getFile(key);
+				if (imgFile.getOriginalFilename().length() > 0)
+				{
+					String fileName = imgFile.getOriginalFilename();
+					String uploadFilePathTemp = request.getSession().getServletContext().getRealPath("/") + "temp";
+					File dir = new File(uploadFilePathTemp);
+					if (!dir.exists())
+					{
+						dir.mkdirs();
+					}
+					String fileNameStr = formatter.format(new Date()) + "__" + fileName;
+					File tempFile = new File(uploadFilePathTemp + "/" + fileNameStr);
+					if (!tempFile.exists())
+					{
+						tempFile.createNewFile();
+					}
+					imgFile.transferTo(tempFile);
+					FileUploadUtil fuu = new FileUploadUtil();
+					String path = "asset/repairgraph/" + userId + System.currentTimeMillis() + "/" + fileName;
+					fuu.simpleUpload(tempFile.getAbsolutePath(), path, Cons.QINIU_BUCKETNAME_RICH_CLOUD);
+					tempFile.delete();
+
+					AssetRepairImg repairImg = new AssetRepairImg();
+					repairImg.setCreateTime(TimeUtil.getInstance().now());
+					repairImg.setName(fileName);
+					repairImg.setPath(Cons.QINIU_BUCKETNAME_RICH_CLOUD_URL + path);
+					repairImgList.add(repairImg);
+					flag = true;
+				}
+			}
+
+			// 推送手机端消息
+			List<PushItem> list = new ArrayList<PushItem>();
+			if (personnelType.equals("leader"))
+			{
+				if (assetArr != null && servicemanArr != null)
+				{
+					for (int j = 0; j < servicemanArr.length; j++)
+					{
+						String content = "";
+						for (int i = 0; i < assetArr.length; i++)
+						{
+							AssetRepair repair = new AssetRepair();
+							repair.setAssetId(Integer.valueOf(assetArr[i]));
+							repair.setCreateTime(TimeUtil.getInstance().now());
+							repair.setPhone(phone);
+							repair.setPrice(price);
+							repair.setRealName(realName);
+							repair.setRemark(remark);
+							repair.setServicemanId(Integer.valueOf(servicemanArr[j]));
+							repair.setType(type);
+							repair.setStatus(2);
+							repair.setUserId(userId);
+							Integer repairId = assetService.addAssetRepair(repair);
+							if (flag)
+							{
+								for (AssetRepairImg repairImg : repairImgList)
+								{
+									repairImg.setRepairId(repairId);
+									assetService.addAssetRepairImg(repairImg);
+								}
+							}
+
+							Asset asset = assetService.getAssetDetailById(Integer.valueOf(assetArr[i]));
+							content += asset.getName() + ",";
+						}
+						User receiver = commonService.getUserByUserIdForPush(Integer.valueOf(servicemanArr[j]));
+						PushItem pi = new PushItem();
+						pi.receiverId = receiver.getUserId();
+						pi.channels = receiver.getBaiduChannelId();
+						pi.deviceType = String.valueOf(receiver.getDeviceType());
+						pi.PushContent = receiver.getRealName() + "您好，资产：" + content + "维修申请已审核通过，请及时处理！";
+						pi.PushType = PUSHTYPE.ASSETREPAIR.getType();
+						pi.PushContentType = PUSHTYPE.ASSETREPAIR.getContentType();
+						pi.title = PUSHTYPE.ASSETREPAIR.getName();
+						pi.schoolId = String.valueOf(user.getSchoolId());
+						list.add(pi);
+					}
+				}
+			} else if (personnelType.equals("serviceman"))
+			{
+				if (assetArr != null)
+				{
+					String content = "";
+					for (int i = 0; i < assetArr.length; i++)
+					{
+
+						AssetRepair repair = new AssetRepair();
+						repair.setAssetId(Integer.valueOf(assetArr[i]));
+						repair.setCreateTime(TimeUtil.getInstance().now());
+						repair.setPhone(phone);
+						repair.setPrice(price);
+						repair.setRealName(realName);
+						repair.setRemark(remark);
+						repair.setServicemanId(userId);
+						repair.setType(type);
+						repair.setStatus(0);
+						repair.setUserId(userId);
+						Integer repairId = assetService.addAssetRepair(repair);
+						if (flag)
+						{
+							for (AssetRepairImg repairImg : repairImgList)
+							{
+								repairImg.setRepairId(repairId);
+								assetService.addAssetRepairImg(repairImg);
+							}
+						}
+
+						Asset asset = assetService.getAssetDetailById(Integer.valueOf(assetArr[i]));
+						content += asset.getName() + ",";
+					}
+
+					List<User> leaderList = assetService.getLeaderListByServicemanIdForPush(userId);
+					for (User leader : leaderList)
+					{
+						PushItem pi = new PushItem();
+						pi.receiverId = leader.getUserId();
+						pi.channels = leader.getBaiduChannelId();
+						pi.deviceType = String.valueOf(leader.getDeviceType());
+						pi.PushContent = leader.getRealName() + "您好，" + realName + "已提交,资产：" + content + "维修单，请及时处理！";
+						pi.PushType = PUSHTYPE.ASSETREPAIR.getType();
+						pi.PushContentType = PUSHTYPE.ASSETREPAIR.getContentType();
+						pi.title = PUSHTYPE.ASSETREPAIR.getName();
+						pi.schoolId = String.valueOf(user.getSchoolId());
+						list.add(pi);
+					}
+				}
+			} else
+			{
+				if (assetArr != null && servicemanArr != null)
+				{
+					String content = "";
+					for (int j = 0; j < servicemanArr.length; j++)
+					{
+						content = "";
+						for (int i = 0; i < assetArr.length; i++)
+						{
+							AssetRepair repair = new AssetRepair();
+							repair.setAssetId(Integer.valueOf(assetArr[i]));
+							repair.setCreateTime(TimeUtil.getInstance().now());
+							repair.setPhone(phone);
+							repair.setPrice(price);
+							repair.setRealName(realName);
+							repair.setRemark(remark);
+							repair.setServicemanId(Integer.valueOf(servicemanArr[j]));
+							repair.setType(type);
+							repair.setStatus(0);
+							repair.setUserId(userId);
+							Integer repairId = assetService.addAssetRepair(repair);
+							if (flag)
+							{
+								for (AssetRepairImg repairImg : repairImgList)
+								{
+									repairImg.setRepairId(repairId);
+									assetService.addAssetRepairImg(repairImg);
+								}
+							}
+
+							Asset asset = assetService.getAssetDetailById(Integer.valueOf(assetArr[i]));
+							content += asset.getName() + ",";
+						}
+
+						List<User> leaderList = assetService.getLeaderListByServicemanIdForPush(Integer.valueOf(servicemanArr[j]));
+						for (User leader : leaderList)
+						{
+							PushItem pi = new PushItem();
+							pi.receiverId = leader.getUserId();
+							pi.channels = leader.getBaiduChannelId();
+							pi.deviceType = String.valueOf(leader.getDeviceType());
+							pi.PushContent = leader.getRealName() + "您好，" + realName + "已提交,资产：" + content + "维修单，请及时处理！";
+							pi.PushType = PUSHTYPE.ASSETREPAIR.getType();
+							pi.PushContentType = PUSHTYPE.ASSETREPAIR.getContentType();
+							pi.title = PUSHTYPE.ASSETREPAIR.getName();
+							pi.schoolId = String.valueOf(user.getSchoolId());
+							list.add(pi);
+						}
+					}
+					List<User> leaderList = userService.getLeaderByUserIdForPush(userId);
+					for (User leader : leaderList)
+					{
+						PushItem pi = new PushItem();
+						pi.receiverId = leader.getUserId();
+						pi.channels = leader.getBaiduChannelId();
+						pi.deviceType = String.valueOf(leader.getDeviceType());
+						pi.PushContent = leader.getRealName() + "您好，" + realName + "提交了,资产：" + content + "维修单，请知晓！";
+						pi.PushType = PUSHTYPE.ASSETREPAIR.getType();
+						pi.PushContentType = PUSHTYPE.ASSETREPAIR.getContentType();
+						pi.title = PUSHTYPE.ASSETREPAIR.getName();
+						pi.schoolId = String.valueOf(user.getSchoolId());
+						list.add(pi);
+					}
+				}
+			}
+
+			if (list.size() > 0)
+			{
+				commonService.pushMsg(list, false);
+			}
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(true);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 校验编码是否存在
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/checkCode.do")
+	public String checkCode(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			String code = request.getParameter("code");
+			String oldcode = request.getParameter("oldcode");
+
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("code", code);
+			paramMap.put("oldcode", oldcode);
+			boolean flag = assetService.checkCode(paramMap);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(flag);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 获取维修人员列表（分页）
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	@RequestMapping(value = "/getServicemanList.do")
+	public String getServicemanList(HttpServletRequest request, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			String code = request.getParameter("code");// 员工编号
+			String type = request.getParameter("type");// 维修类型
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("page"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			int pageSize = StringUtil.toint(request.getParameter("pageSize"));
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("code", code);
+			params.put("type", type);
+
+			Pages pages = assetService.getServicemanList(currentPage, pageSize, params);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 添加维修人员列表
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/doAddServiceman.do")
+	public String doAddServiceman(HttpServletRequest request, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			Integer servicemanId = Integer.valueOf(request.getParameter("servicemanId"));
+			String serviceman = request.getParameter("serviceman");
+			String phone = request.getParameter("phone");
+			String code = request.getParameter("code");
+			Integer leaderIdOne = Integer.valueOf(request.getParameter("leaderIdOne"));
+			String leaderOne = request.getParameter("leaderOne");
+			Integer leaderIdTwo = Integer.valueOf(request.getParameter("leaderIdTwo"));
+			String leaderTwo = request.getParameter("leaderTwo");
+			Integer type = Integer.valueOf(request.getParameter("type"));
+
+			AssetServiceman as = new AssetServiceman();
+			as.setServicemanId(servicemanId);
+			as.setServiceman(serviceman);
+			as.setPhone(phone);
+			as.setCode(code);
+			as.setType(type);
+			as.setLeaderIdOne(leaderIdOne);
+			as.setLeaderOne(leaderOne);
+			as.setLeaderIdTwo(leaderIdTwo);
+			as.setLeaderTwo(leaderTwo);
+			as.setCreateTime(TimeUtil.getInstance().now());
+			assetService.addAssetServiceman(as);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(true);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 根据类型获取对应的维修人员
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/getAllServicemanListByType.do")
+	public String getAllServicemanListByType(HttpServletRequest request, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			Integer type = StringUtil.toint(request.getParameter("type"));// 维修类型
+
+			List<AssetServiceman> list = assetService.getAllServicemanListByType(type);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(list);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 获取负责人列表
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getRespPerson.do")
+	public String getRespPerson(HttpServletRequest request, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			List<User> list = userService.getAllUserExceptStudentAndPArent();
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(list);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 获取计量单位
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getUnitsList.do")
+	public String getUnitsList(HttpServletRequest request, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			List<String> list = Units.getList();
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(list);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 获取资产类型
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getAssetTypeList.do")
+	public String getAssetTypeList(HttpServletRequest request, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			List<Type> list = AssetType.getList();
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(list);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 根据用户ID获取对应的部门领导人包含校长和管理员
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getLeaderListByUserId.do")
+	public String getLeaderListByUserId(HttpServletRequest request, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+
+			Integer userId = StringUtil.toint(request.getParameter("userId"));// 维修类型
+			List<User> list = userService.getLeaderListByUserId(userId);
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(list);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 获取维修列表
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	@RequestMapping(value = "/getAssetRepairList.do")
+	public String getAssetRepairList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			User user = (User) session.getAttribute("user");
+			String status = request.getParameter("status");
+			String type = request.getParameter("type");
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("page"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			String personnelType = "";
+			if (commonService.hasAdminPermission(user))// 如果是管理员权限表示报修人是领导
+			{
+				personnelType = "leader";
+			} else
+			{
+				boolean flag = false;
+				List<Role> roleList = user.getRoleList();
+				for (Role role : roleList)
+				{
+					if (role.getRoleCode().equals("departManager"))// 如果有部门管理员权限表示报修人是领导
+					{
+						flag = true;
+						break;
+					}
+				}
+				// 根据用户ID判断是否有管理的部门
+				boolean isDapartLeader = departmentService.checkIsDapartLeaderByUserId(user.getUserId());
+
+				if (flag || isDapartLeader)// 报修人为领导
+				{
+					personnelType = "leader";
+				} else// 不是领导 判断是否为维修人员还是普通人员
+				{
+					boolean isServiceman = assetService.isServiceman(user.getUserId());
+					if (isServiceman)
+					{
+						personnelType = "serviceman";
+					} else
+					{
+						personnelType = "repair";
+					}
+				}
+			}
+
+			int pageSize = StringUtil.toint(request.getParameter("pageSize"));
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("status", status);
+			params.put("type", type);
+			params.put("userId", user.getUserId());
+
+			Pages pages = assetService.getAssetRepairList(currentPage, pageSize, personnelType, params);
+			params.put("pages", pages);
+			params.put("personnelType", personnelType);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(params);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 根据ID获取资产维修详情
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/getAssetRepairDetailById.do")
+	public String getAssetRepairDetailById(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			int id = StringUtil.toint(request.getParameter("id"));
+
+			AssetRepair repair = assetService.getAssetRepairDetailById(id);
+			List<AssetRepairImg> imgList = assetService.getAssetRepairImgListByRepairId(id);
+			repair.setImgList(imgList);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(repair);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 根据ID获取资产维修详情
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/repairReminder.do")
+	public String repairReminder(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			User user = (User) session.getAttribute("user");
+			int repairId = StringUtil.toint(request.getParameter("repairId"));
+
+			AssetRepair repair = assetService.getAssetRepairDetailById(repairId);
+			User receiver = commonService.getUserByUserIdForPush(repair.getServicemanId());
+			List<PushItem> piList = new ArrayList<>();
+			PushItem pi = new PushItem();
+			pi.receiverId = receiver.getUserId();
+			pi.channels = receiver.getBaiduChannelId();
+			pi.deviceType = String.valueOf(receiver.getDeviceType());
+			pi.PushContent = receiver.getRealName() + "您好，资产：" + repair.getAssetName() + "维修申请已审核通过，请及时处理！";
+			pi.PushType = PUSHTYPE.ASSETREPAIR.getType();
+			pi.PushContentType = PUSHTYPE.ASSETREPAIR.getContentType();
+			pi.title = PUSHTYPE.ASSETREPAIR.getName();
+			pi.schoolId = String.valueOf(user.getSchoolId());
+			piList.add(pi);
+			commonService.pushMsg(piList, false);
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(repair);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	/**
+	 * 资产审核
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/auditAssetRepair.do")
+	public String auditAssetRepair(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			User user = (User) session.getAttribute("user");
+			Integer repairId = StringUtil.toint(request.getParameter("repairId"));
+			Integer status = StringUtil.toint(request.getParameter("status"));
+			String auditRemark = request.getParameter("auditRemark");
+			String repairPrice = request.getParameter("repairPrice");
+			String estimatedTime = request.getParameter("estimatedTime");
+			
+			AssetRepair repair = new AssetRepair();
+			repair.setId(repairId);
+			repair.setStatus(status);
+			if(!StringUtil.isEmpty(auditRemark))
+			{
+				repair.setAuditRemark(auditRemark);
+			}
+			if(!StringUtil.isEmpty(repairPrice))
+			{
+				repair.setRepairPrice(Double.valueOf(repairPrice));
+			}
+			if(!StringUtil.isEmpty(estimatedTime))
+			{
+				repair.setEstimatedTime(estimatedTime);
+			}
+			if(status == 5)
+			{
+				repair.setFinishTime(TimeUtil.getInstance().now());
+			}
+			repair.setUpdateTime(TimeUtil.getInstance().now());
+			assetService.updateAsserRepair(repair);
+			
+			repair = assetService.getAssetRepairDetailById(repairId);
+			
+			if(status == 2)
+			{
+				User receiver = commonService.getUserByUserIdForPush(repair.getServicemanId());
+				List<PushItem> piList = new ArrayList<>();
+				PushItem pi = new PushItem();
+				pi.receiverId = receiver.getUserId();
+				pi.channels = receiver.getBaiduChannelId();
+				pi.deviceType = String.valueOf(receiver.getDeviceType());
+				pi.PushContent = receiver.getRealName() + "您好，资产：" + repair.getAssetName() + "维修申请已审核通过，请及时处理！";
+				pi.PushType = PUSHTYPE.ASSETREPAIR.getType();
+				pi.PushContentType = PUSHTYPE.ASSETREPAIR.getContentType();
+				pi.title = PUSHTYPE.ASSETREPAIR.getName();
+				pi.schoolId = String.valueOf(user.getSchoolId());
+				piList.add(pi);
+				commonService.pushMsg(piList, false);
+				
+			}
+			else if(status == 1)
+			{
+				User receiver = commonService.getUserByUserIdForPush(repair.getUserId());
+				List<PushItem> piList = new ArrayList<>();
+				PushItem pi = new PushItem();
+				pi.receiverId = receiver.getUserId();
+				pi.channels = receiver.getBaiduChannelId();
+				pi.deviceType = String.valueOf(receiver.getDeviceType());
+				pi.PushContent = receiver.getRealName() + "您好，资产：" + repair.getAssetName() + "维修申请未通过审核，理由："+auditRemark+"请知晓！";
+				pi.PushType = PUSHTYPE.ASSETREPAIR.getType();
+				pi.PushContentType = PUSHTYPE.ASSETREPAIR.getContentType();
+				pi.title = PUSHTYPE.ASSETREPAIR.getName();
+				pi.schoolId = String.valueOf(user.getSchoolId());
+				piList.add(pi);
+				commonService.pushMsg(piList, false);
+			}
+			else if(status == 3)
+			{
+				User receiver = commonService.getUserByUserIdForPush(repair.getUserId());
+				List<PushItem> piList = new ArrayList<>();
+				PushItem pi = new PushItem();
+				pi.receiverId = receiver.getUserId();
+				pi.channels = receiver.getBaiduChannelId();
+				pi.deviceType = String.valueOf(receiver.getDeviceType());
+				pi.PushContent = receiver.getRealName() + "您好，您报修的资产：" + repair.getAssetName() + "已维修完成，请知晓！";
+				pi.PushType = PUSHTYPE.ASSETREPAIR.getType();
+				pi.PushContentType = PUSHTYPE.ASSETREPAIR.getContentType();
+				pi.title = PUSHTYPE.ASSETREPAIR.getName();
+				pi.schoolId = String.valueOf(user.getSchoolId());
+				piList.add(pi);
+				commonService.pushMsg(piList, false);
+			}
+			
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(repair);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+}

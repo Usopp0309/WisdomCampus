@@ -1,0 +1,415 @@
+package com.guotop.palmschool.imp.controller;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.log4j.Logger;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.guotop.palmschool.common.controller.BaseUploadController;
+import com.guotop.palmschool.common.entity.Excel;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.entity.Department;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.StartupListener;
+import com.guotop.palmschool.service.CardService;
+import com.guotop.palmschool.service.DepartmentService;
+import com.guotop.palmschool.service.TeacherService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.system.entity.Import;
+import com.guotop.palmschool.system.entity.ImportDetail;
+import com.guotop.palmschool.system.service.ImportService;
+import com.guotop.palmschool.util.PhoneAuthenticator;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+
+/**
+ * 教师导入控制类
+ * 
+ * @author
+ */
+@RequestMapping("/teacherImport")
+@Controller
+public class TeacherImportController extends BaseUploadController
+{
+	private Logger logger = Logger.getLogger(TeacherImportController.class);
+	@Resource
+	private TeacherService teacherService;
+
+	@Resource
+	private CardService cardService;
+
+	@Resource
+	private DepartmentService departmentService;
+
+	@Resource
+	private CommonService commonService;
+	@Resource
+	private UserService userService;
+	
+	@Resource
+	private ImportService importService;
+
+	@RequestMapping(value = "/onUploadTeacher.do")
+	public synchronized String handle(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap) throws IOException
+	{
+		FileOutputStream fos = null;
+		try
+		{
+			/**
+			 * 用户ID
+			 */
+			request.setCharacterEncoding("UTF-8");
+			User loginUser = (User) session.getAttribute("user");
+			Integer userId_login = Integer.valueOf(loginUser.getUserId());
+			// 通过userId查找schoolId
+			Long schoolId = Long.valueOf(loginUser.getSchoolId());
+			File file = upload(request, userId_login);
+			//获取文件全路径
+			String fullName = file.getCanonicalPath();
+			
+			Excel excel = new Excel(new File(fullName));
+
+			HashSet<String> codes = new HashSet<String>();
+			HashSet<String> cards = new HashSet<String>();
+			//获取文件名
+			String fileName = file.getName();
+
+			// 已存在的部门
+			HashMap<String, Department> existDepartment = new HashMap<String, Department>();
+
+			SimpleDateFormat fileNameFormat = new SimpleDateFormat("yyyyMMdd");
+			
+			HashMap<String, Object> paramMap = new HashMap<String, Object>();
+
+			String[] sheets = excel.getSheets(); // sheet名为学校名
+			String[][][] data = excel.getData(); // 内容
+			if (data == null || data.length == 0)
+			{
+				modelMap.addAttribute("errorMsg", "数据为空");
+				return "teacher/teacher_import";
+			}
+			String[][] ds = data[0]; // 只读第一个sheet
+			if (ds == null || ds.length == 0)
+			{
+				modelMap.addAttribute("errorMsg", "数据为空");
+				return "teacher/teacher_import";
+			}
+
+			boolean isError = false;
+			// 创建错误汇总文件
+			String errorFileDirectoryPath = "/downLoad/excel/" + schoolId + "/" + fileNameFormat.format(new Date()) + "/";
+			File errorFileDirectory = new File(StartupListener.getRoot() + errorFileDirectoryPath);
+			if (!errorFileDirectory.exists())
+			{
+				errorFileDirectory.mkdirs();
+			}
+			String errorFileName = fileName.split("\\.")[0] + "_error" + ".xls";
+			String errorFilePath = errorFileDirectory.getAbsolutePath() + "/" + errorFileName;
+			File errorFile = new File(errorFilePath);
+			if (!errorFile.exists())
+			{
+				errorFile.createNewFile();
+			} else
+			{
+				errorFile.delete();
+				errorFile.createNewFile();
+			}
+			// POIFSFileSystem fs=new POIFSFileSystem(new
+			// FileInputStream(errorFile));
+			// 得到Excel工作簿对象
+			HSSFWorkbook wb = new HSSFWorkbook();
+			int errorRow = 1;
+			boolean hasError = false;
+
+			HSSFSheet hsheet = wb.createSheet(sheets[0]);
+			HSSFRow row = hsheet.createRow((short) 0);
+			row.createCell(0).setCellValue("工号");
+			row.createCell(1).setCellValue("姓名");
+			row.createCell(2).setCellValue("手机号码");
+			row.createCell(3).setCellValue("电子卡号");
+			row.createCell(4).setCellValue("部门");
+			row.createCell(5).setCellValue("备注");
+			
+			int total = 0;//导入记录总数
+			int success = 0;//导入成功总数
+			int error = 0;//导入失败总数
+			List<ImportDetail> importDetailList = new ArrayList<ImportDetail>();
+			// 第一行忽略
+			String ramdomCode = "";//随机数
+			for (int j = 1; j < ds.length; j++)
+			{
+				ImportDetail importDetail = new ImportDetail();
+				try{
+					if(j < 10){
+						ramdomCode = 00+""+j;
+					}else if(j>=10 && j<100){
+						ramdomCode = 0+""+j;
+					}else{
+						ramdomCode = ""+j;
+					}
+					
+					isError=false;
+					StringBuilder sb = new StringBuilder();
+					String[] line = ds[j];
+					if (StringUtil.isEmpty(line))
+					{
+						continue;
+					}
+					total++;
+					String code = line.length > 0 ? line[0] : null;
+					if (StringUtil.isEmpty(code))
+					{
+						sb.append(" 工号为空");
+						isError = true;
+					} else
+					{
+						code = code.trim();
+						if (codes.contains(code))
+						{
+							sb.append(" 工号重复：" + code);
+							isError = true;
+						}
+						boolean codeFlag = userService.checkCodeIsExistInAddNewUser(code, schoolId);
+						if (codeFlag)
+						{
+							sb.append(" 工号已存在");
+							isError = true;
+						} else
+						{
+							code = code.trim();
+						}
+					}
+	
+					String name = line.length > 1 ? line[1] : null;
+					if (StringUtil.isEmpty(name))
+					{
+						name = "";
+						sb.append(" 姓名为空");
+						isError = true;
+					}
+					name = name.trim();
+	
+					String phone = line.length > 2 ? line[2] : null;
+					if (!StringUtil.isEmpty(phone))
+					{
+						phone = phone.trim();
+						if(!PhoneAuthenticator.isMobileNO(phone)){
+							sb.append(" 手机号格式不正确");
+							isError = true;
+						}else{
+							boolean phoneFlag = userService.checkBindPhoneIsExist(phone);
+							if(phoneFlag){
+								Map<String, Object> resultMap = userService.getUserMapByBindPhone(phone,schoolId);
+								String msg = (String) resultMap.get("msg");
+								sb.append(" "+msg);
+								isError = true;
+							}
+						}
+					} else
+					{
+						phone = "";
+						sb.append(" 手机号为空");
+						isError = true;
+					}
+	
+					String cardCode = line.length > 3 ? line[3] : null;
+					if (!StringUtil.isEmpty(cardCode))
+					{
+						cardCode = cardCode.trim();
+						if (cards.contains(cardCode))
+						{
+							sb.append(" 卡号重复：" + cardCode);
+							isError = true;
+						}
+						if (cardService.checkCardCodeIsExist(cardCode))
+						{
+							sb.append(" 卡号已被使用：" + cardCode);
+							isError = true;
+						}
+					}
+	
+					String departmentName = line.length > 4 ? line[4] : null;
+					Department department = null;
+					Integer departmentId = 0;//默认是教职工未分组
+					if (!StringUtil.isEmpty(departmentName))
+					{
+						// 如果属于部门
+						if (existDepartment.containsKey(departmentName))
+						{
+							department = existDepartment.get(departmentName);
+							departmentId = department.getId();
+						} else
+						{
+							// 判断部门是否存在 不存在增加部门
+							department = departmentService.selectDepartmentByName(departmentName);
+							if (department == null)
+							{
+								department = new Department();
+								department.setDepartmentName(departmentName);
+								department.setCreateTime(TimeUtil.getInstance().now());
+								department.setUpdateTime(TimeUtil.getInstance().now());
+	
+								departmentId = departmentService.addDepart(department);
+							}
+							departmentId = department.getId();
+							existDepartment.put(departmentName, department);
+						}
+					}
+					String roleCode = "teacher";
+					importDetail.setPhone(phone);
+					importDetail.setCode(code);
+					importDetail.setRealName(name);
+					importDetail.setRoleCode(roleCode);
+					importDetail.setCardCode(cardCode);
+					importDetail.setDepartmentId(departmentId);
+					importDetail.setDepartmentName(departmentName);
+					
+					if (isError)
+					{
+						importDetail.setResult(sb.toString());
+						importDetail.setStatus(1);
+						importDetailList.add(importDetail);
+						error++;
+						
+						HSSFRow tempRow = hsheet.createRow((short) errorRow);
+						tempRow.createCell(0).setCellValue(code);
+						tempRow.createCell(1).setCellValue(name);
+						tempRow.createCell(2).setCellValue(phone);
+						tempRow.createCell(3).setCellValue(cardCode);
+						tempRow.createCell(4).setCellValue(departmentName);
+						tempRow.createCell(5).setCellValue(sb.toString());
+						errorRow++;
+						hasError = true;
+						continue;
+					}
+	
+					codes.add(code);
+					cards.add(cardCode);
+	
+					// 教师基础信息
+					String username = loginUser.getSchoolId() + "T"+TimeUtil.getInstance().dateYYYYMM()+ramdomCode;
+					User teacherBase = new User();
+					teacherBase.setPassword(StringUtil.toMD5(phone));
+					teacherBase.setState("0");
+					teacherBase.setPhone(phone);
+					teacherBase.setUsername(username);
+					teacherBase.setBindPhone(phone);
+					teacherBase.setType(1);
+					teacherBase.setSource("1");
+	
+					// 教师详细信息
+					User teacherDetail = new User();
+					teacherDetail.setRealName(name);
+					teacherDetail.setCode(code);
+					teacherDetail.setNickName(name);
+					teacherDetail.setCreateTime(TimeUtil.getInstance().now());
+	
+					// 添加教师对应的卡号
+					Set<String> cardCodeSet = new HashSet<String>();
+					cardCodeSet.add(cardCode);
+	
+					paramMap.put("departmentId", departmentId);
+					paramMap.put("roleCode", roleCode);
+					paramMap.put("realName", name);
+					paramMap.put("code", code);
+					paramMap.put("schoolId", schoolId);
+	
+					//添加教师之前先判断该用户是否存在在系统中。
+					/*
+					4.判断手机号码作为bindPhone是否已经被占用
+					  4.1 不占用的情况下
+					       正常添加教职工
+					  4.2 占用的情况下 
+					      不导入，线下手动确认
+					*/
+					int teacherId = teacherService.addTeacher(paramMap, teacherBase, teacherDetail, cardCodeSet, roleCode,false,false);
+					importDetail.setUserId(teacherId);
+					importDetail.setStatus(0);
+					
+					success++;
+					importDetailList.add(importDetail);
+				}catch(Exception e){
+					error++;
+					logger.error("导入教师错误，错误信息如下:"+e.getMessage());
+					importDetail.setStatus(1);
+					importDetail.setResult("后台代码出错，请联系管理员");
+					importDetailList.add(importDetail);
+					continue;
+				}
+			}
+			
+			//添加到导入记录中palm_import ,palm_import_detail,这两张表是一对多的关系
+			Import imp = new Import();
+			imp.setFilename(fileName);
+			imp.setType(1);
+			imp.setTotal(total);
+			imp.setSuccess(success);
+			imp.setError(error);
+			imp.setImportUserId(userId_login);
+			if(!CollectionUtils.isEmpty(importDetailList)){
+				importService.addImportAndDetail(imp,importDetailList);
+			}
+			
+			if (hasError)
+			{
+				fos = new FileOutputStream(errorFile);
+				wb.write(fos);
+				modelMap.addAttribute("errorMsg", "导入文件含有错误内容，具体错误信息请点击<a href='" + request.getContextPath() + errorFileDirectoryPath + errorFileName + "'>\"下载\"</a>");
+				return "teacher/teacher_import";
+			} else
+			{
+				errorFile.deleteOnExit();
+				modelMap.addAttribute("errorMsg", "导入成功");
+				return "teacher/teacher_import";
+			}
+
+		} catch (Exception ex)
+		{
+			modelMap.put("errorMsg", "系统错误，请联系管理员");
+			logger.error("TeacherImportController.import is error : " + ex.getMessage());
+			return "teacher/teacher_import";
+		} finally
+		{
+			if (fos != null)
+			{
+				try
+				{
+					fos.close();
+				} catch (IOException e)
+				{
+					logger.error("TeacherImportController.import is error : " + e.getMessage());
+				}
+			}
+		}
+	}
+
+	/**
+	 * 上传后临时文件前缀
+	 */
+	public String getCommandName()
+	{
+		return "teacher";
+	}
+
+}

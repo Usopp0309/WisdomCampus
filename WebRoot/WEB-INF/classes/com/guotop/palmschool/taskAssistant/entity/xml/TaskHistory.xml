@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="TaskHistory">
+	<typeAlias alias="taskHistory" type="com.guotop.palmschool.taskAssistant.entity.TaskHistory"/>
+	<typeAlias alias="taskHistoryDetail" type="com.guotop.palmschool.taskAssistant.entity.TaskHistoryDetail"/>
+	
+	<!--根据Id查询科目-->	
+	<select id="getSubjectsById" parameterClass="Integer" resultClass="taskSubject">
+		select * from palm_task_subject where taskSubjectId = #taskSubjectId#
+	</select>
+
+	<!-- 添加作业 -->
+	<insert id="addHistory" parameterClass="taskHistory">
+		insert into palm_task_history
+		(
+			taskSubjectId, 
+			taskContent,
+			taskContentImage,
+			createDate,
+			clazzId,
+			sendUserId,
+			sendUserName,
+			createTime
+		)
+		values
+		(
+			#taskSubjectId#, 
+			#taskContent#,
+			#taskContentImage#,
+			#createDate#,
+			#clazzId#,
+			#sendUserId#,
+			#sendUserName#,
+			#createTime#
+		)
+	<selectKey resultClass="int" type="post" keyProperty="historyId">
+        	select LAST_INSERT_ID() as value
+    </selectKey>
+	</insert>
+	
+	<!-- 添加作业详情 -->
+	<insert id="addHistoryDetail" parameterClass="taskHistoryDetail">
+		insert into palm_task_history_detail
+		(
+			historyId, 
+			reciveUserId,
+			createDate,
+			reciveUserName,
+			createTime
+		)
+		values
+		(
+			#historyId#, 
+			#reciveUserId#,
+			#createDate#,
+			#reciveUserName#,
+			#createTime#
+		)
+	</insert>
+	
+	<!--  -->
+	<select id="getCountTaskHistoryListInTeacher" parameterClass="java.util.HashMap" resultClass="Integer">
+		SELECT COUNT(*) 
+		FROM (SELECT * FROM palm_task_history WHERE sendUserId = #sendUserId# GROUP BY createDate ) tmp 
+	</select>
+	<!-- 根据sendUserId来获取发送列表，分页-->
+	<select id="getTaskHistoryListInTeacher" parameterClass="java.util.HashMap" resultClass="taskHistory">
+		SELECT tmp.*
+		FROM (SELECT * FROM palm_task_history WHERE sendUserId = #sendUserId# GROUP BY createDate ) tmp 
+		ORDER BY tmp.createDate DESC
+		LIMIT #startIndex#, #length# 
+	</select>
+	
+	<!-- 根据createDate 来获取当天【发送】作业记录 -->
+	<select id="getTaskHistoryListByCreateDateInTeacher" parameterClass="java.util.HashMap" resultClass="taskHistory">
+		SELECT th.*,ts.subjectName AS taskSubjectName FROM palm_task_history th , palm_task_subject ts  
+		WHERE th.taskSubjectId = ts.taskSubjectId 
+		AND th.sendUserId = #sendUserId# 
+		AND th.createDate = #createDate#
+		ORDER BY th.createTime DESC
+	</select>
+	
+	<select id="getCountTaskHistoryListInParent" parameterClass="java.util.HashMap" resultClass="Integer">
+		SELECT COUNT(*) 
+		FROM 
+		(SELECT * FROM palm_task_history_detail thd 
+		WHERE  1 = 1
+		<isNotEmpty prepend="and" property="reviceUserIdList">
+			thd.reciveUserId IN 
+            <iterate open="(" close=")" conjunction="," property="reviceUserIdList" > 
+                #reviceUserIdList[]# 
+            </iterate>
+		</isNotEmpty>
+		GROUP BY thd.createDate ) tmp
+	</select>
+	
+	<select id="getTaskHistoryListInParent" parameterClass="java.util.HashMap" resultClass="taskHistory">
+		SELECT tmp.*
+		FROM 
+		(SELECT * FROM palm_task_history_detail thd 
+		WHERE  1 = 1
+		<isNotEmpty prepend="and" property="reviceUserIdList">
+			thd.reciveUserId IN 
+            <iterate open="(" close=")" conjunction="," property="reviceUserIdList" > 
+                #reviceUserIdList[]# 
+            </iterate>
+		</isNotEmpty>
+		GROUP BY thd.createDate ) tmp 
+		ORDER BY tmp.createDate DESC
+		LIMIT #startIndex#, #length# 
+	</select>
+	
+	<!-- 根据createDate 家长来获取当天【接收】作业记录 -->
+	<select id="getTaskHistoryListByCreateDateInParent" parameterClass="java.util.HashMap" resultClass="taskHistory">
+		SELECT th.*,ts.subjectName AS taskSubjectName 
+		FROM palm_task_history th ,palm_task_history_detail thd, palm_task_subject ts  
+		WHERE th.historyId = thd.historyId
+		AND th.taskSubjectId = ts.taskSubjectId 
+		<isNotEmpty prepend="and" property="reviceUserIdList">
+			thd.reciveUserId IN 
+            <iterate open="(" close=")" conjunction="," property="reviceUserIdList" > 
+                #reviceUserIdList[]# 
+            </iterate>
+		</isNotEmpty> 
+		AND thd.createDate = #createDate#
+		ORDER BY thd.createTime DESC
+	</select>
+	
+	<select id="getCountTaskHistoryListInStudent" parameterClass="java.util.HashMap" resultClass="Integer">
+		SELECT COUNT(*) 
+		FROM (SELECT * FROM palm_task_history_detail thd WHERE thd.reciveUserId = #reciveUserId# GROUP BY thd.createDate ) tmp
+	</select>
+	<select id="getTaskHistoryListInStudent" parameterClass="java.util.HashMap" resultClass="taskHistory">
+		SELECT tmp.*
+		FROM (SELECT * FROM palm_task_history_detail thd WHERE thd.reciveUserId = #reciveUserId# GROUP BY thd.createDate ) tmp 
+		ORDER BY tmp.createDate DESC
+		LIMIT #startIndex#, #length# 
+	</select>
+	
+	<!-- 根据createDate 学生来获取当天【接收】作业记录 -->
+	<select id="getTaskHistoryListByCreateDateInStudent" parameterClass="java.util.HashMap" resultClass="taskHistory">
+		SELECT th.*,ts.subjectName AS taskSubjectName 
+		FROM palm_task_history th ,palm_task_history_detail thd, palm_task_subject ts  
+		WHERE th.historyId = thd.historyId
+		AND th.taskSubjectId = ts.taskSubjectId 
+		AND thd.reciveUserId = #reciveUserId# 
+		AND thd.createDate = #createDate#
+		ORDER BY thd.createTime DESC
+	</select>
+</sqlMap>

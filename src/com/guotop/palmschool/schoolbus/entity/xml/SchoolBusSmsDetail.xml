@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="SchoolBusSmsDetail">
+	<typeAlias alias="schoolBusSmsdetail" type="com.guotop.palmschool.schoolbus.entity.SchoolBusSmsDetail" />
+
+	<resultMap class="com.guotop.palmschool.schoolbus.entity.SchoolBusSmsDetail" id="result-smsdetail">
+		<result property="id" column="id" />
+		<result property="content" column="content" />
+		<result property="receiverId" column="receiverId" />
+		<result property="receiverName" column="receiverName" />
+		<result property="phone" column="phone" />
+		<result property="createTime" column="createTime" />
+	</resultMap>
+
+	<!--新增短信内容 -->
+	<insert id="addSmsDetail" parameterClass="schoolBusSmsdetail">
+		insert into palm_schoolbus_sms_detail
+		(
+			content,
+			receiverId,
+			phone,
+			receiverName,
+			createTime
+		)
+		values
+		(
+			#content#,
+			#receiverId#,
+			#phone#,
+			#receiverName#,
+			#createTime#
+		)
+	</insert>
+	
+	<!-- 查看校车信息（校长） 20151210-->
+	<select id="getSchoolBusSmsAsAdminPermission" parameterClass="HashMap" resultMap="result-smsdetail">
+		SELECT ssd.* FROM palm_schoolbus_sms_detail ssd, palm_student_clazz sc
+		    WHERE ssd.receiverId = sc.userId
+		        <!-- 查询班级 -->	
+			   <isNotEmpty property="clazzList">
+				   AND sc.clazzId = #clazzList#
+			   </isNotEmpty>
+			   <isNotEmpty property="queryContent">
+					AND ssd.receiverName LIKE BINARY CONCAT('%',#queryContent#,'%') 
+			   </isNotEmpty>
+				
+			   <isNotEmpty property="time">
+					AND ssd.createtime LIKE BINARY CONCAT('%',#time#,'%')
+			   </isNotEmpty>    
+		 	 ORDER BY ssd.createtime DESC			
+	</select>
+	
+	<!-- 查看校车信息（家长 ） 20151210-->
+	<select id="getSchoolBusSmsAsParent" parameterClass="HashMap" resultMap="result-smsdetail">
+		SELECT ssd.* FROM palm_schoolbus_sms_detail ssd, palm_student_clazz sc
+		    WHERE ssd.receiverId = sc.userId
+		      AND ssd.receiverId IN (SELECT userId FROM platform.student_parent WHERE parent_userId = #userId#)	
+		      <isNotEmpty property="queryContent">
+					AND ssd.receiverName LIKE BINARY CONCAT('%',#queryContent#,'%') 
+			   </isNotEmpty>
+			   <isNotEmpty property="time">
+					AND ssd.createtime LIKE BINARY CONCAT('%',#time#,'%')
+			   </isNotEmpty>    
+		 	 ORDER BY ssd.createtime DESC
+	</select>
+	
+	<!-- 查看校车信息（学生 ） 20151210-->
+	<select id="getSchoolBusSmsAsStudent" parameterClass="HashMap" resultMap="result-smsdetail">
+		SELECT ssd.* FROM palm_schoolbus_sms_detail ssd, palm_student_clazz sc
+		    WHERE ssd.receiverId = sc.userId
+		      AND ssd.receiverId = #userId#	
+		      <isNotEmpty property="queryContent">
+					AND ssd.receiverName LIKE BINARY CONCAT('%',#queryContent#,'%') 
+			   </isNotEmpty>
+			   <isNotEmpty property="time">
+					AND ssd.createtime LIKE BINARY CONCAT('%',#time#,'%')
+			   </isNotEmpty>    
+		 	 ORDER BY ssd.createtime DESC
+	</select>
+	
+	<!-- 查看校车信息（班主任或者其他有此权限的人） 20151210 -->
+	<select id="getSchoolBusSmsAsTeachingStaff" parameterClass="HashMap" resultMap="result-smsdetail">
+		SELECT ssd.* FROM palm_schoolbus_sms_detail ssd, palm_student_clazz sc
+		    WHERE ssd.receiverId = sc.userId
+		       <isNotEmpty prepend="and" property="clazzIdList">
+					 sc.clazzId IN 
+					 <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+						 #clazzIdList[]# 
+					 </iterate> 
+			   </isNotEmpty>
+			   <isEmpty prepend="and" property="clazzIdList">
+					 sc.clazzId is null
+			   </isEmpty>
+		        <!-- 查询班级 -->	
+			   <isNotEmpty property="clazzList">
+				   AND sc.clazzId = #clazzList#
+			   </isNotEmpty>
+			   <isNotEmpty property="queryContent">
+					AND ssd.receiverName LIKE BINARY CONCAT('%',#queryContent#,'%') 
+			   </isNotEmpty>
+				
+			   <isNotEmpty property="time">
+					AND ssd.createtime LIKE BINARY CONCAT('%',#time#,'%')
+			   </isNotEmpty>    
+		 	 ORDER BY ssd.createtime DESC			
+	</select>
+	
+	
+<!-- 	手机端 -->
+
+<!-- 查看校车信息（校长） 20151210-->
+	<select id="getSchoolBusSmsAsAdminPermissionAPP" parameterClass="HashMap" resultMap="result-smsdetail">
+		SELECT ssd.* FROM palm_schoolbus_sms_detail ssd, palm_student_clazz sc
+		    WHERE ssd.receiverId = sc.userId
+		        <!-- 查询班级 -->	
+			   <isNotEmpty property="clazzList">
+				   AND sc.clazzId = #clazzList#
+			   </isNotEmpty>
+			   <isNotEmpty property="queryContent">
+					AND ssd.receiverName LIKE BINARY CONCAT('%',#queryContent#,'%') 
+			   </isNotEmpty>
+				
+			   <isNotEmpty property="time">
+					AND ssd.createtime LIKE BINARY CONCAT('%',#time#,'%')
+			   </isNotEmpty>    
+		 	 ORDER BY ssd.createtime DESC	
+		 	 <isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			   </isNotEmpty>		
+	</select>
+	
+	<!-- 查看校车信息（家长 ） 20151210-->
+	<select id="getSchoolBusSmsAsParentAPP" parameterClass="HashMap" resultMap="result-smsdetail">
+		SELECT ssd.* FROM palm_schoolbus_sms_detail ssd, palm_student_clazz sc
+		    WHERE ssd.receiverId = sc.userId
+		      AND ssd.receiverId IN (SELECT userId FROM platform.student_parent WHERE parent_userId = #userId#)	
+		      <isNotEmpty property="queryContent">
+					AND ssd.receiverName LIKE BINARY CONCAT('%',#queryContent#,'%') 
+			   </isNotEmpty>
+			   <isNotEmpty property="time">
+					AND ssd.createtime LIKE BINARY CONCAT('%',#time#,'%')
+			   </isNotEmpty>    
+		 	 ORDER BY ssd.createtime DESC
+		 	 <isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			   </isNotEmpty>
+	</select>
+	
+	<!-- 查看校车信息（学生 ） 20151210-->
+	<select id="getSchoolBusSmsAsStudentAPP" parameterClass="HashMap" resultMap="result-smsdetail">
+		SELECT ssd.* FROM palm_schoolbus_sms_detail ssd, palm_student_clazz sc
+		    WHERE ssd.receiverId = sc.userId
+		      AND ssd.receiverId = #userId#	
+		      <isNotEmpty property="queryContent">
+					AND ssd.receiverName LIKE BINARY CONCAT('%',#queryContent#,'%') 
+			   </isNotEmpty>
+			   <isNotEmpty property="time">
+					AND ssd.createtime LIKE BINARY CONCAT('%',#time#,'%')
+			   </isNotEmpty>    
+		 	 ORDER BY ssd.createtime DESC
+		 	 <isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			   </isNotEmpty>
+	</select>
+	
+	<!-- 查看校车信息（班主任或者其他有此权限的人） 20151210 -->
+	<select id="getSchoolBusSmsAsTeachingStaffAPP" parameterClass="HashMap" resultMap="result-smsdetail">
+		SELECT ssd.* FROM palm_schoolbus_sms_detail ssd, palm_student_clazz sc
+		    WHERE ssd.receiverId = sc.userId
+		       <isNotEmpty prepend="and" property="clazzIdList">
+					 sc.clazzId IN 
+					 <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+						 #clazzIdList[]# 
+					 </iterate> 
+			   </isNotEmpty>
+			   <isEmpty prepend="and" property="clazzIdList">
+					 sc.clazzId is null
+			   </isEmpty>
+		        <!-- 查询班级 -->	
+			   <isNotEmpty property="clazzList">
+				   AND sc.clazzId = #clazzList#
+			   </isNotEmpty>
+			   <isNotEmpty property="queryContent">
+					AND ssd.receiverName LIKE BINARY CONCAT('%',#queryContent#,'%') 
+			   </isNotEmpty>
+				
+			   <isNotEmpty property="time">
+					AND ssd.createtime LIKE BINARY CONCAT('%',#time#,'%')
+			   </isNotEmpty>    
+		 	 ORDER BY ssd.createtime DESC	
+		 	 <isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			   </isNotEmpty>		
+	</select>
+
+</sqlMap>

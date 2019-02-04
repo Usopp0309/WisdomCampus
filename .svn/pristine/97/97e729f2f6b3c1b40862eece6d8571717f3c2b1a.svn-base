@@ -1,0 +1,305 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+
+<!DOCTYPE html>
+
+<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+
+<!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+
+<!--[if !IE]><!--> <html lang="en"> <!--<![endif]-->
+
+<!-- BEGIN HEAD -->
+
+<head>
+
+	<title>学生评价查看</title>
+
+	<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+
+	<meta content="" name="description" />
+
+	<meta content="" name="author" />
+
+	<link href="../media/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/style-metro.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/style.css" rel="stylesheet" type="text/css"/>
+
+	<link href="../media/css/style-responsive.css" rel="stylesheet" type="text/css"/>
+
+	<!-- <link href="../media/css/default.css" rel="stylesheet" type="text/css" id="style_color"/> -->
+
+	<link href="../media/css/uniform.default.css" rel="stylesheet" type="text/css"/>
+
+	<!-- END GLOBAL MANDATORY STYLES -->
+
+	<!-- BEGIN PAGE LEVEL STYLES -->
+
+	<link href="../media/css/pricing-tables.css" rel="stylesheet" type="text/css"/>
+
+	<!-- END PAGE LEVEL STYLES -->
+
+	<link rel="stylesheet" type="text/css" href="../media/css/select2_metro.css" />
+
+	<link rel="stylesheet" href="../media/css/DT_bootstrap.css" />
+	
+	<link href="../media/metronic_css_m/system_m.css" rel="stylesheet" type="text/css" media="screen" />
+
+	<!-- END PAGE LEVEL STYLES -->
+
+	<link rel="shortcut icon" href="../media/image/favicon.ico" />
+</head>
+
+<!-- END HEAD -->
+
+<!-- BEGIN BODY -->
+
+<body class="page-header-fixed">
+
+			<div class="container-fluid">
+
+				<div class="row-fluid">
+
+					<div class="span12">
+
+						<ul class="breadcrumb">
+							<li> <i class="icon-home"></i> <a href="#">首页</a> <i class="icon-angle-right"></i> </li>
+							<li> <a href="#">教学评价</a> <i class="icon-angle-right"></i> </li>
+							<li> <a href="#">学生评价查看</a> </li>
+						</ul>
+
+					</div>
+
+				</div>
+
+				<div class="row-fluid">
+
+					<div class="span12">
+						<div class="tabbable tabbable-custom boxless">
+							<ul class="nav nav-tabs" id="userTab">
+								<c:forEach items="${sessionScope.user.roleList}" var="roleList">
+								     <c:if test="${roleList.roleCode eq 'president' || roleList.roleCode eq 'admin'}">
+										<li class="roleLi">
+											<a href="#tab_4" data-toggle="tab" class="roleTab" attr1="${sessionScope.user.userId}" attr2="${roleList.roleCode}" >${sessionScope.user.realName}(${roleList.roleName})
+											</a>
+										</li>
+								     </c:if>
+								</c:forEach>																						
+							</ul>
+						</div>
+						<div class="tab-content">
+
+							<div class="tab-pane active" id="tab_4">
+								
+								<div class="portlet box light-grey">
+			
+									<div class="portlet-title">
+										<div class="caption">学生评价查看</div>
+									</div>
+										
+									<div class="portlet-body form-horizontal">
+									
+									<div class="control-group">
+
+										<label class="control-label">班级查看：</label>
+
+										<div class="controls">				
+											<form action="#" class="form-horizontal" method="post" style="margin: 0px">
+												<div class="controls" style="margin-left: 0px">
+													<select class="m-wrap" id="clazzSelect" name="clazzId"> </select>
+												</div>
+											</form>
+
+										</div>
+
+									</div>
+										<div class="control-group">
+
+													<label class="control-label">评价查看：</label>
+
+													<div class="controls">	
+													<ul class="templet_list">			
+														<c:forEach var="e" items="${EvaluateClazz}" varStatus="status">
+														<li>
+															<img alt="" src="../media/image_m/disk.png" onclick="showpaper(${e.teachingfolderId})" style="cursor: pointer;">
+															<c:if test="${e.semester==1 }">
+																<p>上学期${e.name }</p>
+															</c:if>
+															<c:if test="${e.semester==2 }">
+																<p>下学期${e.name }</p>
+															</c:if>
+														</li>
+												</c:forEach>
+													</ul>
+													</div>
+
+									</div>
+										<div class="control-group">
+
+													<label class="control-label">学生评价：</label>
+
+													<div class="controls">	
+													<ul class="templet_list">			
+														<c:forEach var="t" items="${teacherevaluateform }" varStatus="start">
+															<c:if test="${start.index<10 }">
+																<li>
+																	<c:if test="${paperid!=0 }">
+																		<div>
+																			<a href="javascript:void();" onclick="showex(${t.id })"><img src="../media/image_m/teacherTimeTable.png"></a>
+																		</div>
+																		<p>${t.realName }同学(${t.nums }/${allnums })</p>
+																	</c:if>
+																</li>
+															</c:if>
+														</c:forEach>
+													</ul>
+													</div>
+
+									</div>
+									</div>
+								
+									
+									</div>
+								</div>
+						  </div>
+					</div>
+			   </div>
+					
+		  </div>
+
+	<script src="../media/js/jquery-2.1.1.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery-migrate-1.2.1.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>      
+
+	<script src="../media/js/bootstrap.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.slimscroll.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.blockui.min.js" type="text/javascript"></script>  
+
+	<script src="../media/js/jquery.cookie.min.js" type="text/javascript"></script>
+
+	<script src="../media/js/jquery.uniform.min.js" type="text/javascript" ></script>
+
+	<script type="text/javascript" src="../media/js/select2.min.js"></script>
+
+	<script type="text/javascript" src="../media/js/jquery.dataTables.min.js"></script>
+
+	<script type="text/javascript" src="../media/js/DT_bootstrap.js"></script>
+
+
+	<script src="../media/js/table-advanced.js"></script>       
+	
+	<script type="text/javascript" src="../media/js/My97DatePicker/WdatePicker.js"></script>    
+	<script type="text/javascript" src="../media/js_m/public_js.js"></script>
+	<script src="../media/js/app.js"></script>
+	<script>
+
+		jQuery(document).ready(function() {    
+
+			App.init();
+
+			//选择第一个tab
+			$("#userTab li:first").addClass("active");
+
+			//页面初始化时候的数据加载
+			var userId = $("ul li.active").find('a').attr("attr1");
+			var roleCode = $("ul li.active").find('a').attr("attr2");
+
+			loadAllClazzList(userId,"studentEvaluationViewManager")
+			
+			//点击tab页加载
+			$(".roleTab").click(function(){
+				//用户ID
+				var userId = $(this).attr("attr1");
+				var roleCode = $(this).attr("attr2");
+				
+			});
+
+			//初始化选择年级，如果select改动则将发送对象改为某个年级的所有学生的信息
+			$("#clazzSelect").change(function(){
+			
+				//用户ID
+				var userId = $("ul li.active").find('a').attr("attr1");
+				//角色ID
+				var roleCode = $("ul li.active").find('a').attr("attr2");
+
+				var clazzId = $("#clazzSelect").val();
+				
+				window.location.href='<%=basePath%>evaluation/toStudentEvaluationView.do?clazzId=' + clazzId;
+			});
+			
+		});
+		
+		//加载班级级信息
+		function loadAllClazzList(userId,permissionCode)
+		{
+			$.ajax({
+				url: "<%=basePath%>baseData/loadClazzList.do",
+				data:{
+						userId : userId,
+						permissionCode : permissionCode
+					},
+				success : function(data) {
+					var clazzList = $.parseJSON(data);
+
+					//班级select页面html
+					var clazzSelectHtml = '<option value="0">--请选择--</option>';
+
+					$.each(clazzList, function(n, value) {
+
+						if (n == 0){
+							clazzSelectHtml += '<option value="' + value.id + '"selected="selected">' + value.clazzName + '</option>';
+						}else{
+							clazzSelectHtml += '<option value="' + value.id + '">' + value.clazzName + '</option>';
+						}
+						
+					});
+					$("#clazzSelect").html(clazzSelectHtml);
+
+					var clazzId = ${clazzId};
+					if (typeof(clazzId) == "undefined" || clazzId == "undefined")
+					{
+						$("#clazzSelect").val("0");
+					}
+					else
+					{
+						$("#clazzSelect").val(clazzId);
+					}
+					
+				},
+			});
+		}
+
+		function showpaper(paperid)
+		{
+			window.location.href='<%=basePath%>evaluation/toStudentEvaluationView.do?clazzId=' + ${clazzId} +'&paperid='+paperid;
+		}
+
+		function showt(c)
+		{
+			window.location.href='<%=basePath%>evaluation/toStudentEvaluationViewDetail.do?id=' + c;
+		}
+
+		function showex(exid)
+		{
+			window.location.href='<%=basePath%>evaluation/toStudentEvaluationViewDetail.do?id='+exid;
+		}
+		autoheight();
+ </script>
+
+	<!-- END JAVASCRIPTS -->
+
+<script type="text/javascript">  var _gaq = _gaq || [];  _gaq.push(['_setAccount', 'UA-37564768-1']);  _gaq.push(['_setDomainName', 'keenthemes.com']);  _gaq.push(['_setAllowLinker', true]);  _gaq.push(['_trackPageview']);  (function() {    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;    ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);  })();</script></body>
+
+<!-- END BODY -->
+
+</html>

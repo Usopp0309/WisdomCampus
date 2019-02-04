@@ -1,0 +1,905 @@
+package com.guotop.palmschool.controller;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFFont;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.gson.Gson;
+import com.guotop.palmschool.check.entity.InoutAbnormalTotal;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.entity.Inout;
+import com.guotop.palmschool.entity.School;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.service.InoutService;
+import com.guotop.palmschool.service.SchoolService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.WebWriteFile;
+
+/**
+ * 进出记录控制类
+ * 
+ * @author zhou
+ *
+ */
+@RequestMapping("/inout")
+@Controller
+public class InoutController extends BaseController
+{
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private InoutService inoutService;
+
+	@Resource
+	private UserService userService;
+
+	@Resource
+	private SchoolService schoolService;
+
+	/**
+	 * 进入进出记录页面
+	 */
+	@RequestMapping(value = "/toInoutList.do")
+	public String toInoutList(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		User login = (User) session.getAttribute("user");
+		long schoolId = Long.valueOf(login.getSchoolId());
+		School schoolInfo = schoolService.getSchoolInfoBySchoolId(schoolId);
+		if (schoolInfo != null)
+		{
+			modelMap.addAttribute("schoolCategory", schoolInfo.getSchoolCategory());
+		}
+		return "safeSchool/inout_list";
+	}
+
+	/**
+	 * 进入进出记录页面（APP）
+	 */
+	@RequestMapping(value = "/toInoutListByHuxinId.do")
+	public String toInoutListByHuxinId(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		modelMap.addAttribute("apiKey", apiKey);
+		modelMap.addAttribute("schoolId", schoolId);
+		User user = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+
+		if (user == null)
+		{
+			user = (User) session.getAttribute("user");
+
+			if (user != null)
+			{
+				modelMap.addAttribute("apiKeyTimeOut", "2");
+			} else
+			{
+				modelMap.addAttribute("apiKeyTimeOut", "1");
+				return "app/safeSchool/inout_list_app";
+			}
+		} else
+		{
+			modelMap.addAttribute("apiKeyTimeOut", "2");
+		}
+
+		/*
+		 * 存session
+		 */
+		session.setAttribute("user", user);
+
+		DBContextHolder.setDBType(user.getSchoolId());
+
+		try
+		{
+			/*
+			 * 参数map
+			 */
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+
+			/*
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			String roleCode = request.getParameter("roleCode");
+
+			if (StringUtil.isEmpty(roleCode))
+			{
+				roleCode = user.getRoleList().get(0).getRoleCode();
+			}
+
+			/*
+			 * 师生类型
+			 */
+			String typeName = request.getParameter("type");
+
+			Integer type = 0;
+			if (StringUtil.isEmpty(typeName))
+			{
+				if (roleCode.equals("parent") || roleCode.equals("student"))
+				{
+					type = 2;
+				} else
+				{
+					type = 1;
+				}
+			} else if (typeName.equals("teacher") || typeName.equals("1"))
+			{
+				type = 1;
+			} else if (typeName.equals("student") || typeName.equals("2"))
+			{
+				type = 2;
+
+			} else if (typeName.equals("parent") || typeName.equals("3"))
+			{
+				type = 3;
+			}
+
+			/*
+			 * 进出状态
+			 */
+			Integer inoutType = 0;
+			String inout = request.getParameter("inoutType");
+
+			if (StringUtil.isEmpty(inout) || ("0").equals(inout))
+			{
+				inoutType = 0;
+			} else if (inout.equals("in") || inout.equals("1"))
+			{
+				inoutType = 1;
+			} else
+			{
+				inoutType = 2;
+			}
+
+			// 查询内容
+			String queryContent = null;
+
+			try
+			{
+				queryContent = request.getParameter("queryContent");
+			} catch (Exception e)
+			{
+				queryContent = null;
+			}
+
+			// 开始日期
+			String startDate = null;
+			// 开始时间
+			String startTime = null;
+			String start = null;
+			try
+			{
+				startDate = request.getParameter("startDate");
+				startTime = request.getParameter("startTime");
+				if (!StringUtil.isEmpty(startDate))
+				{
+					start = startDate + " " + startTime + ":00";
+				}
+			} catch (Exception e)
+			{
+				startTime = null;
+			}
+
+			// 结束日期
+			String endDate = null;
+			// 结束时间
+			String endTime = null;
+			String end = null;
+			try
+			{
+				endDate = request.getParameter("endDate");
+				endTime = request.getParameter("endTime");
+				if (!StringUtil.isEmpty(endDate))
+				{
+					end = endDate + " " + endTime + ":00";
+				}
+			} catch (Exception e)
+			{
+				endTime = null;
+				endDate = null;
+			}
+
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("roleCode", roleCode);
+			paramMap.put("type", type);
+			paramMap.put("inoutType", inoutType);
+			paramMap.put("queryContent", queryContent);
+			paramMap.put("startTime", start);
+			paramMap.put("endTime", end);
+
+			this.getPages().setPageSize(20);
+			DBContextHolder.setDBType(user.getSchoolId());
+			List<Inout> inoutList = inoutService.getAppInoutList(this.getPages().getPageSize(), currentPage, paramMap, user);
+
+			currentPage = currentPage + 1;
+			modelMap.addAttribute("roleList", user.getRoleList());
+			modelMap.addAttribute("roleListSize", user.getRoleList().size());
+			modelMap.addAttribute("inoutList", inoutList);
+			modelMap.addAttribute("inoutListSize", inoutList.size());
+			modelMap.addAttribute("roleCode", roleCode);
+			modelMap.addAttribute("cPage", currentPage);
+			modelMap.addAttribute("inoutType", inoutType);
+			modelMap.addAttribute("type", type);
+			modelMap.addAttribute("queryContent", queryContent);
+			modelMap.addAttribute("startDate", startDate);
+			modelMap.addAttribute("startTime", startTime);
+			modelMap.addAttribute("endDate", endDate);
+			modelMap.addAttribute("endTime", endTime);
+
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return "app/safeSchool/inout_list_app";
+	}
+
+	/**
+	 * 加载进入进出记录页面（APP）
+	 */
+	@RequestMapping(value = "/toLoadInoutListByHuxinId.do")
+	public String toLoadInoutListByHuxinId(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+
+			/*
+			 * 参数map
+			 */
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+
+			/*
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			/*
+			 * 师生类型
+			 */
+			String typeName = request.getParameter("type");
+			Integer type = 0;
+			if (StringUtil.isEmpty(typeName))
+			{
+				type = 1;
+			} else if (typeName.equals("teacher") || typeName.equals("1"))
+			{
+				type = 1;
+			} else if (typeName.equals("student") || typeName.equals("2"))
+			{
+				type = 2;
+
+			} else if (typeName.equals("parent") || typeName.equals("3"))
+			{
+				type = 3;
+			}
+			/*
+			 * 进出状态
+			 */
+			Integer inoutType = 0;
+			String inout = request.getParameter("inoutType");
+
+			if (StringUtil.isEmpty(inout))
+			{
+				inoutType = 1;
+			} else if (inout.equals("in") || inout.equals("1"))
+			{
+				inoutType = 1;
+			} else
+			{
+				inoutType = 2;
+			}
+
+			// 查询内容
+			String queryContent = null;
+
+			try
+			{
+				queryContent = request.getParameter("queryContent");
+			} catch (Exception e)
+			{
+				queryContent = null;
+			}
+
+			// 开始日期
+			String startDate = null;
+			// 开始时间
+			String startTime = null;
+			String start = null;
+			try
+			{
+				startDate = request.getParameter("startDate");
+				startTime = request.getParameter("startTime");
+				if (!StringUtil.isEmpty(startDate))
+				{
+					start = startDate + " " + startTime + ":00";
+				}
+			} catch (Exception e)
+			{
+				startTime = null;
+			}
+
+			// 结束日期
+			String endDate = null;
+			// 结束时间
+			String endTime = null;
+			String end = null;
+			try
+			{
+				endDate = request.getParameter("endDate");
+				endTime = request.getParameter("endTime");
+				if (!StringUtil.isEmpty(endDate))
+				{
+					end = endDate + " " + endTime + ":00";
+				}
+			} catch (Exception e)
+			{
+				endTime = null;
+				endDate = null;
+			}
+
+			User user = (User) session.getAttribute("user");
+
+			String roleCode = request.getParameter("roleCode");
+
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("roleCode", roleCode);
+			paramMap.put("type", type);
+			paramMap.put("inoutType", inoutType);
+			paramMap.put("queryContent", queryContent);
+			paramMap.put("startTime", start);
+			paramMap.put("endTime", end);
+
+			this.getPages().setPageSize(20);
+
+			List<Inout> inoutList = inoutService.getAppInoutList(this.getPages().getPageSize(), currentPage, paramMap, user);
+
+			currentPage = currentPage + 1;
+
+			modelMap.addAttribute("inoutList", inoutList);
+			modelMap.addAttribute("listSize", inoutList.size());
+			modelMap.addAttribute("schoolId", schoolId);
+			modelMap.addAttribute("apiKey", apiKey);
+			modelMap.addAttribute("cPage", currentPage);
+			modelMap.addAttribute("inoutType", inoutType);
+			modelMap.addAttribute("type", type);
+			modelMap.addAttribute("queryContent", queryContent);
+			modelMap.addAttribute("startDate", startDate);
+			modelMap.addAttribute("startTime", startTime);
+			modelMap.addAttribute("endDate", endDate);
+			modelMap.addAttribute("endTime", endTime);
+
+			Gson gson = new Gson();
+			String json = gson.toJson(modelMap);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 不同权限查看到不同的page 历史出入记录列表 加载出入记录list 20151130
+	 */
+	@RequestMapping(value = "/getInoutList.do")
+	public String getInoutList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		/*
+		 * 参数map
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		try
+		{
+			/*
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			/*
+			 * 师生类型
+			 */
+
+			String type =request.getParameter("type");
+
+			/**
+			 * 进出状态
+			 */
+			Integer inoutType = 0;
+			try
+			{
+				inoutType = Integer.valueOf(request.getParameter("inoutType"));
+				/**
+				 * 全部即不设进出类型
+				 */
+				if (Cons.TCHSTUTYPE_ALL.equals(inoutType))
+				{
+					inoutType = null;
+				}
+			} catch (Exception e)
+			{
+				inoutType = null;
+			}
+
+			// 查询内容
+			String queryContent = null;
+
+			try
+			{
+				queryContent = request.getParameter("queryContent");
+			} catch (Exception e)
+			{
+				queryContent = null;
+			}
+
+			// 开始时间
+			String startTime = null;
+			try
+			{
+				startTime = request.getParameter("startTime");
+			} catch (Exception e)
+			{
+				startTime = null;
+			}
+
+			// 结束时间
+			String endTime = null;
+			try
+			{
+				endTime = request.getParameter("endTime");
+			} catch (Exception e)
+			{
+				endTime = null;
+			}
+
+			User user = (User) session.getAttribute("user");
+
+			String roleCode = request.getParameter("roleCode");
+
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("roleCode", roleCode);
+			paramMap.put("type", type);
+			paramMap.put("inoutType", inoutType);
+			paramMap.put("queryContent", queryContent);
+			paramMap.put("startTime", startTime);
+			paramMap.put("endTime", endTime);
+			/**
+			 * 获取分页数据
+			 */
+			this.getPages().setPageSize(100);
+			Pages pages = inoutService.getInoutList(this.getPages().getPageSize(), currentPage, paramMap, user);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 根据学生ID查找对应进出记录
+	 */
+	@RequestMapping(value = "/getInoutListAsStudent.do")
+	public String getInoutListAsStudent(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		String studentId = request.getParameter("studentId");
+		String endDate = request.getParameter("endDate");
+		/*
+		 * 参数map
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		try
+		{
+			paramMap.put("type", 2);
+			paramMap.put("userId", studentId);
+			paramMap.put("endTime", endDate);
+			List<Inout> list = null;
+			if (null != studentId && !"".equals(studentId) && null != endDate && !"".equals(endDate))
+			{
+				list = inoutService.getInoutListAsStudent(paramMap);
+			}
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(list);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 导出查询记录
+	 */
+	@RequestMapping(value = "/doExportExcel.do")
+	public void doExportExcel(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		try
+		{
+			response.setCharacterEncoding("UTF-8");
+			request.setCharacterEncoding("UTF-8");
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			/**
+			 * 初始化excel各项参数---begin
+			 */
+			// 创建Excel的工作书册 Workbook,对应到一个excel文档
+			HSSFWorkbook wb = new HSSFWorkbook();
+
+			// 创建Excel的工作sheet,对应到一个excel文档的tab
+			HSSFSheet sheet = wb.createSheet("进出记录");
+
+			// 创建字体样式
+			HSSFFont font = wb.createFont();
+
+			// 创建单元格样式
+			HSSFCellStyle style = wb.createCellStyle();
+
+			WebWriteFile.getInstance().init(wb, sheet, font, style);
+			/**
+			 * 初始化excel各项参数---end
+			 */
+			HSSFRow row = sheet.createRow(0);
+			row.setHeight((short) 500);// 设定行的高度
+			// 创建一个Excel的单元格
+			HSSFCell cell = row.createCell(0);
+			// 给Excel的单元格设置样式和赋值
+			cell.setCellValue("部门/班级");
+
+			style.setWrapText(true);
+			cell = row.createCell(1);
+			cell.setCellValue("卡号");
+
+			style.setWrapText(true);
+			cell = row.createCell(2);
+			cell.setCellValue("刷卡人");
+
+			style.setWrapText(true);
+			cell = row.createCell(3);
+			cell.setCellValue("进出状态");
+
+			style.setWrapText(true);
+			cell = row.createCell(4);
+			cell.setCellValue("地点");
+
+			style.setWrapText(true);
+			cell = row.createCell(5);
+			cell.setCellValue("刷卡时间");
+
+			/**
+			 * 页面加载数据---begin
+			 */
+			String roleId = request.getParameter("roleCode");
+
+			/**
+			 * 师生类型
+			 */
+			Integer type = 0;
+			try
+			{
+				type = Integer.valueOf(request.getParameter("type"));
+				/**
+				 * 全部即不设师生类型
+				 */
+				if (Cons.TCHSTUTYPE_ALL.equals(type))
+				{
+					type = null;
+				}
+			} catch (Exception e)
+			{
+				type = null;
+			}
+
+			/**
+			 * 进出状态
+			 */
+			Integer inoutType = 0;
+			try
+			{
+				inoutType = Integer.valueOf(request.getParameter("inoutType"));
+				/**
+				 * 全部即不设进出类型
+				 */
+				if (Cons.TCHSTUTYPE_ALL.equals(inoutType))
+				{
+					inoutType = null;
+				}
+			} catch (Exception e)
+			{
+				inoutType = null;
+			}
+
+			// 查询内容
+			String queryContent = null;
+
+			try
+			{
+				queryContent = java.net.URLDecoder.decode(request.getParameter("queryContent"), "UTF-8");
+			} catch (Exception e)
+			{
+				queryContent = null;
+			}
+
+			// 开始时间
+			String startTime = null;
+			try
+			{
+				startTime = request.getParameter("startTime");
+			} catch (Exception e)
+			{
+				startTime = null;
+			}
+
+			// 结束时间
+			String endTime = null;
+			try
+			{
+				endTime = request.getParameter("endTime");
+			} catch (Exception e)
+			{
+				endTime = null;
+			}
+
+			/**
+			 * 选定user
+			 */
+			User user = (User) session.getAttribute("user");
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("schoolId", user.getSchoolId());
+			paramMap.put("clazzId", user.getClazzId());
+			paramMap.put("type", type);
+			paramMap.put("inoutType", inoutType);
+			paramMap.put("gradeId", user.getGradeId());
+			paramMap.put("queryContent", queryContent);
+			paramMap.put("startTime", startTime);
+			paramMap.put("endTime", endTime);
+			paramMap.put("roleId", roleId);
+
+			List<Inout> inoutList = inoutService.loadInoutListForExport(paramMap, user);
+
+			/**
+			 * 页面数据加载---end
+			 */
+
+			/**
+			 * 将数据写入excel中---begin
+			 */
+			int i = 1;
+			for (Inout inout : inoutList)
+			{
+				row = sheet.createRow(i);
+				row.setHeight((short) 500);// 设定行的高度
+
+				style.setWrapText(true);
+				// 创建一个Excel的单元格
+				cell = row.createCell(0);
+				// 给Excel的单元格设置样式和赋值
+				cell.setCellValue(inout.getItemName());
+
+				style.setWrapText(true);
+				cell = row.createCell(1);
+				cell.setCellValue(inout.getCode());
+
+				style.setWrapText(true);
+				cell = row.createCell(2);
+				cell.setCellValue(inout.getUserName());
+
+				style.setWrapText(true);
+				cell = row.createCell(3);
+				switch (inout.getStatus())
+				{
+				case 0:
+					cell.setCellValue("进");
+					break;
+				case 1:
+					cell.setCellValue("进");
+					break;
+				case 2:
+					cell.setCellValue("出");
+					break;
+				default:
+					cell.setCellValue("进");
+					break;
+				}
+
+				style.setWrapText(true);
+				cell = row.createCell(4);
+				cell.setCellValue(inout.getPositionName());
+
+				style.setWrapText(true);
+				cell = row.createCell(5);
+				cell.setCellValue(inout.getCreateTime());
+
+				i++;
+			}
+			/**
+			 * 将数据写入excel中---end
+			 */
+
+			/**
+			 * 磁盘创建文件并生出输出流
+			 */
+			File fp = new File("D:\\report\\");
+			// 创建目录
+			if (!fp.exists())
+			{
+				fp.mkdirs();// 目录不存在的情况下，创建目录。
+			}
+			File file = new File("D:\\report\\" + new Date().getTime() + ".xls");
+			FileOutputStream os = new FileOutputStream(file);
+			wb.write(os);
+			os.close();
+
+			WebWriteFile.getInstance().write(file, response, "进出记录.xls");
+			file.delete();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 加载入参userid对应的用户的出入记录list(师生信息)
+	 */
+	@RequestMapping(value = "/loadInoutListForTSDetail.do")
+	public String loadInoutListForTSDetail(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			Integer userId = Integer.valueOf(request.getParameter("userId"));
+
+			/**
+			 * 获取进出记录list
+			 */
+			List<Inout> inoutList = inoutService.selectInoutListByUserId(userId);
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(inoutList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 进入进出报表页面
+	 */
+	@RequestMapping(value = "/toInoutReport.do")
+	public String toInoutReport()
+	{
+		return "safeSchool/inout_report";
+	}
+
+
+	/**
+	 * 加载报表分组数据
+	 */
+	@RequestMapping(value = "/loadGroupData.do")
+	public String loadGroupData(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		String today = formatter.format(new Date());
+
+		Integer roleId = Integer.valueOf(request.getParameter("roleId"));
+		User user = (User) session.getAttribute("user");
+
+		String time = "";
+		Integer type = Cons.ABNORMAL_LEAVEEARLY;
+
+		try
+		{
+
+			time = request.getParameter("time");
+			if (null == time || "".equals(time))
+			{
+				time = today;
+			}
+
+			try
+			{
+				type = Integer.valueOf(request.getParameter("type"));
+			} catch (Exception e)
+			{
+				type = Cons.ABNORMAL_LEAVEEARLY;
+			}
+
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("time", time);
+			paramMap.put("type", type);
+			paramMap.put("clazzId", user.getClazzId());
+			paramMap.put("gradeId", user.getGradeId());
+			List<InoutAbnormalTotal> inoutAbnormalTotal = inoutService.loadGroupData(paramMap, roleId);
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(inoutAbnormalTotal);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+}

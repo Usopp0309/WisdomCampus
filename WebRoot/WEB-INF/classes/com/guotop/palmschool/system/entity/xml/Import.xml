@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Import">
+	<typeAlias alias="import" type="com.guotop.palmschool.system.entity.Import"/>
+	<typeAlias alias="importDetail" type="com.guotop.palmschool.system.entity.ImportDetail"/>
+	
+	
+	<select id="getImportCount" parameterClass="HashMap" resultClass="Integer">
+		select Count(im.id) from palm_import im
+			where im.type =#type#
+	</select>
+	<!-- 分页查找所有导入记录 -->
+	<select id="getImportList" parameterClass="HashMap" resultClass="import">
+		select im.* ,ud.realName from palm_import im,platform.user_detail ud
+			where im.importUserId = ud.userId
+			and im.type =#type#
+			order by createTime desc
+			<isNotEmpty property="startIndex">
+						LIMIT #startIndex#, #length#
+			</isNotEmpty>
+	</select>
+	
+	<update id="updateImport" parameterClass="HashMap">
+		update palm_import
+		set 
+		status= #status#
+		where id = #importId#
+	</update>
+	
+	<!-- 新增导入记录 -->
+	<insert id="addImport" parameterClass="import">
+		insert into palm_import
+		(
+			filename, 
+			type, 
+			total, 
+			success,
+			error,
+			status,
+			updateTime,
+			createTime,
+			importUserId
+		)
+		values
+		(
+			#filename#, 
+			#type#, 
+			#total#, 
+			#success#,
+			#error#,
+			0,
+			now(),
+			now(),
+			#importUserId#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+
+	<insert id="addImportDetail" parameterClass="HashMap">
+		insert into palm_import_detail (
+			importId,
+			userId, 
+			phone, 
+			code,
+			realName,
+			roleCode,
+			cardCode,
+			clazzId,
+			clazzName,
+			departmentId,
+			departmentName,
+			status,
+			familyId,
+			updateTime,
+			createTime,
+			result) 
+		values
+	    <iterate property="importDetailList" conjunction=",">  
+	        (
+	        #importId#,
+			#importDetailList[].userId#, 
+			#importDetailList[].phone#, 
+			#importDetailList[].code#,
+			#importDetailList[].realName#,
+			#importDetailList[].roleCode#,
+			#importDetailList[].cardCode#,
+			#importDetailList[].clazzId#,
+			#importDetailList[].clazzName#,
+			#importDetailList[].departmentId#,
+			#importDetailList[].departmentName#,
+			#importDetailList[].status#,
+			#importDetailList[].familyId#,
+			now(),
+			now(),
+			#importDetailList[].result#
+	        )
+	    </iterate>  
+	</insert>
+	
+	
+	<select id="getImportDetailListByImportId" parameterClass="HashMap" resultClass="importDetail">
+		select imd.* from palm_import_detail imd
+			where imd.importId = #importId#
+			and imd.status = #status#
+	</select>
+	
+	
+	<select id="getSuccessImportDetailParent"  resultClass="importDetail">
+		SELECT sp.parent_userId As parentId, sp.userId As studentId ,tmp.familyId
+		FROM platform.`student_parent` sp ,(SELECT userId,familyId FROM palm_import_detail WHERE roleCode = 'student' AND STATUS = 0 AND userId IS NOT NULL) tmp
+		WHERE sp.userId = tmp.userId
+		ORDER BY sp.userId ASC,sp.parent_userId ASC
+	</select>	
+	
+	<select id="getNOUserIdImportDetailParent"  resultClass="importDetail">
+		SELECT * FROM palm_import_detail pid WHERE pid.roleCode = 'parent' AND pid.familyId IN
+		(
+		SELECT familyId FROM palm_import_detail WHERE roleCode = 'student' AND STATUS = 0 AND userId IS NOT NULL
+		)
+	</select>
+	
+	<update id="updateImportDetail" parameterClass="HashMap">
+		update palm_import_detail
+		set 
+		userId= #userId#
+		where id = #id#
+	</update>
+</sqlMap>

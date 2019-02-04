@@ -1,0 +1,71 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+<!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+<!--[if !IE]><!--> <html lang="en"> <!--<![endif]-->
+<!-- BEGIN HEAD -->
+<head>
+<title>头文件</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style type="text/css">
+	.header{height:40px;background-color:#333;}
+	.header .top{max-width:1200px;display:block;margin:0 auto;height:40px;position: relative;z-index:10055;padding:0px 20px;}
+	.header .top img{display:block;float:left;height:35px;margin:2px 0 0 0}
+	.header .top .name{color:#fff;line-height:40px;font-size:16px;display:block;float:left;margin:0px 0 0 15px;}
+	.header .top .menu_li{float:right;margin:0px;width:60%;padding:0px;}
+	.header .top .menu_li li{margin:0px;float:right;line-height:40px; line-height:40px; width:12%; overflow:hidden; text-align:center;}
+	.header .top .menu_li li a{color:#fff; font-size:13px;display:block}
+	.header .top .menu_li li a:hover{color:#b0b0b0;}
+	.header .top .menu_li li .hover{color:#b0b0b0;}
+	.header .top .loginout{float:right;line-height:40px;padding:0px 0 0 20px;}
+	.header .top .loginout a{color:#fff}
+	.Response{font-style: normal;}
+</style>
+<body>
+	<div class="header">
+	<div class="top">
+		<img src="<%=basePath%>assets/global/img/m_img/logo.png"><span class="name">RICHX 智慧校园</span>
+		<span class="loginout"><a href="javascript:;" onclick="toLoginOut();"><em style="color:#f9ca06;font-style: normal;">${sessionScope.user.realName}</em> | 退出</a></span>
+		
+		<ul class="menu_li">
+			<c:if test="${sessionScope.user.username eq 'sysadmin'}">
+				<li><a id="menu1" href="<%=basePath%>cardApply/toCardApplyAuditList.do" target="_self">补办<em class="Response">审核</em></a></li>
+			</c:if>
+			<c:if test="${sessionScope.user.username eq 'sysadmin' }">
+				<li><a id="menu2" href="<%=basePath%>schoolApply/toSchoolApplyList.do" target="_self"><em class="Response">学校</em>认证</a></li>
+			</c:if>
+			<c:if test="${sessionScope.user.type eq '2' || sessionScope.user.type eq '3' || sessionScope.user.username eq 'sysadmin'}">
+				<li><a id="menu3" href="<%=basePath%>user/schoolManager.do" target="_self"><em class="Response">学校</em>管理</a></li>
+			</c:if>
+			<c:if test="${sessionScope.user.username eq 'sysadmin' }">
+				<li><a id="menu4" href="<%=basePath%>school/toAuthorization.do" target="_self"><em class="Response">学校</em>授权</a></li>
+				<li><a id="menu5" href="<%=basePath%>persionner/toPersionner.do" target="_self">人员<em class="Response">列表</em></a></li>
+				<li><a id="menu6" href="<%=basePath%>school/toTechnicalSupport.do" target="_self">技术<em class="Response">支持</em></a></li>
+				<li><a id="menu7" href="<%=basePath%>shopping/getOrdersList.do" target="_self">购物<em class="Response">列表</em></a></li>
+			</c:if>
+			<c:if test="${sessionScope.user.type eq '4'}">
+				<li><a id="menu8" href="<%=basePath%>financialStatements/toFinancialStatementsList.do" target="_self">财务<em class="Response">报表</em></a></li>
+			</c:if>
+		</ul>
+	</div>
+	</div>
+</body>
+<script type="text/javascript">
+//登出
+function toLoginOut()
+{
+    $.ajax({
+			
+		url: "<%=basePath%>user/toLoginOut.do",
+        success: function(data)
+        {
+            var reg = eval("(" + data + ")");
+            if( "true" == reg)
+            {   
+                window.location.href = "<%=basePath%>login.jsp";
+            }
+        }
+    });
+}
+</script>
+</html>

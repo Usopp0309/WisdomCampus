@@ -1,0 +1,182 @@
+package com.guotop.palmschool.shopping.service.impl;
+
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.common.entity.Bill;
+import com.guotop.palmschool.common.entity.SmsMT;
+import com.guotop.palmschool.entity.OrderMessage;
+import com.guotop.palmschool.entity.OrderMessageUser;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.shopping.entity.Orders;
+import com.guotop.palmschool.shopping.service.OrdersService;
+/**
+ * 订单接口实现
+ * @author jfy
+ * @date 2016年1月8日
+ */
+@Service("ordersService")
+public class OrdersServiceImpl extends BaseService implements OrdersService
+{
+
+	@Override
+	public int addOrders(Orders orders)
+	{
+		return getBaseDao().addObject("Orders.addOrders", orders);
+		
+	}
+
+	@Override
+	public void updateOrders(Orders orders)
+	{
+		getBaseDao().updateObject("Orders.updateOrders", orders);
+		
+	}
+
+	@Override
+	public Orders getOrdersById(Integer id)
+	{
+		
+		return (Orders)getBaseDao().selectObject("Orders.getInfoById", id);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Orders> getOrdersList(HashMap<String, Object> params)
+	{
+		// TODO Auto-generated method stub
+		return getBaseDao().selectListByObject("Orders.getOrdersList", params);
+	}
+
+	@Override
+	public void sendSms(String content, String phone)
+	{
+		// 对sms_mt进行插入操作
+		SmsMT smsMt = new SmsMT();
+		smsMt.setDestAddr(phone);
+		smsMt.setMessage(content);
+		smsMt.setOrgId(10001);
+		smsMt.setSendUserId(0);
+
+		Date date = new Date();
+		Timestamp timestamp = new Timestamp(date.getTime());
+		smsMt.setCreateTime(timestamp);
+		smsMt.setPresendTime(timestamp);
+		try
+		{
+			getBaseDao().addObject("SmsMT.addSmsMt", smsMt);
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Orders> getSelfOrdersList(HashMap<String, Object> params)
+	{
+		// TODO Auto-generated method stub
+		return getBaseDao().selectListByObject("Orders.getSelfOrdersList", params);
+	}
+
+	@Override
+	public void deleteOrders(int orderId)
+	{
+		getBaseDao().deleteObject("Orders.deleteOrders", orderId);
+		
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Orders> getFinancialStatementsList(HashMap<String, Object> param)
+	{
+		List<Orders> list = new ArrayList<Orders>();
+		if (((String)param.get("agency")) != null && ((String)param.get("agency")).equals("0"))
+		{
+			list = getBaseDao().selectListByObject("Orders.getAgencyFinancialStatementsList", param);
+		}else
+		{
+			list = getBaseDao().selectListByObject("Orders.getSelfFinancialStatementsList", param);
+		}
+		// TODO Auto-generated method stub
+		return list;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Orders> getFinancialStatementsDetailListBySchoolId(HashMap<String, Object> param)
+	{
+		// TODO Auto-generated method stub
+		return getBaseDao().selectListByObject("Orders.getFinancialStatementsDetailListBySchoolId", param);
+	}
+	
+	
+	/**
+	 * 根据购买人的Id 查询其对应的学校Id
+	 * @param userId
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<User> getUserSchoolIdByUserId(int userId)
+	{
+		return (List<User>) getBaseDao().selectList("User.getSchoolIdByUserId", userId);
+		
+	}
+	
+	/**
+	 * 根据商品名称查询对应的短信套餐
+	 * @param goodsName
+	 * @return
+	 */
+	public OrderMessage getOrderMessageByName(String goodsName)
+	{
+		return (OrderMessage)getBaseDao().selectObjectByObject("OrderMessage.getOrderMessageByName", goodsName);
+	}
+	
+	/**
+	 * 在学校的短信套餐用户信息表里插入对应的用户信息
+	 */
+	public void saveOrderMessageUser(OrderMessageUser orderMessageUser)
+	{
+		 getBaseDao().addObject("OrderMessage.saveOrderMessageUser", orderMessageUser);
+	}
+	
+	public void saveOrderMessageUserBATCH(List<OrderMessageUser> orderMessageUserList)
+	{
+		 getBaseDao().addObject("OrderMessage.saveOrderMessageUserBATCH", orderMessageUserList);
+	}
+	
+	/**
+	 * 修改学校的短信套餐用户信息表的中的状态为可用状态
+	 */
+	public void updateOrderMessageUserByOrederId(Integer orderId)
+	{
+		getBaseDao().updateObject("OrderMessage.updateOrderMessageUserByOrederId", orderId);
+	}
+
+	
+	public int addBill(Bill bill)
+	{
+		return (int) this.getBaseDao().addObject("Bill.addBill", bill);
+	}
+
+	/**
+	 * 根据orderId  获取被代充人的信息
+	 * @param orderId
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> getMessageUserDetailByOrderId(Integer orderId)
+	{
+		return (List<User>) getBaseDao().selectList("OrderMessage.getMessageUserDetailByOrderId", orderId);
+	}
+}

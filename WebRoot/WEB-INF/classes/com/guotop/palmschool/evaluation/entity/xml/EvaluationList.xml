@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="EvaluationList">
+
+	<typeAlias alias="evaluationClazzModel" type="com.guotop.palmschool.evaluation.entity.EvaluationClazzModel"/>
+	<typeAlias alias="evaluateFormModel" type="com.guotop.palmschool.evaluation.entity.EvaluateFormModel"/>
+	<typeAlias alias="teacherEvaluatePhraseModel" type="com.guotop.palmschool.evaluation.entity.TeacherEvaluatePhraseModel"/>
+	<typeAlias alias="curriculum" type="com.guotop.palmschool.curriculum.entity.Curriculum"/>
+	
+	<resultMap class="com.guotop.palmschool.evaluation.entity.EvaluationClazzModel" id="result_evaluationClazzModel">
+		<result property="id" column="id"/>
+		<result property="evaluatetimeId" column="evaluatetimeId"/>
+		<result property="teachingfolderId" column="teachingfolderId"/>	
+		<result property="status" column="status"/>
+		<result property="userType" column="userType"/>
+		<result property="semester" column="semester"/>
+		<result property="clazzId" column="clazzId"/>
+		<result property="gradeId" column="gradeId"/>
+		<result property="name" column="name"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.Clazz" id="result_clazz">
+		<result property="id" column="id"/>
+		<result property="clazzName" column="clazzName"/>
+		<result property="leaderId" column="leaderId"/>	
+		<result property="updateTime" column="updateTime"/>
+		<result property="createTime" column="createTime"/>
+		<result property="gradeId" column="gradeId"/>
+		<result property="code" column="code"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.evaluation.entity.TeacherEvaluateDetail" id="teacher_evaluate_detail">
+		<result property="id" column="id"/>
+		<result property="modelId" column="modelId"/>
+		<result property="titleId" column="titleId"/>	
+		<result property="text" column="text"/>
+		<result property="level" column="level"/>
+		<result property="formId" column="formId"/>
+		<result property="userId" column="userId"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.evaluation.entity.EvaluateFormModel" id="evaluate_form_model">
+		<result property="id" column="id"/>
+		<result property="name" column="name"/>
+		<result property="gradeId" column="gradeId"/>	
+		<result property="clazzId" column="clazzId"/>
+		<result property="type" column="type"/>
+		<result property="sid" column="sid"/>
+		<result property="userId" column="userId"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.evaluation.entity.TeacherEvaluateFormModel" id="teacher_evaluate_form">
+		<result property="id" column="id"/>
+		<result property="name" column="name"/>
+		<result property="gradeId" column="gradeId"/>	
+		<result property="clazzId" column="clazzId"/>
+		<result property="type" column="type"/>
+		<result property="sid" column="sid"/>
+		<result property="userId" column="userId"/>
+		<result property="modelId" column="modelId"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.evaluation.entity.TeacherEvaluateTitleModel" id="teacher_evaluate_title">
+		<result property="id" column="id"/>
+		<result property="formId" column="formId"/>
+		<result property="modelId" column="modelId"/>
+		<result property="title" column="title"/>	
+		<result property="formType" column="formType"/>
+		<result property="contextType" column="contextType"/>
+		<result property="titleType" column="titleType"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.evaluation.entity.TeacherEvaluateDetailModel" id="teacher_evaluate_detail">
+		<result property="id" column="id"/>
+		<result property="formId" column="formId"/>
+		<result property="modelId" column="modelId"/>
+		<result property="titleId" column="titleId"/>	
+		<result property="text" column="text"/>
+		<result property="level" column="level"/>
+		<result property="userId" column="userId"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.evaluation.entity.TeacherEvaluatePhraseModel" id="teacher_evaluate_phrase">
+		<result property="id" column="id"/>
+		<result property="formId" column="formId"/>
+		<result property="modelId" column="modelId"/>
+		<result property="titleId" column="titleId"/>	
+		<result property="text" column="text"/>
+		<result property="userId" column="userId"/>
+		<result property="realName" column="realName"/>
+	</resultMap>
+	
+	
+	
+	<!-- 根据userId查询班级和gradeId(学生)-->	
+	<select id="getClazzForStudentByUserId" parameterClass="Integer" resultMap="result_clazz">
+		select c.* from palm_clazz c, palm_grade g,palm_student_clazz sc  
+		where c.id = sc.clazzId and g.id = c.gradeId and g.state = '0' and sc.userId = #userId#
+	</select>
+	
+	
+<!-- 	当前时间在不在学期内   如果在就去取本学期的科目对应的教师    如果不在则 查询上学期课程表对应的科目教师 -->
+	<!-- 根据userId查询班级Id(教师)-->	
+	<select id="getClazzIdForTeacherByUserIdForIn" parameterClass="HashMap" resultClass="Integer">
+		<![CDATA[
+			SELECT DISTINCT c.clazzId FROM palm_curriculum c, palm_curriculum_semester cs 
+			 WHERE c.semesterId = cs.id  AND c.subjectsUser = #userId#  AND cs.beginDate <= #date#  AND cs.endDate >= #date#
+		]]>
+	</select>
+	<!-- 根据userId查询班级Id(教师)-->	
+	<select id="getClazzIdForTeacherByUserIdForNotIn" parameterClass="HashMap" resultClass="Integer">
+		<![CDATA[
+			SELECT DISTINCT c.clazzId FROM palm_curriculum c, palm_curriculum_semester cs 
+				  WHERE c.semesterId = cs.id AND c.subjectsUser = #userId# AND cs.endDate <= #date#  ORDER BY cs.id DESC limit 1
+		]]>
+	</select>
+	
+	<!-- 根据clazzId查询gradeId(教师)-->	
+	<select id="getGradeIdForTeacherByClazzId" parameterClass="HashMap" resultClass="Integer">
+		select c.gradeId from palm_clazz c ,palm_grade g
+		where g.id = c.gradeId
+		    AND g.state = '0'
+		 <isNotEmpty prepend="and" property="clazzIdList">
+		    c.id IN 
+	           <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+	               #clazzIdList[]# 
+	           </iterate> 
+	     </isNotEmpty>
+	     <isEmpty prepend="and" property="clazzIdList">
+		     c.id is null
+	     </isEmpty>
+	</select>
+	
+	<!-- 根据班级和gradeId 查询评价list（学生）-->	
+	<select id="getEvaluationClazzModelListForStudent" parameterClass="HashMap" resultMap="result_evaluationClazzModel">
+		SELECT ec.*,tf.semester,tf.name,et.clazzId,et.gradeId 
+		   FROM palm_evaluate_clazz_model ec, teachingexercisesfolder tf , palm_evaluation_time et
+		     WHERE ec.evaluatetimeId = et.id
+			   AND ec.teachingfolderId = tf.id
+			   AND ec.userType = #userType#
+			   AND (et.clazzId = #clazzId# OR et.gradeId = #gradeId# OR (et.clazzId=0 AND et.gradeId=0))
+	</select>
+	
+	<!-- 根据班级和gradeId 查询评价list（教师）-->	
+	<select id="getEvaluationClazzModelListForTeacher" parameterClass="HashMap" resultMap="result_evaluationClazzModel">
+		SELECT ec.*,tf.semester,tf.name,et.clazzId,et.gradeId 
+		   FROM palm_evaluate_clazz_model ec, teachingexercisesfolder tf , palm_evaluation_time et
+		     WHERE ec.evaluatetimeId = et.id
+			   AND ec.teachingfolderId = tf.id
+			   AND ec.userType = #userType#
+			   AND (
+			      <isNotEmpty property="clazzIdList"> 
+			    	  et.clazzId in 
+				      <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+					      #clazzIdList[]# 
+					  </iterate> 
+				  </isNotEmpty>
+				   <isEmpty property="clazzIdList"> 
+			    	  et.clazzId is null
+				  </isEmpty>
+				  
+                  <isNotEmpty property="gradeIdList"> 
+	                  OR et.gradeId in
+	                  <iterate open="(" close=")" conjunction="," property="gradeIdList" > 
+					      #gradeIdList[]# 
+					  </iterate> 
+				  </isNotEmpty>
+				  <isEmpty property="gradeIdList"> 
+	                  OR et.gradeId is null
+				  </isEmpty>
+				  OR (et.clazzId=0 AND et.gradeId=0)
+				  )
+	</select>
+	
+	
+	
+	<insert id="addEvaluationTime" parameterClass="evaluationTime">
+	      insert into palm_evaluation_time 
+		(
+			
+		) 
+		values
+		(
+			
+		)
+		
+		
+	</insert>
+	
+	<!-- 添加评价信息 -->
+	<insert id="addEvaluateFormModel" parameterClass="evaluateFormModel">
+	      insert into palm_evaluate_form_model 
+		(
+			name,
+			gradeId,
+			clazzId,
+			type,
+			userId,
+			sid
+		) 
+		values
+		(
+			#name#,
+			#gradeId#,
+			#clazzId#,
+			#type#,
+			#userId#,
+			#sid#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!--查询用户是否已评-->	
+	<select id="getTeacherEvaluateDetailByParamMap" parameterClass="HashMap" resultMap="teacher_evaluate_detail">
+		select ted.* from palm_teacher_evaluate_detail ted,palm_teacher_evaluate_form tef
+		    where ted.formId = tef.id
+			  and ted.userId = #userId# 
+			  and tef.userId = #uId#
+			  and tef.type = #paperid#
+	</select>
+	
+	<!--查找评价信息表(教师对学生 或者 学生对教师)-->	
+	<select id="getEvaluateFormByParamMap" parameterClass="HashMap" resultMap="evaluate_form_model">
+		select efm.* from palm_evaluate_form_model efm
+		    where efm.clazzId = #clazzId# 
+			  and efm.userId = #userId#
+			  and efm.type = #type#
+	</select>
+	
+	
+	<!--根据Id 查找评价信息 -->	
+	<select id="getTeacherEvaluateForm" parameterClass="Integer" resultMap="teacher_evaluate_form">
+		select * from palm_teacher_evaluate_form where id = #id#
+	</select>
+	
+	<!-- 添加评价信息 -->
+	<insert id="addTeacherEvaluateFormModel" parameterClass="Integer">
+	    insert into palm_teacher_evaluate_form 
+        (id,modelId,name,gradeId,clazzId,type,userId,sid) 
+        select id,id,name,gradeId,clazzId,type,userId,sid from palm_evaluate_form_model where id=#id#
+	</insert>
+	
+	<!-- 根据Id查找评价信息标题-->
+	<select id="getTeacherEvaluateTitleForLevel" parameterClass="Integer" resultMap="teacher_evaluate_title">
+		select * from palm_teacher_evaluate_title where formId = #id#
+	</select>
+	
+	<!-- 添加评价信息标题 -->
+	<insert id="addNewexercisesTitle" parameterClass="HashMap">
+	    insert into palm_teacher_evaluate_title 
+	    (formId,modelId,title,titletype) 
+	    SELECT #formId#,id,#title#,#titletype# FROM teachingexercises where id=#id#
+	</insert>
+	
+	<!-- 查询评价选项详情 -->
+	<select id="getTeacherEvaluateDetailList" parameterClass="HashMap" resultMap="teacher_evaluate_detail">
+		<isEmpty property="formId">
+		  SELECT d.* FROM palm_teacher_evaluate_detail d 
+		    WHERE d.formId IN(SELECT t.formId FROM palm_teacher_evaluate_title t) 
+		     AND (d.userId=#userId#) order by d.id asc			      
+		</isEmpty>
+		<isNotEmpty property="formId">
+		   SELECT d.* FROM palm_teacher_evaluate_detail d 
+		     WHERE d.formId IN (SELECT t.formId FROM palm_teacher_evaluate_title t WHERE t.formId=#formId#) 
+		      and (d.userId=#userId#) order by d.id asc		      
+		</isNotEmpty>
+	</select>
+	
+	<!-- 单选问题插入新表 -->
+	<insert id="addNewexercisesDetail" parameterClass="HashMap">
+	    insert into palm_teacher_evaluate_detail 
+	         (formId,modelId,titleId,text,level,userId) 
+	    SELECT #formId#,id,exId,text,integral,#userId# 
+		    FROM teachingexercisesdetail d
+		      where d.id=#id# and d.exId=#titleId#
+	</insert>
+	
+	<!--  根据id查询评价详情信息表(感想/建议题) -->
+	<select id="getTeacherEvaluatePhraseList" parameterClass="HashMap" resultMap="teacher_evaluate_phrase">
+		<isEmpty property="formId">
+		   SELECT p.*,ud.realName FROM palm_teacher_evaluate_phrase p,platform.user_detail ud
+		      WHERE ud.userId = p.userId
+		        and p.formId in (select t.formId from palm_teacher_evaluate_title t)
+		        and p.userId=#userId# order by p.id asc		      
+		</isEmpty>
+		<isNotEmpty property="formId">
+		    SELECT p.*,ud.realName FROM palm_teacher_evaluate_phrase p,platform.user_detail ud
+		      WHERE ud.userId = p.userId
+		        and p.formId=#formId# 
+		        and p.titleId = (select t.modelId from palm_teacher_evaluate_title t where t.id=#modelId#) 
+		        order by p.id asc	      
+		</isNotEmpty>
+	</select>
+	
+	<!--  添加评价短语（感想建议题） -->
+	<insert id="addNewEvaluatePhrase" parameterClass="teacherEvaluatePhraseModel">
+	    insert into palm_teacher_evaluate_phrase 
+		( formId, titleId, modelId, text, userId ) 
+		values
+		( #formId#,#titleId#,#modelId#,#text#,#userId#)
+	</insert>
+	
+	<!-- 根据Id查找评价信息标题 -->
+	<select id="getTeacherEvaluateTitleIdById" parameterClass="HashMap" resultMap="teacher_evaluate_title">
+		select * from palm_teacher_evaluate_title where titleType = 2 and formId = #formId# and modelId = #modelId#
+	</select>
+	
+	<!-- 根据班级Id查询对应的教师（通过课程表查询教师    如果当前评论时间在某个学期内 取所在学期的科目教师）-->	
+	<select id="getTeachersByThis" parameterClass="HashMap" resultClass="curriculum">
+	    <![CDATA[
+		   SELECT DISTINCT c.subjectsUser,c.subjectName,c.clazzId,ud.realName FROM palm_curriculum c,platform.user_detail ud,palm_curriculum_semester cs 
+			  WHERE c.subjectsUser = ud.userId 
+			    AND c.semesterId = cs.id
+			    AND c.clazzId = #clazzId#
+			    AND cs.beginDate <= #date#
+			    AND cs.endDate >= #date#
+		]]>
+	</select>
+	
+	<!-- 根据班级Id查询对应的教师（通过课程表查询教师    如果当前评论时间在某个学期内 取所在学期的科目教师）-->	
+	<select id="getTeachersByBefore" parameterClass="HashMap" resultClass="curriculum">
+	    <![CDATA[
+		   SELECT DISTINCT c.subjectsUser,c.subjectName,c.clazzId,ud.realName FROM palm_curriculum c,platform.user_detail ud,palm_curriculum_semester cs 
+			  WHERE c.subjectsUser = ud.userId 
+			    AND c.semesterId = cs.id
+			    AND c.clazzId = #clazzId#
+			    AND cs.endDate <= #date#
+			    order by cs.id desc
+			    limit 1
+		]]>
+	</select>
+	
+</sqlMap>

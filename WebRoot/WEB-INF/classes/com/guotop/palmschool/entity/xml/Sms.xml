@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Sms">
+	<typeAlias alias="sms" type="com.guotop.palmschool.entity.Sms" />
+	<typeAlias alias="schoolTrySms" type="com.guotop.palmschool.entity.SchoolTrySms"/>
+	<typeAlias alias="authCodeEmail" type="com.guotop.palmschool.entity.AuthCodeEmail"/>
+	<resultMap class="com.guotop.palmschool.entity.Sms" id="result-sms">
+		<result property="id" column="id" />
+		<result property="content" column="content" />
+		<result property="senderId" column="senderId" />
+		<result property="senderName" column="senderName" />
+		<result property="module" column="module" />
+		<result property="smsLength" column="smsLength" />
+		<result property="phoneCount" column="phoneCount" />
+		<result property="result" column="result" />
+		<result property="reportAmount" column="reportAmount" />
+		<result property="succAmount" column="succAmount" />
+		<result property="sentTime" column="sentTime" />
+		<result property="createTime" column="createTime" />
+		<result property="isRealTime" column="isRealTime" />
+		<result property="type" column="type" />
+		<result property="smsSum" column="smsSum" />
+		<result property="errorSmsSum" column="errorSmsSum" />
+	</resultMap>
+
+	<!--新增短信内容  shengyinjiang 20151203-->
+	<insert id="addSms" parameterClass="sms">
+		insert into palm_sms
+		(
+			content,
+			senderId,
+			senderName,
+			module,
+			smsLength,
+			phoneCount,
+			result,
+			reportAmount,
+			succAmount,
+			sentTime,
+			createTime,
+			isRealTime,
+			type,
+			smsSum,
+			errorSmsSum
+		)
+		values
+		(
+			#content#,
+			#senderId#,
+			#senderName#,
+			#module#,
+			#smsLength#,
+			#phoneCount#,
+			#result#,
+			#reportAmount#,
+			#succAmount#,
+			#sentTime#,
+			#createTime#,
+			#isRealTime#,
+			#type#,
+			#smsSum#,
+			#errorSmsSum#
+		)
+	<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    </selectKey>
+	</insert>
+
+	
+	<!-- 用于首页加载短信列表 -->
+	<select id="selectSmsListForMain" resultMap="result-sms">
+		select sms.*, u.name
+			from palm_sms sms, palm_user u, palm_user_role ur
+			where sms.senderid = u.id
+			and u.id = ur.userId
+		order by id desc
+		limit 5
+	</select>
+	
+	
+	<!-- 根据 content 查出信息 update by syj 20151206-->
+	<select id="loadSmsByContent" parameterClass="java.util.HashMap" resultClass="Integer">
+	<![CDATA[
+		SELECT COUNT(ps.id)
+			FROM palm_sms ps
+			WHERE ps.content = #content#
+			AND ps.sentTime >= #time#
+	]]>			
+	</select>
+	
+	<!-- 校长，学校管理员，董事长  加载短信列表  20151202 -->
+	<select id="loadSmsListAsMaster" parameterClass="HashMap" resultMap="result-sms">
+		 SELECT s.* FROM palm_sms s
+			 WHERE 1 = 1
+			<!-- 查询短信内容 -->
+			<isNotEmpty prepend="and" property="queryContent">
+				(s.content like CONCAT('%',#queryContent#,'%') or s.senderName like CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="type">
+				s.type = #type#
+			</isNotEmpty>
+			ORDER BY s.sentTime DESC
+			LIMIT #startIndex#, #length#
+	</select>
+	
+	<!-- 校长，学校管理员，董事长  加载短信列表总数  20151202 -->
+	<select id="loadSmsCountAsMaster" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM(
+		   SELECT s.* FROM palm_sms s
+			    WHERE 1 = 1
+				<!-- 查询短信内容 -->
+				<isNotEmpty prepend="and" property="queryContent">
+					(s.content like CONCAT('%',#queryContent#,'%') or s.senderName like CONCAT('%',#queryContent#,'%'))
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="type">
+				s.type = #type#
+				</isNotEmpty>
+		  ) tt
+	</select>
+	
+	<!-- 除去 校长，学校管理员，董事长  之外的人员只能看到自己发送的信息  20151203 -->
+	<select id="loadSmsListAsSelf" parameterClass="HashMap" resultMap="result-sms">
+		SELECT s.* FROM palm_sms s
+			WHERE s.senderId = #userId#
+			<!-- 查询短信内容 -->
+			<isNotEmpty prepend="and" property="queryContent">
+				(s.content like CONCAT('%',#queryContent#,'%') or s.senderName like CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="type">
+				s.type = #type#
+			</isNotEmpty>
+			ORDER BY s.sentTime DESC
+			LIMIT #startIndex#, #length#
+	</select>
+	
+	<!-- 除去 校长，学校管理员，董事长  之外的人员只能看到自己发送的总数  20151203 -->
+	<select id="loadSmsCountAsSelf" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM(
+			SELECT s.* FROM palm_sms s
+				WHERE s.senderId = #userId#
+				<!-- 查询短信内容 -->
+				<isNotEmpty prepend="and" property="queryContent">
+					(s.content like CONCAT('%',#queryContent#,'%') or s.senderName like CONCAT('%',#queryContent#,'%'))
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="type">
+				s.type = #type#
+			</isNotEmpty>
+		) tt
+	</select>
+	
+	<!-- 平台库上看到自己发送的信息  20160120 -->
+	<select id="loadSmsListAsSelfFromPlatform" parameterClass="HashMap" resultClass="sms">
+		SELECT s.* FROM platform.friend_sms s
+			WHERE s.senderId = #userId#
+			<isNotEmpty prepend="and" property="type">
+				s.type = #type#
+			</isNotEmpty>
+			ORDER BY s.sentTime DESC
+			LIMIT #startIndex#, #length#
+	</select>
+	
+	<!-- 平台库上看到自己发送的总数  20160120 -->
+	<select id="loadSmsCountAsSelfFromPlatform" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM(
+			SELECT s.* FROM platform.friend_sms s
+				WHERE s.senderId = #userId#
+				<isNotEmpty prepend="and" property="type">
+				s.type = #type#
+			</isNotEmpty>
+		) tt
+	</select>
+	
+	<!-- 获取最后一条数据  syj 20151210 -->
+	<select id="getLastOneFromSms" parameterClass="HashMap" resultClass="sms">
+		SELECT * FROM palm_sms ORDER BY id DESC LIMIT 1
+	</select>
+	
+	<!-- 更新成功发送条数和 发送失败条数 -->
+	<update id="updateSms" parameterClass="HashMap">
+		update palm_sms
+			set smsSum = #smsSum#,
+				errorSmsSum = #errorSmsSum#
+			where id = #id#
+	</update>
+	
+	<!-- 查询学校是否有试用短信  且是否超过试用条数 -->
+	<select id="getSchoolTrySms" parameterClass="String" resultClass="schoolTrySms">
+		<![CDATA[
+			SELECT * FROM platform.school_try_sms s 
+			WHERE 1=1 AND s.schoolId = #schoolId#  
+			AND s.smsCount <=(SELECT c.smsCount FROM platform.school_countinfo c WHERE c.schoolId = #schoolId# )
+		]]>
+	</select>
+	
+	<insert id="addEmailAuthCode" parameterClass="authCodeEmail">
+		insert into platform.authcode_email
+		(
+			authcode,
+			createTime,
+			email,
+			status
+		)
+		values
+		(
+			#authcode#,
+			now(),
+			#email#,
+			#status#
+		)
+	</insert>
+
+</sqlMap>

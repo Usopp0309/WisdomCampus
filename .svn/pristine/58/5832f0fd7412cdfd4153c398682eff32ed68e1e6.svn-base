@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="BluetoothData">
+	<typeAlias alias="bluetoothData"
+		type="com.guotop.palmschool.bluetooth.entity.BluetoothData" />
+	<!-- 批量添加学生使用手环的数据 -->
+	<insert id="insertBathBluetoothData" parameterClass="java.util.List">
+		insert into
+		palm_bluetooth_data(bluetoothBraceletId,createTime,dataTime,calorie,heartRate,steps,userId
+		,startTime,endTime,realName,clazzId,clazzName,gradeName,gradeId,ip,mac
+		)
+		values
+		<iterate conjunction=",">
+			(#bluetoothDatas[].bluetoothBraceletId#,NOW(),#bluetoothDatas[].dataTime#,#bluetoothDatas[].calorie#,#bluetoothDatas[].heartRate#,#bluetoothDatas[].steps#,#bluetoothDatas[].userId#
+			,#bluetoothDatas[].startTime#,#bluetoothDatas[].endTime#,#bluetoothDatas[].realName#,#bluetoothDatas[].clazzId#,#bluetoothDatas[].clazzName#,#bluetoothDatas[].gradeName#,#bluetoothDatas[].gradeId#,#bluetoothDatas[].ip#,#bluetoothDatas[].mac#)
+		</iterate>
+	</insert>
+	<!-- 添加学生使用手环的数据 -->
+	<insert id="insertBluetoothData" parameterClass="bluetoothData">
+		insert into
+		palm_bluetooth_data(bluetoothBraceletId,createTime,dataTime,calorie,heartRate,steps,userId
+		,startTime,endTime,realName,clazzId,clazzName,gradeName,gradeId,ip,mac)
+		values
+		(#bluetoothBraceletId#,NOW(),#dataTime#,#calorie#,#heartRate#,#steps#,#userId#
+		,#startTime#,#endTime#,#realName#,#clazzId#,#clazzName#,#gradeName#,#gradeId#,#ip#,#mac#)
+	</insert>
+	<!-- 分页获得学生与手环的关系 -->
+	<select id="getPageBluetoothData" parameterClass="HashMap"
+		resultClass="bluetoothData">
+		select s.* from palm_bluetooth_data s where 1=1
+		limit
+		#startIndex#, #length#
+	</select>
+	<!-- 分页获得学生与手环的关系 -->
+	<select id="getPageBluetoothDataCount" parameterClass="HashMap"
+		resultClass="Integer">
+		select count(*) from palm_bluetooth_data s where 1=1
+	</select>
+</sqlMap>
+	

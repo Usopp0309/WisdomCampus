@@ -1,0 +1,82 @@
+package com.guotop.palmschool.bluetooth.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.guotop.palmschool.bluetooth.entity.BluetoothBracelet;
+import com.guotop.palmschool.bluetooth.entity.BluetoothStudent;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 蓝牙手环表
+ * 
+ * @author chenyong
+ *
+ */
+public interface BraceletService {
+	/**
+	 * 批量添加学生使用手环的数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月21日 下午4:58:02
+	 */
+	public void insertBathBluetoothBracelet(List<BluetoothBracelet> bluetoothBracelets);
+
+	/**
+	 * 添加学生使用手环的数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月21日 下午5:03:39
+	 */
+	public Integer insertBluetoothBracelet(BluetoothBracelet bluetoothBracelet, BluetoothStudent student);
+
+	/**
+	 * 分页获得数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月21日 下午5:07:27
+	 */
+	public Pages<BluetoothBracelet> getPageBluetoothBracelet(int page, int pageSize, Map<String, Object> paramMap);
+
+	/**
+	 * 根据主键更新数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月24日 下午6:28:47
+	 */
+	public void updateById(BluetoothBracelet bluetoothBracelet, BluetoothStudent bluetoothStudent);
+
+	/**
+	 * 根据mac或code判断手环是否已存在
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月25日 上午9:35:01
+	 */
+	public boolean getCountByMacOrCode(Map<String, Object> map);
+
+	/**
+	 * 根据主键获得数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月25日 上午10:06:47
+	 */
+	public BluetoothBracelet getById(Integer id);
+	/**
+	 * 根据状态获得手环数据
+	 * @author chenyong
+	 * @Time 2017年4月25日 下午5:24:57
+	 */
+	public List<BluetoothBracelet> getByStatus(Integer status);
+	/**
+	 * 修改手环的状态 
+	 * @author chenyong
+	 * @Time 2017年4月25日 下午7:39:50
+	 */
+	public void updateStatusById(Map<String, Object> map);
+    /**
+     * 批量更新手环的状态
+     * @author chenyong
+     * @Time 2017年4月26日 上午9:40:54
+     */
+	public void updateStatusByIds(Map<String,Object> map);
+}

@@ -1,0 +1,1128 @@
+package com.guotop.palmschool.entity;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.UUID;
+
+import com.google.gson.annotations.Expose;
+
+/**
+ * 用户实体类
+ * 
+ * @author admin
+ *
+ */
+public class User implements Serializable
+{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * ID
+	 */
+	private Integer id;
+
+	private String code;
+
+	private String username;
+
+	private String password;
+	@Expose
+	private Integer type;
+
+	@Expose
+	private String parentname;
+
+	private Integer role;
+
+	private String orgid;
+
+	private String name;
+
+	private String sex;
+
+	private String stupic;
+	/**
+	 * 学段 0 幼儿园 1小学 2 初中 3 高中
+	 */
+	private Integer stage;
+
+	/**
+	 * 年级ID
+	 */
+	private Integer gradeId;
+
+	/**
+	 * 年级或部门
+	 */
+	private String gradeName;
+
+	/**
+	 * 班级ID
+	 */
+	@Expose
+	private Integer clazzId;
+
+	/**
+	 * 班级或部门名称
+	 */
+	@Expose
+	private String clazzName;
+
+	/**
+	 * 部门ID
+	 */
+	private Integer departmentId;
+	/**
+	 * 部门名称
+	 */
+	private String departmentName;
+
+	/**
+	 * 部门编码
+	 */
+	private String departmentCode;
+
+	/**
+	 * 学校ID
+	 */
+	private String schoolId;
+
+	/**
+	 * 用户ID
+	 */
+	@Expose
+	private Integer userId;
+
+	/**
+	 * 权限编码
+	 */
+	private String roleCode;
+
+	/**
+	 * 权限名
+	 */
+	private String roleName;
+
+	/**
+	 * 卡号，后期多卡会改为list
+	 */
+	@Expose
+	private String cardCode;
+
+	/**
+	 * 修改时间
+	 */
+	private String updateTime;
+
+	/**
+	 * 创建时间
+	 */
+	private String createTime;
+
+	/**
+	 * 职务
+	 * 
+	 * @return
+	 */
+	private String ofJob;
+
+	/**
+	 * 考勤相关
+	 */
+	private Integer positionId;
+
+	private String positionTime;
+	/**
+	 * 智慧校园导入用户名
+	 */
+	@Expose
+	private String phone;
+	/**
+	 * 学生手机号（当查询学生信息是用到）
+	 */
+	private String studentPhone;
+	@Expose
+	private String bindPhone;
+
+	/**
+	 * 智慧校园导入用户名
+	 */
+	private String palmUserName;
+	/**
+	 * 账号状态：0 在用 1 失效
+	 */
+	private String state;
+	/**
+	 * 来源 0：互信 1：智慧校园 2：资源云 3：成绩云
+	 */
+	private String source;
+	/**
+	 * 真实姓名
+	 */
+	@Expose
+	private String realName;
+	/**
+	 * 生日
+	 */
+	private String birthday;
+	/**
+	 * 地市
+	 */
+	private String city;
+	/**
+	 * 省份
+	 */
+	private String province;
+	/**
+	 * 年龄
+	 */
+	private int age;
+	/**
+	 * QQ
+	 */
+	private String QQ;
+	/**
+	 * 创建者
+	 */
+	private int createUserId;
+	/**
+	 * 身份证
+	 */
+	private String certificateId;
+	
+	/**
+	 * 亦信号是否是默认值0:是  1:不是
+	 */
+	private Integer isDefalutUserName = 0;
+	/**
+	 * 权限列表
+	 */
+	private List<Permission> permissionList;
+	/**
+	 * 角色列表
+	 */
+	private List<Role> roleList;
+	// 住校类型
+	private String schoolType;
+	// 所属班级
+	private List<Clazz> clazzList;
+	// 所属部门
+	private List<Department> departmentList;
+	// 家长2名称
+	private String parent2Name;
+	// 家长2手机号
+	private String phone2;
+
+	// 家长list
+	private List<User> parentList;
+
+	// 学生list
+	private List<User> studentList;
+
+	// 学生姓名
+	private String studentName;
+
+	// 家长Id
+	@Expose
+	private Integer parentId;
+	// 学校名称
+	private String schoolName;
+
+	// uuId
+	private String uuserId = UUID.randomUUID().toString();
+	// 邮箱
+	private String email;
+	// 渠道ID
+	private String baiduChannelId;
+	// 设备类型 3:android, 4:ios
+	private Integer deviceType;
+	// 接收消息方式 0:短信 1 推送消息 2 短信及推送
+	private Integer messageType;
+
+	// 读卡器设备号
+	private String position;
+	// 学校集合
+	private List<School> schoolList;
+
+	@Expose
+	private String userName;
+
+	@Expose
+	private String nickName;
+
+	@Expose
+	private String headImg;
+	@Expose
+	private String voipAccount;
+	// 班主任名称
+	private String classTeacherName;
+
+	private Integer studentId;
+
+	// ftpUserName
+	private String ftpUserName;
+	// ftpPassword
+	private String ftpPassword;
+	// ftpHost
+	private String ftpHost;
+	// ftpUrl
+	private String ftpUrl;
+	// ftpUrl
+	private String ftpEncode;
+	// 用于判断家长是否已经存在在系统中
+	private boolean isExist;
+	// 是否购买短信套餐大于0已购买
+	private int orderMessage;
+	
+	//福建资源云平台personid
+	private String personid;
+	
+	private String userDescription;
+	private String apiKey;
+	
+	//福建资源云学校Id
+	private String fjSchoolId;
+	public String getApiKey()
+	{
+		return apiKey;
+	}
+
+	public void setApiKey(String apiKey)
+	{
+		this.apiKey = apiKey;
+	}
+
+	public int getOrderMessage()
+	{
+		return orderMessage;
+	}
+
+	public void setOrderMessage(int orderMessage)
+	{
+		this.orderMessage = orderMessage;
+	}
+
+	public List<School> getSchoolList()
+	{
+		return schoolList;
+	}
+
+	public void setSchoolList(List<School> schoolList)
+	{
+		this.schoolList = schoolList;
+	}
+
+	public String getStudentPhone()
+	{
+		return studentPhone;
+	}
+
+	public void setStudentPhone(String studentPhone)
+	{
+		this.studentPhone = studentPhone;
+	}
+
+	public Integer getStage()
+	{
+		return stage;
+	}
+
+	public void setStage(Integer stage)
+	{
+		this.stage = stage;
+	}
+
+	public String getPalmUserName()
+	{
+		return palmUserName;
+	}
+
+	public String getPosition()
+	{
+		return position;
+	}
+
+	public void setPosition(String position)
+	{
+		this.position = position;
+	}
+
+	public void setPalmUserName(String palmUserName)
+	{
+		this.palmUserName = palmUserName;
+	}
+
+	public String getState()
+	{
+		return state;
+	}
+
+	public void setState(String state)
+	{
+		this.state = state;
+	}
+
+	public String getSource()
+	{
+		return source;
+	}
+
+	public void setSource(String source)
+	{
+		this.source = source;
+	}
+
+	public String getRealName()
+	{
+		return realName;
+	}
+
+	public void setRealName(String realName)
+	{
+		this.realName = realName;
+	}
+
+	public String getBirthday()
+	{
+		return birthday;
+	}
+
+	public void setBirthday(String birthday)
+	{
+		this.birthday = birthday;
+	}
+
+	public String getCity()
+	{
+		return city;
+	}
+
+	public void setCity(String city)
+	{
+		this.city = city;
+	}
+
+	public String getProvince()
+	{
+		return province;
+	}
+
+	public void setProvince(String province)
+	{
+		this.province = province;
+	}
+
+	public int getAge()
+	{
+		return age;
+	}
+
+	public void setAge(int age)
+	{
+		this.age = age;
+	}
+
+	public String getQQ()
+	{
+		return QQ;
+	}
+
+	public void setQQ(String qQ)
+	{
+		QQ = qQ;
+	}
+
+	public int getCreateUserId()
+	{
+		return createUserId;
+	}
+
+	public void setCreateUserId(int createUserId)
+	{
+		this.createUserId = createUserId;
+	}
+
+	public String getCertificateId()
+	{
+		return certificateId;
+	}
+
+	public void setCertificateId(String certificateId)
+	{
+		this.certificateId = certificateId;
+	}
+
+	public Integer getId()
+	{
+		return id;
+	}
+
+	public void setId(Integer id)
+	{
+		this.id = id;
+	}
+
+	public String getCode()
+	{
+		return code;
+	}
+
+	public void setCode(String code)
+	{
+		this.code = code;
+	}
+
+	public String getUsername()
+	{
+		return username;
+	}
+
+	public void setUsername(String username)
+	{
+		this.username = username;
+	}
+
+	public String getPassword()
+	{
+		return password;
+	}
+
+	public void setPassword(String password)
+	{
+		this.password = password;
+	}
+
+	public Integer getType()
+	{
+		return type;
+	}
+
+	public void setType(Integer type)
+	{
+		this.type = type;
+	}
+
+	public String getParentname()
+	{
+		return parentname;
+	}
+
+	public void setParentname(String parentname)
+	{
+		this.parentname = parentname;
+	}
+
+	public Integer getRole()
+	{
+		return role;
+	}
+
+	public void setRole(Integer role)
+	{
+		this.role = role;
+	}
+
+	public String getOrgid()
+	{
+		return orgid;
+	}
+
+	public void setOrgid(String orgid)
+	{
+		this.orgid = orgid;
+	}
+
+	public String getName()
+	{
+		return name;
+	}
+
+	public void setName(String name)
+	{
+		this.name = name;
+	}
+
+	public String getSex()
+	{
+		return sex;
+	}
+
+	public void setSex(String sex)
+	{
+		this.sex = sex;
+	}
+
+	public String getStupic()
+	{
+		return stupic;
+	}
+
+	public void setStupic(String stupic)
+	{
+		this.stupic = stupic;
+	}
+
+	public String getSchoolId()
+	{
+		return schoolId;
+	}
+
+	public void setSchoolId(String schoolId)
+	{
+		this.schoolId = schoolId;
+	}
+
+	public Integer getGradeId()
+	{
+		return gradeId;
+	}
+
+	public void setGradeId(Integer gradeId)
+	{
+		this.gradeId = gradeId;
+	}
+
+	public Integer getClazzId()
+	{
+		return clazzId;
+	}
+
+	public void setClazzId(Integer clazzId)
+	{
+		this.clazzId = clazzId;
+	}
+
+	public List<Permission> getPermissionList()
+	{
+		return permissionList;
+	}
+
+	public void setPermissionList(List<Permission> permissionList)
+	{
+		this.permissionList = permissionList;
+	}
+
+	public List<Role> getRoleList()
+	{
+		return roleList;
+	}
+
+	public void setRoleList(List<Role> roleList)
+	{
+		this.roleList = roleList;
+	}
+
+	public String getCardCode()
+	{
+		return cardCode;
+	}
+
+	public void setCardCode(String cardCode)
+	{
+		this.cardCode = cardCode;
+	}
+
+	public String getGradeName()
+	{
+		return gradeName;
+	}
+
+	public void setGradeName(String gradeName)
+	{
+		this.gradeName = gradeName;
+	}
+
+	public static long getSerialversionuid()
+	{
+		return serialVersionUID;
+	}
+
+	public String getUpdateTime()
+	{
+		return updateTime;
+	}
+
+	public void setUpdateTime(String updateTime)
+	{
+		this.updateTime = updateTime;
+	}
+
+	public String getCreateTime()
+	{
+		return createTime;
+	}
+
+	public void setCreateTime(String createTime)
+	{
+		this.createTime = createTime;
+	}
+
+	public String getClazzName()
+	{
+		return clazzName;
+	}
+
+	public void setClazzName(String clazzName)
+	{
+		this.clazzName = clazzName;
+	}
+
+	public String getOfJob()
+	{
+		return ofJob;
+	}
+
+	public void setOfJob(String ofJob)
+	{
+		this.ofJob = ofJob;
+	}
+
+	public Integer getPositionId()
+	{
+		return positionId;
+	}
+
+	public void setPositionId(Integer positionId)
+	{
+		this.positionId = positionId;
+	}
+
+	public String getPositionTime()
+	{
+		return positionTime;
+	}
+
+	public void setPositionTime(String positionTime)
+	{
+		this.positionTime = positionTime;
+	}
+
+	public String getDepartmentName()
+	{
+		return departmentName;
+	}
+
+	public void setDepartmentName(String departmentName)
+	{
+		this.departmentName = departmentName;
+	}
+
+	public Integer getDepartmentId()
+	{
+		return departmentId;
+	}
+
+	public void setDepartmentId(Integer departmentId)
+	{
+		this.departmentId = departmentId;
+	}
+
+	public Integer getUserId()
+	{
+		return userId;
+	}
+
+	public void setUserId(Integer userId)
+	{
+		this.userId = userId;
+	}
+
+	public String getRoleCode()
+	{
+		return roleCode;
+	}
+
+	public void setRoleCode(String roleCode)
+	{
+		this.roleCode = roleCode;
+	}
+
+	public String getPhone()
+	{
+		return phone;
+	}
+
+	public void setPhone(String phone)
+	{
+		this.phone = phone;
+	}
+
+	public String getBindPhone()
+	{
+		return bindPhone;
+	}
+
+	public void setBindPhone(String bindPhone)
+	{
+		this.bindPhone = bindPhone;
+	}
+
+	public String getRoleName()
+	{
+		return roleName;
+	}
+
+	public void setRoleName(String roleName)
+	{
+		this.roleName = roleName;
+	}
+
+	public String getDepartmentCode()
+	{
+		return departmentCode;
+	}
+
+	public void setDepartmentCode(String departmentCode)
+	{
+		this.departmentCode = departmentCode;
+	}
+
+	public String getSchoolType()
+	{
+		return schoolType;
+	}
+
+	public void setSchoolType(String schoolType)
+	{
+		this.schoolType = schoolType;
+	}
+
+	public List<Department> getDepartmentList()
+	{
+		return departmentList;
+	}
+
+	public void setDepartmentList(List<Department> departmentList)
+	{
+		this.departmentList = departmentList;
+	}
+
+	public String getParent2Name()
+	{
+		return parent2Name;
+	}
+
+	public void setParent2Name(String parent2Name)
+	{
+		this.parent2Name = parent2Name;
+	}
+
+	public String getPhone2()
+	{
+		return phone2;
+	}
+
+	public void setPhone2(String phone2)
+	{
+		this.phone2 = phone2;
+	}
+
+	public Integer getParentId()
+	{
+		return parentId;
+	}
+
+	public void setParentId(Integer parentId)
+	{
+		this.parentId = parentId;
+	}
+
+	public String getSchoolName()
+	{
+		return schoolName;
+	}
+
+	public void setSchoolName(String schoolName)
+	{
+		this.schoolName = schoolName;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return false;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		User user = (User) obj;
+
+		if (userId.equals(user.userId))
+		{
+			if (user.parentId != null && parentId.equals(user.parentId))
+			{
+				return true;
+			} else if (user.parentId == null)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * 重写hashcode 方法，返回的hashCode 不一样才认定为不同的对象
+	 */
+	@Override
+	public int hashCode()
+	{
+		// 只比较id，id一样就不添加进集合
+		return userId.hashCode();
+	}
+
+	public String getUuserId()
+	{
+		return uuserId;
+	}
+
+	public void setUuserId()
+	{
+		String uuserId = UUID.randomUUID().toString();
+		this.uuserId = uuserId;
+	}
+
+	public String getEmail()
+	{
+		return email;
+	}
+
+	public void setEmail(String email)
+	{
+		this.email = email;
+	}
+
+	public String getBaiduChannelId()
+	{
+		return baiduChannelId;
+	}
+
+	public void setBaiduChannelId(String baiduChannelId)
+	{
+		this.baiduChannelId = baiduChannelId;
+	}
+
+	public Integer getDeviceType()
+	{
+		return deviceType;
+	}
+
+	public void setDeviceType(Integer deviceType)
+	{
+		this.deviceType = deviceType;
+	}
+
+	public Integer getMessageType()
+	{
+		return messageType;
+	}
+
+	public void setMessageType(Integer messageType)
+	{
+		this.messageType = messageType;
+	}
+
+	public String getNickName()
+	{
+		return nickName;
+	}
+
+	public void setNickName(String nickName)
+	{
+		this.nickName = nickName;
+	}
+
+	public String getHeadImg()
+	{
+		return headImg;
+	}
+
+	public void setHeadImg(String headImg)
+	{
+		this.headImg = headImg;
+	}
+
+	public String getUserName()
+	{
+		return userName;
+	}
+
+	public void setUserName(String userName)
+	{
+		this.userName = userName;
+	}
+
+	public String getVoipAccount()
+	{
+		return voipAccount;
+	}
+
+	public void setVoipAccount(String voipAccount)
+	{
+		this.voipAccount = voipAccount;
+	}
+
+	public String getClassTeacherName()
+	{
+		return classTeacherName;
+	}
+
+	public void setClassTeacherName(String classTeacherName)
+	{
+		this.classTeacherName = classTeacherName;
+	}
+
+	public Integer getStudentId()
+	{
+		return studentId;
+	}
+
+	public void setStudentId(Integer studentId)
+	{
+		this.studentId = studentId;
+	}
+
+	public List<User> getParentList()
+	{
+		return parentList;
+	}
+
+	public void setParentList(List<User> parentList)
+	{
+		this.parentList = parentList;
+	}
+
+	public List<Clazz> getClazzList()
+	{
+		return clazzList;
+	}
+
+	public void setClazzList(List<Clazz> clazzList)
+	{
+		this.clazzList = clazzList;
+	}
+
+	public List<User> getStudentList()
+	{
+		return studentList;
+	}
+
+	public void setStudentList(List<User> studentList)
+	{
+		this.studentList = studentList;
+	}
+
+	public String getStudentName()
+	{
+		return studentName;
+	}
+
+	public void setStudentName(String studentName)
+	{
+		this.studentName = studentName;
+	}
+
+	public String getFtpUserName()
+	{
+		return ftpUserName;
+	}
+
+	public void setFtpUserName(String ftpUserName)
+	{
+		this.ftpUserName = ftpUserName;
+	}
+
+	public String getFtpPassword()
+	{
+		return ftpPassword;
+	}
+
+	public void setFtpPassword(String ftpPassword)
+	{
+		this.ftpPassword = ftpPassword;
+	}
+
+	public String getFtpHost()
+	{
+		return ftpHost;
+	}
+
+	public void setFtpHost(String ftpHost)
+	{
+		this.ftpHost = ftpHost;
+	}
+
+	public String getFtpUrl()
+	{
+		return ftpUrl;
+	}
+
+	public void setFtpUrl(String ftpUrl)
+	{
+		this.ftpUrl = ftpUrl;
+	}
+
+	public boolean isExist()
+	{
+		return isExist;
+	}
+
+	public void setExist(boolean isExist)
+	{
+		this.isExist = isExist;
+	}
+
+	public String getFtpEncode()
+	{
+		return ftpEncode;
+	}
+
+	public void setFtpEncode(String ftpEncode)
+	{
+		this.ftpEncode = ftpEncode;
+	}
+
+	public String getPersonid()
+	{
+		return personid;
+	}
+
+	public void setPersonid(String personid)
+	{
+		this.personid = personid;
+	}
+
+	public String getUserDescription()
+	{
+		return userDescription;
+	}
+
+	public void setUserDescription(String userDescription)
+	{
+		this.userDescription = userDescription;
+	}
+
+	public String getFjSchoolId()
+	{
+		return fjSchoolId;
+	}
+
+	public void setFjSchoolId(String fjSchoolId)
+	{
+		this.fjSchoolId = fjSchoolId;
+	}
+
+	public Integer getIsDefalutUserName()
+	{
+		return isDefalutUserName;
+	}
+
+	public void setIsDefalutUserName(Integer isDefalutUserName)
+	{
+		this.isDefalutUserName = isDefalutUserName;
+	}
+
+}

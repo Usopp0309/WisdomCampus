@@ -1,0 +1,227 @@
+package com.guotop.palmschool.authuser.entity;
+
+/**
+ * 用户认证信息
+ * 
+ * @author chenyong
+ *
+ */
+public class AuthUser {
+	private Integer authId;
+	/**
+	 * 修改申请时的班级
+	 */
+	private Integer clazzId;
+	/**
+	 * 学生
+	 */
+	private Integer stuUserId;
+
+	/**
+	 * 申请人
+	 */
+	private Integer applyUserId;
+	/**
+	 * 审核人
+	 */
+	private Integer auditor;
+	/**
+	 * 申请人姓名
+	 */
+	private String applyName;
+	/**
+	 * 申请人手机
+	 */
+	private String applyPhone;
+
+	/**
+	 * 学生名称
+	 */
+	private String stuName;
+	/**
+	 * 数据已存在，1:数据不存在
+	 */
+	private Integer type;
+	/**
+	 * 申请备注
+	 */
+	private String remark;
+	/**
+	 * 审核备注
+	 */
+	private String comment;
+	/**
+	 * 0:添加待审核，1：已通过，2：已拒绝，3：修改待审核
+	 */
+	private Integer status;
+	/**
+	 * 创建时间
+	 */
+	private String createTime;
+	/**
+	 * 更新时间
+	 */
+	private String updateTime;
+	/**
+	 * 学生班级
+	 */
+	private String fullClazzName;
+
+	/**
+	 * 修改后的班级
+	 */
+	private String modifyClazzName;
+	/**
+	 * 头像
+	 */
+	private String headImg;
+	/**
+	 * 学校Id
+	 */
+    private String schoolId;
+    
+	public String getSchoolId() {
+		return schoolId;
+	}
+
+	public void setSchoolId(String schoolId) {
+		this.schoolId = schoolId;
+	}
+
+	public String getHeadImg() {
+		return headImg;
+	}
+
+	public void setHeadImg(String headImg) {
+		this.headImg = headImg;
+	}
+
+	public String getModifyClazzName() {
+		return modifyClazzName;
+	}
+
+	public void setModifyClazzName(String modifyClazzName) {
+		this.modifyClazzName = modifyClazzName;
+	}
+
+	public Integer getApplyUserId() {
+		return applyUserId;
+	}
+
+	public void setApplyUserId(Integer applyUserId) {
+		this.applyUserId = applyUserId;
+	}
+
+	public Integer getClazzId() {
+		return clazzId;
+	}
+
+	public void setClazzId(Integer clazzId) {
+		this.clazzId = clazzId;
+	}
+
+	public Integer getAuditor() {
+		return auditor;
+	}
+
+	public void setAuditor(Integer auditor) {
+		this.auditor = auditor;
+	}
+
+	public String getFullClazzName() {
+		return fullClazzName;
+	}
+
+	public void setFullClazzName(String fullClazzName) {
+		this.fullClazzName = fullClazzName;
+	}
+
+	public String getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(String createTime) {
+		this.createTime = createTime;
+	}
+
+	public String getUpdateTime() {
+		return updateTime;
+	}
+
+	public void setUpdateTime(String updateTime) {
+		this.updateTime = updateTime;
+	}
+
+	public Integer getAuthId() {
+		return authId;
+	}
+
+	public void setAuthId(Integer authId) {
+		this.authId = authId;
+	}
+
+	public Integer getStuUserId() {
+		return stuUserId;
+	}
+
+	public void setStuUserId(Integer stuUserId) {
+		this.stuUserId = stuUserId;
+	}
+
+	public String getApplyName() {
+		return applyName;
+	}
+
+	public void setApplyName(String applyName) {
+		this.applyName = applyName;
+	}
+
+	public String getApplyPhone() {
+		return applyPhone;
+	}
+
+	public void setApplyPhone(String applyPhone) {
+		this.applyPhone = applyPhone;
+	}
+
+	public String getStuName() {
+		return stuName;
+	}
+
+	public void setStuName(String stuName) {
+		this.stuName = stuName;
+	}
+
+	public Integer getType() {
+		return type;
+	}
+
+	public void setType(Integer type) {
+		this.type = type;
+	}
+
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+
+	public String getComment() {
+		return comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
+
+	public Integer getStatus() {
+		return status;
+	}
+
+	public void setStatus(Integer status) {
+		this.status = status;
+	}
+
+}

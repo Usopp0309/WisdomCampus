@@ -1,0 +1,227 @@
+package com.guotop.palmschool.authuser.service.impl;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.guotop.palmschool.authuser.entity.AuthUser;
+import com.guotop.palmschool.authuser.service.AuthUserService;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.service.ClazzService;
+import com.guotop.palmschool.service.StudentService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+
+@Service
+public class AuthUserServiceImpl extends BaseService implements AuthUserService {
+
+	@Autowired
+	private StudentService studentService;
+	
+	@Autowired
+	private UserService userService;
+	
+	@Autowired
+	private ClazzService clazzService;
+
+	@Transactional
+	@Override
+	public Integer insertAuthUser(AuthUser authUser) {
+		int key = getBaseDao().addObject("AuthUser.insertAuthUser", authUser);
+		return key;
+	}
+
+	@Transactional
+	@Override
+	public void updateAuthUser(AuthUser authUser) {
+		getBaseDao().updateObject("AuthUser.updateAuthUser", authUser);
+
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
+	public Pages getAuthUserPages(int pageSize, int page, HashMap<String, Object> map) {
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<AuthUser> list = new ArrayList<AuthUser>();
+		try {
+			allRow = (Integer) this.getBaseDao().selectObjectByObject("AuthUser.getauthUserPagesCount", map);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			// 解决ibatis框架的分页问题
+			// 起始数据坐标
+			map.put("startIndex", offset);
+			// 单页数据量
+			map.put("length", length);
+			list = this.getBaseDao().selectListByObject("AuthUser.getauthUserPages", map);
+		} catch (Exception e) {
+
+		}
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage) {
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	/**
+	 * 根据主键获得信息
+	 * 
+	 * @author chenyong
+	 * @Time 2017年3月13日 下午6:46:34
+	 */
+	@Override
+	public AuthUser getByAuthId(Integer authId) {
+
+		return (AuthUser) getBaseDao().selectObject("AuthUser.getByAuthId", authId);
+	}
+
+	/**
+	 * 班主任同意
+	 * 
+	 * @author chenyong
+	 * @Time 2017年3月15日 下午3:43:30
+	 */
+	@Transactional
+	@Override
+	public void agree(AuthUser authUser, int status, String schoolId) {
+		// 更新数据
+		updateAuthUser(authUser);
+		User parentUser = new User();
+		//status:0:添加待审核，1：已通过，2：已拒绝，3：修改待审核
+		if(status==0){//添加的申请
+			String username = schoolId + "T" + TimeUtil.getInstance().dateYYYYMM() + StringUtil.randomNum(3);
+			parentUser.setUsername(username);
+			parentUser.setRealName(authUser.getApplyName());
+			parentUser.setNickName(authUser.getApplyName());
+			parentUser.setCreateTime(TimeUtil.getInstance().now());
+			parentUser.setSource("1");// 智慧校园用户
+			parentUser.setCreateUserId(authUser.getAuditor());
+			parentUser.setPassword(StringUtil.toMD5(authUser.getApplyPhone()));
+			if(!StringUtil.isEmpty(authUser.getPhone())){
+				parentUser.setPhone(authUser.getPhone());	
+			}else{
+				parentUser.setPhone(authUser.getApplyPhone());		
+			}
+			parentUser.setBindPhone(authUser.getApplyPhone());
+			parentUser.setRoleCode("parent");
+			parentUser.setSchoolId(schoolId + "");
+			parentUser.setUpdateTime(TimeUtil.getInstance().now());
+			parentUser.setStudentId(authUser.getStuUserId());
+			parentUser.setType(1);// 其它账号
+			if(authUser.getType().intValue()==1){//新生
+				//学生信息
+				User studentUserBase = new User(); 
+		        String yx = schoolId+"S"+TimeUtil.getInstance().dateYYYYMM()+StringUtil.randomNum(3);
+		        studentUserBase.setRealName(authUser.getStuName());
+		        studentUserBase.setUsername(yx);
+		        studentUserBase.setNickName(authUser.getStuName());
+		        studentUserBase.setClazzId(authUser.getClazzId());
+		        studentUserBase.setPassword(StringUtil.toMD5("123456"));
+		        studentUserBase.setSchoolId(schoolId);
+		        studentUserBase.setRoleCode("student");
+		        studentUserBase.setSource("1");//智慧校园用户
+		        studentUserBase.setUpdateTime(TimeUtil.getInstance().now());
+		        studentUserBase.setCreateTime(TimeUtil.getInstance().now());
+		        studentUserBase.setCreateUserId(authUser.getAuditor());
+		        studentUserBase.setSchoolType("0");//是否住校
+		        studentUserBase.setPalmUserName(schoolId);//学校Id+学好
+		        studentUserBase.setType(0);// '账号类型 ： 0：学生  1：其它 2代理商 3技术支持 4 财务人员',
+		        studentService.addStudent(studentUserBase, null,parentUser,null,new User(),null);//添加
+			}else{
+				 //判断学生几个家长，如果家长已有两个，根据申请时的parentId删除掉一个
+		         List<User> listParent=studentService.getParentByStudentId(authUser.getStuUserId());
+		         if(listParent!=null && listParent.size()>=2){
+		        	 //绑定的家长是否存在
+		        	 boolean existsParent=false;
+		        	 for (User user : listParent) {
+						if(user.getBindPhone().equals(authUser.getApplyPhone())){//家长已存在
+							existsParent=true;
+							break;
+						}
+					}
+		        	if(authUser.getParentId()!=null && !existsParent){
+		        	HashMap<String, Object> paramMap = new HashMap<String, Object>();
+					paramMap.put("userId", authUser.getParentId());
+					paramMap.put("schoolId", schoolId);
+					paramMap.put("studentUserId", authUser.getStuUserId());
+					studentService.delUser(paramMap);
+					//家长与小孩绑定
+					studentService.addParent(parentUser, null);	
+		        	}else{
+		        	//家长已存在
+		        	}
+		         }else{
+		        	//家长与小孩绑定
+					studentService.addParent(parentUser, null);		 
+		         }
+				
+			}
+		}else if(status==3){//修改申请
+			User user=userService.getUserDetailByUserIdInPersonCenter(authUser.getApplyUserId());
+			HashMap<String, Object> map = new HashMap<String, Object>();
+  			map.put("userId", authUser.getApplyUserId());
+  			map.put("studentUserId", authUser.getStuUserId());
+  			map.put("realName", authUser.getApplyName());
+  			if(!StringUtil.isEmpty(authUser.getPhone())){
+  				map.put("parentPhone",authUser.getPhone());
+  			}else{
+  				map.put("parentPhone",user.getPhone());	
+  			}
+  			map.put("bindPhone", authUser.getApplyPhone());
+  			map.put("updateUserId",authUser.getAuditor());
+  			map.put("schoolId",schoolId);
+  			map.put("updateTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+  			map.put("oldPhone",user.getPhone());
+			studentService.modifyParent(map,null);
+			//班级是否需要修改
+			if(authUser.getClazzId()!=null){
+				Map<String,Object> paramMap=new HashMap<>();
+				paramMap.put("clazzId", authUser.getClazzId());
+				paramMap.put("userId", authUser.getStuUserId());
+				clazzService.updateClazzByUserId(paramMap);
+			}
+			if(!StringUtil.isEmpty(authUser.getStuName())){
+				HashMap<String, Object> paramMap=new HashMap<>();
+				paramMap.put("realName", authUser.getStuName());
+				paramMap.put("userId", authUser.getStuUserId());
+				getBaseDao().updateObject("User.modifyParentRealNameByUserId", paramMap);// 修改学生姓名
+			}
+			
+		}
+		
+	}
+	/**
+	 * 根据主键获得信息(非新生含头像)
+	 * @author chenyong
+	 * @Time 2017年3月13日 下午6:46:34
+	 */
+	@Override
+	public AuthUser getDetailByAuthId(Integer authId) {
+		return (AuthUser) getBaseDao().selectObject("AuthUser.getDetailByAuthId", authId);
+	}
+
+}

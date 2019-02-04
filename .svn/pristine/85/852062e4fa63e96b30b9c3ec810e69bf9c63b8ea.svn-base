@@ -1,0 +1,189 @@
+package com.guotop.palmschool.thread;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.guotop.palmschool.check.entity.Check;
+import com.guotop.palmschool.listener.StartupListener;
+import com.guotop.palmschool.util.TimeUtil;
+
+
+/**
+ * 进出统计线程
+ * @author zhou
+ */
+public class InoutAbnormalTotalThread extends Thread
+{
+	private boolean flag = true;
+	
+	private static final int INOUT_ABNORMAL_TOTALSTART = 2200; //开始统计时间
+	private static final int INOUT_ABNORMAL_TOTALEND = 2359; //结束统计时间
+	private static boolean INOUT_ABNORMAL_ISTOTAL = false; //当天是否已统计
+	private static final int INOUT_ABNORMAL_CHECKPERIOD = 8; //时段标记
+	
+	public InoutAbnormalTotalThread()
+	{
+		
+		this.start();
+	}
+	
+	@Override
+	public void run() 
+	{
+		
+		init();
+		while (flag)
+		{
+			/**
+			 * 当前时间
+			 */
+			Calendar cal = Calendar.getInstance();
+			int hour = cal.get(Calendar.HOUR_OF_DAY);
+			int minute = cal.get(Calendar.MINUTE);
+			int currentTime = hour * 100 + minute;
+			
+			/**
+			 * 检查学生未出宿舍
+			 */
+			if (!INOUT_ABNORMAL_ISTOTAL
+					&& currentTime >= INOUT_ABNORMAL_TOTALSTART
+					&& currentTime < INOUT_ABNORMAL_TOTALEND)
+			{
+				String checkTime = TimeUtil.getInstance().now();
+				addCheck(INOUT_ABNORMAL_CHECKPERIOD, "进出记录报表已统计", checkTime);
+				totalInoutAbnormal();
+				INOUT_ABNORMAL_ISTOTAL = true;
+			}
+			else if (INOUT_ABNORMAL_ISTOTAL 
+					&& currentTime >= INOUT_ABNORMAL_TOTALEND)
+			{
+				INOUT_ABNORMAL_ISTOTAL = false;
+			}
+			
+			try
+			{
+				sleep(200000); // 每20秒检查一下
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+				try 
+				{
+					sleep(60000); // 出错1分钟后重试
+				}
+				catch (InterruptedException ie) 
+				{
+					break;
+				}
+			}
+			
+		}
+		
+	}
+	
+	/**
+	 * 统计进出考勤异常
+	 */
+	private void totalInoutAbnormal()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		String today = formatter.format(new Date());
+		
+		/**
+		 * 按学校统计
+		 */
+		StartupListener.inoutService.totalInoutAbnormalBySchool(today);
+		
+		/**
+		 * 按年级统计
+		 */
+		StartupListener.inoutService.totalInoutAbnormalByGrade(today);
+		
+		/**
+		 * 按班级统计
+		 */
+		StartupListener.inoutService.totalInoutAbnormalByClazz(today);
+	}
+	
+	/**
+	 * 添加检测实体
+	 * @param period 检测阶段
+	 * @param content 检测结论
+	 * @param checkTime 检测时间
+	 */
+	private void addCheck(int period, String content,
+		String checkTime)
+	{
+		Check check = new Check();
+		check.setPeriod(period);
+		check.setContent(content);
+		check.setCheckTime(checkTime);
+		check.setCreateTime(TimeUtil.getInstance().now());
+		StartupListener.checkService.addCheck(check);
+	}
+	
+	/**
+	 * 线程初始化
+	 */
+	public void init()
+	{
+		/*******老师***********/
+		/**
+		 * 老师未离校
+		 */
+		INOUT_ABNORMAL_ISTOTAL = isChecked(INOUT_ABNORMAL_CHECKPERIOD, INOUT_ABNORMAL_TOTALEND);
+	}
+	
+	/**
+	 * 判断某个检查项是否检查过
+	 * @param period 时段标记(代表检查项)
+	 * @param endTime 结束时间
+	 * @return 是否检查过  
+	 * 		true:检查过
+	 * 		false:没有检查过
+	 */
+	private boolean isChecked(int period, int endTime)
+	{
+		/**
+		 * 当前时间超过结束时间
+		 */
+		Calendar cal = Calendar.getInstance();
+		int hour = cal.get(Calendar.HOUR_OF_DAY);
+		int minute = cal.get(Calendar.MINUTE);
+		int currentTime = hour * 100 + minute;
+
+		if (currentTime >= endTime)
+		{
+			return false;
+		}
+		
+		/**
+		 * 根据period和今天的时间区间查找是否存在check,
+		 * 若存在,则说明检查过
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("period", period);
+		paramMap.put("todayBegin", TimeUtil.getInstance().getTodayBegin());
+		paramMap.put("todayEnd", TimeUtil.getInstance().getTodayEnd());
+		
+		List<Check> checkList = StartupListener.checkService.selectCheckList(paramMap);
+
+		if (checkList.size() > 0)
+		{
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * 关闭线程 
+	 */
+	public void close() 
+	{
+		flag = false;
+	}
+}

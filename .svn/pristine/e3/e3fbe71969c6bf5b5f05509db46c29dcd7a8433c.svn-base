@@ -1,0 +1,1358 @@
+package com.guotop.palmschool.controller;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.gson.Gson;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons.PUSHTYPE;
+import com.guotop.palmschool.entity.Leave;
+import com.guotop.palmschool.entity.OrderMessageUser;
+import com.guotop.palmschool.entity.OrderUserMessageDetail;
+import com.guotop.palmschool.entity.Permission;
+import com.guotop.palmschool.entity.School;
+import com.guotop.palmschool.entity.SmsDetail;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.entity.UserRole;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.rest.entity.PushItem;
+import com.guotop.palmschool.service.LeaveService;
+import com.guotop.palmschool.service.OrderMessageService;
+import com.guotop.palmschool.service.SchoolService;
+import com.guotop.palmschool.service.SmsService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.system.entity.InformationType;
+import com.guotop.palmschool.system.service.InformationTypeService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+
+/**
+ * 请假控制类
+ * 
+ * @author zhou
+ *
+ */
+@RequestMapping("/leave")
+@Controller
+public class LeaveController extends BaseController
+{
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private LeaveService leaveService;
+
+	@Resource
+	private UserService userService;
+
+	@Resource
+	private SchoolService schoolService;
+
+	@Resource
+	private InformationTypeService informationTypeService;
+
+	@Resource
+	private SmsService smsService;
+
+	@Resource
+	private OrderMessageService orderMessageService;
+
+	/**
+	 * 进入请假列表页面
+	 */
+	@RequestMapping(value = "/toLeaveList.do")
+	public String toLeaveList()
+	{
+		return "leave/leave_list";
+	}
+
+	/**
+	 * 不同权限查看到不同的page 历史请假列表 加载请假list 20151130
+	 */
+	@RequestMapping(value = "/getLeaveList.do")
+	public String getLeaveList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		/**
+		 * 参数map
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		try
+		{
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			User user = (User) session.getAttribute("user");
+
+			paramMap.put("userId", user.getUserId());
+
+			Pages pages = leaveService.getLeaveList(this.getPages().getPageSize(), currentPage, paramMap);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.getMessage();
+		}
+		return null;
+	}
+
+	/**
+	 * 进入申请请假页面
+	 * 
+	 * 20151130
+	 */
+	@RequestMapping(value = "/toAddLeave.do")
+	public String toAddLeave(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+
+		User user = (User) session.getAttribute("user");
+
+		String roleCode = request.getParameter("roleCode");
+
+		/**
+		 * 存放页面隐藏域
+		 */
+		modelMap.addAttribute("user", user);
+		modelMap.addAttribute("roleCode", roleCode);
+
+		return "leave/leave_add";
+	}
+
+	/**
+	 * 执行请假申请逻辑 20151130
+	 */
+	@RequestMapping(value = "/doAddLeave.do")
+	public String doAddLeave(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		User login = (User) session.getAttribute("user");
+
+		School school = schoolService.getSchoolInfoBySchoolId(Long.valueOf(login.getSchoolId()));
+		/*
+		 * 开始日期
+		 */
+		String startTime = request.getParameter("startTime");
+
+		/*
+		 * 结束日期
+		 */
+		String endTime = request.getParameter("endTime");
+
+		/*
+		 * 开始时间
+		 */
+
+		String startHour = request.getParameter("startHour");
+		String startMinute = request.getParameter("startMinute");
+		/*
+		 * 结束时间
+		 */
+		String endHour = request.getParameter("endHour");
+		String endMinute = request.getParameter("endMinute");
+		/*
+		 * 请假类型
+		 */
+		String type = request.getParameter("type");
+
+		/*
+		 * 请假事由
+		 */
+		String remark = request.getParameter("remark");
+
+		/*
+		 * 审核人
+		 */
+		Integer auditId = Integer.valueOf(request.getParameter("auditId"));
+
+		/*
+		 * 申请人
+		 */
+		Integer applyUserId = Integer.valueOf(request.getParameter("applyUserId"));
+
+		String startDate = startTime + " " + startHour + ":" + startMinute;
+		String endDate = endTime + " " + endHour + ":" + endMinute;
+		Leave leave = new Leave();
+		leave.setStartTime(startDate);
+		leave.setEndTime(endDate);
+		leave.setType(Integer.valueOf(type));
+		leave.setRemark(remark);
+		leave.setApplyUserId(applyUserId);
+		leave.setAuditId(auditId);
+
+		leaveService.addLeave(leave);
+		// 消息推送
+		User auditor = leaveService.getUserInfoByUserId(auditId);
+
+		PushItem pi = new PushItem();
+		pi.receiverId = auditor.getUserId();
+		pi.channels = auditor.getBaiduChannelId();
+		pi.deviceType = String.valueOf(auditor.getDeviceType());
+		if (login.getRoleCode() != null && login.getRoleCode().equals("student"))
+		{
+			pi.PushContent = "您好,您的学生" + login.getRealName() + "于" + formatter.format(new Date()) + "提出请假申请，请及时处理。" + school.getSchoolName();
+		} else
+		{
+			pi.PushContent = "您好," + login.getRealName() + "老师于" + formatter.format(new Date()) + "提出请假申请，请及时处理。" + school.getSchoolName();
+		}
+
+		pi.PushContentType = PUSHTYPE.LEAVEAUDITPUSH.getContentType();
+		pi.title = PUSHTYPE.LEAVEAUDITPUSH.getName();
+		pi.PushType = PUSHTYPE.LEAVEAUDITPUSH.getType();
+		pi.schoolId = login.getSchoolId();
+		List<PushItem> list = new ArrayList<PushItem>();
+		list.add(pi);
+
+		InformationType informationType = informationTypeService.getInformationTypeByInformationType(2001);
+
+		boolean schoolHasMessage = (boolean) smsService.getSmsServiceStatus().get("schoolHasMessage");// 学校是否有短信套餐
+
+		boolean isVirtualOpen = (boolean) smsService.getSmsServiceStatus().get("isVirtualOpen");// 学校虚拟套餐是否开启
+
+		boolean isSchoolSingleMsg = (boolean) smsService.getSmsServiceStatus().get("isSchoolSingleMsg");// 是否有学校单条类型套餐
+
+		if (informationType.getType() == 1 || informationType.getType() == 3)// 只发送短信
+		{
+			int status = 0;
+
+			if (schoolHasMessage)// 学校有短信套餐
+			{
+				if (isVirtualOpen)
+				{
+					// 调用短信接口
+					boolean flag = commonService.sendSmsByDB(String.valueOf(school.getSchoolId()), PUSHTYPE.LEAVEAUDITPUSH, auditor.getPhone(),
+							auditor.getUserId(), pi.PushContent, null, informationType.getType());
+					if (flag)
+					{
+						status = 0;
+					} else
+					{
+						status = 1;
+					}
+				} else
+				{
+					if (isSchoolSingleMsg)
+					{
+						// 学校条数套餐剩余条数
+						Integer remainCount = orderMessageService.getRemainCountBySchoolIdForSchoolRange(String.valueOf(school.getSchoolId()));
+						if (null != remainCount && remainCount > 0)
+						{
+							// 调用短信接口
+							boolean flag = commonService.sendSmsByDB(String.valueOf(school.getSchoolId()), PUSHTYPE.LEAVEAUDITPUSH, auditor.getPhone(),
+									auditor.getUserId(), pi.PushContent, null, informationType.getType());
+							if (flag)
+							{
+								status = 0;
+							} else
+							{
+								status = 1;
+							}
+							orderMessageService.updateOrderMessageSchoolById(String.valueOf(school.getSchoolId()));
+						} else
+						{
+							status = 2;
+						}
+					} else
+					{
+						// 调用短信接口
+						boolean flag = commonService.sendSmsByDB(String.valueOf(school.getSchoolId()), PUSHTYPE.LEAVEAUDITPUSH, auditor.getPhone(),
+								auditor.getUserId(), pi.PushContent, null, informationType.getType());
+						if (flag)
+						{
+							status = 0;
+						} else
+						{
+							status = 1;
+						}
+					}
+
+				}
+			} else// 学校无短信套餐 直接发送
+			{
+				// 调用短信接口
+				boolean flag = commonService.sendSmsByDB(String.valueOf(school.getSchoolId()), PUSHTYPE.LEAVEAUDITPUSH, auditor.getPhone(), auditor.getUserId(),
+						pi.PushContent, null, informationType.getType());
+				if (flag)
+				{
+					status = 0;
+				} else
+				{
+					status = 1;
+				}
+			}
+
+			smsService.saveSmsDetail(pi.PushContent,auditor,auditor,status,"9");
+			
+
+		} else if (informationType.getType() == 2)// 只推送
+		{
+			commonService.pushMsg(list, true);
+		}
+
+		return toLeaveList();
+	}
+
+	/**
+	 * 进入请假审核列表
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/toLeaveAudit.do")
+	public String toLeaveAudit()
+	{
+		return "leave/leave_auditlist";
+	}
+
+	/**
+	 * 进入请假审核列表
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/toLeaveAuditByHuxinId.do")
+	public String toLeaveAuditByHuxinId(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		// 这边是利用apikey 进行模拟登录
+		User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+		if (loginUser != null)
+		{
+			/*
+			 * 存session
+			 */
+			session.setAttribute("user", loginUser);
+
+			List<Permission> permissionList = loginUser.getPermissionList();
+			for (Permission permission : permissionList)
+			{
+				if ("leaveAuditManager".equals(permission.getPermissionCode()) || "admin".equals(permission.getPermissionCode()))
+				{
+					return "leave/leave_auditlist";
+				}
+			}
+		}
+		return null;
+
+	}
+
+	/**
+	 * 不同权限查看到不同的page 历史请假审核列表 加载请假审核list 20151130
+	 */
+	@RequestMapping(value = "/getLeaveAuditList.do")
+	public String getLeaveAuditList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		/**
+		 * 参数map
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		try
+		{
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			User user = (User) session.getAttribute("user");
+
+			/**
+			 * 查询审核者ID为自己的请假信息
+			 */
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("auditId", user.getUserId());
+			Pages pages = leaveService.getLeaveAuditList(this.getPages().getPageSize(), currentPage, paramMap, user);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+
+		}
+		return null;
+	}
+
+	/**
+	 * 进入请假审核页面 20151130
+	 */
+	@RequestMapping(value = "/toAuditLeave.do")
+	public String toAuditLeave(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		/**
+		 * 请假单ID
+		 */
+		Integer leaveId = Integer.valueOf(request.getParameter("leaveId"));
+		Leave leave = leaveService.selectLeaveById(leaveId);
+
+		/**
+		 * 从session中取出指定的user
+		 */
+		User user = (User) session.getAttribute("user");
+
+		/**
+		 * 回写页面
+		 */
+		/**
+		 * 审核人
+		 */
+		modelMap.addAttribute("user", user);
+		/**
+		 * 请假单
+		 */
+		modelMap.addAttribute("leave", leave);
+
+		return "leave/leave_audit";
+	}
+
+	/**
+	 * 获取申请人名单 20151130
+	 */
+	@RequestMapping(value = "/getApplyPerson.do")
+	public String getApplyPerson(HttpServletRequest request, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		/**
+		 * 请假人Id
+		 */
+		Integer userId = Integer.valueOf(request.getParameter("userId"));
+
+		/**
+		 * 请假人对应的角色
+		 */
+		String roleCode = request.getParameter("roleCode");
+
+		List<User> userList = new ArrayList<User>();
+
+		if (roleCode.equals("parent"))
+		{
+
+			// 如果是家长 获得对应的孩子信息
+			List<User> childrenList = commonService.getAllChildrenByUserId(userId);
+			userList.addAll(childrenList);
+		}
+		if (!roleCode.equals("parent"))
+		{
+			// 如果不是家长 就获取自己的信息
+			List<User> selfList = commonService.getUserByUserId(userId);
+			userList.addAll(selfList);
+		}
+		try
+		{
+			Gson gson = new Gson();
+			String json = gson.toJson(userList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 获取审核人名单 20151130
+	 */
+	@RequestMapping(value = "/getAuditPerson.do")
+	public String getAuditPerson(HttpServletRequest request, HttpServletResponse response)
+	{
+		response.setCharacterEncoding("UTF-8");
+		/**
+		 * 请假人Id
+		 */
+		Integer applyPersonId = Integer.valueOf(request.getParameter("applyPersonId"));
+
+		/**
+		 * 请假人对应的角色
+		 */
+		String roleCode = request.getParameter("roleCode");
+
+		List<User> userList = null;
+
+		if (roleCode.equals("parent") || roleCode.equals("student"))
+		{
+			// 如果是家长和学生 根据申请人Id 查找对应的班级Id 找到对应的请假审核人
+			userList = leaveService.getAuditPersonByApplyPersonIdFromParentOrStudent(applyPersonId);
+		} else
+		{
+			// 如果不是家长和学生 根据申请人Id 查找对应学校请假审核人
+			userList = leaveService.getAuditPersonByApplyPersonId(applyPersonId);
+		}
+		try
+		{
+			Gson gson = new Gson();
+			String json = gson.toJson(userList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/* 手机端begin */
+	/**
+	 * 进入请假列表页面（APP）
+	 */
+	@RequestMapping(value = "/toLeaveAppList.do")
+	public String toLeaveAppList(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		/**
+		 * 参数map
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		modelMap.addAttribute("apiKey", apiKey);
+		modelMap.addAttribute("schoolId", schoolId);
+		User user = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+
+		if (user == null)
+		{
+			user = (User) session.getAttribute("user");
+
+			if (user != null)
+			{
+				modelMap.addAttribute("apiKeyTimeOut", "2");
+			} else
+			{
+				modelMap.addAttribute("apiKeyTimeOut", "1");
+				return "app/leave/leave_list_app";
+			}
+		} else
+		{
+
+			modelMap.addAttribute("apiKeyTimeOut", "2");
+		}
+
+		/*
+		 * 存session
+		 */
+		session.setAttribute("user", user);
+
+		DBContextHolder.setDBType(user.getSchoolId());
+
+		try
+		{
+
+			String roleCode = request.getParameter("roleCode");
+
+			if (StringUtil.isEmpty(roleCode))
+			{
+				roleCode = user.getRoleList().get(0).getRoleCode();
+			}
+
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("roleCode", roleCode);
+
+			this.getPages().setPageSize(20);
+			List<Leave> leaveList = leaveService.getLeaveListApp(this.getPages().getPageSize(), currentPage, paramMap);
+
+			currentPage = currentPage + 1;
+			modelMap.addAttribute("leaveList", leaveList);
+			modelMap.addAttribute("leaveListSize", leaveList.size());
+			modelMap.addAttribute("roleList", user.getRoleList());
+			modelMap.addAttribute("roleListSize", user.getRoleList().size());
+			modelMap.addAttribute("roleCode", roleCode);
+			modelMap.addAttribute("cPage", currentPage);
+
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return "app/leave/leave_list_app";
+	}
+
+	/**
+	 * 不同权限查看到不同的page 历史请假列表 加载请假list 20151130
+	 */
+	@RequestMapping(value = "/getLeaveListApp.do")
+	public String getLeaveListApp(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+
+		response.setCharacterEncoding("UTF-8");
+		/**
+		 * 参数map
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		try
+		{
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			User user = (User) session.getAttribute("user");
+
+			String roleCode = request.getParameter("roleCode");
+
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("roleCode", roleCode);
+
+			List<Leave> leaveList = leaveService.getLeaveListApp(this.getPages().getPageSize(), currentPage, paramMap);
+
+			currentPage = currentPage + 1;
+			modelMap.addAttribute("leaveList", leaveList);
+			modelMap.addAttribute("cPage", currentPage);
+			modelMap.addAttribute("listSize", leaveList.size());
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(modelMap);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 进入app请假申请页面
+	 */
+	@RequestMapping(value = "/toLeaveAppAdd.do")
+	public String toLeaveAppAdd(HttpServletRequest request, HttpServletResponse response, ModelMap modelMap, HttpSession session)
+	{
+		User user = (User) session.getAttribute("user");
+
+		String roleCode = request.getParameter("roleCode");
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+
+		/**
+		 * 存放页面隐藏域
+		 */
+		modelMap.addAttribute("userId", user.getUserId());
+		modelMap.addAttribute("roleCode", roleCode);
+		modelMap.addAttribute("apiKey", apiKey);
+		modelMap.addAttribute("schoolId", schoolId);
+
+		return "app/leave/leave_add_app";
+
+	}
+
+	/**
+	 * 执行请假申请逻辑 20151130 手机端
+	 */
+	@RequestMapping(value = "/doAddLeaveApp.do")
+	public String doAddLeaveApp(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+
+		/*
+		 * 开始日期
+		 */
+		String startTime = request.getParameter("startTime");
+
+		/*
+		 * 结束日期
+		 */
+		String endTime = request.getParameter("endTime");
+
+		// /*
+		// * 开始时间
+		// */
+		//
+		// String starttime = request.getParameter("starttime");
+		//
+		// String endtime = request.getParameter("endtime");
+
+		/*
+		 * 请假类型
+		 */
+		String type = request.getParameter("type");
+
+		/*
+		 * 请假事由
+		 */
+		String remark = request.getParameter("remark");
+
+		/*
+		 * 审核人
+		 */
+		// Integer auditId = Integer.valueOf(request.getParameter("auditId"));
+		Integer auditId = StringUtil.toint(request.getParameter("auditId"));
+
+		/*
+		 * 申请人
+		 */
+		Integer applyUserId = Integer.valueOf(request.getParameter("applyUserId"));
+
+		// String startDate = startTime + " " + starttime;
+		// String endDate = endTime + " " + endtime;
+		Leave leave = new Leave();
+		leave.setStartTime(startTime);
+		leave.setEndTime(endTime);
+		leave.setType(Integer.valueOf(type));
+		leave.setRemark(remark);
+		leave.setApplyUserId(applyUserId);
+		leave.setAuditId(auditId);
+
+		leaveService.addLeave(leave);
+
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		request.setAttribute("apiKey", apiKey);
+		request.setAttribute("schoolId", schoolId);
+
+		return toLeaveAppList(request, response, session, modelMap);
+
+		// return "app/leave/leave_list_app";
+	}
+
+	/**
+	 * 进入APP请假审核列表
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/toLeaveAuditApp.do")
+	public String toLeaveAuditApp(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		/**
+		 * 参数map
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+
+		// 这边是利用apikey 进行模拟登录
+		User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+
+		String path = null;
+		if (loginUser != null)
+		{
+			/*
+			 * 存session
+			 */
+			session.setAttribute("user", loginUser);
+
+			DBContextHolder.setDBType(loginUser.getSchoolId());
+
+			List<Permission> permissionList = loginUser.getPermissionList();
+			for (Permission permission : permissionList)
+			{
+				if ("leaveAuditManager".equals(permission.getPermissionCode()) || "admin".equals(permission.getPermissionCode())
+						|| "leaveAuditForStudent".equals(permission.getPermissionCode()))
+				{
+					path = "app/leave/leave_auditlist_app";
+					// return "app/leave/leave_auditlist_app";
+					break;
+				}
+			}
+
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			User user = (User) session.getAttribute("user");
+
+			/**
+			 * 查询审核者ID为自己的请假信息
+			 */
+			paramMap.put("auditId", user.getUserId());
+
+			List<Leave> leaveAuditList = leaveService.getLeaveAuditAPPList(this.getPages().getPageSize(), currentPage, paramMap);
+
+			currentPage = currentPage + 1;
+			/**
+			 * 存放页面隐藏域
+			 */
+			modelMap.addAttribute("leaveAuditList", leaveAuditList);
+			modelMap.addAttribute("leaveAuditListSize", leaveAuditList.size());
+			modelMap.addAttribute("apiKey", apiKey);
+			modelMap.addAttribute("schoolId", schoolId);
+			modelMap.addAttribute("cPage", currentPage);
+			modelMap.addAttribute("userId", user.getUserId());
+
+			modelMap.addAttribute("apiKeyTimeOut", "2");
+		} else
+		{
+			modelMap.addAttribute("apiKeyTimeOut", "1");
+			return "app/leave/leave_auditlist_app";
+		}
+
+		return path;
+
+	}
+
+	/**
+	 * 不同权限查看到不同的page 历史请假审核列表 加载请假审核list 20151130
+	 */
+	@RequestMapping(value = "/getLeaveAuditListApp.do")
+	public String getLeaveAuditListApp(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		/**
+		 * 参数map
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		try
+		{
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			User user = (User) session.getAttribute("user");
+
+			/**
+			 * 查询审核者ID为自己的请假信息
+			 */
+			paramMap.put("auditId", user.getUserId());
+			List<Leave> leaveAuditList = leaveService.getLeaveAuditAPPList(this.getPages().getPageSize(), currentPage, paramMap);
+
+			currentPage = currentPage + 1;
+			modelMap.addAttribute("leaveAuditList", leaveAuditList);
+			modelMap.addAttribute("cPage", currentPage);
+			modelMap.addAttribute("listSize", leaveAuditList.size());
+
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(modelMap);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 进入请假审核页面 20151130
+	 */
+	@RequestMapping(value = "/toAuditLeave_App.do")
+	public String toAuditLeave_App(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		/**
+		 * 请假单ID
+		 */
+		Integer leaveId = 0;
+
+		try
+		{
+			leaveId = Integer.valueOf(request.getParameter("leaveId"));
+		} catch (Exception e)
+		{
+			leaveId = 0;
+		}
+
+		Leave leave = leaveService.selectLeaveById(leaveId);
+
+		/**
+		 * 从session中取出指定的user
+		 */
+		User user = (User) session.getAttribute("user");
+
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+
+		/**
+		 * 存放页面隐藏域
+		 */
+		modelMap.addAttribute("userId", user.getUserId());
+		modelMap.addAttribute("apiKey", apiKey);
+		modelMap.addAttribute("schoolId", schoolId);
+		modelMap.addAttribute("user", user);
+		modelMap.addAttribute("leave", leave);
+
+		return "app/leave/leave_audit_app";
+	}
+
+	/**
+	 * 执行请假审核逻辑
+	 */
+	@RequestMapping(value = "/doLeaveAudit.do")
+	public String doLeaveAudit(HttpServletRequest request, HttpSession session, HttpServletResponse response, ModelMap modelMap)
+	{
+		User login = (User) session.getAttribute("user");
+
+		School school = schoolService.getSchoolInfoBySchoolId(Long.valueOf(login.getSchoolId()));
+		/**
+		 * 请假单ID
+		 */
+		Integer leaveId = Integer.valueOf(request.getParameter("leaveId"));
+
+		/**
+		 * 审核结果
+		 */
+		String auditStatus = request.getParameter("auditStatus");
+
+		/**
+		 * 审核备注
+		 */
+		String auditRemark = request.getParameter("auditRemark");
+		// 申请人
+		String applyUserId = request.getParameter("applyUserId");
+
+		/**
+		 * 执行审核操作
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("leaveId", leaveId);
+		paramMap.put("auditStatus", auditStatus);
+		paramMap.put("auditRemark", auditRemark);
+
+		leaveService.updateLeaveById(paramMap);
+
+		// 消息推送
+		if (!auditStatus.equals("0"))
+		{
+			boolean flag = auditStatus.equals("2");
+
+			Integer informationType = null;
+			if (flag)
+			{
+				informationType = 2003;
+			} else
+			{
+				informationType = 2002;
+			}
+
+			InformationType information = informationTypeService.getInformationTypeByInformationType(informationType);
+
+			List<UserRole> userRole = commonService.getUserRoleByUserId(StringUtil.toint(applyUserId));
+			String roleCode = "";
+			if (userRole.size() > 0)
+			{
+				roleCode = userRole.get(0).getRoleCode();
+			}
+
+			boolean schoolHasMessage = (boolean) smsService.getSmsServiceStatus().get("schoolHasMessage");// 学校是否有短信套餐
+
+			boolean isVirtualOpen = (boolean) smsService.getSmsServiceStatus().get("isVirtualOpen");// 学校虚拟套餐是否开启
+
+			boolean isSchoolSingleMsg = (boolean) smsService.getSmsServiceStatus().get("isSchoolSingleMsg");// 是否有学校单条类型套餐
+
+			if (roleCode.equals("student"))
+			{
+				List<User> parentList = leaveService.getParentInfoByStudentId(Integer.valueOf(applyUserId));
+
+				for (User applyUser : parentList)
+				{
+					PushItem pi = new PushItem();
+					pi.receiverId = applyUser.getUserId();
+					pi.channels = applyUser.getBaiduChannelId();
+					pi.deviceType = String.valueOf(applyUser.getDeviceType());
+					pi.PushContent = "您好：您的请假申请" + (flag ? "未通过审核" : "审核通过") + "。" + school.getSchoolName();
+					pi.PushContentType = flag ? PUSHTYPE.LEAVENOTPASSPUSH.getContentType() : PUSHTYPE.LEAVEPASSPUSH.getContentType();
+					pi.title = flag ? PUSHTYPE.LEAVENOTPASSPUSH.getName() : PUSHTYPE.LEAVEPASSPUSH.getName();
+					pi.PushType = PUSHTYPE.LEAVENOTPASSPUSH.getType();
+					List<PushItem> list = new ArrayList<PushItem>();
+					list.add(pi);
+
+					if (information.getType() == 1 || information.getType() == 3)// 只发送短信
+					{
+						if (schoolHasMessage)// 学校有短信套餐
+						{
+							if (isVirtualOpen)// 虚拟套餐开启直接发送
+							{
+								boolean smsResultflag = commonService.sendSmsByDB(String.valueOf(school.getSchoolId()), PUSHTYPE.LEAVEAUDITPUSH,
+										applyUser.getPhone(), applyUser.getUserId(), pi.PushContent, null, information.getType());
+								if (smsResultflag)
+								{
+									smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 0,"9");
+								} else
+								{
+									smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 1,"9");
+								}
+							} else
+							{
+								if (isSchoolSingleMsg)// 是否有学校单条套餐 有判断条数
+								{
+
+									// 学校条数套餐剩余条数
+									Integer remainCount = orderMessageService.getRemainCountBySchoolIdForSchoolRange(String.valueOf(school.getSchoolId()));
+									if (null != remainCount && remainCount > 0)// 有条数且大于0
+									{
+										// 调用短信接口
+										boolean smsResultflag = commonService.sendSmsByDB(String.valueOf(school.getSchoolId()), PUSHTYPE.LEAVEAUDITPUSH,
+												applyUser.getPhone(), applyUser.getUserId(), pi.PushContent, null, information.getType());
+										if (smsResultflag)
+										{
+											smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 0,"9");
+										} else
+										{
+											smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 1,"9");
+										}
+										orderMessageService.updateOrderMessageSchoolById(String.valueOf(school.getSchoolId()));
+									} else// 没有学校条数套餐 判断学生是否购买短信套餐
+									{
+										// 先判断学生有没有购买过
+										Map<String, Object> map = new HashMap<String, Object>();
+										map.put("userId", applyUserId);
+										map.put("status", 0);
+										OrderMessageUser messageUser = orderMessageService.getOrderMessageUserByUserId(map);
+										boolean isCharge = false;
+										if (messageUser != null)
+										{
+											if (messageUser.getType() == 0)
+											{
+												TimeUtil.getInstance();
+												if (TimeUtil.nowDateIsBetween(messageUser.getStartTime(), messageUser.getEndTime()))
+												{
+													isCharge = true;
+												} else
+												{
+													isCharge = false;
+												}
+
+											} else
+											{
+												if (messageUser.getCount() > 0)
+												{
+													isCharge = true;
+												} else
+												{
+													isCharge = false;
+												}
+											}
+										}
+
+										if (isCharge)
+										{
+											// 调用短信接口
+											boolean smsResultflag = commonService.sendSmsByDB(String.valueOf(school.getSchoolId()), PUSHTYPE.LEAVEAUDITPUSH,
+													applyUser.getPhone(), applyUser.getUserId(), pi.PushContent, null, information.getType());
+											if (smsResultflag)
+											{
+												smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 0,"9");
+											} else
+											{
+												smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 1,"9");
+											}
+
+											int smscount = ((int) pi.PushContent.length() / 65) + 1;
+											int messcount = 0;
+											if (messageUser.getType() == 1)
+											{
+												// 如果短信剩余条数小于本次短信条说 剩余条数为0
+												// 如果大于等于本次短信条说
+												// 则本次剩余条数为原剩余条数减本次短信条数
+												if (messageUser.getCount() < smscount)
+												{
+													messcount = 0;
+												} else
+												{
+													messcount = messageUser.getCount() - smscount;
+												}
+												map.put("count", messcount);
+												map.put("id", messageUser.getId());
+												orderMessageService.updateOrederMessageUserCount(map);
+
+											}
+
+											OrderUserMessageDetail messDetail = new OrderUserMessageDetail();
+											messDetail.setCount(smscount);
+											messDetail.setMessageId(messageUser.getMessageId());
+											messDetail.setMessUserId(messageUser.getId());
+											messDetail.setNowCount(messcount);
+											messDetail.setOrgCount(messageUser.getCount());
+											messDetail.setType(messageUser.getType());
+											messDetail.setUserId(messageUser.getUserId());
+											orderMessageService.addOrderUserMessageDetail(messDetail);
+										} else
+										{
+											smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 2,"9");
+										}
+									}
+								} else
+								{
+
+									// 先判断学生有没有购买过
+									Map<String, Object> map = new HashMap<String, Object>();
+									map.put("userId", applyUserId);
+									map.put("status", 0);
+									OrderMessageUser messageUser = orderMessageService.getOrderMessageUserByUserId(map);
+									boolean isCharge = false;
+									if (messageUser != null)
+									{
+										if (messageUser.getType() == 0)
+										{
+											TimeUtil.getInstance();
+											if (TimeUtil.nowDateIsBetween(messageUser.getStartTime(), messageUser.getEndTime()))
+											{
+												isCharge = true;
+											} else
+											{
+												isCharge = false;
+											}
+										} else
+										{
+											if (messageUser.getCount() > 0)
+											{
+												isCharge = true;
+											} else
+											{
+												isCharge = false;
+											}
+										}
+									}
+
+									if (isCharge)
+									{
+										// 调用短信接口
+										boolean smsResultflag = commonService.sendSmsByDB(String.valueOf(school.getSchoolId()), PUSHTYPE.LEAVEAUDITPUSH,
+												applyUser.getPhone(), applyUser.getUserId(), pi.PushContent, null, information.getType());
+										if (smsResultflag)
+										{
+											smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 0,"9");
+										} else
+										{
+											smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 1,"9");
+										}
+
+										int smscount = ((int) pi.PushContent.length() / 65) + 1;
+										int messcount = 0;
+										if (messageUser.getType() == 1)
+										{
+											// 如果短信剩余条数小于本次短信条说 剩余条数为0
+											// 如果大于等于本次短信条说
+											// 则本次剩余条数为原剩余条数减本次短信条数
+											if (messageUser.getCount() < smscount)
+											{
+												messcount = 0;
+											} else
+											{
+												messcount = messageUser.getCount() - smscount;
+											}
+											map.put("count", messcount);
+											map.put("id", messageUser.getId());
+											orderMessageService.updateOrederMessageUserCount(map);
+
+										}
+
+										OrderUserMessageDetail messDetail = new OrderUserMessageDetail();
+										messDetail.setCount(smscount);
+										messDetail.setMessageId(messageUser.getMessageId());
+										messDetail.setMessUserId(messageUser.getId());
+										messDetail.setNowCount(messcount);
+										messDetail.setOrgCount(messageUser.getCount());
+										messDetail.setType(messageUser.getType());
+										messDetail.setUserId(messageUser.getUserId());
+										orderMessageService.addOrderUserMessageDetail(messDetail);
+									} else
+									{
+										smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 2,"9");
+									}
+
+								}
+							}
+						} else
+						{
+							boolean smsResultflag = commonService.sendSmsByDB(String.valueOf(school.getSchoolId()), PUSHTYPE.LEAVEAUDITPUSH,
+									applyUser.getPhone(), applyUser.getUserId(), pi.PushContent, null, information.getType());
+							if (smsResultflag)
+							{
+								smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 0,"9");
+							} else
+							{
+								smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 1,"9");
+							}
+						}
+
+					} else if (information.getType() == 2)// 只推送
+					{
+						commonService.pushMsg(list, true);
+					}
+				}
+			} else
+			{
+				User applyUser = leaveService.getUserInfoByUserId(Integer.valueOf(applyUserId));
+				PushItem pi = new PushItem();
+				pi.receiverId = applyUser.getUserId();
+				pi.channels = applyUser.getBaiduChannelId();
+				pi.deviceType = String.valueOf(applyUser.getDeviceType());
+				pi.PushContent = "您好：您的请假申请" + (flag ? "未通过审核" : "审核通过") + "。" + school.getSchoolName();
+				pi.PushContentType = flag ? PUSHTYPE.LEAVENOTPASSPUSH.getContentType() : PUSHTYPE.LEAVEPASSPUSH.getContentType();
+				pi.title = flag ? PUSHTYPE.LEAVENOTPASSPUSH.getName() : PUSHTYPE.LEAVEPASSPUSH.getName();
+				pi.PushType = PUSHTYPE.LEAVENOTPASSPUSH.getType();
+				List<PushItem> list = new ArrayList<PushItem>();
+				list.add(pi);
+
+				if (information.getType() == 1 || information.getType() == 3)// 只发送短信
+				{
+					if(schoolHasMessage)//学校有短信套餐
+					{
+						if(isVirtualOpen)//虚拟套餐开启直接发送
+						{
+							boolean smsResultflag = commonService.sendSmsByDB(String.valueOf(school.getSchoolId()), PUSHTYPE.LEAVEAUDITPUSH, applyUser.getPhone(), applyUser.getUserId(),
+									pi.PushContent, null, information.getType());
+							if (smsResultflag)
+							{
+								smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 0,"9");
+							} else
+							{
+								smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 1,"9");
+							}
+						}
+						else//虚拟套餐关闭
+						{
+							if(isSchoolSingleMsg)
+							{
+								//学校条数套餐剩余条数
+								Integer remainCount = orderMessageService.getRemainCountBySchoolIdForSchoolRange(String.valueOf(school.getSchoolId()));
+								if(null != remainCount && remainCount > 0)//有条数且大于0 直接发送
+								{
+									// 调用短信接口
+									boolean smsResultflag = commonService.sendSmsByDB(String.valueOf(school.getSchoolId()), PUSHTYPE.LEAVEAUDITPUSH, applyUser.getPhone(), applyUser.getUserId(),
+											pi.PushContent, null, information.getType());
+									if (smsResultflag)
+									{
+										smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 0,"9");
+									} else
+									{
+										smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 1,"9");
+									}
+									orderMessageService.updateOrderMessageSchoolById(String.valueOf(school.getSchoolId()));
+								}
+								else
+								{
+									smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 2,"9");
+								}
+							}
+							else
+							{
+								// 调用短信接口
+								boolean smsResultflag = commonService.sendSmsByDB(String.valueOf(school.getSchoolId()), PUSHTYPE.LEAVEAUDITPUSH, applyUser.getPhone(), applyUser.getUserId(),
+										pi.PushContent, null, information.getType());
+								if (smsResultflag)
+								{
+									smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 0,"9");
+								} else
+								{
+									smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 1,"9");
+								}
+							}
+						}
+					}
+					else
+					{
+						boolean smsResultflag = commonService.sendSmsByDB(String.valueOf(school.getSchoolId()), PUSHTYPE.LEAVEAUDITPUSH, applyUser.getPhone(), applyUser.getUserId(),
+								pi.PushContent, null, information.getType());
+						if (smsResultflag)
+						{
+							smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 0,"9");
+						} else
+						{
+							smsService.saveSmsDetail(pi.PushContent, applyUser, applyUser, 1,"9");
+						}
+					}
+					
+				} else if (information.getType() == 2)// 只推送
+				{
+					commonService.pushMsg(list, true);
+				}
+			}
+		}
+
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+		if (apiKey != null && !"".equals(apiKey))
+		{
+			request.setAttribute("apiKey", apiKey);
+			request.setAttribute("schoolId", schoolId);
+
+			return toLeaveAuditApp(request, response, session, modelMap);
+		} else
+		{
+			return toLeaveAudit();
+		}
+
+	}
+
+}

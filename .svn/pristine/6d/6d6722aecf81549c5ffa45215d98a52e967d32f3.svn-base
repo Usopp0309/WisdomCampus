@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Import">
+	<typeAlias alias="import" type="com.guotop.palmschool.system.entity.Import"/>
+	<typeAlias alias="importDetail" type="com.guotop.palmschool.system.entity.ImportDetail"/>
+	
+	
+	<select id="getImportCount" parameterClass="HashMap" resultClass="Integer">
+		select Count(im.id) from palm_import im
+			where im.type =#type#
+	</select>
+	<!-- 分页查找所有导入记录 -->
+	<select id="getImportList" parameterClass="HashMap" resultClass="import">
+		select im.* ,ud.realName from palm_import im,platform.user_detail ud
+			where im.importUserId = ud.userId
+			and im.type =#type#
+			order by createTime desc
+			<isNotEmpty property="startIndex">
+						LIMIT #startIndex#, #length#
+			</isNotEmpty>
+	</select>
+	
+	<!-- 新增导入记录 -->
+	<insert id="addImport" parameterClass="import">
+		insert into palm_import
+		(
+			filename, 
+			type, 
+			total, 
+			success,
+			error,
+			updateTime,
+			createTime,
+			importUserId
+		)
+		values
+		(
+			#filename#, 
+			#type#, 
+			#total#, 
+			#success#,
+			#error#,
+			now(),
+			now(),
+			#importUserId#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	<!-- 新增导入记录详情 -->
+	<insert id="addImportDetail" parameterClass="importDetail">
+		insert into palm_import_detail
+		(
+			importId, 
+			userId, 
+			phone, 
+			code,
+			realName,
+			roleCode,
+			cardCode,
+			clazzId,
+			clazzName,
+			departmentId,
+			departmentName,
+			status,
+			familyId,
+			updateTime,
+			createTime
+		)
+		values
+		(
+			#importId#, 
+			#userId#, 
+			#phone#, 
+			#code#,
+			#realName#,
+			#roleCode#,
+			#cardCode#,
+			#clazzId#,
+			#clazzName#,
+			#departmentId#,
+			#departmentName#,
+			#status#,
+			#familyId#,
+			now(),
+			now()
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+
+</sqlMap>

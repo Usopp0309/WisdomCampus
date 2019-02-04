@@ -1,0 +1,17 @@
+package com.guotop.palmschool.bluetooth.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+/**
+ * 蓝牙手环数据统计
+ * 
+ * @author Administrator
+ *
+ */
+@RequestMapping("/statistics")
+@Controller
+public class StatisticsController {
+
+	
+}

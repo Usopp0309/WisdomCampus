@@ -1,0 +1,458 @@
+package com.guotop.palmschool.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.entity.Schedule;
+
+
+/**
+ * 时间工具类
+ * @author zhou
+ *
+ */
+public class TimeUtil 
+{
+	private static TimeUtil instance = null;
+	
+	private TimeUtil()
+	{
+		
+	}
+	
+	public static TimeUtil getInstance()
+	{
+		if (null == instance)
+		{
+			instance = new TimeUtil();
+		}
+		return instance;
+	}
+	
+	/**
+	 * 获取当前时间
+	 * @return 当前时间  String形式
+	 */
+	public String now()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		return formatter.format(new Date());	
+	}
+	
+	/**
+	 * 获取当前时间 yyyy-MM-dd HH:mm
+	 * @return 当前时间  String形式
+	 */
+	public String nowFormat()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+		return formatter.format(new Date());	
+	}
+	
+	/**
+	 * 获取当前日期  yyyy-MM-dd
+	 * @return 当前日期 String形式
+	 */
+	public static String date()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		return formatter.format(new Date());	
+	}
+	
+	/**
+	 * 获取当前日期  yyyyMMdd
+	 * @return 当前日期 String形式
+	 */
+	public String dateYYYYMMDD()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
+		return formatter.format(new Date());	
+	}
+	
+	/**
+	 * 获取当前日期  yyyyMM
+	 * @return 当前日期 String形式
+	 */
+	public String dateYYYYMM()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMM");
+		return formatter.format(new Date());	
+	}
+	
+	/**
+	 * 获取当前日期  yyyyMMdd
+	 * @return 当前日期 String形式
+	 */
+	public String dateYYYYMMDDHHMMSS()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+		return formatter.format(new Date());	
+	}
+	
+	public String getCurrentYear()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy");
+		return formatter.format(new Date());	
+	}
+	
+	/**
+	 * 获取今天开始时间
+	 */
+	public String getTodayBegin()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		/**
+		 * 获取当天00:00(早上)时间
+		 */
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 0); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+		
+		return formatter.format(cal.getTime());
+	}
+	
+	/**
+	 * 获取今天结束时间
+	 */
+	public String getTodayEnd()
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		/**
+		 * 获取当天23:59:59时间
+		 */
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 23); // 时
+		cal.set(Calendar.MINUTE, 59); // 分
+		cal.set(Calendar.SECOND, 59); // 秒
+		cal.set(Calendar.MILLISECOND, 999); // 毫秒
+		
+		return formatter.format(cal.getTime());
+	}
+	
+//	/**
+//	 * 将时间转为易读格式
+//	 * @param unEasyReadTime 难读时间格式
+//	 * @return 易读时间格式
+//	 */
+//	public String transToEasyReadTime(Integer unEasyReadTime)
+//	{
+//		
+//		if (unEasyReadTime < 1000)
+//		{
+//			return "小于1秒";
+//		}
+//		else
+//		{
+//			if (unEasyReadTime%1000 < 100)
+//			{
+//				DecimalFormat df = new DecimalFormat("0");
+//				return df.format(unEasyReadTime/1000) + "秒";
+//			}
+//			else
+//			{
+//				DecimalFormat df = new DecimalFormat("0.0");
+//				return df.format((float) unEasyReadTime/1000) + "秒";
+//			}
+//		}
+//	}
+	
+	/**
+	 * 根据时间段划分一个时间区间
+	 * @param startDate 起始时间
+	 * @param endDate 结束时间
+	 * @return 时间区间
+	 * @throws Exception
+	 */
+	private List<Date> dateSplit(Date startDate, Date endDate)
+    	throws Exception 
+    {
+		if (!startDate.before(endDate))
+		{
+			throw new Exception("开始时间应该在结束时间之前");
+		}
+		Long spi = endDate.getTime() - startDate.getTime();
+		Long step = spi / (24 * 60 * 60 * 1000);// 相隔天数
+
+		List<Date> dateList = new ArrayList<Date>();
+//		dateList.add(endDate);
+		dateList.add(startDate);
+		for (int i = 0; i < step; i++) 
+		{
+//			dateList.add(new Date(dateList.get(i - 1).getTime()
+//				- (24 * 60 * 60 * 1000)));// 比上一天减一
+			dateList.add(new Date(dateList.get(0 + i).getTime()
+				+ (24 * 60 * 60 * 1000)));// 比上一天加一
+		}
+		return dateList;
+	}
+	
+	/**
+	 * 根据日期算出该天为周几
+	 * @param date 日期
+	 * @return
+	 * 	0:周日
+	 * 	1:周一
+	 * 	2:周二
+	 * 	3:周三
+	 * 	4:周四
+	 * 	5:周五
+	 * 	6:周六
+	 */
+	public int getWeekDay(Date date)
+	{  
+//		String[] weeks = {"星期日","星期一","星期二","星期三","星期四","星期五","星期六"};  
+	    Calendar cal = Calendar.getInstance();  
+	    cal.setTime(date);  
+	    int week_index = cal.get(Calendar.DAY_OF_WEEK) - 1;  
+	    if (week_index < 0)
+	    {  
+	    	week_index = 0;  
+	    }   
+//	    return weeks[week_index]; 
+	    return week_index;
+	}
+	
+	public String _getWeekDay(Date date)
+	{  
+		String[] weeks = {"周日","周一","周二","周三","周四","周五","周六"};  
+	    Calendar cal = Calendar.getInstance();  
+	    cal.setTime(date);  
+	    int week_index = cal.get(Calendar.DAY_OF_WEEK) - 1;  
+	    if (week_index < 0)
+	    {  
+	    	week_index = 0;  
+	    }   
+	    return weeks[week_index]; 
+	}
+	
+	/**
+	 * 根据一个时间段获取该时间区间的作息表集合
+	 * @param beginTime 起始时间
+	 * @param endTime 结束时间
+	 * @return 作息表集合
+	 */
+	public List<Schedule> getScheduleList(String beginTime, String endTime)
+	{
+		/**
+		 * 时间格式
+		 */
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");  
+		
+		List<Schedule> scheduleList = new ArrayList<Schedule>();
+		
+		try
+		{
+			Date beginDate = formatter.parse(beginTime + " 00:00:00");
+			Date endDate = formatter.parse(endTime + " 23:59:59");
+			List<Date> dateList = dateSplit(beginDate, endDate);
+			
+			for (Date date : dateList)
+			{
+				Schedule schedule = new Schedule();
+				schedule.setLiveingDate(formatter.format(date));
+				
+				/**
+				 * 如果是周六或者周日则为休息日
+				 * 周一至周五为正常上课
+				 * staus 0：正常上课
+				 * 		 1：休息
+				 */
+				int weekDay = getWeekDay(date);
+				switch(weekDay)
+				{
+					case 0:
+						schedule.setStatus(Cons.SCHEDULE_REST);
+						break;
+					case 1:
+						schedule.setStatus(Cons.SCHEDULE_CLASSES);
+						break;
+					case 2:
+						schedule.setStatus(Cons.SCHEDULE_CLASSES);
+						break;
+					case 3:
+						schedule.setStatus(Cons.SCHEDULE_CLASSES);
+						break;
+					case 4:
+						schedule.setStatus(Cons.SCHEDULE_CLASSES);
+						break;
+					case 5:
+						schedule.setStatus(Cons.SCHEDULE_CLASSES);
+						break;
+					case 6:
+						schedule.setStatus(Cons.SCHEDULE_REST);
+						break;
+					default:
+						schedule.setStatus(Cons.SCHEDULE_CLASSES);
+						break;
+				}
+				
+				scheduleList.add(schedule);
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return scheduleList;
+	}
+	
+	/**
+	 * 根据起始时间 和 结束时间计算出起始小时，起始分钟，结束小时和结束分钟
+	 * @param schedule
+	 * @return 处理完的schedule
+	 */
+	public Schedule countScheduleDetail(Schedule schedule)
+	{
+		/**
+		 * 起始时间细节
+		 */
+		String startTime = schedule.getAmStartTime();
+		String startHour = startTime.split(" ")[1].split(":")[0];
+		String startMinute = startTime.split(" ")[1].split(":")[1];
+		
+		/**
+		 * 结束时间细节
+		 */
+		String endTime = schedule.getAmEndTime();
+		String endHour = endTime.split(" ")[1].split(":")[0];
+		String endMinute = endTime.split(" ")[1].split(":")[1];
+		
+		schedule.setStartHour(startHour);
+		schedule.setStartMinute(startMinute);
+		
+		schedule.setEndHour(endHour);
+		schedule.setEndMinute(endMinute);
+		
+		return schedule;
+	}
+	
+	/**
+	 * 是否一天的开始
+	 * @return true 是
+	 * 		   false 否
+	 */
+	public boolean isDayStart() 
+	{
+		Calendar cal = Calendar.getInstance();
+		int hour = cal.get(Calendar.HOUR_OF_DAY);
+
+		if (hour == 2) // 每天2:00统计前一天信息
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * 是否一周的开始
+	 * @return true 是
+	 * 		   false 否
+	 */
+	public boolean isWeekStart() 
+	{
+		Calendar cal = Calendar.getInstance();
+		int day = cal.get(Calendar.DAY_OF_WEEK);
+
+		if (day == Calendar.SUNDAY) // 每周日统计上周信息（周日-周六）
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * 是否一月的开始
+	 */
+	public boolean isMonthStart() 
+	{
+		Calendar cal = Calendar.getInstance();
+		int date = cal.get(Calendar.DAY_OF_MONTH);
+
+		if (date == 1) // 每月1日统计上月信息
+		{
+			return true;
+		}
+
+		return false;
+	}
+	
+	/**
+	 * 获取入参日期的第二天
+	 * @param day 入参日期
+	 * @return 入参日期的第二天
+	 */
+	public String getNextDay(String day)
+	{
+		Calendar calendar = Calendar.getInstance();
+		
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		
+		try
+		{
+			Date date = formatter.parse(day);
+			
+			if (date != null)
+			{
+				calendar.setTime(date);
+			}
+			calendar.add(Calendar.DATE, 1); // 第二天
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return formatter.format(calendar.getTime());
+	}
+	
+	/**
+	 * 判断当前日期是否在传入日期之间 前后包含
+	 * @param day 入参日期
+	 * @return 
+	 */
+	public static boolean nowDateIsBetween(String startDay,String endDay)
+	{		
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		
+		try
+		{
+			Date startDate = formatter.parse(startDay);
+			Date endDate = formatter.parse(endDay);
+			Date nowDate = formatter.parse(date());
+			if(nowDate.getTime()>=startDate.getTime() && nowDate.getTime() <=endDate.getTime())
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		} catch (ParseException e)
+		{
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	public static void main(String[] args)
+	{
+		System.out.println(nowDateIsBetween("2016-12-01","2016-12-25"));//false
+		System.out.println(nowDateIsBetween("2016-12-01","2016-12-26"));//true
+		System.out.println(nowDateIsBetween("2016-12-01","2016-12-28"));//true
+		System.out.println(nowDateIsBetween("2016-12-26","2016-12-28"));//true
+		System.out.println(nowDateIsBetween("2016-12-28","2016-12-30"));//false
+	}
+	
+}

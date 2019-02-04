@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Student">
+	<resultMap class="com.guotop.palmschool.entity.Student" id="result-student">
+		<result property="id" column="id"/>
+		<result property="name" column="name"/>	
+		<result property="code" column="code"/>	
+		<result property="sex" column="sex"/>
+		<result property="clazzName" column="clazzName"/>
+		<result property="gradeName" column="gradeName"/>
+        <result property="headTeacherName" column="headTeacherName"/>
+		<result property="parentName" column="parentName"/>
+		<result property="phone" column="phone"/>
+		<result property="stuPic" column="stuPic"/>
+	</resultMap>
+	
+	<!-- 根据学生ID查找学生详细信息 -->
+	<resultMap class="com.guotop.palmschool.entity.StudentDetail" id="result-studentdetail">
+		<result property="id" column="Id"/>
+		<result property="userId" column="userid"/>	
+		<result property="birth" column="birth"/>	
+		<result property="ofJob" column="ofjob"/>
+		<result property="forPolitical" column="forPolitical"/>
+		<result property="nativePlace" column="nativeplace"/>	
+		<result property="height" column="height"/>	
+		<result property="weight" column="weight"/>
+		<result property="vision" column="vision"/>
+		<result property="insTime" column="instime"/>	
+		<result property="qq" column="qq"/>	
+		<result property="email" column="email"/>
+		<result property="address" column="address"/>
+		<result property="rewards" column="rewards"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.Card" id="result-card">
+		<result property="id" column="id"/>
+		<result property="cardCode" column="cardCode"/>	
+		<result property="status" column="status"/>	
+		<result property="battery" column="battery"/>
+		<result property="updatetime" column="updatetime"/>
+		<result property="createtime" column="createtime"/>
+	</resultMap>
+	
+	
+	<select id="selectStudentInfoForStudentDetail" parameterClass="Integer" resultMap="result-student">
+		select u.id, u.name, u.code, u.sex, u.parentName,
+			u.username AS phone, u.stupic,
+			c.name as clazzName, g.name as gradeName,l.name AS headTeacherName
+		from palm_user u, palm_user_role ur, palm_clazz c, palm_grade g,
+		     (SELECT u1.name, cl.id 
+		         FROM palm_user u1,palm_user_role le, palm_clazz cl,palm_role ro 
+		         WHERE  u1.id=le.userId 
+		         AND le.clazzId=cl.id 
+		         AND le.roleId=ro.id 
+		         AND ro.id=4) l
+			where u.id = ur.userid
+			and ur.clazzid = c.id
+			and ur.gradeid = g.id
+			and g.state = '0'
+			and ur.clazzid=l.id
+			and u.id = #id#
+	</select>
+	
+	<!-- 根据学生id查找电子卡列表 -->
+	<select id="selectCardListByStudentId" parameterClass="Integer" resultMap="result-card">
+ 		select c.* from palm_user_card uc, palm_card c
+ 			where uc.cardid = c.id
+ 			and uc.userid = #studentId#
+	</select>
+	
+	<!-- 师生信息加载数据 begin -->
+    <!--根据学生的id 查学生的详细信息-->
+	<select id="selectStudentDetailByStudentId" parameterClass="Integer" resultMap="result-studentdetail">
+ 		select * from palm_user_detail
+ 			where userid = #id#
+	</select>
+	<!-- 师生信息加载数据 end -->
+	
+	<!-- 获得已缴费的学生 -->
+	<select id="getPayStudent" resultClass="com.guotop.palmschool.entity.Student">
+	SELECT d.realName as name, c.clazzName,g.name AS gradeName,g.type as gradeType
+		FROM platform.user_detail d,palm_user_role p,palm_student_clazz sc,palm_clazz c,palm_grade g,palm_order_message_user mu 
+		WHERE sc.userId = d.userId 
+		AND sc.clazzId = c.id
+		AND c.gradeId = g.id
+		AND g.state = 0	
+		AND p.userId = d.userId 
+		AND p.roleCode = 'student'
+		AND mu.userId = d.userId
+		AND mu.`status`=0
+		ORDER BY g.type,g.name ASC
+	</select>
+	<!-- 获得未缴费的学生 -->
+	<select id="getNoPayStudent" resultClass="com.guotop.palmschool.entity.Student">
+	  select d.realName as name, c.clazzName,g.name AS gradeName ,g.type as gradeType
+		from  platform.user_detail d,palm_user_role p,palm_student_clazz sc ,palm_clazz c,palm_grade g
+		where sc.userId = d.userId 
+		and sc.clazzId = c.id 
+		AND c.gradeId = g.id 
+		AND g.state = 0
+		AND p.userId = d.userId 
+		AND p.roleCode = 'student'
+		and sc.userId not in 
+		(
+		SELECT sc.userId
+		FROM platform.user_detail d,palm_user_role p,palm_student_clazz sc,palm_clazz c,palm_grade g,palm_order_message_user mu 
+		WHERE sc.userId = d.userId 
+		AND sc.clazzId = c.id
+		AND c.gradeId = g.id
+		AND g.state = 0	
+		AND p.userId = d.userId 
+		AND p.roleCode = 'student'
+		AND mu.userId = d.userId
+		AND mu.`status`=0
+		) 
+	 	ORDER BY g.type,g.name ASC
+	</select>
+</sqlMap>

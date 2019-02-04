@@ -1,0 +1,649 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>RichX智慧校园 - 人员列表</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+ 	<link href="<%=basePath%>assets/global/css/skin_m.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+	<%@ include file="/public_module/header.jsp"%>
+			<div class="manager_search_box">
+				<form action="<%=basePath%>persionner/toPersionner.do" method="post" id="searchForm">
+					<div class="search_main">
+						<button type="submit" class="fa fa-search search_submit"></button>
+						<input class="search_text" type="text" name="condition" id="condition" placeholder="请输入名称...""></input>
+						<input type="hidden" name="status" value="${status}" id="status" />
+					</div>
+				</form>
+			</div>
+			<div class="richxManager">
+			<h3 class="margin_top_15">人员列表</h3>
+			<ul class="mtabs margin_top_15">
+				<c:if test="${status eq '0' }">
+					<li class="active"><a href="javascript:change('0');">代理商列表</a></li>
+					<li><a href="javascript:change('1');">技术支持列表</a></li>
+					<li><a href="javascript:change('2');">财务人员列表</a></li>
+				</c:if>
+				<c:if test="${status eq '1' }">
+					<li><a href="javascript:change('0');">代理商列表</a></li>
+					<li class="active"><a href="javascript:change('1');">技术支持列表</a></li>
+					<li><a href="javascript:change('2');">财务人员列表</a></li>
+				</c:if>
+				<c:if test="${status eq '2' }">
+					<li><a href="javascript:change('0');">代理商列表</a></li>
+					<li><a href="javascript:change('1');">技术支持列表</a></li>
+					<li class="active"><a href="javascript:change('2');">财务人员列表</a></li>
+				</c:if>
+			</ul>
+				<h4 class="margin_top_15">人员列表</h4>
+				<div class="con">
+				<div class="tab-content">
+					<c:if test="${status eq '0' }">
+						<div class="active" id="tab_1_1" style="position: relative;">
+							<p class="Response newsfile">
+								<a class="btn_new btn blue" style="width: 90px;">新建</a>
+							</p>
+							<table class="table table-bordered table-hover">
+								<thead>
+									<tr class="news_from">
+										<th colspan="5" class="m_padding_0">
+											<form class="form-horizontal" id="subform1" action="<%=basePath%>persionner/addAgency.do" method="post">
+											<table class="table table-hover table-light">
+												<tr>
+													<td class="m_width_10">代理商</td>
+													<td class="m_width_25"><input type="text" class="form-control" id="name" name="name"></td>
+													<td class="m_width_10">代理类型</td>
+													<td class="m_width_25 radio-list">
+														<label class="radio radio-inline"><input type="radio" value="省级" name="agentType"> 省级</label>
+														<label class="radio radio-inline"><input type="radio" value="市级" name="agentType"> 市级</label>
+														<label class="radio radio-inline"><input type="radio" value="区/县级" name="agentType"> 区/县级</label>
+													</td>
+													<td class="m_width_10">联系电话</td>
+													<td class="m_width_20"><input type="text" class="form-control" id="phone" name="phone"></td>
+												</tr>
+												<tr>
+													<td>省份</td>
+													<td>
+														<select class="form-control" id="province" onchange="getChildrenArea('province','city')" name="province">
+														</select>
+													</td>
+													<td>市</td>
+													<td>
+														<select class="form-control" id="city" onchange="getChildrenArea('city','country')" name="city">
+														</select>
+													</td>
+													<td>区/县</td>
+													<td>
+														<select class="form-control" id="country" name="country">
+														</select>
+													</td>
+												</tr>
+												<tr>
+													<td>法人</td>
+													<td><input type="text" class="form-control" id="corporation" name="corporation"></td>
+													<td>地址</td>
+													<td><input type="text" class="form-control" id="address" name="address"></td>
+													<td>联系人</td>
+													<td><input type="text" class="form-control" id="contacts" name="contacts"></td>
+												</tr>
+												<tr>
+													
+													<td>邮箱</td>
+													<td><input type="text" class="form-control" id="email" name="email"></td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td></td>
+												</tr>
+												<tr>
+													<td class="text_align" colspan="6">
+														 <button type="submit" class="btn green">确定</button>
+							                    		 <button type="button" class="btn btn_new_cancel">取消</button>
+													</td>
+												</tr>
+											</table>
+											</form>
+										</th>
+									</tr>
+									<tr>
+										<th class="m_width_20">代理商名称</th>
+										<th class="m_width_25">省市区</th>
+										<th class="m_width_25">地址</th>
+										<th class="m_width_20">联系电话</th>
+										<th class="m_width_10">操作</th>
+									</tr>
+								</thead>
+								<body>
+								<c:forEach items="${agencyList}" var="agency">
+									<tr>
+										<td>${agency.name }</td>
+										<td>${agency.province}${agency.city}${agency.country}</td>
+										<td>${agency.address}</td>
+										<td>${agency.phone}</td>
+										<td><a class="detal">查看详情</a></td>
+									</tr>
+									<tr class="persionner_info">
+										<td colspan="5" class="m_padding_0">
+											<div style="border:1px solid #1490f4">
+												<table class="table table-bordered">
+													<tr>
+														<td class="active">代理商</td>
+														<td class="editname">${agency.name }</td>
+														<td class="active">代理类型</td>
+														<td>${agency.agentType}</td>
+														<td class="active">省市区</td>
+														<td>${agency.province}${agency.city}${agency.country}</td>
+													</tr>
+													<tr>
+														<td class="active">联系人</td>
+														<td>${agency.realName}</td>
+														<td class="active">联系电话</td>
+														<td class="editphone">${agency.phone}</td>
+														<td class="active">地址</td>
+														<td>${agency.address}</td>
+													</tr>
+													<tr>
+														<td class="active">法人</td>
+														<td>${agency.corporation}</td>
+														<td class="active">邮箱</td>
+														<td>${agency.email}</td>
+														<td class="active">状态</td>
+														<td>
+															<select class="form-control">
+																<option value="">启用</option>
+																<option value="">禁用</option>
+															</select>
+														</td>
+													</tr>
+													<tr>
+														<td class="text_align" colspan="6">
+															<button type="button" class="btn blue btn-sm btn_update">修改</button>
+															<button type="button" class="btn btn-sm btn_cancel">取消</button>
+														</td>
+													</tr>
+													<tr>
+														<td colspan="6">负责学校</td>
+													</tr>
+													<tr>
+														<td colspan="6">
+															<dl class="personnel_info_con">
+																<c:forEach items="${agency.schoolList}" var="school">
+																	<dd>${school.schoolName }</dd>
+																</c:forEach>
+															</dl>
+														</td>
+													</tr>
+													
+												</table>
+											</div>
+										</td>
+									</tr>
+								</c:forEach>
+								</body>
+							</table>
+						</div>
+					</c:if>
+					<c:if test="${status eq '1' }">
+
+						<div id="tab_1_2" style="position: relative;">
+							<p class="Response newsfile">
+								<a class="btn_new btn blue" style="width: 90px;">新建</a>
+							</p>
+							<table class="table table-bordered table-hover">
+								<thead>
+									<tr class="news_from">
+										<th colspan="5" class="m_padding_0">
+											<form class="horizontal-form" id="subform2"action="<%=basePath%>persionner/addSupport.do" method="post">
+												<table class="table table-hover table-light">
+													<tr>
+														<td class="m_width_10">姓名</td>
+														<td class="m_width_25"><input type="text" class="form-control" id="realName" name="realName"/></td>
+														<td class="m_width_10">邮箱</td>
+														<td class="m_width_25 radio-list">
+															<input type="text" class="form-control" id="supportEmail" name="supportEmail">
+														</td>
+														<td class="m_width_10">联系电话</td>
+														<td class="m_width_20"><input type="text" class="form-control" id="supportPhone" name="supportPhone"/></td>
+													</tr>
+													<tr>
+														
+														<td>所属公司</td>
+														<td>
+															<select tabindex="1" class="form-control" id="agencySelect" name="agency">
+															</select>
+														</td>
+														<td></td>
+														<td></td>
+														<td></td>
+														<td></td>
+													</tr>
+													<tr>
+														<td class="text_align" colspan="6">
+															 <button type="submit" class="btn green">确定</button>
+								                    		 <button type="button" class="btn btn_new_cancel">取消</button>
+														</td>
+													</tr>
+												</table>
+												</form>
+											</th>
+										</tr>
+										<tr>
+											<th class="m_width_20">姓名</th>
+											<th class="m_width_25">联系电话</th>
+											<th class="m_width_25">邮箱</th>
+											<th class="m_width_20">归属公司</th>
+											<th class="m_width_20">操作</th>
+										</tr>
+									</thead>
+									<tbody>
+										<c:forEach items="${agencyList}" var="support">
+											<tr>
+												<td>${support.realName}</td>
+												<td>${support.phone}</td>
+												<td>${support.email}</td>
+												<td>${support.name}</td>
+												<td><a class="detal">查看详情</a></td>
+											</tr>
+											<tr class="persionner_info">
+												<td colspan="5"  class="m_padding_0">
+													<div style="border:1px solid #1490f4">
+														<table class="table table-bordered">
+															<tr>
+																<td class="active">名称</td>
+																<td class="editname">${support.realName }</td>
+																<td class="active">邮箱</td>
+																<td class="editemail">${support.email}</td>
+																<td class="active">手机</td>
+																<td class="editphone">${support.phone}</td>
+																<input type="hidden" id="id" value="${support.userId}">
+															</tr>
+															<tr>
+																<td class="active">状态</td>
+																<td>
+																	<select class="form-control">
+																		<option value="">启用</option>
+																		<option value="">禁用</option>
+																	</select>
+																</td>
+																<td class="active"></td>
+																<td></td>
+																<td class="active"></td>
+																<td></td>
+															</tr>
+															<tr>
+																<td class="text_align" colspan="6">
+																	<button type="button" class="btn blue btn-sm btn_update">修改</button>
+																	<button type="button" class="btn btn-sm btn_cancel">取消</button>
+																</td>
+															</tr>
+															<tr>
+																<td colspan="6">负责学校</td>
+															</tr>
+															<tr>
+																<td colspan="6">
+																	<dl class="personnel_info_con">
+																		<c:forEach items="${support.schoolList }" var="school">
+																			<dd>${school.schoolName }</dd>
+																		</c:forEach>
+																	</dl>
+																</td>
+															</tr>
+														</table>
+													</div>
+												</td>
+											</tr>
+										</c:forEach>
+									</tbody>
+							</table>
+						</div>
+					</c:if>
+
+					<c:if test="${status eq '2'}">
+						<div id="tab_1_3" style="position: relative;">
+							<p class="Response newsfile">
+								<a class="btn_new btn blue" style="width: 90px;">新建</a>
+							</p>
+							<table class="table table-bordered table-hover">
+								<thead>
+									<tr class="news_from">
+										<th colspan="5" class="m_padding_0">
+											<form class="form-horizontal" id="subform2"action="<%=basePath%>persionner/addAccountant.do" method="post">
+												<table class="table table-hover table-light">
+													<tr>
+														<td class="m_width_10">姓名</td>
+														<td class="m_width_25"><input type="text" class="form-control" id="realName" name="realName"/></td>
+														<td class="m_width_10">邮箱</td>
+														<td class="m_width_25">
+															<input type="text" class="form-control" id="accountantEmail" name="accountantEmail" />
+														</td>
+														<td class="m_width_10">联系电话</td>
+														<td class="m_width_20"><input type="text" class="form-control" id="accountantPhone" name="accountantPhone"/></td>
+													</tr>
+													<tr>
+														
+														<td>所属公司</td>
+														<td>
+															<select tabindex="1" class="form-control" id="agencySelect" name="agency">
+															</select>
+														</td>
+														<td></td>
+														<td></td>
+														<td></td>
+														<td></td>
+													</tr>
+													<tr>
+														<td class="text_align" colspan="6">
+															 <button type="submit" class="btn green">确定</button>
+								                    		 <button type="button" class="btn btn_new_cancel">取消</button>
+														</td>
+													</tr>
+												</table>
+												</form>
+											</th>
+										</tr>
+										<tr>
+											<th class="m_width_20">姓名</th>
+											<th class="m_width_25">联系电话</th>
+											<th class="m_width_25">邮箱</th>
+											<th class="m_width_20">归属公司</th>
+											<th class="m_width_20">操作</th>
+										</tr>
+									</thead>
+									<tbody>
+									<c:forEach items="${agencyList }" var="accountant">
+										<tr>
+											<td>${accountant.realName }</td>
+											<td>${accountant.phone }</td>
+											<td>${accountant.email }</td>
+											<td>${accountant.name }</td>
+											<td><a class="detal">修改</a></td>
+										</tr>
+										<tr class="persionner_info">
+											<td colspan="5"  class="m_padding_0">
+												<div style="border:1px solid #1490f4">
+													<table class="table table-bordered">
+														<tr>
+														<td class="m_width_10 active">姓名</td>
+														<td class="m_width_25 editname">${accountant.realName }</td>
+														<td class="m_width_10 active">邮箱</td>
+														<td class="m_width_25 editemail">${accountant.email}</td>
+														<td class="m_width_10 active">联系电话</td>
+														<td class="m_width_20 editphone">${accountant.phone}</td>
+													</tr>
+													<input type="hidden" id="id" value="${accountant.userId}">
+													<tr>
+														<td class="text_align" colspan="6">
+															<button type="button" class="btn blue btn-sm btn_update">修改</button>
+															<button type="button" class="btn btn-sm btn_cancel">取消</button>
+														</td>
+													</tr>
+													</table>
+												</div>
+											</td>
+										</tr>
+									</c:forEach>
+								</tbody>
+							</table>
+						</div>
+					</c:if>
+				</div>
+				</div>
+				<%@include file="/public_module/public_page.jsp" %>
+	</div>
+	<%@ include file="/public_module/public_footer.jsp" %>
+	<div class="modal fade" id="update" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-md">
+            <div class="modal-content">
+            	<div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                    <h4 class="modal-title">修改</h4>
+                </div>
+                <div class="modal-body">
+                	<div class="modal-body">
+						<form class="form-horizontal" id="update_db"action="<%=basePath%>persionner/modifyAgency.do" method="post">
+							<div class="form-group">
+                                 <label class="control-label col-md-3">名称:</label>
+                                 <div class="col-md-9">
+                                     <input type="text" class="form-control" id="name1" name="name" style="float: left" />
+									 <input type="hidden" name="agencyId" id="agencyId1" />
+                                 </div>
+                             </div>
+							<div class="form-group" style="display: none" id="modifyEmail">
+                                 <label class="control-label col-md-3">邮箱地址:</label>
+                                 <div class="col-md-9">
+                                     <input type="text" class="form-control" id="email1" name="supportEmail" style="float: left">
+                                 </div>
+                             </div>
+							<div class="form-group">
+                                 <label class="control-label col-md-3">联系电话:</label>
+                                 <div class="col-md-9">
+                                    <input type="text" class="form-control" id="phone1" name="phone">
+                                 </div>
+                             </div>
+							<div class="form-group">
+                                 <label class="control-label col-md-3">状态:</label>
+                                 <div class="col-md-9">
+                                    <select	id="userStatus" name="userStatus" class="form-control" >
+										<option value="0">启用</option>
+										<option value="1">禁用</option>
+									</select>
+                                 </div>
+                             </div>
+						</form>
+					</div>
+                </div>
+                <div class="modal-footer">
+					<button class="btn green" data-dismiss="modal"  type="submit">确定</button>
+               		<button class="btn" data-dismiss="modal" type="button">取消</button>
+                </div>
+            </div>
+        </div>
+	</div>
+	</body>
+	<%@include file="/public_module/public_js.jsp" %>
+	<script type="text/javascript">
+		$(function(){
+			$(".mtabs li").eq(0).css({"border-right":"none"});
+			$(".mtabs li").eq(1).css({"border-right":"none"});
+			//显示详情
+			$(".detal").on("click",function(){
+				$(".persionner_info").removeAttr("style");
+				$(this).parent().parent().next(".persionner_info").show();
+			})
+			//修改按钮
+			$(".btn_update").on("click",function(){
+				if($(this).text()=="修改"){
+					var phone='<input type="text" class="form-control" value="'+$(this).parent().parent().parent().find(".editphone").text()+'">';
+					var name='<input type="text" class="form-control" value="'+$(this).parent().parent().parent().find(".editname").text()+'">';
+					var email='<input type="text" class="form-control" value="'+$(this).parent().parent().parent().find(".editemail").text()+'">';
+					$(this).parent().parent().parent().find(".editphone").empty().append(phone);
+					$(this).parent().parent().parent().find(".editname").empty().append(name);
+					$(this).parent().parent().parent().find(".editemail").empty().append(email);
+					$(this).text("提交");
+				}else if($(this).text()=="提交"){
+						$(this).text()=="修改"
+				};
+			})
+			//取消
+			$(".btn_cancel").on("click",function(){
+				$(this).closest(".persionner_info").removeAttr("style");
+				})
+			//导航定位
+			$(".menu_li a").removeClass("hover");
+			$("#menu5").addClass("hover");
+			//新建人员
+			$(".btn_new").on("click",function(){
+				$(".news_from").show();
+			})
+			//取消新建人员
+			$(".btn_new_cancel").on("click",function(){
+				$(".news_from").removeAttr("style");
+			})
+			//点击状态改变
+			$(".accordion-toggle").on("click", function() {
+				if($(this).parent().parent().find(".accordion-body").hasClass("in")){
+					$(this).removeAttr("style");
+					$(this).find("span").removeAttr("style");
+					$(this).find("i").removeClass("icon-chevron-down");
+				}else{
+					$(".accordion").find(".accordion-toggle").removeAttr("style");
+					$(".accordion").find(".accordion-toggle").find("span").removeAttr("style");
+					$(".accordion").find("i").removeClass("icon-chevron-down");
+					$(this).css({"background-color":"#3aa4f1","display":"block"}).find("span").css({"color":"#fff"});
+					$(this).find("i").addClass("icon-chevron-down");
+				};
+				
+			});
+			
+	/* 		$("#accordion3").find("i").eq(0).addClass("icon-chevron-down");
+			$("#accordion1").find("i").eq(0).addClass("icon-chevron-down");
+			$("#accordion2").find("i").eq(0).addClass("icon-chevron-down"); */
+			$(".accordion-toggle").on("click", function() {
+				$("#accordion1").find("i").removeClass("icon-chevron-down");
+				$("#accordion2").find("i").removeClass("icon-chevron-down");
+				$("#accordion3").find("i").removeClass("icon-chevron-down");
+				$(this).find("i").addClass("icon-chevron-down");
+			});
+			
+			if($("#status").val() == "0"){
+				loadProvince();
+				$("#update_db").attr("action","<%=basePath%>persionner/modifyAgency.do");
+				$("#agencyAddress").show();
+				$("#modifyEmail").hide();
+			}else if($("#status").val() == "1"){
+				$("#update_db").attr("action","<%=basePath%>persionner/modifySupport.do");
+				$("#agencyAddress").hide();
+				$("#modifyEmail").show();
+				loadAgencySelect();
+			}else{
+				$("#update_db").attr("action","<%=basePath%>persionner/modifyAccountant.do");
+				$("#agencyAddress").hide();
+				$("#modifyEmail").show();
+				loadAgencySelect();
+			}
+			
+		});
+		
+		function loadAgencySelect(){
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>persionner/getAgencyList.do",
+				data:{
+						
+					},
+				success: function(data){
+					var list = $.parseJSON(data);
+					var appendHtml = '<option value="">----请选择----</option>';
+					$.each(list, function(n, value) {  
+						appendHtml += '<option value="' + value.id + '">' + value.name + '</option>';
+          			}); 
+          			$("#agencySelect").html(appendHtml);
+				},
+			});
+		}
+		//加载省份
+		function loadProvince(){
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>apply/getPronvice.do",
+				data:{
+						
+					},
+				success: function(data){
+					var list = $.parseJSON(data);
+					var appendHtml = '<option value="0">----请选择----</option>';
+					$.each(list, function(n, value) {  
+						appendHtml += '<option value="' + value.areaId + '">' + value.areaName + '</option>';
+          			}); 
+          			$("#province").html(appendHtml);
+				},
+			});
+			
+		}
+		//下拉框更改事件
+		function getChildrenArea(parentId, childId){
+			if (parentId == 'province'){//根据省获取地市
+				$("#country").val("");
+				$("#school").val("");
+				$.ajax({
+					type: "post",
+					url: "<%=basePath%>apply/getChildrens.do",
+					data:{
+							areaId : $("#province").val()
+						},
+					success: function(data){
+						var list = $.parseJSON(data);
+						var appendHtml = '<option value="0">----请选择----</option>';
+						$.each(list, function(n, value) {  
+							appendHtml += '<option value="' + value.areaId + '">' + value.areaName + '</option>';
+	          			}); 
+	          			$("#city").html(appendHtml);
+					},
+				});
+			}else if(parentId == 'city'){//根据地市获取区县
+				$("#school").val("");
+				$.ajax({
+					type: "post",
+					url: "<%=basePath%>apply/getChildrens.do",
+							data : {
+								areaId : $("#city").val()
+							},
+							success : function(data) {
+								var list = $.parseJSON(data);
+								var appendHtml = '<option value="0">----请选择----</option>';
+								if (list.length == 0) {
+									appendHtml += '<option value="'
+											+ $("#city").val()
+											+ '">城区 </option>';
+
+								} else {
+									$
+											.each(
+													list,
+													function(n, value) {
+														appendHtml += '<option value="' + value.areaId + '">'
+																+ value.areaName
+																+ '</option>';
+													});
+
+								}
+
+								$("#country").html(appendHtml);
+							},
+						});
+			}
+		}
+		//修改代理商信息
+		function toModify(id, name, address, phone) {
+			$("#agencyId1").val(id);
+			$("#name1").val(name);
+			$("#address1").val(address);
+			$("#phone1").val(phone);
+			$('#update').modal('show');
+		}
+		//修改技术支持或财务信息
+		function toModifySupport(id, name, email, phone) {
+			$("#agencyId1").val(id);
+			$("#name1").val(name);
+			$("#email1").val(email);
+			$("#phone1").val(phone);
+			$('#update').modal('show');
+		}
+		
+		//切换tab
+		function change(obj) {
+			$("#status").val(obj);
+			$("#searchForm").submit();
+		}
+	</script>
+</html>

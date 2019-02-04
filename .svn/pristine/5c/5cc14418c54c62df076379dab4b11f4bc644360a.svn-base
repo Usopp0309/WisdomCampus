@@ -1,0 +1,648 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>添加会议</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+</head>
+
+
+
+<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed">
+    	<input class="themes" type="hidden" value="<%=basePath%>">
+        <!-- 公共顶部开始-->
+        <%@ include file="/public_module/public_header.jsp"%>
+        <!--公共顶部结束-->
+        <div class="clearfix"> </div>
+        <div class="page-container">
+            <!--主菜单开始-->
+            <%@include file="/public_module/public_menu.jsp"%>
+            <!--主菜单结束-->
+            <!-- END SIDEBAR -->
+            <!-- BEGIN CONTENT -->
+            <div class="page-content-wrapper">
+               <!--页面内容开始 -->
+                <div class="page-content m_overflow_hidden m_page_content">
+                	<div class="col-md-12 col-sm-12 m_page_con">
+                    <div class="page-bar m_margin_0_0_0_0">
+                        <ul class="page-breadcrumb">
+                            <li><a href="">首页</a><i class="fa fa-circle"></i></li>
+                            <li><a href="">会议管理</a><i class="fa fa-circle"></i></li>
+                            <li><span>会议安排</span></li>
+                        </ul>
+                    </div>
+                    <h3 class="page-title">会议安排</h3>
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="portlet light portlet-fit portlet-form bordered m_margin_15_auto_0" id="form_wizard_1">
+                                <div class="portlet-title">
+                                    <div class="caption">
+                                        <i class=" icon-layers font-green"></i>
+                                        <span class="caption-subject font-green sbold uppercase">会议安排</span>
+                                    </div>
+                                </div>
+                                <div class="portlet-body">
+                                    <!-- BEGIN FORM-->
+                                    <form action="<%=basePath%>meeting/doAddMeeting.do" class="form-horizontal" method="post" id="addMeeting">
+                                        <div class="form-body">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3" for="inputWarning">会议名称</label>
+                                                <div class="col-md-4">
+                                                    <input type="text" name="name" id="name" class="form-control" />
+													<span class="help-block" style="display: none;color:red;" id="nameHelp"></span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3" for="inputError">会议地点</label>
+                                                <div class="col-md-4">
+                                                    <select name="place" class="form-control" id="meetingPlaceSelect"> </select>
+													<span class="help-block" style="display: none;color:red;" id="meetingPlaceSelectHelp"></span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3" for="inputSuccess">开始时间</label>
+                                                <div class="col-md-4">
+                                                    <input type="text" size="16" placeholder="开始时间" name="startTime"  id="startTime"  class="m_input form-control"/>
+													<span class="help-block" style="display: none;color:red;" id="startTimeHelp"></span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">结束时间</label>
+                                                <div class="col-md-4">
+                                                    <input type="text" size="16" placeholder="结束时间" name="endTime" id="endTime"  class="m_input form-control"/>
+													<span class="help-block" style="display: none;color:red;" id="endTimeHelp"></span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">选择部门</label>
+                                                <div class="col-md-4">
+                                                    <select name="departmentList" id="departmentList" data-placeholder="Choose a Category"  class="form-control"></select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">筛选条件</label>
+                                                <div class="col-md-4">
+                                                    <input type="text"  name="code"  class="form-control" value="" id="search"  
+								      			onkeyup="filter(this.value)" onchange="filter(this.value)" onpropertychange="filter(this.value)" oninput="filter(this.value)"/>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">发送对象</label>
+                                                <div class="col-md-2">
+                                                    <select class="form-control sms_select" multiple="multiple" tabindex="1" id="toSelectObj"></select>
+													<select class="form-control" multiple="multiple" tabindex="1" id="toSelectObj1" style=" display:none"></select>
+												</div>	
+												<div class="col-md-1">		
+												<button type="button" class="btn default btn-block" id="add" style="display:block"><i class="fa fa-angle-right"></i></button>
+													<button type="button" class="btn default btn-block" id="remove" style="display:block"><i class="fa fa-angle-left"></i></button>
+  													<button type="button" class="btn green btn-block" id="addAll" style="display:block"><i class="fa fa-angle-double-right"></i></button>
+  													<button type="button" class="btn green btn-block" id="removeAll" style="display:block"><i class="fa fa-angle-double-left"></i></button>
+												</div>	
+												<div class="col-md-2">
+												<select  class="form-control sms_select" multiple="multiple" id="selectedObj" name="selectedObj"></select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-actions">
+                                            <div class="row">
+                                                <div class="col-md-offset-3 col-md-9">
+													<input type="hidden" value="${userId}" name="userId" id="userId"/>
+                                                    <button type="submit" class="btn green" id="addMeet">保存</button>
+                                                    <button type="button" class="btn" id="cancel">返回</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                    <!-- END FORM-->
+                                </div>
+                            </div>
+                                </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 亦信聊天开始 -->
+        	<%@ include file="/public_module/public_QQ.jsp" %>
+            <!-- 亦信聊天结束 -->
+        </div>
+        <!-- 内容页结束 -->
+        <!-- 底部开始 -->
+        <%@ include file="/public_module/public_footer.jsp" %>
+        <!-- 底部结束 -->
+    </body>
+        <!-- 公共js开始 -->
+        <%@ include file="/public_module/public_js.jsp" %>
+        <!-- 公共js结束 -->
+		<script>
+		jQuery(document).ready(function()
+		 {    
+			$('#startTime,#endTime').datetimepicker( {
+					format:'Y-m-d H:i:00',
+					timepicker:true
+				} );
+			loadSubMenu("meetingManager"); 
+			//选取当前菜单位置
+			setActive("meetingManager","meetPlan");  
+			loadMeetingPlaceList();
+			
+			//全局数组存放已选中元素
+			var selectValArr = new Array();
+			
+			
+			var userId = $("#use").val();
+			
+			//加载部门
+			loadDepartmentList(userId);
+
+			//添加会议表单校验---begin
+			
+			//表单验证flag
+			
+			//会议名称
+			$("#name").blur(function(){
+				var name = $("#name").val();
+				//未输入会议名称
+				if ("" == name)
+				{
+					layer.tips('会议名称不能为空', '#name');
+				}
+			});
+			
+			//会议地点
+			$("#meetingPlaceSelect").blur(function(){
+				var meetingPlaceSelect = $("#meetingPlaceSelect").val();
+				//选择会议地点
+				if (0 == meetingPlaceSelect)
+				{
+					layer.tips('请选择会议地点', '#meetingPlaceSelect');
+				}
+				
+			});
+			
+			//开始时间
+			$("#startTime").blur(function(){
+				var startTime = $("#startTime").val();
+			    var start=new Date(startTime.replace("-", "/").replace("-", "/"));  
+			    
+				var nowTime = current();
+			    var now=new Date(nowTime.replace("-", "/").replace("-", "/")); 
+				//未输入开始时间
+				if ("" == startTime)
+				{
+					layer.tips('开始时间不能为空', '#startTime');
+				}else if(start < now)
+				{
+					layer.tips('开始时间不能小于当前时间', '#startTime');
+				}
+			});
+
+
+			//结束时间
+			$("#endTime").blur(function(){
+				var endTime = $("#endTime").val();
+
+				var startTime = $("#startTime").val();
+				//未输入结束时间
+				if ("" == endTime)
+				{
+					layer.tips('结束时间不能为空', '#endTime');
+				}
+				else if(startTime > endTime)
+				{
+					layer.tips('开始时间不能晚于结束时间', '#startTime');
+				}	
+			});
+
+			//搜索框
+			$("#search").on("focus",function(){
+				$("#search_Result_box").show();
+			})
+			
+			//初始化选择部门，如果select改动则将发送对象改为某个部门的所有教师的信息
+			$("#departmentList").click(function(){
+				//部门ID
+				var departmentId = $(this).val().replace("D", "");
+				//departmentId为0表示选择所有部门，不为0表示选择某个部门
+				if (departmentId != -1)
+				{
+					$.ajax({
+						type: "POST",
+						url: "<%=basePath%>sms/loadTeacherListByDepartmentId.do",
+					 	processData:true,
+					 	data:{
+						 		departmentId : departmentId
+						 	 },
+					 	success: function(data){
+					 		var teacherList = eval("(" + data + ")");
+	
+							var appendHtml = '';
+
+							$.each(teacherList, function(n, value) {
+								//新增，如果已选框有的话则不显示
+								var val = "T" + value.userId;
+								//表明未选
+								if (checkArray(selectValArr, val) == -1)
+								{
+									appendHtml += '<option value="T' + value.userId + '">(教师)' + value.realName + '</option>';
+
+								}
+		           			}); 
+	
+		           			$("#toSelectObj").html(appendHtml);
+		           			$("#toSelectObj1").html(appendHtml);
+		           			
+					 	}
+					});
+				}
+				else
+				{
+
+					var appendHtml = $("#departmentList").html();
+
+					$("#toSelectObj").html(appendHtml);
+					$("#toSelectObj option[value='D-1']").remove();
+					$("#toSelectObj1").html(appendHtml);
+					$("#toSelectObj1 option[value='D-1']").remove();	
+				}
+			});
+
+
+			//将option从待发送对象移到发送对象的div中
+			$("#toSelectObj").dblclick(function(){
+            	var $options = $('#toSelectObj option:selected');//获取当前选中的项  
+            	var $remove = $options.remove();//删除下拉列表中选中的项  
+            	$remove.appendTo('#selectedObj');//追加给对方
+            	
+        		var i=0;
+        		var length = $("#selectedObj option").length;
+        		
+        		while(i<length){
+        			var j=i+1;
+        			while(j<$("#selectedObj option").length){
+
+        				if($("#selectedObj option")[i].value==$("#selectedObj option")[j].value){
+            				$("#selectedObj option")[j].remove();
+            				j++;   
+        				}else{  
+            				j++;   
+        				}   
+        			}  
+        			i++;   
+        		} 		
+			});
+
+			//将option从发送对象移到待发送对象的div中
+			$("#selectedObj").dblclick(function(){
+            	var $removeOptions = $('#selectedObj option:selected');  
+            	$removeOptions.appendTo('#toSelectObj');//删除和追加可以用appendTo()直接
+            	
+        		var i=0;
+        		var length = $("#toSelectObj option").length;
+        		
+        		while(i<length){
+        			var j=i+1;
+        			while(j<$("#toSelectObj option").length){
+
+        				if($("#toSelectObj option")[i].value==$("#toSelectObj option")[j].value){
+            				$("#toSelectObj option")[j].remove();    
+            				j++;   
+        				}else{  
+            				j++;   
+        				}   
+        			}  
+        			i++;   
+        		}             	
+			});
+
+
+        	$('#add').click(function(){
+
+            	var $options = $('#toSelectObj option:selected');//获取当前选中的项  
+            	var $remove = $options.remove();//删除下拉列表中选中的项  
+            	$remove.appendTo('#selectedObj');//追加给对方
+            	
+        		var i=0;
+        		var length = $("#selectedObj option").length;
+        		
+        		while(i<length){
+        			var j=i+1;
+        			while(j<$("#selectedObj option").length){
+
+        				if($("#selectedObj option")[i].value==$("#selectedObj option")[j].value){
+            				$("#selectedObj option")[j].remove();   
+            				j++;   
+        				}else{  
+            				j++;   
+        				}   
+        			}  
+        			i++;   
+        		} 				
+				
+
+        	});  
+          
+        	$('#remove').click(function(){  
+
+            	var $removeOptions = $('#selectedObj option:selected');  
+            	$removeOptions.appendTo('#toSelectObj');//删除和追加可以用appendTo()直接
+            	
+        		var i=0;
+        		var length = $("#toSelectObj option").length;
+        		
+        		while(i<length){
+        			var j=i+1;
+        			while(j<$("#toSelectObj option").length){
+
+        				if($("#toSelectObj option")[i].value==$("#toSelectObj option")[j].value){
+            				$("#toSelectObj option")[j].remove();    
+            				j++;   
+        				}else{  
+            				j++;   
+        				}   
+        			}  
+        			i++;   
+        		} 
+        	}); 
+          
+        	$('#addAll').click(function(){  
+            	var $options = $('#toSelectObj option');  
+            	$options.appendTo('#selectedObj');  
+            	$("#selectedObj option").attr("selected",true);
+        		var i=0;
+        		var length = $("#selectedObj option").length;
+        		
+        		while(i<length){
+        			var j=i+1;
+        			while(j<$("#selectedObj option").length){
+        				if($("#selectedObj option")[i].value==$("#selectedObj option")[j].value){
+            				$("#selectedObj option")[j].remove(); 
+            				j++;   
+        				}else{  
+            				j++;   
+        				}   
+        			}  
+        			i++;   
+        		}	
+            	
+        	});  
+          
+        	$('#removeAll').click(function(){  
+            	var $options = $('#selectedObj option');  
+            	$options.appendTo('#toSelectObj'); 
+            	
+        		var i=0;
+        		var length = $("#toSelectObj option").length;
+        		
+        		while(i<length){
+        			var j=i+1;
+        			while(j<$("#toSelectObj option").length){
+
+        				if($("#toSelectObj option")[i].value==$("#toSelectObj option")[j].value){
+            				$("#toSelectObj option")[j].remove();    
+            				j++;   
+        				}else{  
+            				j++;   
+        				}   
+        			}  
+        			i++;   
+        		}          	 
+        	}); 
+			//提交表单
+			$("#addMeet").click(function()
+			{
+			
+			    if($("#selectedObj option").val()==null)
+				{
+					layer.tips('请至少选择一个发送对象！', '#selectedObj');
+					return false;
+				}
+				
+			    if(checkForm())
+				{
+			    	var selectedValues = [];    
+					$("#selectedObj option").each(function(){
+					    selectedValues.push($(this).val()); 
+					});
+					$("#selectedObj").val(selectedValues);
+					
+					$("#addMeeting").submit();
+				}	
+			
+			});
+
+			
+			
+		});
+
+		function current()
+		{ 
+			var d=new Date();
+			str=''; 
+			str +=d.getFullYear()+'-'; //获取当前年份 
+			str +=d.getMonth()+1+'-'; //获取当前月份（0——11） 
+			str +=d.getDate()+' '; 
+			str +=d.getHours()+':'; 
+			str +=d.getMinutes()+':'; 
+			str +=d.getSeconds(); 
+			return str; 
+		} 
+
+
+		//表单校验相关---begin
+		
+		function checkForm()
+		{
+			var nameFlag = false;
+			var startTimeFlag = false;
+			var endTimeFlag = false;
+			var selectedObjFlag = false;
+			var placeFlag = false;
+			
+			//会议名称
+			var name = $("#name").val();
+			//未输入会议名称
+			if ("" == name)
+			{
+				layer.tips('会议名称不能为空', '#name');
+				nameFlag = false;
+			}
+			else
+			{
+				nameFlag = true;
+			}
+
+			//会议地点
+			var place = $("#meetingPlaceSelect").val();
+			//未选择会议地点
+			if (0 == place)
+			{
+				layer.tips('请选择会议地点', '#meetingPlaceSelect');
+				placeFlag = false;
+			}
+			else
+			{
+				placeFlag = true;
+			}
+			
+            //开始时间
+			var startTime = $("#startTime").val();
+			var start=new Date(startTime.replace("-", "/").replace("-", "/")); 
+			//当前时间 
+		    var nowTime = current();
+		    var now=new Date(nowTime.replace("-", "/").replace("-", "/")); 
+			//未输入开始时间
+			if ("" == startTime)
+			{
+				layer.tips('开始时间不能为空', '#startTime');
+				startTimeFlag = false;
+			}else if(start < now)
+			{
+				layer.tips('开始时间不能小于当前时间', '#startTime');
+				startTimeFlag = false;
+			}
+			else
+			{
+				startTimeFlag = true;
+			}
+
+            //结束时间
+			var endTime = $("#endTime").val();
+			//未输入结束时间
+			if ("" == endTime)
+			{
+				layer.tips('结束时间不能为空', '#endTime');
+				endTimeFlag = false;
+			}
+			else if(startTime > endTime)
+			{
+				layer.tips('开始时间不能晚于结束时间', '#startTime');
+				endTimeFlag = false;
+			}	
+			
+			else
+			{
+				endTimeFlag = true;
+			}
+			
+
+			
+			if (nameFlag && placeFlag && startTimeFlag && endTimeFlag)
+			{
+				return true;
+			}	
+			else
+			{
+				return false;
+			}
+		}
+		
+         //加载会议地点
+		function loadMeetingPlaceList()
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>meeting/getMeetingPlaceListByPositionType.do",
+				success: function(data){
+					var placeList = eval("(" + data + ")");
+
+					//年级select页面html
+					var placeSelectHtml = '<option value="0">--请选择--</option>';
+
+					$.each(placeList, function(n, value) {  
+						//select页面
+						placeSelectHtml += '<option value="' + value.id + '">' + value.name + '</option>';
+
+	          		});
+
+          			$("#meetingPlaceSelect").html(placeSelectHtml);
+          			
+				},
+			});
+		} 
+		
+		function filter(v){
+            var $SerTxt = v.trim();
+            //全局数据用于存放toSelectObj中的text
+			var arryText = new Array();
+            //全局数据用于存放toSelectObj中的val
+			var arryVal = new Array();
+     		$("#toSelectObj1").find("option").each(function(i, n) {
+        		arryText[i] = $(this).text();
+        		arryVal[i] = $(this).val();
+    		});
+    		
+            if ($SerTxt != "" && $SerTxt != null) {
+            	var appendHtml = '';
+                for (var i = 0; i < arryText.length; i++) {
+                    if (arryText[i].toLowerCase().indexOf($SerTxt) >= 0) {
+                    	//添加到toSelectObject 中
+                    	appendHtml += '<option value="' + arryVal[i] + '">' + arryText[i] + '</option>';
+                    }
+                }
+                $("#toSelectObj").html(appendHtml);
+            }else{
+            	var appendHtml = '';
+            	for (var i = 0; i < arryText.length; i++) {
+            		appendHtml += '<option value="' + arryVal[i] + '">' + arryText[i] + '</option>';
+                }
+                $("#toSelectObj").html(appendHtml);
+            }
+		}
+		
+		//加载部门列表
+		function loadDepartmentList(userId, permissionCode)
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>sms/getTeacherList.do",
+				data:{
+						userId : userId,
+						permissionCode : "teacherMessageManager"
+					},
+				success: function(data){
+					var departmentList = eval("(" + data + ")");
+					
+					var appendHtml = '<option value="D-1">--选择所有部门--</option>';
+					
+					$.each(departmentList, function(n, value) {
+           				appendHtml += '<option value="D' + value.id + '">' + value.departmentName + '</option>';
+           			}); 
+
+           			$("#departmentList").html(appendHtml);
+
+           			//初始化带选框
+           			var appendHtml = $("#departmentList").html();
+					$("#toSelectObj").html(appendHtml);
+					$("#toSelectObj option[value='D-1']").remove();
+					$("#toSelectObj1").html(appendHtml);
+					$("#toSelectObj1 option[value='D-1']").remove();
+				},
+			});
+		}
+		
+		//检查元素是否存在数组中
+		//arr: 元素, e:数组
+		function checkArray(arr, e)
+		{
+			for(var i = 0,j; j = arr[i]; i++)
+			{
+				if(j == e)
+				{
+					return i;
+				}
+			}
+			return -1;	
+		}
+		
+		
+	</script>
+</html>

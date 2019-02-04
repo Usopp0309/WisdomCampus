@@ -1,0 +1,55 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<div class="page-sidebar-wrapper">
+    <div class="page-sidebar navbar-collapse collapse">
+        <ul class="page-sidebar-menu  page-header-fixed">
+        	<!-- <li class="nav-item">
+                	<a href="javascript:;" class="nav-link nav-toggle"><i class="icon-settings"></i><span class="title">System</span><span class="arrow"></span></a>
+	                <ul class="sub-menu">
+	                    <li class="nav-item  ">
+	                        <a href="page_system_coming_soon.html" class="nav-link " target="_blank"><span class="title">Coming Soon</span></a>
+	                    </li>
+	                </ul>
+            	</li> -->
+        </ul>
+    </div>
+</div>
+
+<script>
+loadAllSubMenu();
+function loadAllSubMenu(){
+	 $.ajax({
+			url: "<%=basePath%>menu/getAllMenu.do",
+			async: false,
+			data:{
+			},
+           success: function(data)
+           {
+               var mainMenuAppendHtml = '';
+               mainMenuAppendHtml += '<li class="start"><a href="<%=basePath%>user/enterMain.do"><i class="icon-bar-chart"></i> <span class="title">首页</span></a></li>';
+             	<c:forEach items="${sessionScope.menuList}" var="firstMenu">
+           	  	mainMenuAppendHtml += '<li class="nav-item" id="${firstMenu.id}" ><a href="javascript:;" class="nav-link nav-toggle"><i class="fa ${firstMenu.icon}"></i><span class="title">${firstMenu.name}</span><span class="arrow"></span></a>';
+           	  	mainMenuAppendHtml += '<ul class="sub-menu">';
+					<c:forEach items="${firstMenu.subMenuList}" var="subMenu">
+						<r:right rightCode="${subMenu.permissionCode}">
+							<c:choose>
+								<c:when test="${subMenu.id=='informationType' || subMenu.id=='menuConfig' || subMenu.id=='setAPPHomePage' || subMenu.id=='serviceFee'}">
+									<c:if test="${sessionScope.user.userId==1}">
+										mainMenuAppendHtml += '<li><a href="<%=basePath%>${subMenu.url}" class="${firstMenu.id} nav-link" id="${subMenu.id}" target="_self"><span class="title">${subMenu.name}</span></a></li>';
+									</c:if>
+								</c:when>
+								<c:otherwise>
+									mainMenuAppendHtml += '<li><a href="<%=basePath%>${subMenu.url}" class="${firstMenu.id} nav-link " id="${subMenu.id}" target="_self"><span class="title">${subMenu.name}</span></a></li>';	
+								</c:otherwise>
+							</c:choose>
+						</r:right>
+					</c:forEach>
+				
+				mainMenuAppendHtml += '</ul>';
+				mainMenuAppendHtml += '</li>';
+			</c:forEach>
+			$(".page-sidebar-menu").append(mainMenuAppendHtml); 
+           }
+	    });
+}
+
+</script>

@@ -1,0 +1,37 @@
+package com.guotop.palmschool.bluetooth.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.guotop.palmschool.bluetooth.entity.BluetoothBracelet;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 蓝牙手环表
+ * 
+ * @author chenyong
+ *
+ */
+public interface BraceletService {
+	/**
+	 * 批量添加学生使用手环的数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月21日 下午4:58:02
+	 */
+	public void insertBathBluetoothBracelet(List<BluetoothBracelet> bluetoothBracelets);
+	/**
+	 * 添加学生使用手环的数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月21日 下午5:03:39
+	 */
+	public void insertBluetoothBracelet(BluetoothBracelet bluetoothBracelet);
+	/**
+	 * 分页获得数据
+	 * @author chenyong
+	 * @Time 2017年4月21日 下午5:07:27
+	 */
+	public Pages<BluetoothBracelet> getPageBluetoothBracelet( int page,int pageSize,Map<String, Object> paramMap);
+
+}

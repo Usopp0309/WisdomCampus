@@ -1,0 +1,644 @@
+body{background-color:#f2f2f2; font:13px/1.5 "Microsoft Yahei",sans-serif;margin:0px;}
+.header{height:40px;background-color:#333;}
+ul,li{list-style-type: none;margin:0px;}
+a,a:hover{text-decoration: none!important;}
+ .news_relsase{margin:0px auto 20px!important;float:none!important;background-color:#fff;padding:10px;}
+ .news_relsase .m_row{margin:0px auto 20px;overflow:hidden;}
+ .news_relsase .m_row label{display:inline-block;width:20%;text-align: center;}
+ .news_relsase .m_row .m_controls{display:inline-block;width:75%;}
+ .news_relsase .m_row .m_controls select, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input{margin:0px;}
+ .news_relsase .m_text_center{text-align: center;}
+.header{height:40px;margin:0 auto}
+.header .top{max-width:1200px;display:block;margin:0 auto;height:40px;position: relative;z-index:10055;}
+.header .top img{display:inline-block;height:30px;margin:5px 0 0 0;}
+.header .top .menu_li{float:right;margin:0px;width:60%;padding:0px;}
+.header .top .menu_li li{margin:0px;float:right;line-height:40px; line-height:40px; width:14%; overflow:hidden; text-align:center;}
+.header .top .menu_li li a{color:#fff; font-size:13px;display:block}
+.header .top .menu_li li a:hover{color:#b0b0b0;}
+.header .top .menu_li li .hover{color:#b0b0b0;}
+.header .top .apply_addmenu_li{float:right;margin:0px;width:60%;padding:0px;}
+.header .top .apply_addmenu_li li{margin:0px;float:left;line-height:40px; line-height:40px; width:31%; overflow:hidden; text-align:center; float:right}
+.header .top .apply_addmenu_li li a{color:#fff; font-size:13px;display:block}
+.header .top .apply_addmenu_li li a:hover{color:#b0b0b0;}
+.header .top .loginout{float:right;line-height:40px;padding:0px 0 0 20px;}
+.header .top .loginout a{color:#fff}
+.header .top .title{font-size:30px; color:#595757;font-weight:normal;margin:20px 0 0 5px;border-left:1px solid #595757;padding:0 0 0 15px;}
+.main{max-width:1200px;margin:50px auto;min-height:500px;background-color:#fff;}
+.main img{width:100%;}
+.main .apply_container{max-width:1160px;height:auto;padding:20px;overflow:hidden;}
+.main .apply_container h4 em{font-style:normal;}
+.main .apply_row{clear:both;padding:30px 0px;}
+.main .apply_row .apply_title{text-align: center;line-height:30px;font-weight:bold;width:25%;float:left;margin:0 0 0 10%}
+.main .apply_row .apply_Control{width:64%;float:left}
+.main .apply_row .apply_Control input{float:left;}
+.main .apply_row .apply_Control .apply_select{width:32%!important;margin:0 1% 0 0;float:left}
+.school_name_select{height:auto;height:auto;width: 284px;}
+.apply_input{background: none; margin: 0px;text-indent:5px;}
+.c_red{color:#f00;margin:0 10px 0 0; font-style:normal;}
+.footer{height:auto;background-color:#fff;width:100%;padding:0px;margin:0 auto}
+.footer p{width:max-1200px;font-size:14px; color:#999; text-align: center; margin:15px auto 0;}
+.footer p span{margin:0 15px 0 0;border-right:1px solid #848585;padding:0 15px 0 0}
+.footer p span a{color:#848585;font-size:12px;}
+.footer p span a:hover{color:#168df0}
+.Response{font-style: normal;}
+.clear_margin{margin:0px auto;}
+.display_line_block{display:inline-block;width:400px;margin:0 0 0 15px}
+.padding_20_0{padding:18px 0px;margin:0px;}
+.btn-warning{background-color:#faa732; color:#fff;}
+.btn:hover {background-color:#faa732!important;color: #fff;}
+.code{vertical-align: top; padding: 5px 20px;}
+.margin_left_15{margin:0 0 0 15px;}
+.margin_right_15{margin:0 15px 0 0;}
+.margin_top_15{margin:15px 0 0 0;}
+.size_color{color:#168ef1;font-size:24px;}
+.tabbable-custom{overflow:inherit;}
+.newsfile{text-align: right; padding: 10px 0 10px 10px; margin: 0; position:absolute; top: -55px; right: 0px;}
+.send_box{max-width:1200px;height:auto;margin:0 auto;overflow:hidden;}
+.send_box .text_con{margin:100px auto 0px;max-width:620px;}
+.send_box .text_con .Success_icon{max-width:100px;height:200px;margin:0px 10px;float:left;}
+.send_box .text_con .sussecc_text{max-width:500px;height:200px;float:right; }
+.send_box .text_con .sussecc_text p{color:#909090;font-size:14px;}
+.size_color_60{color:#168ef1;font-size:60px;}
+#page_2{/* display:none */}
+.display_i_b{display:inline-block;}
+
+.teacherSms_search{clear:both;}
+	.search_title{max-width:320px;float:left;line-height:30px;}
+	.search_input{float:left}
+	.checkAll{max-width: 100px;float:left;}
+	.radio input[type="radio"], .checkbox input[type="checkbox"] {float: left;margin-left: 0;}
+    .control-group button{ font-size:14px; padding:0 15px; margin:20px; display:block;}
+	.autocomplete{list-style-type:none; margin:0px; padding:0px; border:#008080 1px solid }
+	.autocomplete li{font-size:12px; font-family:"Lucida Console", Monaco, monospace; font-weight:bold; cursor:pointer; height:20px; line-height:20px}
+	.hovers{ background-color:#3368c4; color:fff}
+	
+	
+	.accordion-heading{position: relative;}
+	.accordion-heading .all_checkbox{position: absolute;top:7px;right:0.5%;}
+	#Department_list .accordion-heading .accordion-toggle{width:50%;}
+	.teacherSms_add_button{text-align: center;dispaly:block;overflow:hidden;clear:both;}
+	.form .form-actions{padding-left:0px;}
+	.span_red{color:#f00; display: inline-block !important;float: none !important;width: auto !important;margin:0px!important;}
+	#search_Result{display:none;min-height:40px;}
+	.accordion_list,#search_Result,#jur_Yes,#jur_No,#jur_no_operation{margin:0px;padding:0px;border:1px solid #ddd;padding:0 10px 10px 10px;overflow:hidden;}
+	.accordion_list li,#search_Result li,#jur_Yes li,#jur_No li,#jur_no_operation li{width:10%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+	.accordion_list .select, #search_Result .select,#jur_Yes .select,#jur_No .select,#jur_no_operation .select{background-color:#f5f5f5}
+	.stack1_list{margin:0px;padding:0px;border:1px solid #ddd;padding:0 10px 10px 10px;overflow:hidden;}
+	.stack1_list li{width:15%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+	.stack1_list .select{background-color:#f5f5f5}
+	.accordion{margin:0px;}
+	.margin_right_5{margin:0 5px 0 0;}
+	.dispaly_in{display: inline-block;}
+	.Timing{display: inline-block;margin:0 0 0 10px;}
+	.teacherSms_list{margin:0px;padding:0px;border:1px solid #ddd;padding:0 10px 10px 10px;overflow:hidden;min-height:40px;}
+	.teacherSms_list li{width:10%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+	.teacherSms_list .select{background-color:#f5f5f5}
+	#Popup{cursor: pointer;}
+	.all_checkbox{float:right}
+	.button_close{margin:20px 0 0 0!important;}
+	.float_right{float:right;margin: 0 15px 0 0 !important; padding: 10px 20px !important;}
+
+
+.font-weight{color:#333333}
+.text_align{text-align: center;}
+.a_link{background-color:#dcdcdc;color:#fff;display:block;display:block; width:300px;margin:0px auto; cursor: pointer; text-align: center;line-height:30px;}
+.a_hover{background-color:#168df0}
+.agreement{text-align: center;line-height:30px; font-size:14px;}
+.agreement_checkbox{position: relative;top:-5px;}
+.agreement a{color:#3aa4f1}
+.alt_info{text-indent: 30px;font-weight:bold;font-size:14px;}
+.alt_info i{padding:0 20px 0 0;color:#3daeef}
+.v_error_text{position: relative;}
+.v_error_text .v_out{position: absolute;width:400px;bottom:-25px;left:0px;font-size:14px; color:#7a7a7a}
+.v_error_text .error{line-height:30px;color:#6b6b6c;font-size:14px;width:200px;display:inline-block; text-indent: 30px;margin:0 0 0 15px;background: url("../image/error_icon.jpg")no-repeat;background-position: left center;}
+.no_bg{background:none!important;margin:0px!important;}
+.error_info_icon{font-size:18px;color:#ba1a17;padding:0 10px 0 0}
+.property{display:inline-block;width:100px;background-color:#f00;}
+.property_input{padding:0px!important;margin:0px!important;}
+.div.ac > ul > li > div em{background-color:#168df0!important;color:#fffimportant;}
+.input_border{border:1px solid #b10000!important}
+#toSelectObj{display:none;position: absolute;top:30px;left:0px;z-index:999;}
+input{z-index:0;}
+.schoolname_e,.name_error_e,.phone_error_e,.email_error_e,email_code_c,.email_code_e{display:none;float:left;margin:0 0 0 2%;} 
+
+.login_suggest{height:auto;background-color: #fff; text-align: center;padding:50px 0px}
+.login_img_show{background-color:#4a90e2;height:450px;}
+.login_content{background: #fff!important;}
+.loginheader{background: #fff; overflow:hidden;}
+.loginheader .top{max-width:1200px;margin:10px auto;}
+.loginheader .top img{display:inline-block;margin:0;width:30%;}
+.loginheader .top .login_menu_li{float:right;margin:0px;width:65%;}
+.loginheader .top .login_menu_li li{margin:0px;float:left;line-height:80px; padding:0 5%;overflow:hidden;float:right}
+.loginheader .top .login_menu_li li a{color:#333333; font-size:20px;}
+
+
+.welcome_footer{height:50px;width:100%;padding:0px;margin:0 auto;border-top:1px solid #c2c2c2;bottom:0px;overflow:hidden;}
+.welcome_footer p{width:max-1200px;font-size:13px; color:#999; text-align: center; margin:0 auto;line-height:25px;}
+.welcome_footer p span{margin:0 15px 0 0;border-right:1px solid #757575;padding:0 15px 0 0}
+.welcome_footer p span a{color:#666;font-size:13px;}
+.welcome_footer p span a:hover{color:#3aa4f0}
+.welcome_box{max-width:600px;height:200px;margin:150px auto 0px;background-color:#fff; box-shadow:0px 0px 15px rgba(0,0,0,0.5);overflow:hidden;}
+.welcome_box h3{line-height:40px;text-align:center;font-size:20px; font-weight:normal; color:#4a91e3;}
+.welcome_box p{line-height:30px;text-align:center;color:#333333;}
+.welcome_box p span{color:#f00;font-weight:bold;}
+.welcome_box a{display:block;width:200px;height:35px;line-height:30px;text-align:center;background-color:#4a91e3;color:#fff;margin:0 auto;}
+.welcome_box a:hover{background-color:#53b7f4;}
+
+
+.School_Management_box{max-width:1200px;min-height:650px;margin:20px auto 80px;overflow:hidden;height:auto;clear:both;}
+.School_Management_con{max-width:1200px;}
+.School_Management_one{background-color:#dae9e1;width:32.3%;margin:0 0 15px 0.6%;height:auto;display:inline-block;border:1px solid #f2f2f2;color:#fff}
+.School_Management_one .School_Management_one_header{width:100%;height:120px;overflow:hidden;border-bottom:1px solid #f2f2f2;}
+.School_Management_one .School_Management_one_header .logo{border-right:1px solid #ccc;float:left;height:120px;line-height:120px; width:30%;text-align: center;}
+.School_Management_one .School_Management_one_header .logo img{height:70px;}
+.School_Management_one .School_Management_one_header .text{width:69.0%;float:right;text-align:left;height:120px;}
+.School_Management_one .School_Management_one_header .text p{margin:0px;line-height:30px;}
+.School_Management_one .School_Management_one_header .text .title{font-size: 20px;height: 75px;line-height:75px; overflow: hidden;text-indent: 10px;text-overflow: ellipsis;white-space: nowrap;}
+.School_Management_one .School_Management_one_header .text .title a{color:#fff;}
+.School_Management_one .School_Management_one_header .text .title a b{color:#fff;display:inline-block;font-weight:100; width:80%;float:left;overflow: hidden;text-indent: 10px;text-overflow: ellipsis;white-space: nowrap;}
+.School_Management_one .School_Management_one_header .text .title a i{display:inline-block;float:left;cursor:pointer; line-height:75px;width:19%;font-size: 14px;text-align: center;}
+.School_Management_one .School_Management_one_header .text .name{font-size:14px; text-indent: 10px;line-height:45px;height:45px;}
+.School_Management_one .School_Management_one_header .text .name em{ font-style: normal;}
+.School_Management_one .School_Management_one_header .text .name em i{margin:0 0 0 5px;}
+.School_Management_one .School_Management_one_header .text .name .a_btn{float:right;display:inline-block;color:#fff;text-indent: 0px;padding:0px 10px;}
+.School_Management_one .School_Management_one_header .text .name .a_btn i{margin:0 0 0 10px;}
+.School_Management_one .School_Management_one_header .text .name .btn{color:#fff;}
+.School_Management_one .School_Management_one_header .text .name .btn:hover{color:#fff;background-color:#fff!important}
+.School_Management_one .School_Management_one_con{overflow:hidden;}
+.School_Management_one .School_Management_one_con .left{width:60%;float:left;border-right:1px solid #f2f2f2;}
+.School_Management_one .School_Management_one_con .left p{line-height:25px;text-indent:10px;text-align: left;overflow:hidden;height:25px;margin:0px; text-overflow: ellipsis; white-space: nowrap;}
+.School_Management_one .School_Management_one_con .right{width:39%;float:left;}
+.School_Management_one .School_Management_one_con .right p{margin:0px;height:25px;line-height:25px;text-align:left;}
+.School_Management_one .School_Management_one_con .right .School_Total{color:#3aa4f1}
+.School_Management_one .School_Management_one_con .right .m{font-size:20px;color:#ebebeb;text-align:right;padding:0 5px 0 0}
+.School_Management_one .School_Management_one_con .right p em{font-style:normal;padding:0px 5px;}
+.School_Management_one .School_Management_one_con .right a{display:block;line-height:38px;background-color:#3aa4f1;color:#fff;margin:3px auto;}
+.School_card1{ background-color:#fff;border-collapse:collapse; display: block; width: 100%;}
+.School_card1 tr td{border:1px solid #dcdcdc;padding:0px;}
+.School_card1 tr td img{height:59px;margin:10px auto;display:block}
+.School_card1 tr td p{overflow:hidden;white-space:nowrap;width:auto;text-overflow: ellipsis;}
+.Fill_Card_Operation .red{background-color:#e22933!important;color:#fff!important;}
+.Fill_Card_Operation .red:hover{background-color:#c12f44!important;color:#fff!important;}
+.Fill_Card_Operation .blue{background-color:#3aa4f1!important;color:#fff!important;}
+.Fill_Card_Operation .blue:hover{background-color:#348ec6!important;color:#fff!important;}
+.Fill_Card .blue{background-color:#3aa4f1!important;color:#fff!important;}
+.Fill_Card .blue:hover{background-color:#348ec6!important;color:#fff!important;}
+.School_card2{border:none!important; border-collapse: collapse;}
+.School_card2 tr td{border:1px solid #dcdcdc;width:150px;}
+.School_card2 tr td p{overflow:hidden;text-overflow: ellipsis;white-space: nowrap;width:90%;margin:0px;padding:0px;}
+.School_card2 tr td .School_info{font-size:12px;line-height:23px; text-indent: 5px;}
+.School_card2 tr td .School_Total{font-size:15px;line-height:23px; color:#4990e2;text-indent: 5px;}
+.School_card2 tr td .info_num{font-size:12px;line-height:23px; color:#333;text-indent: 5px;}
+.School_card2 tr td a{display: block;width:100px;height:30px;line-height:30px; text-align:center; margin:15px auto 0px;;background-color:#3aa4f0;color:#fff;}
+.School_card2 tr td a:hover{background-color:#1386d8}
+.School_Management_con_show{max-width:1200px;overflow:hidden;height:auto; text-align: center;}
+.School_Management_con_cont{max-width:1200px;}
+.School_Management_con_cont ul{max-width:1200px;padding:0px;margin:0px;}
+.School_Management_con_cont ul li{width:100%;height:auto;float:left;text-align: center;}
+.School_Management_con_p{overflow:visible;clear:both;}
+.School_Management_con_circle{clear:both;text-align: center;padding:10px 0 0 0}
+.School_Management_con_circle li{width:15px;height:15px; border-radius:50%;display:inline-block; margin-right:10px;background:#ccc;cursor:pointer;}
+.School_Management_con_circle .School_Management_con_circle-cur{background:#8cb5e9}
+.pablic_search_box{max-width:1200px;margin:30px auto 0px;padding:0px}
+.management_search_box{float:right;margin:20px 0 40px 0;}
+.management_search_box .search_div{width:150px;float:left;position: relative;height:26px;margin:0 15px 0 0;background-color:#fff;border:1px solid #ccc;}
+.management_search_box .search_div .search_text{width:80%;height:26px;text-indent:10px;margin:0px;padding:0px;border:none; float:left;color:#b4b4b4}
+.management_search_box .search_div .search_submit{width:19%;height:26px;border:0px;float:right;background-color:#3aa4f1!important;color:#fff;border-left:none;font-size:16px;}
+.management_search_box .search_div span{display:block;height:26px;line-height:26px;cursor:pointer;width:150px; text-indent: 15px;z-index: 999;border-bottom: none;}
+.management_search_box .search_div ul{position: absolute; top:26px;left:-1px;display:none;background-color:#fff;margin:0px;padding:0px;width:400px;border:1px solid #ccc;z-index:0;}
+.management_search_box .search_div ul li{float:left;width:auto;display:block;margin:0px 10px;padding:0px 5px;height:30px;line-height:30px;text-align: center;cursor: pointer;}
+.management_search_box .search_div ul li:hover{background-color:#f5f5f5;}
+.management_search_box input{float:left;}
+.Fill_Card{clear:both;max-width:1200px;margin:20px auto;min-height:550px;background-color: #fff;overflow: hidden;}
+.Fill_Card h3{font-size:28px;color:#333;margin:10px auto;}
+.Fill_Card .content{overflow:inherit;}
+.Fill_Card .header{background-color:#f2f2f2;padding:0px!important;margin:0 auto 20px;}
+.Fill_Card .con{background-color:#fff overflow: hidden; padding: 0px 50px; width: auto; clear: both;}
+.Fill_Card_search_box{margin:0px auto;padding:0px;display:inline-block;float:right;border:1px solid #d1d1d1;background-color:#fff;}
+.Fill_Card_search_box .search_submit{float:right;color:#ccc;height:30px;border:none;width:30px;}
+.Fill_Card_search_box .search_text{float:left;border:none;height:30px;line-height:30px;margin:0px;padding:0px; text-indent: 15px;}
+.content{clear:both;}
+.Fill_Card_title{height:50px;background-color: #f2f2f2;margin:10px 0px;}
+.Fill_Card_title span{line-height:50px;color:#656565;display:inline-block; text-align: center;width:16%;}
+.num4{}
+.num4 span{width:24%;}
+.school_w{width:19%!important;}
+.Fill_Card_accordion_title{height:50px;margin:0px;}
+.Fill_Card_accordion_title span{line-height:50px;color:#666;display:inline-block; text-align: center;width:16%; overflow: hidden; text-overflow: ellipsis;white-space: nowrap;}
+.Fill_Card_accordion_title span i{vertical-align: middle;}
+.Fill_Card .accordion-heading .accordion-toggle{padding:0px;}
+.submenu{width:45%;float:left;border:none;height:16px;margin:15px auto!important;}
+.submenu li{border-right:1px solid #ccc;}
+.submenu li.active{margin:0px;border-right:1px solid #ccc!important;}
+.submenu li a{line-height:16px!important;padding:0px 15px!important;}
+.Fill_Card .all_checkbox{float:right;}
+.Fill_Card .accordion-heading{background-color: #fff;}
+.Fill_Card .tabbable-custom .nav-tabs > li.active{border:none;}
+.Fill_Card .nav-tabs a{color:#757575;line-height:30px;border:none;}
+.Fill_Card .nav-tabs a:hover{background:none;border:none;}
+.Fill_Card .nav-tabs > .active > a, .nav-tabs > .active > a:hover, .nav-tabs > .active > a:focus{color:#4a91e1;background:none;border:none;line-height:30px;}
+.Fill_Card .nav-tabs > li.active > a:hover { background: none; border:none;line-height:30px;}
+.Fill_Card_list{margin:0px;padding:0px;padding:0 10px 10px 10px;overflow:hidden;width:80%;}
+.Fill_Card_list li{width:10%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+.Fill_Card_list .select{background-color:#f5f5f5}
+.Fill_Card .Fill_Card_position{position: relative;overflow:hidden}
+.Fill_Card .Fill_Card_Operation{width:15%;height:70px;position: absolute;right:1%;bottom:1%;}
+.Fill_Card .Fill_Card_Operation a,.Fill_Card .Fill_Card_Operation button{width:100%;height:25px;line-height:25px;text-align:center;display: block;margin:5px;background-color:#f00;color:#fff;padding:0px;}
+.Fill_Card_info{min-height:40px;border-top:1px solid #ddd;background-color:#f5f5f5;}
+.Fill_Card_info span{line-height:40px;color:#666;display:inline-block; text-align: center;width:12.5%;padding:0px 0.5%;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;}
+.Fill_Card_info span em{color:#999;font-style: normal;}
+.Fill_Card form{margin:0px;}
+.School_apply{/* border-bottom:1px solid #ddd;  */}
+.School_apply_info{min-height:40px;width:83%;}
+.School_apply_info span{line-height:40px;color:#666;display:inline-block; text-align: left;float:left; text-indent:15px; width:31%;padding:0px 0.5%;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;}
+.School_apply_info span em{color:#666;font-style: normal;}
+.School_apply_info_100{width:100%;}
+.School_apply_info_100 span{ width:32%;}
+.padding_right_5{padding:0 5px 0 0}
+.Fill_Card .tabbable-custom .nav-tabs > li {border-top: 0px solid transparent;margin-right: 2px;}
+.Fill_Card .page_more{width:100px;heiht:30px;margin:5px auto; display: block;cursor: pointer; text-align:center;color: #555;}
+.Fill_Card .page_more:hover{color:#3aa4f0;}
+.Fill_Card_list_pass{margin:0px;padding:0px;padding:0 10px 10px 10px;overflow:hidden;width:99%;}
+.Fill_Card_list_pass li{width:10%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+.Fill_Card .modal-body{max-height:650px;}
+.Fill_Card .accordion-heading{background-color:#fff;}
+.pass_info{}
+.pass_info p,.pass_info h3,#Refuse h3{line-height:30px;text-align: center;padding:15px 0px;}
+.pass_info p a,.pass_info h3 a,#Refuse h3 a{display:inline!important;color:#3aa4f0!important;background:none!important;clear:both;}
+.pass_info p .sub{width:150px;height:30px;color:#fff!important;background:#3aa4f0!important;display:block!important;margin:0 auto}
+#refuse .info{padding:0px 5px;overflow:hidden;margin:0 auto 20px;}
+#refuse h3{text-align: center;}
+#refuse .info span{dispaly:block;float:left;width:20%;height:30px; text-align:center;}
+#refuse .info ul{width:75%;float:left;margin:0px;}
+#refuse .info ul li{width:30%;height:30px;line-height:30px;cursor:pointer; text-align:center;float:left;border:1px solid #d9d9d9;color:#8f8f8f;margin:1% 1% 0 0;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;}
+#refuse .info ul li:hover{background:#e32934;color:#fff;}
+#refuse .info textarea{width:75%;float:left}
+#refuse .info .sub{width:150px;height:30px;line-height:30px;text-align:center; color:#fff!important;background:#e32934!important;display:block!important;margin:0 auto}
+
+.jur_school_code{font-size:14px;}
+.jur_Yes_none,.jur_No_none{display:none}
+#jur_No .select{background-color:#0d8ce1;color:#fff;}
+#jur_Yes li{background-color:#0d8ce1;color:#fff;width:15%;}
+#jur_Yes .select{background-color:#2ea5f3;}
+#jur_No .select{background-color:#0d8ce1;color:#fff;}
+.jur_actions{text-align: center;}
+.jur_actions button{display:inline-block;}
+.jur_actions .padding_10_15{padding:10px 15px;}
+.jur_actions .color_fff{color:#fff!important;}
+.jur_actions_color_666{color:#666;}
+#jur_Yes_operation{margin:0px;padding:0px;border:1px solid #ddd;padding:0 10px 10px 10px;overflow:hidden;}
+#jur_Yes_operation li{width:10%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;background-color:#f5f5f5;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+#jur_Yes_operation .select{background-color:#fff}
+.jur_delect_button_padding{padding:7px 14px!important;margin:0px!important;}
+.management_detail{clear:both;overflow:hidden;}
+.management_detail p{width:50%;float:left;line-height:30px;margin:0px;}
+.management_detail p em{margin:0px 10px; color:#3aa4f1;font-style: normal;color:#999}
+
+
+/*锟角伙拷校园锟斤拷页*/
+.homepage {}
+.homepage .school_info{ margin-bottom: 30px;margin-left:0px;}
+.homepage .margin-bottom_30{margin-bottom:30px;}
+.homepage .margin_left_0{margin-left:0px;}
+.homepage .logo{background-color:#48ba89;overflow:hidden;}
+.homepage .logo img{display:block;float:left;height:100%;}
+.homepage .logo span{text-indent: 20px;font-size:30px;color:#fff;margin:15px 0 0 0;display:block;float:left; }
+.homepage .logo span em{padding:0px 10px;font-style:normal;}
+.homepage .time{color:#fff;line-height:30px;font-size:16px;}
+.homepage .time a{color:#fff;}
+.homepage .news_show{background-color:#fff;height:350px;}
+.homepage .word{background-color:#fff;height:450px; text-align:center;overflow:hidden;}
+.homepage .word h3{text-align:left; text-indent:15px;}
+.homepage .word img{width:200px;height:150px;display:block;margin:0px auto;}
+.homepage .word p{line-height:30px; padding: 0 15px; text-indent: 15px; text-align:left;}
+.homepage .word span{line-height:30px;}
+.homepage .my_info{height:100px;}
+.homepage .my_info .my_info_a{background-color:#fff;display:block; overflow:hidden;}
+.homepage .contact{width:100%;background-color:#fff;height:80px;line-height:80px;text-align:center;}
+.homepage .contact em{font-style: normal;}
+.homepage .public_info{background-color:#fff;height:415px;margin-left:0px;overflow:hidden;}
+.homepage .public_info .info_header{height:345px;width:100%;float:left;padding:20px 0px;}
+
+/*锟轿课憋拷*/
+.homepage .public_info .info_header .teachtable{padding:0px 20px;border:1px solid #ebebeb;text-align:center;color:#878787}
+.homepage .public_info .info_header .teachtable tr td{border:1px solid #ebebeb;}
+.homepage .public_info .info_header .teachtable tr td p{margin:0px;}
+.homepage .public_info .info_header .teachtable .td_bj{background-color:#fafafa;}
+.homepage .public_info .info_header .teachtable .text{color:#fff;}
+/*锟洁级1锟斤拷锟斤拷色*/
+.homepage .public_info .info_header .teachtable .tb_bg1{background-color:#aed5f4}
+/*锟洁级2锟斤拷锟斤拷色*/
+.homepage .public_info .info_header .teachtable .tb_bg2{background-color:#93bfe7}
+/*英锟斤背锟斤拷色*/
+.homepage .public_info .info_header .teachtable .tb_bg3{background-color:#82b99c}
+/*锟斤拷锟街憋拷锟斤拷色*/
+.homepage .public_info .info_header .teachtable .tb_bg4{background-color:#d7889b}
+/*锟斤拷锟斤拷色*/
+.homepage .public_info .info_header .teachtable .tb_bg5{background-color:#fcda9a}
+/*锟斤拷锟�锟斤拷色*/
+.homepage .public_info .info_header .teachtable .tb_bg6{background-color:#fba79c}
+
+/*锟斤拷锟斤拷*/
+.homepage .public_info .info_header .kaoqin{width:100%;border:1px solid #ebebeb;text-align:center;color:#878787}
+.homepage .public_info .info_header .kaoqin tr td{border:1px solid #ebebeb;}
+.homepage .public_info .info_header .kaoqin .td_bj{background-color:#fafafa;line-height:30px;}
+/*锟劫碉拷*/
+.homepage .public_info .info_header .kaoqin .state1{color:#e45453}
+
+/*锟洁级锟筋动*/
+.homepage .public_info .info_header .activity{padding:0px 20px;border:1px solid #ebebeb;text-align:center;color:#878787}
+.homepage .public_info .info_header .activity tr td{border:1px solid #ebebeb;height:29px;}
+.homepage .public_info .info_header .activity .td_bj{background-color:#fafafa;}
+.homepage .public_info .info_header .activity .text{color:#fff;}
+/*锟斤拷全锟斤拷锟斤拷色*/
+.homepage .public_info .info_header .activity .tb_bg1{background-color:#a7d189}
+/*锟斤拷锟斤拷疃拷锟斤拷锟缴�/
+.homepage .public_info .info_header .activity .tb_bg2{background-color:#aed5f4}
+/*锟斤拷锟节活动锟斤拷锟斤拷色*/
+.homepage .public_info .info_header .activity .tb_bg3{background-color:#82b99c}
+/*锟侥伙拷知识锟斤拷锟斤拷色*/
+.homepage .public_info .info_header .activity .tb_bg4{background-color:#fba79c}
+/*锟斤拷童锟斤拷锟铰憋拷锟斤拷色*/
+.homepage .public_info .info_header .activity .tb_bg5{background-color:#d7889b}
+/*锟斤拷锟�锟斤拷色*/
+.homepage .public_info .info_header .activity .tb_bg6{background-color:#fba79c}
+/*锟轿程憋拷*/
+.homepage .public_info .info_header .timetable{padding:0px 20px;border:1px solid #ebebeb;text-align:center;color:#878787}
+.homepage .public_info .info_header .timetable tr td{border:1px solid #ebebeb;}
+.homepage .public_info .info_header .timetable .td_bj{background-color:#fafafa;}
+.homepage .public_info .info_header .timetable .text{color:#fff;}
+/*锟斤拷锟侥憋拷锟斤拷色*/
+.homepage .public_info .info_header .timetable .tb_bg1{background-color:#aed5f4}
+/*锟斤拷学锟斤拷锟斤拷色*/
+.homepage .public_info .info_header .timetable .tb_bg2{background-color:#a6d088}
+/*英锟斤背锟斤拷色*/
+.homepage .public_info .info_header .timetable .tb_bg3{background-color:#82b99c}
+/*锟斤拷锟街憋拷锟斤拷色*/
+.homepage .public_info .info_header .timetable .tb_bg4{background-color:#d7889b}
+/*锟斤拷锟斤拷色*/
+.homepage .public_info .info_header .timetable .tb_bg5{background-color:#fcda9a}
+/*锟斤拷锟�锟斤拷色*/
+.homepage .public_info .info_header .timetable .tb_bg6{background-color:#fba79c}
+.homepage .public_info .info_header img{height:70px;margin:0 0 0 15px;}
+.homepage .public_info .info_header span{float:right;padding:0 15px 0 0;color:#48ba89;font-size:35px;line-height:70px;}
+.homepage .public_info .info_header span em{font-style: normal;font-size:14px;color:#666;}
+.homepage .public_info .info_footer{line-height:30px;background-color:#48ba89;color:#fff;margin:0px;padding:0px; text-indent:15px;width:100%;float:left;}
+.homepage .public_info .info_footer span{float:right;padding:0 15px 0 0}
+
+
+.homepage .school_news{background-color:#fff;height:230px;margin-bottom:30px;}
+.homepage .system{ background-color: #fff; height: 100px;}
+.homepage .count_header{height:70px;width:100%;float:left;}
+.homepage .count_header img{height:70px;margin:0 0 0 15px;}
+.homepage .count_header span{float:right;padding:0 15px 0 0;color:#48ba89;font-size:35px;line-height:70px;}
+.homepage .count_header span em{font-style: normal;font-size:14px;color:#666;}
+.homepage .conut_footer{line-height:30px;background-color:#48ba89;color:#fff;margin:0px;padding:0px; text-indent:15px;width:100%;float:left;}
+.homepage .conut_footer span{float:right;padding:0 15px 0 0}
+.homepage .school_news{position: relative;}
+.homepage .school_news ul{margin:0px;}
+.homepage .school_news ul li{height:40px;}
+.homepage .school_news ul li span{padding:0 15px;line-height:40px; display:block;float:left}
+.homepage .school_news ul li a{display:block;float:left;max-width:50%;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;line-height:40px; color:#333}
+.homepage .school_news ul li a:hover{color:#2fa5e2}
+.homepage .school_news ul li time{display:block;line-height:40px;float:right;color:#585657;padding:0 15px 0 0}
+.homepage .school_news ul li .school{color:#47bb8a}
+.homepage .school_news ul li .class{color:#2fa5e2}
+.homepage .school_news p{line-height:30px;background-color:#48ba89;color:#fff;margin:0px;padding:0px; text-indent:15px;position: absolute;left:0px;bottom:0px;width:100%;}
+.homepage .school_news span{float:right;padding:0 15px 0 0}
+.homepage .conut_footer{line-height:30px;background-color:#48ba89;color:#fff;margin:0px;padding:0px; text-indent:15px;}
+.homepage .system{}
+.homepage .system .system_header{height:70px;}
+.homepage .system_header img{height:70px;margin:0 0 0 15px;}
+.homepage .system_header span{float:right;padding:0 15px 0 0;color:#666;font-size:16px;line-height:70px;}
+.homepage .system_header span em{font-style: normal;font-size:14px;color:#48ba89;}
+.homepage .system_footer{line-height:30px;background-color:#48ba89;color:#fff;margin:0px;padding:0px; text-indent:15px;width:100%;float:left;}
+.homepage .system_footer span{float:right;padding:0 15px 0 0}
+.homepage .system .system_footer{line-height:30px;background-color:#48ba89;color:#fff;margin:0px;padding:0px; text-indent:15px;width:100%;}
+.homepage .system .system_footer span{float:right;padding:0 15px 0 0}
+.homepage .school_class{margin-left:0px;background-color:#48ba89;height:100%;}
+.homepage .school_class ul{margin:0px;}
+.homepage .school_class ul li{height:40px;line-height:40px;text-align:center; color:#fff;cursor: pointer;}
+.homepage .school_class ul .select{color:#48ba89;background-color:#fff;}
+.homepage .school_top_info{}
+.homepage .school_top_info li{display:none}
+.homepage .school_top_info img{width:100%;margin:50% auto 0;}
+.homepage .school_top_info h3{text-align:center;}
+.homepage .school_top_info p{text-indent:30px;line-height:30px;color:#333;height:95%;overflow:hidden;}
+.homepage .school_top_info dl{}
+.homepage .school_top_info dl dd{}
+.homepage .school_top_info dl dd img{margin:0px;}
+.homepage .school_top_info dl .margin_15_0_0_15{margin: 15px 0 0 15px;}
+.homepage .school_info .news_show{height:450px;background-color:#fff;margin:0px;}
+.homepage .school_news_count{}
+.homepage .school_news_count .school_news{background-color:#fff;height:285px;}
+.homepage .school_news_count .school_count{height:100px;width:48%;float:left;background-color:#fff;}
+.homepage .school_news_count .school_count .school_count_header{height:70px;}
+.homepage .school_news_count .school_count .school_count_footer{line-height:30px;background-color:#48ba89;color:#fff;margin:0px;padding:0px;}
+
+.homepage .footer{height:auto;width:100%;padding:0px;margin:0 auto;background:none;}
+.homepage .footer p{line-height: 30px;color:#fff;}
+.homepage .footer p span{padding: 0px 5px;margin:0px;border-right:1px solid #fff;}
+.homepage .footer p span a{color:#fff;}
+/*学校锟斤拷权*/
+.authorization{background-color: #f3f3f3;margin: 20px auto;max-width: 1200px;min-height:650px;overflow: hidden;padding: 0 50px;}
+.authorization h3 {font-size: 18px;}
+.authorization .tabbable-custom .nav-tabs > li.active{border:none;border-top:2px solid #f2f2f2}
+.authorization .nav-tabs a{color:#757575;line-height:30px;}
+.authorization .nav-tabs > .active > a, .nav-tabs > .active > a:hover, .nav-tabs > .active > a:focus{color:#4a91e1;background:none;border:none;line-height:30px;}
+.authorization .nav-tabs > li.active > a:hover { background: none; border:none;line-height:30px;}
+.authorization_title{ background-color: #999; height: 40px;}
+.authorization_title span { color: #fff; display: inline-block; line-height: 40px; text-align: center; width: 24%;}
+.authorization_con{width:100%;border-bottom:1px solid #f3f3f3; margin: 0px;padding: 5px 0;}
+.authorization_con span { color: #333; display: inline-block;height:40px; line-height: 40px; overflow:hidden;text-overflow:ellipsis;  white-space:nowrap; text-align: center; width: 24%;}
+
+/*鎶�湳鏀寔/浜哄憳鍒楄〃*/
+.technical_support_title{width:100%;margin:0px; background-color: #f2f2f2; height: 50px;}
+.technical_support_title span { color: #656565; display: inline-block; line-height: 50px; text-align: center; width: 19%;}
+.technical_support{width:100%;margin:0px; color:#909090}
+.technical_support span{ display: inline-block; line-height: 50px; text-align: center; width: 19%;height:50px;overflow:hidden}
+
+.shoppingOrders{width:100%;margin:0px; height: 40px;padding:5px 0px;}
+.shoppingOrders span { color: #656565; display: inline-block; line-height: 40px;height:40px; text-align: center; width: 16%;overflow:hidden;text-overflow:ellipsis;  white-space:nowrap;}
+.shoppingOrders span a{padding:5px 20px;background-color:#3aa4f1;color:#fff;cursor: pointer;}
+
+.first_span{color:#333;margin:0px;}
+.technical_support .select2-choice span{line-height:30px;width:80%;text-align:left;margin:0px;color:#333!important}
+.authorization_con .address{color:#666}
+.authorization_con span .select2_category span{line-height:30px; color:#666}
+/*锟斤拷员锟叫憋拷*/
+.personnel{margin: 20px auto;max-width: 1200px;min-height:650px;overflow: hidden;padding: 0 50px;}
+.personnel h3{font-size:18px;}
+.tab-content{background:none!important;border:none!important;}
+.personnel .tabbable-custom .nav-tabs > li.active{border-top:3px solid #f2f2f2}
+.personnel .nav-tabs a{color:#757575;line-height:30px;}
+.personnel .nav-tabs > .active > a, .nav-tabs > .active > a:hover, .nav-tabs > .active > a:focus{color:#4a91e1;background:none;border:none;line-height:30px;}
+.personnel .nav-tabs > li.active > a:hover { background: none; border:none;line-height:30px;}
+.personnel .bg_fff{background-color:#fff;}
+.personnel_title{ background-color: #999; height: 40px;}
+.personnel_title span { color: #fff; display: inline-block; line-height: 40px; text-align: center; width:19%;}
+.personnel_title2{ background-color: none; height: 40px;}
+.personnel_title2 span { color: #909090; display: inline-block; text-align: center; width: 15%;line-height:40px;}
+.personnel_title3{ background-color: #f2f2f2; height: 40px;}
+.personnel_title3 span { color: #656565; display: inline-block; line-height: 40px; text-align: center; width:15%;}
+.personnel_con{width:100%;border-bottom:4px solid #f3f3f3}
+.personnel_con span { color: #333; display: inline-block; line-height: 40px; text-align: center; width: 24%;}
+.personnel_con .address{color:#666}
+.personnel_con span .select2_category span{line-height:30px; color:#666}
+.personnel_header{overflow:hidden;margin:0px;border-bottom:1px solid #e5e5e5}
+.padding_0{padding:0px;}
+.tabbable-custom > .tab-content{border:none;border-bottom:1px solid #ddd;}
+.accordion-group{border:none;border-bottom:1px solid #ddd;overflow:hidden}
+.update{text-align:right;margin:10px 0px;}
+.margin_right_30{margin:0 30px 0 0}
+.personnel_header .edit_span{border:1px solid #ccc;background-color:#fff;margin:0px;}
+.personnel_header button{display:none}
+.personnel_header .margin_10_auto{margin:10px auto;}
+.personnel_header span{width:19%;display:inline-block;float:left; text-align:center;color: #909090;overflow:hidden;height:40px;line-height:40px;overflow:hidden;text-overflow: ellipsis; white-space: normal;}
+.personnel_info_header{padding: 15px 0 0;}
+.clear_n{clear:both;background-color:#fff;}
+.personnel_info_header span{width:31%;line-height:32px;display:inline-block; text-align:left;padding:0px 10px; color:#333333;}
+.personnel_info_header em{font-style: normal;color:#333;}
+.personnel_info_con{}
+.personnel_info_con dd{width:23%;line-height:30px;display:inline-block; text-align:left;padding:0px 10px; color:#909090;margin:0px;}
+.padding_left_15{padding:0 0 0 15px;}
+.p_menu{width:50%;display:inline-block}
+.add_input{height:30px!important; line-height:30px!important;padding:0px!important}
+.text_right{text-align: right}
+.personnel .error{color:#f00;}
+#update_db .error{color:#f00;}
+.finance_border_bottom{border-bottom:1px solid #ddd}
+.shouquan{width:24%!important;}
+.shouquan span{width:100%;text-align:left;}
+/*閿熸枻鎷烽〉閿熸枻鎷烽敓鏂ゆ嫹閿燂拷200px*/
+@media (min-width: 1200px) and (max-width: 1400px) {
+		.Response{font-style: normal!important;}
+}
+/*锟斤拷769 锟斤拷1199*/
+@media (min-width: 769px) and (max-width: 1199px) {
+	.accordion_list li,#search_Result li,.teacherSms_list li{width:22%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+	.send_box .text_con{  margin: 150px auto 0; max-width: 620px;}
+	.margin_left_15{margin:0 0 0 5px;padding:5px 10px;}
+	.Response{font-style: normal!important;}
+	.School_Management_box{max-width:1199px;}
+	.School_Management_box .School_Management_con{max-width:100%;}
+	.School_Management_box .School_Management_con .School_Management_con_show{max-width:100%;}
+	.School_Management_con_cont{max-width:100%;}
+	.School_Management_con_cont ul{max-width:100%;}
+	.School_Management_con_cont ul li{min-width:100%;}
+	.School_Management_one{width:31%;margin:10px 0.5% 0px;overflow:hidden;}
+	.pablic_search_box{padding:0px;margin:10px  10px 0 0px;max-width:100%;}
+	.School_Management_box{margin:10px auto 0px;}
+	.Fill_Card_list_pass li{width:11%;}
+	#jur_Yes li,#jur_No li,#jur_Yes_operation li,#jur_no_operation li{width:22%;}
+}
+
+/*锟斤拷小锟斤拷768 */
+@media(max-width: 768px) {
+	.main .apply_row .apply_title{text-align:left;line-height:30px;font-weight:bold;width:100%;float:left;margin:0 0 0 10%}
+	.main .apply_row .apply_Control{width:99%;float:left}
+	.main .apply_row .apply_Control .apply_select{width:100%!important;margin:2% auto;float:left}
+
+	.main .apply_row .apply_title{ float: left;font-weight: bold; line-height: 30px; margin:0 0 0 0;text-align: left;width: 100%;}
+	.alt_info{text-indent: 30px;font-weight:bold;font-size:16px;}
+	.main .apply_row .apply_Control input{width:98.5%;padding:5px 0px;}
+	.School_card1 tr{width:100%;display:block}
+	.School_card1 tr td{width:50%}
+	.School_card1 tr td img{display:block;margin:5px auto;}
+	.School_card2 tr td{width:50%;}
+	.margin_left_15{margin:15px 0 0 0;}
+	.school_name_select{width:98.5%;}
+	.apply_title_none{display:none;}
+	.apply_row_padding_0{padding:0px!important;}
+	.send_box .text_con .Success_icon{float:none;margin:0 auto;width:95%;height:auto!important; overflow:hidden;}
+	.send_box .text_con .Success_icon img{display:block;width:60%;margin:30px auto 0px;float:none;}
+	.send_box .text_con .sussecc_text{float:none;margin:0 auto;width:95%}
+	.send_box .text_con .sussecc_text h3{width:100%;font-size:14px!important;}
+
+
+	.schoolname_e,.name_error_e,.phone_error_e,.email_error_e,email_code_c,.email_code_e{display:none;float:left;margin:1% 0 0 0;} 
+	.xs_dispaly_block{width:100%;float:none}
+	
+	.header{height:80px!important}
+	.header .top{height:80px;}
+	.header .top img{display:block;margin:5px 0 0 0;height:40px;width:auto;}
+	.header .top .menu_li{height:40px;width:100%!important;float:left!important;}
+	.header .top .menu_li li{float:left!important;width:14%!important;height:40px;}
+	.header .top .menu_li li a{font-size:14px;color:#fff;text-align: center;line-height:40px;}
+	.header .top .menu_li li a:hover{color:#4a91e3;background-color:#fff;}
+	.header .top .apply_addmenu_li{width:100%;}
+	.header .top .apply_addmenu_li li{float:left}
+	.header .top .apply_addmenu_li li a{color:#fff; font-size:14px;display:block;}
+	.header .top .loginout{display:block!important;padding:0 10px 0 0!important}
+	.footer{height:auto;background-color:#fff;width:100%;padding:0px;margin:0 auto;bottom: 0px;left:0px;}
+	.footer p{line-height: 30px;}
+	.footer p span{padding: 0px 5px;margin:0px;}
+	.footer .Response,.Response{display:none!important;}
+	.main{max-width:1200px;margin:0 auto;background-color:#fff;}
+	.main img{display:none}
+	.welcome_box h3{line-height:30px;text-align:center;font-size:16px; color:#4a91e3;}
+	.welcome_box{max-width:600px;height:200px;margin:70px auto;background-color:#fff; box-shadow:0px 0px 15px rgba(0,0,0,0.2);overflow:hidden;}
+	
+	.portlet .form-horizontal .form-actions{padding-left:0px;}
+	.accordion_list li,#search_Result li,.teacherSms_list li{width:28%;height:30px;line-height:30px;color:#333;float:left;display:block;border:1px solid #ddd;text-indent: 5px;overflow:hidden;text-overflow: ellipsis; white-space:nowrap;cursor: pointer;margin:10px 10px 0 0}
+	.welcome_footer p span a{font-size:14px;}
+	.welcome_footer p {font-size:14px;line-height:30px;}
+	.welcome_footer p .Response{dispaly:none;}
+	.pablic_search_box{padding:0px; text-align: center;margin:10px auto 0px;position: relative;width:100%;}
+	.pablic_search_box .search_div{width:100%;margin:0px auto 20px;}
+	
+	
+	
+	.management_search_box .search_div{height:40px;border:1px solid #ccc;}
+	.management_search_box .search_div ul{width:100%;top:36px;}
+	.management_search_box .search_div span{width:100%;height:40px;line-height:40px;}
+	.management_search_box .search_div .search_text{height:40px;line-height:40px;}
+	.management_search_box .search_div .search_submit{height:40px;line-height:40px;}
+	.pablic_search_box .search_text {background-color: #fff;border: 1px solid #d1d1d1;height: 35px;text-indent: 10px;width:100%;}
+	.pablic_search_box .search_submit{width:50px;height:35px;border:0px;background-color:#fff;color:#d1d1d1;border:1px solid #d1d1d1;border-left:none;font-size:16px;position: absolute;top:0px;right:0px;}
+	.School_Management_con_cont{max-width: 768px;}
+	.School_Management_con_cont ul .768_li{max-width: 768px!important;}
+	.School_Management_one{margin:10px auto 0px;width:100%;display:block}
+	.School_Management_box{margin:0px auto}
+	.School_card1{width:auto}
+	.School_card1 tr td{width:auto}
+	.School_card1 tr td .title{font-size:16px;}
+	.School_card2{width:auto}
+	.School_card2 tr td p{width:auto;}
+	
+	.Fill_Card{padding:0px 5px;}
+	.Fill_Card h3{font-size:18px;margin-bottom:0px;}
+	.Fill_Card_title span {width: 23%;}
+	.Fill_Card_accordion_title span{width:31%;}
+	.Fill_Card_info span{width: 31%; text-align: left;}
+	.Fill_Card_list,.Fill_Card_list_pass{width:90%;}
+	.Fill_Card .Fill_Card_Operation{position:static;height:auto;clear:both;}
+	.Fill_Card .Fill_Card_Operation{width:100%;}
+	.Fill_Card_list li,.Fill_Card_list_pass li{width:30.6%;margin:10px 1% 0}
+	.Fill_Card_title span {width: 31%;}
+	.Fill_Card .submenu{width:100%;margin-bottom:0px;}
+	.Fill_Card .Fill_Card_search_box{width:100%;}
+	.school_w{width:32%!important;}
+	.School_apply_info_100 span{width:49%;}
+	#jur_Yes li,#jur_No li,#jur_Yes_operation li,#jur_no_operation li{width:45.1%;}
+	.Fill_Card .Fill_Card_Operation a, .Fill_Card .Fill_Card_Operation button{height:35px;line-height:35px;}
+	.homepage .logo img{width:15%}
+	.homepage .logo span{text-indent: 20px;font-size:18px;color:#fff;margin:15px 0 0 0;display:block;float:left;line-height:30px; }
+	.homepage .logo span em{padding:0px 10px;font-style:normal;}
+	.homepage .system {background-color: #fff;height: 100px;margin-bottom:30px;}
+	.homepage .margin_bottom_30{margin-bottom:30px;}
+	.homepage .my_info{height:auto;}
+	.homepage .system_bottom_0{margin-bottom:0px;}
+	.homepage .time{line-height:50px;}
+	.welcome_footer p span{margin:0px;}
+	.loginout{display:none;}
+	.technical_support_title span,.technical_support span{width:32%;overflow:hidden;height:50px;}
+	.personnel_title2 span,.personnel_title3 span{width:32%;overflow:hidden;height:50px;}
+	.personnel_info_header span{width:49%;padding:0px;}
+	.p_menu {width: 100%;}
+	.Fill_Card .con{padding:0px;}
+	.agreement{margin-left:0px!important;text-align: center!important;}
+	.agreement em{font-style:normal;}
+	.main .apply_container{width:95%;height:auto;padding:0px;overflow:hidden;margin:0 auto;}
+	
+	.shouquan{width:32%!important;}
+}

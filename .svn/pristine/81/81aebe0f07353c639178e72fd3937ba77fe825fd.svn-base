@@ -1,0 +1,412 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<head>
+        <meta charset="utf-8" />
+        <title>修改智慧校园服务费</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta content="width=device-width, initial-scale=1" name="viewport" />
+         <!--公共css开始-->
+		<%@ include file="/public_module/public_css_new.jsp"%>
+	 	<!--公共css结束--> 
+        </head>
+    <body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed">
+    	<input class="themes" type="hidden" value="<%=basePath%>">
+        <!-- 公共顶部开始-->
+        <%@ include file="/public_module/public_header.jsp"%>    
+        <!--公共顶部结束-->
+        <div class="clearfix"> </div>
+        <!-- 内容页开始 -->
+        <div class="page-container">
+            <!--主菜单开始-->
+            <%@include file="/public_module/public_menu.jsp"%>
+            <!--主菜单结束-->
+            <div class="page-content-wrapper">
+                <div class="page-content m_overflow_hidden m_page_content">
+                	<div class="col-md-1 col-sm-1 m_padding_0_0_0_15">
+                    <%@include file="/public_module/public_sub_menu.jsp" %>
+                	</div>
+                	<div class="col-md-11 col-sm-11 m_page_con">
+                    <div class="page-bar m_margin_0_0_0_0">
+                        <ul class="page-breadcrumb">
+                            <li><a href="<%=basePath %>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+                            <li><a href="">系统管理</a><i class="fa fa-circle"></i></li>
+                            <li><span>修改智慧校园服务费</span></li>
+                        </ul>
+                    </div>
+                    <h3 class="page-title">修改智慧校园服务费</h3>
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="portlet light portlet-fit portlet-form bordered m_margin_15_auto_0" >
+                                <div class="portlet-title">
+                                    <div class="caption">
+                                        <i class=" icon-layers font-green"></i>
+                                        <span class="caption-subject font-green sbold uppercase">修改智慧校园服务费</span>
+                                    </div>
+                                </div>
+                                <div class="portlet-body">
+                                    <form action="<%=basePath%>replaceRecharge/doModifyMessage.do" id="submitForm" class="form-horizontal" method="post" >
+                                        <div class="form-body">
+                                        	<div class="form-group">
+                                                <label class="control-label col-md-3">服务对象</label>
+                                                <div class="col-md-4">
+                                                    <select class="form-control" id="rangeObject" name="rangeObject">
+														<c:if test="${message.rangeObject==0 }">
+															<option value= "0" selected="selected">学校</option>
+															<option value= "1">个人</option>
+														</c:if>
+														<c:if test="${message.rangeObject==1 }">
+															<option value= "0">学校</option>
+															<option value= "1" selected="selected">个人</option>
+														</c:if>
+														
+													</select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group" id="nameGroup">
+                                                <label class="control-label col-md-3">名称</label>
+                                                <div class="col-md-4">
+                                                    <input type="text" name="name" id="name" value="${message.name}" class="form-control"/>
+													<span class="help-inline" style="display: none;" id="nameSpan"></span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">价格</label>
+                                                <div class="col-md-4">
+                                                    <input type="text" name="price" id="price" value="${message.price}" onkeyup="clearNoNum(this)" class="form-control"/>
+													<span class="help-inline" style="display: none;" id="priceSpan"></span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">套餐类型</label>
+                                                <div class="col-md-4">
+                                                    <select class="form-control" id="type" name="type">
+														<c:if test="${message.type==0 }">
+															<option value= "0" selected="selected">时间段</option>
+															<option value= "1">单条</option>
+														</c:if>
+														<c:if test="${message.type==1 }">
+															<option value= "0">时间段</option>
+															<option value= "1" selected="selected">单条</option>
+														</c:if>
+														
+													</select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">状态</label>
+                                                <div class="col-md-4">
+                                                   <select class="form-control" id="status" name="status">
+														<c:if test="${message.status==0 }">
+															<option value= "0" selected="selected">可用</option>
+															<option value= "1">失效</option>
+														</c:if>
+														<c:if test="${message.status==1 }">
+															<option value= "0">可用</option>
+															<option value= "1" selected="selected">失效</option>
+														</c:if>
+													</select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">开始时间</label>
+                                                <div class="col-md-4">
+	                                                <input type="text" value="${message.startTime}" readonly="readonly" name="startTime" id="startTime" class="form-control"/>
+													<span class="help-inline" style="display: none;" id="startTimeSpan"></span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">结束时间</label>
+                                                <div class="col-md-4">
+	                                                <input type="text" value="${message.endTime}" readonly="readonly" name="endTime" id="endTime" class="form-control"/>
+													<span class="help-inline" style="display: none;" id="endTimeSpan"></span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">年级选择</label>
+                                                <div class="col-md-4">
+                                                   <select class="form-control" multiple="multiple">
+														<option value= "0">可用</option>
+														<option value= "1">失效</option>
+														<option value= "2" >可用</option>
+														<option value= "3">失效</option>
+														<option value= "4" >可用</option>
+														<option value= "5">失效</option>
+													</select>
+                                                </div>
+                                                <div class="col-md-2">
+                                                 	按住shift进行连续多选<br>
+                                                 	按住Ctrl进行任意多选
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-actions">
+                                            <div class="row">
+                                                <div class="col-md-offset-3 col-md-9">
+                                                    <button type="button" class="btn green" id="submitButton">确定</button>
+													<input type="hidden" value="${id}" name="id" id="id"/>
+													<input type="hidden" value="${message.type}" name="typeOrg" id="typeOrg"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                                </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 亦信聊天开始 -->
+        	<%@ include file="/public_module/public_QQ.jsp" %>
+            <!-- 亦信聊天结束 -->
+        </div>
+        <!-- 内容页结束 -->
+        <!-- 底部开始 -->
+        <%@ include file="/public_module/public_footer.jsp" %>
+        <!-- 底部结束 -->
+    </body>
+        <!-- 公共js开始 -->
+        <%@ include file="/public_module/public_js.jsp" %>
+        <!-- 公共js结束 -->
+	<script>
+
+		jQuery(document).ready(function() {
+			loadSubMenu("systemManage"); 
+			//选取当前菜单位置
+			setActive("systemManage","serviceFee");   
+			$('.day').datetimepicker({
+				format:'Y-m-d',
+				timepicker:false
+			}); 
+			$('.time').datetimepicker({
+				datepicker:false,
+				format:'H:i',
+				step:5
+			}); 
+			 
+			
+			$("body,html",parent.document).animate({ scrollTop: 0 }, 0);
+			//名称校验
+            $("#name").blur(function(){
+                var name = $("#name").val();
+                if("" == name)
+                {
+                    $("#nameSpan").show();
+		            $("#nameSpan").html("名称不能为空");
+                } 
+                else
+                {
+                    $("#nameGroup").removeClass("error");
+                    $("#nameSpan").hide();
+                }
+            });
+
+            //设备密码校验
+            $("#price").blur(function(){
+                var price = $("#price").val();
+                if("" == price)
+                {
+                    $("#priceSpan").show();
+		            $("#priceSpan").html("价格不能为空");
+                }
+                else
+                {
+                    $("#priceGroup").removeClass("error");
+                    $("#priceSpan").hide();
+                }
+            });
+
+            var typeOrg = $("#typeOrg").val();
+            if(typeOrg==0)
+            {
+                $("#startTimeGroup").show();
+                $("#endTimeGroup").show();
+            }
+            else
+            {
+            	$("#startTimeGroup").hide();
+                $("#endTimeGroup").hide();
+            }
+            
+            //设备密码校验
+            $("#type").click(function(){
+                var type = $("#type").val();
+                if(type==0)
+                {
+                    $("#startTimeGroup").show();
+                    $("#endTimeGroup").show();
+                }
+                else
+                {
+                	$("#startTimeGroup").hide();
+                    $("#endTimeGroup").hide();
+                }
+            });
+            
+	           
+			//表单提交
+			$("#submitButton").click(function()
+			{
+			    if(checkForm())
+				{
+				    $("#submitForm").submit();
+				}
+			});	
+		});
+
+		//验证价格只能输入小数和整数
+		function clearNoNum(obj)
+	    {
+	        //先把非数字的都替换掉，除了数字和.
+	        obj.value = obj.value.replace(/[^\d.]/g,"");
+	        //必须保证第一个为数字而不是.
+	        obj.value = obj.value.replace(/^\./g,"");
+	        //保证只有出现一个.而没有多个.
+	        obj.value = obj.value.replace(/\.{2,}/g,".");
+	        //保证.只出现一次，而不能出现两次以上
+	        obj.value = obj.value.replace(".","$#$").replace(/\./g,"").replace("$#$",".");
+	        //保证.只有两位小数
+	        obj.value = obj.value.replace(/^(\-)*(\d+)\.(\d\d).*$/,"$1$2.$3");
+	        
+	    }
+	    
+		//表单校验相关---begin
+		
+		function checkForm()
+		{
+			 //验证常量 
+            var nameFlag = false;
+            var priceFlag = false;
+            var startTimeFlag = false;
+            var endTimeFlag = false;
+            
+            var name = $("#name").val();
+            if("" == name)
+            {
+                $("#nameSpan").show();
+          		$("#nameSpan").html("名称不能为空");
+          		nameFlag = false;
+            } 
+            else
+            {
+                $("#nameSpan").hide();
+                nameFlag = true;
+            }
+            
+            var price = $("#price").val();
+            if("" == price)
+            {
+                $("#priceSpan").show();
+            	$("#priceSpan").html("价格不能为空");
+            	priceFlag = false;
+            }
+            else
+            {
+                $("#priceSpan").hide();
+                priceFlag = true;
+            }
+
+             var startTime = $("#startTime").val();
+             var endTime = $("#endTime").val();
+             var start = new Date(startTime.replace("-", "/").replace("-", "/"))
+             var end = new Date(endTime.replace("-", "/").replace("-", "/"))
+
+             var type = $("#type").val();
+             if(type==0)
+             {
+            	 if(startTime =="" && endTime =="")
+                 {
+                     $("#startTimeSpan").show();
+               		 $("#startTimeSpan").html("开始日期不能为空");
+                	 startTimeFlag = false;
+
+                     $("#endTimeSpan").show();
+               		 $("#endTimeSpan").html("结束日期不能为空");
+                	 endTimeFlag = false;
+                	 
+                 } else if(startTime =="" && endTime !="")
+                 {
+                     $("#startTimeSpan").show();
+               		 $("#startTimeSpan").html("开始日期不能为空");
+                	 startTimeFlag = false;
+
+                     $("#endTimeSpan").hide();
+                     endTimeFlag = true;
+                 }
+                 else if(startTime !="" && endTime =="")
+                 {
+                     $("#endTimeSpan").show();
+               		 $("#endTimeSpan").html("结束日期不能为空");
+                	 endTimeFlag = false;
+
+                     $("#startTimeSpan").hide();
+                     startTimeFlag = true;
+                 }  
+                 else if(startTime!="" && endTime!="" && start>end)
+                 {
+                     $("#startTimeSpan").show();
+               		 $("#startTimeSpan").html("结束日期不能晚于开始日期");
+               		 $("#endTimeSpan").html("结束日期不能晚于开始日期");
+               		 startTimeFlag = false;
+                     endTimeFlag = false;
+                 }
+                 else
+                 {
+                     $("#startTimeSpan").hide();
+                     $("#endTimeSpan").hide();
+                     startTimeFlag = true;
+                     endTimeFlag = true;
+                 }  
+             }
+             else
+             {
+            	 startTimeFlag = true;
+                 endTimeFlag = true;
+             }
+             
+			if (nameFlag && priceFlag && startTimeFlag && endTimeFlag)
+			{
+				return true;
+			}		
+			else
+			{
+				return false;
+			}
+		
+		}
+
+		//加载记录点页面
+		function loadPlaceList()
+		{
+			var body = $("#body");
+			App.blockUI(body);
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>camera/getPlaceList.do",
+				data:{
+				},
+				success: function(data){
+					var list = eval("(" + data + ")");
+					var appendHtml = '<option value="0">---请选择---</option>';
+					$.each(list, function(n, value) {  
+						appendHtml += '<option value="'+value.id+'">'+value.name+'</option>';
+          			}); 
+          			$("#placeId").html(appendHtml);
+
+          			var placeId = $("#place").val();
+                  	
+          			if (placeId == null || placeId == "" || placeId == undefined)
+					{
+						$("#placeId").val("0");
+					}
+					else
+					{
+						$("#placeId").val(placeId);
+					}
+				},
+			});
+		}
+		
+	</script>
+</html>

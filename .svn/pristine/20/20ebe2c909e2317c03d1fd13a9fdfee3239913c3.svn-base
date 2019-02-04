@@ -1,0 +1,433 @@
+package com.guotop.palmschool.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+
+import com.guotop.palmschool.common.entity.ResultInfo;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.entity.Card;
+import com.guotop.palmschool.entity.Department;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.entity.UserRole;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.service.CardService;
+import com.guotop.palmschool.service.DepartmentService;
+import com.guotop.palmschool.service.TeacherService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.service.YinxinAndWisdomExchangeService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+
+/**
+ * 教师业务类实现类
+ */
+@Service("teacherService")
+public class TeacherServiceImpl extends BaseService implements TeacherService
+{
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private UserService userService;
+
+	@Resource
+	private CardService cardService;
+
+	@Resource
+	private DepartmentService departmentService;
+
+	@Resource
+	private YinxinAndWisdomExchangeService yinxinAndWisdomExchangeService;
+
+
+
+	@SuppressWarnings("unchecked")
+	public Pages getTeacherByRole(int pageSize, int page, Map<String, Object> paramMap, User user)
+	{
+		List<User> list = new ArrayList<User>();
+
+		boolean isAdmin = false;
+		if (commonService.hasAdminPermission(user))
+		{
+			isAdmin = true;
+		}
+		if (!isAdmin)
+		{
+			List<Department> departmentList = getBaseDao().selectListByObject("UserPermission.getDepartmentListByUserIdAndPermissionCode", paramMap);
+			paramMap.put("departmentList", departmentList);
+		}
+		int allRow = this.getBaseDao().getAllRowCountByCondition("User.getTeacherList", paramMap);
+		int totalPage = Pages.countTotalPage(pageSize, allRow);
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		int currentPage = Pages.countCurrentPage(page);
+		list = this.getBaseDao().queryForPageByCondition("User.getTeacherList", paramMap, offset, length);
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	/**
+	 * 根据年级ID查找到教师bean【福建专用】
+	 * 
+	 * @param paramMap
+	 *            参数map
+	 * @return 查找到的教师bean
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages getTeacherByRoleFj(int pageSize, int page, Map<String, Object> paramMap)
+	{
+		List<User> list = new ArrayList<User>();
+		int allRow = this.getBaseDao().getAllRowCountByCondition("User.getTeacherListFj", paramMap);
+		int totalPage = Pages.countTotalPage(pageSize, allRow);
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		int currentPage = Pages.countCurrentPage(page);
+		list = this.getBaseDao().queryForPageByCondition("User.getTeacherListFj", paramMap, offset, length);
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	/**
+	 * 添加教职工
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public int addTeacher(HashMap<String, Object> paramMap, User teacherBase, User teacherDetail, Set<String> cardCodeSet, String roleCode,boolean isYinUser,boolean isLocalSchool)
+	{
+		/*
+		 * 处理逻辑
+		 * 1.用户不存在，正常添加  1.1：添加userBase，userDetai表，1.2：添加与学校关系 1.3：添加对应角色，1.4：添加对应部门，1.5：添加电子卡号
+		 * 2.用户存在  
+		 * 	2.1 亦信用户，亦信用户转智慧校园
+		 *  2.2  如果本校教职工存在（添加页面跳转到修改页面，以下都是教职工角色不存在的情况下）
+		 * 	2.3  非本校教职工占用 
+		 * 		2.3.1 本校家长
+		 * 		2.3.2 非本校用户 
+		 */
+		User user = userService.getUserByBindPhone(teacherBase.getBindPhone());
+		Integer teacherId = null;
+		Long schoolId = (Long) paramMap.get("schoolId");
+		if(user == null)// 用户不存在，正常添加
+		{
+			// 添加userbase对应的信息 返回最后一条插入的用户ID
+			teacherId = userService.addUserBase(teacherBase);
+			paramMap.put("userId", teacherId);
+			// 添加user_detail对应的信息
+			// 同步openfire
+			String voipAccount = commonService.registerOpenFire(teacherBase.getUuserId());
+			teacherDetail.setUserId(teacherId);
+			teacherDetail.setVoipAccount(voipAccount);
+			userService.addUserDetail(teacherDetail);
+			// 添加user_school对应的信息
+			
+			userService.addUserAndSchoolLink(teacherId, schoolId);
+			
+			// 添加user_role对应的信息
+			commonService.addUserRole(paramMap);
+			// 添加user_department对应的信息
+			departmentService.doAddTeacherToDepartment(paramMap);
+			// 添加电子卡号
+			if (!CollectionUtils.isEmpty(cardCodeSet)) {
+				for (String cardCode : cardCodeSet) {
+					if (!StringUtil.isEmpty(cardCode)) {
+						commonService.addUserAndCardLink(cardCode, teacherId);
+					}
+				}
+			}
+		}else{
+			teacherId = user.getUserId();
+			if(isYinUser){
+			    yinxinAndWisdomExchangeService.yixinToWisdom(user.getUserId(),user.getRealName(), 
+			    		paramMap.get("code").toString(), paramMap.get("roleCode").toString(), 
+			    		null,Integer.parseInt(paramMap.get("departmentId").toString()), 
+			    		null, cardCodeSet, schoolId);
+			}else{
+				paramMap.put("userId", user.getUserId());
+				//更新工号
+				paramMap.put("code", teacherDetail.getCode());
+				getBaseDao().updateObject("User.updateUserbaseCode",paramMap);
+				
+				userService.addUserAndSchoolLink(teacherId, schoolId);
+				// 添加user_role对应的信息
+				commonService.addUserRole(paramMap);
+				// 添加user_department对应的信息
+				departmentService.doAddTeacherToDepartment(paramMap);
+				// 添加电子卡号
+				if (!CollectionUtils.isEmpty(cardCodeSet)) {
+					for (String cardCode : cardCodeSet) {
+						if (!StringUtil.isEmpty(cardCode)) {
+							commonService.addUserAndCardLink(cardCode, teacherId);
+						}
+					}
+				}
+			}
+		}
+		return teacherId;
+	}
+
+	/**
+	 * 根据年级ID查找到教师bean
+	 * 
+	 * @param paramMap
+	 *            参数map
+	 * @return 查找到的教师bean 20151127
+	 */
+	@SuppressWarnings("unchecked")
+	public User getTeacherById(Map<String, Object> paramMap)
+	{
+		List<User> list = getBaseDao().selectListByObject("User.getTeacherById", paramMap);
+		if(CollectionUtils.isEmpty(list)){
+			return new User();
+		}
+		return list.get(0);
+	}
+
+	@Override
+	public User getTeacherById(Integer id)
+	{
+		return (User) getBaseDao().selectObject("User.getTeacherByUserId", id);
+	}
+
+	/**
+	 * 修改教职工
+
+	 */
+	public void modifyTeacherById(Map<String, Object> paramMap,String[] cardCode)
+	{
+		/*
+		 * 处理逻辑
+		* 1：如果手机号没有被占用，正常修改字段
+		* 2：如果user的手机号被user1占用：
+		* 	2.1:如果user1的IsDefalutUserName=0 代表没有使用过，将user1的bindPhone设置为空
+		 */
+		
+	    User user = userService.getUserByBindPhone(paramMap.get("bindPhone").toString());
+    	// 删除老权限及角色
+ 		HashMap<String, Object> map = new HashMap<String, Object>();
+ 		String roleCodeNow=paramMap.get("roleCodeNow").toString();
+ 		String roleCode=paramMap.get("roleCode").toString();
+ 		Integer teacherId=Integer.parseInt(paramMap.get("teacherId").toString());
+ 		map.put("userId",teacherId);
+ 		map.put("roleCode", paramMap.get("roleCode"));
+ 		map.put("roleCode",roleCodeNow);
+ 		boolean isUpdate = false;
+ 		boolean isExist = false;
+	    if(user == null || user.getUserId().toString().equals(teacherId.toString())){
+	    	isUpdate = true;
+	    }else if(user!=null && "0".equals(user.getIsDefalutUserName().toString()) && !user.getUserId().toString().equals(teacherId.toString())){			
+	    	isUpdate = true;
+	    	isExist = true;
+		}
+	    if(isUpdate){
+			/*
+			 * 修改角色和对应的角色 如果待修改教师修改之前对应的角色与要修改为的角色相同 则角色和对应的权限不变 如果不同则则修改角色和其对应的权限
+			 */
+			getBaseDao().updateObject("User.modifyUserBaseById", paramMap);
+			getBaseDao().updateObject("User.modifyUserDetailById", paramMap);
+			if (!roleCodeNow.equals(roleCode))
+			{
+				userService.deleteUserRolePermission(teacherId,paramMap.get("roleCode").toString());
+				userService.deleteUserRole(teacherId,paramMap.get("roleCode").toString());
+				if (roleCodeNow.equals("departManager"))
+				{
+					map.put("optDepartId", paramMap.get("departId"));
+				} else
+				{
+					map.remove("optDepartId");
+				}
+				commonService.addUserRole(map);
+			}
+			/*
+			 * 删除此教师与所有卡之间的关联
+			 */
+			cardService.deleteUserCard(teacherId);
+			List<Card> cardList = new ArrayList<Card>();
+			for (int i = 0; i < cardCode.length; i++)
+			{
+				Card card = new Card();
+				card.setCardCode(cardCode[i]);
+				card.setStatus("1");
+				card.setBattery("1");
+				card.setCreatetime(TimeUtil.getInstance().now());
+				card.setUpdatetime(TimeUtil.getInstance().now());
+				cardList.add(card);
+			}
+			cardService.addCardForUser(teacherId, cardList);
+			
+			if(isExist){
+				//将user1用户的bindPhone设置为空
+				Map<String, Object> paramMap1 = new HashMap<String, Object>();
+				paramMap1.put("wUserId", user.getUserId());
+				paramMap1.put("bindPhone", null);
+				getBaseDao().updateObject("User.modifyBindPhoneByUserId", paramMap1);
+			}
+	    }
+			
+	}
+
+	/**
+	 * 修改教师信息时查看卡号是否存在
+	 * 
+	 * @param map一个为原始卡号
+	 *            一个为修改的卡号
+	 * @return 返回值
+	 */
+	@SuppressWarnings("unchecked")
+	public ResultInfo checkModifyTeacherCardCodeByCardCode(Map<String, Object> paramMap)
+	{
+		Integer reg = 0;
+
+		List<Integer> result = getBaseDao().selectListByObject("Card.checkModifyTeacherCardCodeByCardCode", paramMap);
+
+		if (null != result && result.size() > 0)
+		{
+			reg = 1;
+		} else
+		{
+			reg = 0;
+		}
+
+		ResultInfo resultInfo = new ResultInfo();
+		if (ResultInfo.RESULT_EXISTS.equals(reg))
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_SUCCESS);
+		} else
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_ERROR);
+		}
+		return resultInfo;
+	}
+
+	/**
+	 * 表单校验相关---end
+	 */
+
+	/**
+	 * 根据老师的id查询卡号
+	 * 
+	 * @param teacherId
+	 *            老师的id
+	 * @return 卡号
+	 */
+	public Card selectCardCodeByTeacherId(Integer teacherId)
+	{
+
+		return (Card) getBaseDao().selectObjectByObject("Card.selectCardCodeByTeacherId", teacherId);
+
+	}
+
+	@Override
+	@Transactional(rollbackFor=Exception.class)
+	public void delTeacher(HashMap<String, Object> map)
+	{
+		/*
+		 * 处理逻辑 1.判断用户有几个角色 
+		 * 1.1 一个角色 直接智慧校园转为亦信 
+		 * 1.2两个角色 删除其中为教职工的角色和权限，以及和部门的关系
+		 */
+		Integer userId = (Integer) map.get("userId");
+		Long schoolId = (Long) map.get("schoolId");
+		List<User> schoolIdList = userService.getUserSchoolByUserId(userId);
+		List<UserRole> roleList = commonService.getUserRoleByUserId(userId);
+		if (!CollectionUtils.isEmpty(roleList))
+		{
+			if (roleList.size() == 1)
+			{
+				String roleCode = roleList.get(0).getRoleCode();
+				if(schoolIdList!=null && schoolIdList.size()>1){//该教师存在其他学校
+					// 删除部门关联
+					departmentService.delUserAndDepartLinkByUserId(userId);
+					// 删除教师角色
+					userService.deleteUserRole(userId,roleCode);
+					// 删除教师角色对应的权限
+					userService.deleteUserRolePermission(userId,roleCode);
+					//用户与卡的关系
+					cardService.deleteCardByUserId(userId);
+					//删除和学校的关系
+					userService.delUserAndSchoolLink(userId, schoolId);
+				}else{
+					yinxinAndWisdomExchangeService.wisdomToYinxin(userId, roleCode, schoolId);	
+				}
+			} else
+			{
+				for (UserRole ur : roleList)
+				{
+					String roleCode = ur.getRoleCode();
+					if (!roleCode.equals("parent"))
+					{
+						// 删除部门关联
+						departmentService.delUserAndDepartLinkByUserId(userId);
+						// 删除教师角色
+						userService.deleteUserRole(userId, roleCode);
+						// 删除教师角色对应的权限
+						userService.deleteUserRolePermission(userId, roleCode);
+					}
+				}
+				// 清空教师的工号code值
+				userService.deleteUserCode(userId);
+			}
+		}
+	}
+
+	/**
+	 * 初始化detail的参数
+	 * 
+	 * @param user
+	 * @param userDetail
+	 * @return
+	 */
+	public Map<String, String> putDetailMap(User user, User userDetail)
+	{
+		Map<String, String> detailMap = new HashMap<String, String>();
+		detailMap.put("userId", String.valueOf(user.getUserId()));
+		detailMap.put("teacherNumber", userDetail.getCode());
+		detailMap.put("cardNumber", userDetail.getCardCode());
+		detailMap.put("name", userDetail.getRealName());
+		detailMap.put("phoneNumber", user.getPhone());
+		detailMap.put("userName", user.getPalmUserName());
+		detailMap.put("createTime", TimeUtil.getInstance().now());
+		detailMap.put("updateTime", userDetail.getUpdateTime());
+		detailMap.put("status", "0");
+		return detailMap;
+	}
+	
+}

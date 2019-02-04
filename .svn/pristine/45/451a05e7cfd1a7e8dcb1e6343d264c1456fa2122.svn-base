@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="UserDataChangeRecordsDetail">
+	<typeAlias alias="userDataChangeRecordsDetail" type="com.guotop.palmschool.entity.UserDataChangeRecordsDetail" />
+	<resultMap class="com.guotop.palmschool.entity.UserDataChangeRecordsDetail" id="resultNoSync">
+		<result property="objectId" column="objectId"/>
+		<result property="id" column="id"/>
+		<result property="targetId" column="targetId"/>
+		<result property="operationClass" column="operationClass"/>
+		<result property="propertyName" column="propertyName"/>
+		<result property="propertyValue" column="propertyValue"/>
+		<result property="operationType" column="operationType"/>
+	</resultMap>
+	<insert id="save" parameterClass="userDataChangeRecordsDetail">
+		insert into user_data_change_records_detail(targetId,operationClass,propertyName,propertyValue,operationType)
+		values(#targetId#,#operationClass#,#propertyName#,#propertyValue#,#operationType#);
+	</insert>
+	<delete id="delete" parameterClass="Integer">
+		delete from user_data_change_records_detail where targetId=#id#
+	</delete>
+	<!--查询当前所有未同步的操作日志记录  -->
+	<select id="findNoSyncRecords" resultMap="resultNoSync">
+		SELECT b.*,a.objectId from user_data_change_records a LEFT OUTER JOIN user_data_change_records_detail b on a.id= b.targetId where a.`status`='0'
+	</select>
+</sqlMap>

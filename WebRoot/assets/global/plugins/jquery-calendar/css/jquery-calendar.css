@@ -1,0 +1,177 @@
+.calendar  * {
+    box-sizing: border-box;
+    font-family: Tahoma;
+    font-size: 14px;
+}
+.calendar-sm {
+    cursor: default;
+    width: 800px;
+    height: 370px;
+}
+.calendar {
+    cursor: default;
+}
+
+.calendar-sm .c-pad-top {
+    padding-top: 2%;
+}
+
+.calendar .c-pad-top {
+    
+}
+
+.c-grid {
+    box-shadow: 2px 2px 5px #888888;
+    height: inherit;
+}
+.c-day {
+    width: 10%;
+    margin:0px 2.14%;
+   	padding:7px 0;
+    background-color: #fff;
+    float: left;
+    text-align: center;
+}
+
+.c-day-previous-month {
+   width: 10%;
+    margin:0px 2.14%;
+   	padding:7px 0;
+    background-color: #fff;
+    float: left;
+    text-align: center;
+    color: gray;
+}
+
+.c-day-next-month {
+    width: 10%;
+    margin:0px 2.14%;
+   	padding:7px 0;
+    background-color: #fff;
+    float: left;
+    text-align: center;
+    color: gray;
+}
+
+.c-week-day {
+    width: 10%;
+    margin:0px 2.14%;
+   	padding:7px 0;
+    color: #4e5154;
+    float: left;
+    text-align: center;
+    font-weight: bold;
+}
+
+.c-next {
+    width: 12.5%;
+    height: 12%;
+    padding: 0% 2%;
+    text-align: right;
+    cursor: pointer;
+}
+
+.c-previous {
+    width: 12.5%;
+    height: 12%;
+    padding:0 2%;
+    text-align: left;
+    cursor: pointer;
+}
+
+.c-month {
+    width: 75%;
+    height: 12%;
+    text-align: center;
+}
+
+.c-nav-btn-over {
+    background-color: #0b74ca!important;
+    font-weight: bold;
+}
+
+.c-today {
+    background-color: #e02222;
+    border-radius:10px!important;
+    color:#fff;
+}
+
+.c-event {
+    border-bottom:1px solid #f5a72a;
+    color: #333;
+    font-weight: bold;
+    cursor: pointer;
+    
+}
+
+.c-grid {
+    width: 100%;
+}
+
+.c-event-grid {
+    height: inherit;
+    width: 100%;
+    float: left;
+}
+
+.c-grid-title {
+	font-size:18px;
+    height:30px;
+    line-height:30px;
+    float: left;
+    background-color:#168ff3;
+    color: white;
+}
+
+.c-event-title {
+    width: 100%;
+    height: 12%;
+    text-align: center;
+    font-weight: bold;
+    background-color: rgb(135, 155, 188);
+    color: white;
+}
+
+.c-event-body {
+    background-color: #EFF4F9;
+    height: 88.1%;
+}
+
+.c-event-list {
+    overflow: auto;
+    height: 35px;
+    background-color:#fff;
+}
+.c-event-list .c-event-over{
+	color:#f6b641;
+	background-color:#efefef;
+}
+.c-event-item > .title {
+    font-weight: bold;
+}
+
+.c-event-item > div {
+    text-overflow: ellipsis;
+    width: inherit;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.c-event-item {
+   display:none;
+   height:35px;
+   line-height:35px;
+   background:url("../../../image_m/time_m.jpg") no-repeat;
+   text-indent: 40px;
+   color:#f6b641;
+}
+
+.c-event-over {
+    background-color: #d68b13;
+    font-weight: bold;
+    color: #fff;
+}
+
+.c-event-over > .description {
+    font-weight: normal;
+}

@@ -1,0 +1,378 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]-->
+<!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]-->
+<!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>蓝牙手环</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta content="width=device-width, initial-scale=1" name="viewport" />
+<!--公共css开始-->
+<%@ include file="/public_module/public_css_new.jsp"%>
+<!--公共css结束-->
+<style type="text/css">
+.useing {
+	color: #f92d68
+}
+
+.unusing {
+	color: #666
+}
+
+.returned {
+	color: #ff8212
+}
+
+.state input {
+	margin: 15px;
+}
+</style>
+</head>
+<body
+	class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed"
+	id="body">
+	<input class="themes" type="hidden" value="<%=ThemePath%>">
+	<input type="hidden" value="${schoolId}" id="schoolId">
+	<input type="hidden" value="${sessionScope.user.userId}" id="userId">
+	<!-- 公共顶部开始-->
+	<%@ include file="/public_module/public_header.jsp"%>
+	<!--公共顶部结束-->
+	<div class="clearfix"></div>
+	<!-- 内容页开始 -->
+	<div class="page-container">
+		<!--主菜单开始-->
+		<%@include file="/public_module/public_menu.jsp"%>
+		<!--主菜单结束-->
+		<div class="page-content-wrapper">
+			<div class="page-content m_overflow_hidden m_page_content">
+
+				<!-- 页面内容开始 -->
+				<div class="col-md-12 col-sm-12 m_page_con">
+					<div class="page-bar m_margin_0_0_0_0">
+						<ul class="page-breadcrumb">
+							<li><a href="<%=basePath%>user/enterMain.do">首页</a><i
+								class="fa fa-circle"></i></li>
+							<li><a href="<%=basePath%>asset/toAssetInfoList.do">资产管理</a><i
+								class="fa fa-circle"></i></li>
+							<li><span>蓝牙路由器</span></li>
+						</ul>
+					</div>
+					<h3 class="page-title">蓝牙路由器</h3>
+					<div class="row">
+						<div class="col-md-12 col-sm-12">
+							<div class="portlet box green m_margin_15_auto_0">
+
+								<div class="portlet-title">
+									<div class="caption">
+										<i class="fa fa-list"></i>蓝牙路由器列表
+									</div>
+								</div>
+							</div>
+
+							<div class="portlet light form-fit m_margin_0_0_15_0"
+								style="margin-top: 10px;">
+								<a class="btn btn-default"
+									href="javascript:void(0);" onclick="deleteAll();">删除</a>
+									<a class="btn btn-default" data-toggle="modal" data-target="#update" onclick="addData();">添加</a>
+									<a class="btn btn-default"  onclick="history.go(-1);">返回</a>
+							</div>
+
+							<div class="portlet-body flip-scroll">
+								<table class="table table-hover table-bordered table-condensed"
+									cellpadding="0" cellspacing="0">
+									<thead>
+										<th><input type="checkbox" name="bluebooth_radio" onclick="checkAll(this);" /></th>
+										<th>mac</th>
+										<th>编号</th>
+										<th>状态</th>
+										<th>备注</th>
+										<th>操作</th>
+									</thead>
+									<tbody id="tbody">
+
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<!-- 修改弹窗 start-->
+						<div class="modal fade" id="update" tabindex="-1" role="dialog"
+							aria-labelledby="myModalLabel">
+							<input type="hidden" id="id_" value="">
+							<div class="modal-dialog" role="document">
+								<div class="modal-content">
+									<div class="modal-body">
+										<form action="#" method="post" id="addForm"
+											class="form-horizontal">
+											<div class="form-body">
+												
+												<div class="form-group">
+													<label class="control-label col-md-3 col-lg-3"
+														for="inputSuccess">mac</label> <input id="mac"
+														class="m_input form-control" type="text"
+														style="width: 400px;">
+
+												</div>
+												<div class="form-group">
+													<label class="control-label col-md-3 col-lg-3"
+														for="inputSuccess">编号</label> <input id="code"
+														class="m_input form-control" type="text"
+														style="width: 400px;">
+
+												</div>
+												<div class="form-group">
+													<label class="control-label col-md-3 col-lg-3"
+														for="inputSuccess">备注</label> <input id="remark"
+														class="m_input form-control" type="text"
+														style="width: 400px;">
+
+												</div>
+												<div class="form-group state" id="router">
+													<label class="control-label col-md-3 col-lg-3">状态</label> <input
+														type="radio" name="useState" id="0_" value="0" checked="checked" /><em>正常</em> <input
+														type="radio" name="useState"  value="1" id="1_"  /><em>停用</em> 
+												</div>
+											</div>
+										</form>
+									</div>
+									<div class="modal-footer"
+										style="border-top: none; margin-right: 70px;">
+										<button type="button" class="btn btn-default"
+											data-dismiss="modal" id="quxiao">取消</button>
+										<button type="button"  class="btn btn-success" onclick="save();">保存</button>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!--修改弹窗end  -->
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- 底部开始 -->
+	<%@ include file="/public_module/public_footer.jsp"%>
+	<script src="<%=basePath%>assets/global/plugins/map.js" type="text/javascript" ></script>
+	<!-- 底部结束 -->
+</body>
+<!-- 公共js开始 -->
+<%@ include file="/public_module/public_js.jsp"%>
+<!-- 公共js结束 -->
+<script type="text/javascript">
+    var clazzUserMap=new Map();
+    $(function(){
+    	loadSubMenu("assetManagement");  
+		//选取当前菜单位置
+		setActive("assetManagement","bluetoothList");      	
+    	init();
+    });
+    function checkAll(obj){
+    	if($(obj).is(":checked")){
+    		$("#tbody tr td input[type='checkbox']").each(function(){
+    			if(!$(this).is(":checked")){
+    				$(this).prop("checked", "checked");
+    			}
+    		});
+    	}else{
+    		$("#tbody tr td input[type='checkbox']").each(function(){
+    			if($(this).is(":checked")){
+    				$(this).prop("checked",false);
+    			}
+    		});	
+    	}
+    }
+    //删除选中的
+    function deleteAll(){
+    	var ids=[];
+    	$("#tbody tr td input[type='checkbox']").each(function(){
+			if($(this).is(":checked")){
+				ids.push($(this).attr("idValue"));	
+			}
+		});	
+    	if(ids.length==0){
+    		layer.msg("请选择要删除的数据！",{icon:0,time:2000});
+    		return;
+    	}
+    	var ll=layer.confirm('确定要删除选中的数据？', {
+    		  btn: ['确定','取消'] //按钮
+    		}, function(){
+    			 var indexlayer = layer.msg('正在保存数据,请稍候。。。',{icon: 16,time:0,shade:0.3});
+    			$.ajax({
+    				type: "post",
+    				url: "<%=basePath%>bracelet/deleteRouterByIds.do",
+    				dataType:"json",
+    				data:{
+    					ids:ids.join(",")
+    					},
+    				success: function(data){
+    					layer.close(ll);
+    					layer.close(indexlayer);
+    				 if(data==200){
+    					layer.msg("删除成功",{icon:1,time:1000}); 
+    					init();
+    				 }else{
+    					layer.msg("删除失败",{icon:2,time:1000});  
+    				 }
+    				}
+    			});
+    		}, function(){
+    			layer.close(ll);
+				layer.close(indexlayer);
+    		});
+		  	 
+    }
+    //检查提交的参数
+    function checkSave(mac,code,bbId,userId){
+    	var flag=false;
+    	 $.ajax({
+ 			type: "post",
+ 			url: "<%=basePath%>bracelet/checkSave.do",
+ 			dataType:"json",
+ 			async: false,
+ 			data:{
+ 				mac:mac,
+ 				code:code,
+ 				bbId:bbId,
+ 				studentId:userId
+ 				},
+ 			success: function(data){
+ 				if(data.ResponseCode==1){
+ 					layer.tips(data.ResponseObject,$("#mac"));
+ 				}else if(data.ResponseCode==2){
+ 					layer.tips(data.ResponseObject,$("#code"));
+ 				}else if(data.ResponseCode==3){
+ 					layer.tips(data.ResponseObject,$("#students"));
+ 				}else if(data.ResponseCode==4){
+ 					//layer.alert(data.ResponseObject);
+ 					layer.tips(data.ResponseObject,$("#students"));
+ 				}else if(data.ResponseCode==0){
+ 					flag=true;
+ 				}
+ 			}
+ 		});
+    	return flag;
+    }
+    function save(){
+    	  var mac=$.trim($("#mac").val());
+    	  var code=$.trim($("#code").val());
+    	  var remark=$.trim($("#remark").val());
+    	  var id_=$("#id_").val();
+    	  var useState= $('#router input:radio[name="useState"]:checked').val();
+    	  if(mac == null || mac==''){
+    		  layer.tips("请输入手环的mac地址",$("#mac"));
+    		  return;
+    	  }
+    	  if(code == null || code==''){
+    		  layer.tips("请输入手环的code编号",$("#code"));
+    		  return;
+    	  }
+//     	  if(remark == null || remark==''){
+//     		  layer.tips("请输入手环的mac地址",$("#remark"));
+//     		  return;
+//     	  }
+//     		if(!checkSave(mac,code,id_,stuUserId)){
+//     	    	   return;	
+//     	    } 	
+//     	var indexlayer = layer.msg('正在保存数据,请稍候。。。',{icon: 16,time:0,shade:0.3});
+//     	 $.ajax({
+// 			type: "post",
+<%-- 			url: "<%=basePath%>bracelet/insertBluetoothRouter.do", --%>
+// 			dataType:"json",
+// 			data:{
+// 				mac:mac,
+// 				code:code,
+// 				remark:remark,
+// 				status:useState,
+// 				id:id_
+// 				},
+// 			success: function(data){
+// 				layer.close(indexlayer);
+// 				if(data==200){
+// 					layer.msg("保存成功",{icon:1,time:1000});
+// 					init(1);
+// 					$("#quxiao").click();
+// 				}else if(data==1){
+// 					layer.tips("mac地址已被使用",$("#mac"));
+// 				}else{
+// 					layer.msg("保存失败",{icon:2,time:2000});	
+// 				}
+// 			}
+// 		}); 
+    }
+    function upddate(id){
+      $("#id_").val(id);
+   	$.ajax({
+		type: "post",
+		url: "<%=basePath%>bracelet/getBluetoothRouterById.do",
+		dataType:"json",
+		data:{
+			id :id
+			},
+		success: function(data){
+			$("#id_").val(data.id);	
+	    	$("#mac").val(data.mac);
+	    	$("#code").val(data.code);
+	    	$("#remark").val(data.remark);
+	    	if(data.status==0){
+	    		$("#0_").prop("checked", "checked");
+	    	}else{
+	    		$("#1_").prop("checked", "checked");
+	    	}
+		}
+	});
+    }
+    function addData(){
+    	$("#id_").val("");	
+    	$("#mac").val("");
+    	$("#code").val("");
+    	$("#remark").val("");
+    	$("#0_").prop("checked", "checked");
+    }
+    //初始化数据
+    function init(page){
+    	var indexlayer = layer.msg('正在获取数据,请稍候。。。',{icon: 16,time:0,shade:0.3});
+    	$.ajax({
+    		url:"<%=basePath%>bracelet/getAllRouter.do",
+    		type:"POST",
+    		dataType:"json",
+    		data:{"page":page,pageSize:50},
+    		success:function(data){
+    		     var html='';
+    		     
+    		     if(data!=null && data.length>0){
+    			for(var i=0;i<data.length;i++){
+    				var remark = data[i].remark;
+    			 html+='<tr>';
+    			 html+='<td><input type="checkbox" name="bluebooth_checkbox" idValue="'+data[i].id+'" /></td>';
+    			 html+='<td>'+data[i].mac+'</td>';
+    			 html+='<td>'+data[i].code+'</td>';
+    			 if(data[i].status==0){
+    				 html+='<td>正常</td>';	 
+    			 }else if(data[i].status==1){
+    				 html+='<td>停用</td>';	
+    			 }
+    			 if(remark == undefined){
+    				 remark='';
+    			 }
+    			 html+='<td>'+remark+'</td>';
+    			 html+=' <td>';
+    			 html+='  <a class="btn btn-success btn-sm" data-toggle="modal" data-target="#update" onclick=upddate('+data[i].id+');"">修改</a>';
+    			 html+='</td>';
+    			 html+=' </tr>';
+    		 }	
+    		     }
+    		$("#tbody").html(html);
+    		layer.close(indexlayer);
+    		},
+    		error:function(){
+    		layer.close(indexlayer);	
+    		}
+    	});
+    }
+    </script>
+</html>

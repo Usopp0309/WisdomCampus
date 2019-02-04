@@ -1,0 +1,115 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+	<title>短信套餐订购</title>
+
+	<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+	
+	<meta content="" name="description" />
+
+	<meta content="" name="author" />
+		<link href="<%=basePath%>media/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+
+	<link rel="stylesheet" href="<%=basePath%>media/m_font/demo-files/demo.css">
+    <link rel="stylesheet" href="<%=basePath%>media/m_font/style.css">
+	<link href="<%=basePath%>media/metronic_css_m/app_m.css" rel="stylesheet" type="text/css"/>
+	<link href="<%=basePath%>media/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">
+	<link rel="shortcut icon" href="<%=basePath%>media/image/favicon.ico" />
+
+</head>
+
+
+<body id="body">
+
+	<div class="app_head">
+		<i class="  m_icon-return icon_left" onclick="window.richbook.onFinish();"></i>套餐服务							
+	</div>  
+	<div class="smsorder">
+		<c:forEach items="${messageList}" var="product" varStatus="sta">
+			<form class="form-horizontal" action="<%=basePath %>orderMessage/toOrderMessagePay.do" id="submitForm${sta.index}" method="post">
+				<img src="<%=basePath%>media/image_m/m_Package.png">
+				<p class="title">${product.name}</p>
+				<c:if test="${product.type==0}">
+					<p>有效时间:${product.startTime}—${product.endTime}</p>
+					<p class="Price">￥${product.price}</p>
+				</c:if>
+				<c:if test="${product.type==1}">
+					<p class="Price">￥${product.price}元/条</p>
+					<p>数量：<input type="text" name="count" id="count"></p>
+				</c:if>
+				<p><input id="smsorder_checkbox" type="checkbox" onclick="setAgree(this,${sta.index})">读并同意<a href="<%=basePath%>jsp/app/ordermessage/agreement.jsp" target="_black">《仁齐短信套餐订购须知》</a></p>
+				<input id="smsorder_submit${sta.index}" type="button" onclick="check(${sta.index},${product.type})" value="确认付款" disabled="disabled">
+				
+				<input type="hidden" name="goodsName" value="${product.name}">
+				<input type="hidden" name="id" value="${product.productId}">
+				<input type="hidden" name="goodsPrice" value="${product.price}">
+			</form>
+		</c:forEach>
+	</div>
+</body>
+	<!--公共js开始-->
+	<%@ include file="/public_module/app_public_js.jsp"%>
+	<!--公共js结束--> 
+	
+	<script type="text/javascript">
+	
+		function setAgree(obj,index) 
+		{
+		    if (obj.checked) {
+		    	document.getElementById("smsorder_submit"+index).style.backgroundColor="#168ff3";
+		    	$("#smsorder_submit"+index).removeAttr("disabled");
+		    }
+		    else {
+		    	document.getElementById("smsorder_submit"+index).style.backgroundColor="#ccc";
+		    	$("#smsorder_submit"+index).attr("disabled", "disabled");
+		    }
+		}
+
+		function check(index,type)
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>orderMessage/checkOrderMessageByUserId.do",
+				success: function(data){
+					var data = eval("(" + data + ")");
+					var flag = data.flag;
+					var result = data.result;
+					if(flag)
+					{
+						alert(result);
+					}else
+					{
+						if(type==1)
+						{
+							var count = $("#count").val();
+							if(count=="" || count == 0)
+							{
+								alert("购买数量不能小于1");
+							}
+							else if(count > 10000)
+							{
+								alert("一次性最大只能购买10000条短信");
+							}
+							else
+							{
+								$("#submitForm"+index).submit();
+							}
+						}else
+						{
+							$("#submitForm"+index).submit();
+						}
+					}
+				},
+			});
+		}	
+		
+	</script>
+
+
+</html>

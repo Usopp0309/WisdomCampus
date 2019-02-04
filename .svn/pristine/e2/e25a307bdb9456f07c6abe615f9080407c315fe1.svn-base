@@ -1,0 +1,487 @@
+package com.guotop.palmschool.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.entity.Announcement;
+import com.guotop.palmschool.entity.Department;
+import com.guotop.palmschool.entity.Role;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.service.AnnouncementService;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.service.StudentService;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 公告业务类实现类
+ * 
+ * @author zhou
+ *
+ */
+@Service("announcementService")
+public class AnnouncementServiceImpl extends BaseService implements AnnouncementService
+{
+	@Resource
+	public CommonService commonService;
+	@Resource
+	public StudentService studentService;
+
+	/**
+	 * 根据公告类型和学校ID查找公告列表
+	 * 
+	 * @param type
+	 *            公告类型
+	 * @param schoolId
+	 *            学校ID
+	 * @return 公告列表
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Announcement> selectAnnouncementByTypeAndSchool(Integer type, String schoolId)
+	{
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		paramMap.put("type", type);
+		paramMap.put("schoolId", schoolId);
+		/**
+		 * 最新公告
+		 */
+		if (Cons.ANNOUNCEMENT_NEW.equals(type))
+		{
+			return getBaseDao().selectListByObject("Announcement.selectNewAnnouncementList", paramMap);
+		}
+		/**
+		 * 学校公告/学生公告/系统公告
+		 */
+		else
+		{
+			return getBaseDao().selectListByObject("Announcement.selectAnnouncementByTypeAndSchool", paramMap);
+		}
+	}
+
+	/**
+	 * 添加公告
+	 * 
+	 * @param announcement
+	 *            待添加的公告 update by shengyinjiang 20151210
+	 */
+	public void addAnnouncement(Announcement announcement)
+	{
+		getBaseDao().addObject("Announcement.addAnnouncement", announcement);
+	}
+
+	/**
+	 * 根据不同查询条件查询公告信息 /分页查询(用于app接口)
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @param roleId
+	 *            权限ID
+	 * @return 公告信息/分页
+	 * 
+	 *         update by shengyinjiang 20151210
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Announcement> selectAnnouncementListByRole(Map<String, Object> paramMap, User user)
+	{
+		List<Announcement> list = new ArrayList<Announcement>();
+		List<Role> roleList = user.getRoleList();
+		/*
+		 * 使用permissionCode来甄别
+		 */
+		if (commonService.hasAdminPermission(user))
+		{
+			list = this.getBaseDao().selectListByObject("Announcement.getAnnouncementAsSchool", paramMap);
+		} else
+		{
+
+			List<Department> departmentList = user.getDepartmentList();
+			List<Integer> departmentIdList = new ArrayList<Integer>();
+			if(!CollectionUtils.isEmpty(departmentList)){
+				for (Department department : departmentList)
+				{
+					departmentIdList.add(department.getId());
+				}
+			}
+			paramMap.put("departmentIdList", departmentIdList);
+
+			// 通过userId和permission 获取clazzId
+			String permissionCode = (String) paramMap.get("permissionCode");
+			List<Integer> clazzIdList = commonService.getIdsByUserIdAndPermissionCode(user.getUserId(), permissionCode, 0);
+
+			if(CollectionUtils.isEmpty(clazzIdList)){
+				clazzIdList = new ArrayList<Integer>();
+			}
+			paramMap.put("clazzIdList", clazzIdList);
+
+			/*
+			 * 默认教师看到自己权限对应的公告
+			 */
+			list = this.getBaseDao().selectListByObject("Announcement.getAnnouncementAsClazz", paramMap);
+
+			for (Role role : roleList)
+			{
+				List<Announcement> listByPartentORStudent = new ArrayList<Announcement>();
+				/*
+				 * 家长,能看系统公告,学校公告,自己孩子班级的班级公告
+				 */
+				if ("parent".equals(role.getRoleCode()))
+				{
+					// 通过登录账号， 获取该家长对应的学生
+					List<User> studentList = commonService.getAllChildrenByUserId(user.getUserId());
+					List<Integer> clazzIdList_tmp = new ArrayList<Integer>();
+					for (User user_tmp : studentList)
+					{
+						clazzIdList_tmp.add(user_tmp.getClazzId());
+					}
+					paramMap.put("clazzIdList", clazzIdList_tmp);
+
+					listByPartentORStudent = this.getBaseDao().selectListByObject("Announcement.getAnnouncementAsParent", paramMap);
+
+					list.addAll(listByPartentORStudent);
+				}
+
+				/*
+				 * 学生,能看系统公告,自己学校的学校公告,自己班级的班级公告
+				 */
+				else if ("student".equals(role.getRoleCode()))
+				{
+					// 通过id查找clazzId
+					User student = studentService.getStudentById(user.getUserId());
+					paramMap.put("clazzId", student.getClazzId());
+
+					listByPartentORStudent = this.getBaseDao().selectListByObject("Announcement.getAnnouncementAsStudent", paramMap);
+
+					list.addAll(listByPartentORStudent);
+				}
+
+			}
+
+		}
+
+		return list;
+	}
+
+	/**
+	 * 根据ID获取信息
+	 */
+	@SuppressWarnings("rawtypes")
+	public List selectAnnouncementById(int id)
+	{
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("id", id);
+		return getBaseDao().selectListByObject("Announcement.selectAnnouncementById", paramMap);
+	}
+
+	/**
+	 * 根据不同查询条件查询公告信息 /分页查询
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @param roleId
+	 *            权限ID
+	 * @return 公告信息/分页 update by shengyinjiang 20151130
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages getAnnouncementByRoleCode(int pageSize, int page, Map<String, Object> paramMap, User user)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<Announcement> list = new ArrayList<Announcement>();
+
+		String roleCode = (String) paramMap.get("roleCode");
+
+		/*
+		 * 使用permissionCode来甄别
+		 */
+		if (commonService.hasAdminPermission(user))
+		{
+			allRow = this.getBaseDao().getAllRowCountByCondition("Announcement.getAnnouncementAsSchool", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			list = this.getBaseDao().queryForPageByCondition("Announcement.getAnnouncementAsSchool", paramMap, offset, length);
+		}
+		/*
+		 * 家长,能看系统公告,学校公告,自己孩子班级的班级公告
+		 */
+		else if ("parent".equals(roleCode))
+		{
+			// 通过登录账号， 获取该家长对应的学生
+			List<User> studentList = commonService.getAllChildrenByUserId(user.getUserId());
+			List<Integer> clazzIdList = new ArrayList<Integer>();
+			if(!CollectionUtils.isEmpty(studentList)){
+				for (User user_tmp : studentList)
+				{
+					clazzIdList.add(user_tmp.getClazzId());
+				}
+			}
+			paramMap.put("clazzIdList", clazzIdList);
+
+			allRow = this.getBaseDao().getAllRowCountByCondition("Announcement.getAnnouncementAsParent", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			list = this.getBaseDao().queryForPageByCondition("Announcement.getAnnouncementAsParent", paramMap, offset, length);
+		}
+
+		/*
+		 * 学生,能看系统公告,自己学校的学校公告,自己班级的班级公告
+		 */
+		else if ("student".equals(roleCode))
+		{
+			// 通过id查找clazzId
+			User student = studentService.getStudentById(user.getUserId());
+			paramMap.put("clazzId", student.getClazzId());
+
+			allRow = this.getBaseDao().getAllRowCountByCondition("Announcement.getAnnouncementAsStudent", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			list = this.getBaseDao().queryForPageByCondition("Announcement.getAnnouncementAsStudent", paramMap, offset, length);
+		} else
+		{
+			List<Department> departmentList = user.getDepartmentList();
+			List<Integer> departmentIdList = new ArrayList<Integer>();
+			if (!CollectionUtils.isEmpty(departmentList)){
+				for (Department department : departmentList)
+				{
+					departmentIdList.add(department.getId());
+				}
+			}
+			paramMap.put("departmentIdList", departmentIdList);
+
+			// 通过userId和permission 获取clazzId
+			String permissionCode = (String) paramMap.get("permissionCode");
+			List<Integer> clazzIdList = commonService.getIdsByUserIdAndPermissionCode(user.getUserId(), permissionCode, 0);
+			if(CollectionUtils.isEmpty(clazzIdList)){
+				clazzIdList = new ArrayList<Integer>();
+			}
+			paramMap.put("clazzIdList", clazzIdList);
+
+			allRow = this.getBaseDao().getAllRowCountByCondition("Announcement.getAnnouncementAsClazz", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			list = this.getBaseDao().queryForPageByCondition("Announcement.getAnnouncementAsClazz", paramMap, offset, length);
+		}
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	/**
+	 * 根据不同查询条件查询公告信息 /分页查询【福建专用】
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @param roleId
+	 *            权限ID
+	 * @return 公告信息/分页 update by shengyinjiang 20151130
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages getAnnouncementByRoleCodeFj(int pageSize, int page, Map<String, Object> paramMap, User user){
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<Announcement> list = new ArrayList<Announcement>();
+
+		String roleCode = (String) paramMap.get("roleCode");
+
+		/*
+		 * 使用permissionCode来甄别
+		 */
+		if (commonService.hasAdminPermission(user))
+		{
+			allRow = this.getBaseDao().getAllRowCountByCondition("Announcement.getAnnouncementAsSchoolFj", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			list = this.getBaseDao().queryForPageByCondition("Announcement.getAnnouncementAsSchoolFj", paramMap, offset, length);
+		}
+		/*
+		 * 家长,能看系统公告,学校公告,自己孩子班级的班级公告
+		 */
+		else if ("parent".equals(roleCode))
+		{
+			// 通过登录账号， 获取该家长对应的学生
+			List<User> studentList = commonService.getAllChildrenByUserIdFj(user.getUserId());
+			List<Integer> clazzIdList = new ArrayList<Integer>();
+			if(!CollectionUtils.isEmpty(studentList)){
+				for (User user_tmp : studentList)
+				{
+					clazzIdList.add(user_tmp.getClazzId());
+				}
+			}
+			paramMap.put("clazzIdList", clazzIdList);
+
+			allRow = this.getBaseDao().getAllRowCountByCondition("Announcement.getAnnouncementAsParentFj", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			list = this.getBaseDao().queryForPageByCondition("Announcement.getAnnouncementAsParentFj", paramMap, offset, length);
+		}
+
+		/*
+		 * 学生,能看系统公告,自己学校的学校公告,自己班级的班级公告
+		 */
+		else if ("student".equals(roleCode))
+		{
+			// 通过id查找clazzId
+			User student = studentService.getStudentById(user.getUserId());
+			paramMap.put("clazzId", student.getClazzId());
+
+			allRow = this.getBaseDao().getAllRowCountByCondition("Announcement.getAnnouncementAsStudentFj", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			list = this.getBaseDao().queryForPageByCondition("Announcement.getAnnouncementAsStudentFj", paramMap, offset, length);
+		} else
+		{
+			List<Department> departmentList = user.getDepartmentList();
+			List<Integer> departmentIdList = new ArrayList<Integer>();
+			if (!CollectionUtils.isEmpty(departmentList)){
+				for (Department department : departmentList)
+				{
+					departmentIdList.add(department.getId());
+				}
+			}
+			paramMap.put("departmentIdList", departmentIdList);
+
+			// 通过userId和permission 获取clazzId
+			List<Integer> clazzIdList = getBaseDao().selectListByObject("UserPermission.getOptClazzsByUserIdAndPermissionCodeFj", paramMap);
+			if(CollectionUtils.isEmpty(clazzIdList)){
+				clazzIdList = new ArrayList<Integer>();
+			}
+			paramMap.put("clazzIdList", clazzIdList);
+
+			allRow = this.getBaseDao().getAllRowCountByCondition("Announcement.getAnnouncementAsClazzFj", paramMap);
+			totalPage = Pages.countTotalPage(pageSize, allRow);
+
+			final int offset = Pages.countOffset(pageSize, page);
+			final int length = pageSize;
+			currentPage = Pages.countCurrentPage(page);
+			list = this.getBaseDao().queryForPageByCondition("Announcement.getAnnouncementAsClazzFj", paramMap, offset, length);
+		}
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+	public Announcement getSchoolAnnouncement()
+	{
+		return (Announcement)getBaseDao().selectObjectByObject("Announcement.getAnnouncementForMain", null);
+	}
+    /**
+     *  RichCloud最新系统公告  
+      @author chenyong
+      @date 2016年8月8日 下午3:26:35
+     * @param length
+     * @return
+     */
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Announcement> getNewAnnouncement(Map<String, Integer> param1)
+	{
+		return getBaseDao().selectListByObject("Announcement.getNewAnnouncement", param1);
+	}
+    /**
+     * 分页获得公告
+      @author chenyong
+      @date 2016年8月8日 下午3:47:53
+     * @param pageSize
+     * @param page
+     * @param paramMap
+     * @return
+     */
+	@SuppressWarnings("unchecked")
+	@Override
+	public Pages getPageAnnouncement(int pageSize, int page, Map<String, Integer> paramMap)
+	{
+		List<Announcement> list = new ArrayList<Announcement>();
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		
+		allRow = (int) this.getBaseDao().selectObjectByObject("Announcement.getPageAnnouncementCount", paramMap);
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		currentPage = Pages.countCurrentPage(page);
+		paramMap.put("startIndex", offset);
+		paramMap.put("length", length);
+		list = this.getBaseDao().selectListByObject("Announcement.getPageAnnouncement", paramMap);
+			
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	@Override
+	public Announcement getById(Integer key)
+	{
+		return (Announcement) this.getBaseDao().selectObject("Announcement.getById", key);
+	}
+  
+}

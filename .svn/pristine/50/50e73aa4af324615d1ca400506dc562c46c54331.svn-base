@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="war">
+	<property environment="env"></property>
+	
+	<!-- 常量 -->
+	<property name="buildRootDir" location="${env.WORKSPACE}"/>
+	<property name="buildPojoDir" location="${buildRootDir}/pojo/src"></property>
+	<property name="buildSrcDir" location="${buildRootDir}/src"></property>
+	<property name="buildWebRootDir" location="${buildRootDir}/WebRoot"></property>
+	<property name="buildWebLibDir" location="${buildWebRootDir}/WEB-INF/lib"></property>
+	<property name="buildClassDir" location="${buildWebRootDir}/WEB-INF/classes"></property>
+	
+	<path id="classpath">
+		<fileset dir="${buildWebLibDir}">
+			<include name="**/*.jar"/>
+		</fileset>
+		<fileset dir="${env.ANT_HOME}/buildLibs/tomcat7">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+	
+	<!-- 初始化 -->
+	<target name="init">
+		<delete includeemptydirs="true">
+			<!-- 删除旧的构建包 -->
+			<fileset dir="${buildRootDir}/target/" includes="**/*,**/*.xml,**/*.properties,**/*.war"></fileset>
+			<fileset dir="${buildClassDir}" includes="**/*,**/*.xml,**/*.properties, **/*.xml"></fileset>
+		</delete>
+	</target>
+	
+	<!-- 编译 -->
+	<target name="build" depends="init">
+		<javac srcdir="${buildPojoDir}" includeantruntime="true"
+			destdir="${buildClassDir}" source="1.7" target="1.7" debug="false" optimize="true" classpathref="classpath">
+		</javac>
+		<javac srcdir="${buildSrcDir}" includeantruntime="true"
+			destdir="${buildClassDir}" source="1.7" target="1.7" debug="false" optimize="true" classpathref="classpath">
+		</javac>
+		<copy todir="${buildClassDir}" preservelastmodified="true">
+			<fileset dir="${buildSrcDir}" includes="**/*.xml, **/*.properties"></fileset>
+		</copy>
+	</target>
+	
+	<!-- 打包 -->
+	<target name="war" depends="build">
+		<war destfile="${buildRootDir}/target/${env.deployName}-${env.BUILD_ID}.war" 
+			basedir="${buildWebRootDir}" webxml="${buildWebRootDir}/WEB-INF/web.xml">
+		</war>
+	</target>
+</project>

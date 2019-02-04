@@ -1,0 +1,69 @@
+#深圳壹通道sms
+postUrl=http://121.40.78.35:8080/yxthttp/sms/sendUTF8
+action=send
+userid_mobile=10302
+account_mobile=shrjyd
+userid_Uni_telecom=10303
+account_Uni_telecom=shrjld
+password=12345
+
+#限制学校,短信字数(扩展以英文逗号隔开,例如3509020027,3201140009)
+smsSchoolId=3509020027,3201140009
+#每条短信字数限制(扩展类似上面)
+smsWordLimit=320,200
+
+#限制学校,在线补卡金额(扩展以英文逗号隔开,例如3509020027,3201140009)
+cardApplySchoolId=3509020027,3201140009
+#每个学校单张卡补卡金额(扩展类似上面)
+cardApplyBalance=35,35
+
+#offSchoolBusSwingCardBeginTime
+offSchoolBusSwingCardBeginTime = 07:00:00
+#offSchoolBusSwingCardEndTime
+offSchoolBusSwingCardEndTime = 09:00:00
+#onSchoolBusSwingCardBeginTime
+onSchoolBusSwingCardBeginTime = 16:00:00
+#onSchoolBusSwingCardEndTime
+onSchoolBusSwingCardEndTime = 18:00:00
+
+dormitoryNotLeaveBeginTime = 06:00:00
+dormitoryNotLeaveEndTime = 09:00:00
+dormitoryNotEnterBeginTime = 16:00:00
+dormitoryNotEnterEndTime = 22:00:00
+#importPath
+#teacher
+teacherImportPath=11
+
+#yuntx
+ACCOUNT_SID=8a48b55152825d7b01528654c6100873
+AUTH_TOKEN=6ee917863c87437ba65edb2ee7c31206
+APP_ID=8a48b55152825d7b0152866366e008a9
+APP_TOKEN=24f2b5102bf32495d1e693ad2c9ea489
+
+#0:ip 1:deviceCode
+ipSwitch =1
+#sync user2huxin
+#richBookIp=121.199.27.191
+#richBookPort=7080
+richBookPort=8088
+richBookIp=127.0.0.1
+
+#ftp
+ftpUserName=FtpAdmin
+ftpPassWord=richX20160218
+ftpHost=121.199.27.191
+
+#RICHX school ftp
+testFtpUserName=FtpAdmin
+testFtpPassword=richX20160218
+testHost=121.199.27.191
+testFtpUrl=310
+testFtpEncode=gb2312
+
+#学校申请上传的福建，附件最后一个\不能省
+savaPath=D:\\Guolang\\wisdomcampus\\authentication\\
+filePath=authentication
+
+#aliyun 福建资源云创建的公共学校ID
+fjzyycommonschoolid=3502030025
+#fjzyycommonschoolid=3501020043

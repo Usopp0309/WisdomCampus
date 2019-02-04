@@ -1,0 +1,243 @@
+package com.guotop.palmschool.service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.guotop.palmschool.entity.Agency;
+import com.guotop.palmschool.entity.News;
+import com.guotop.palmschool.entity.School;
+import com.guotop.palmschool.entity.SchoolInfo;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.entity.UserBoundSchool;
+import com.guotop.palmschool.scheduler.entity.SchoolCountInfo;
+import com.guotop.palmschool.util.Pages;
+
+
+/**
+ * 学校管理业务类接口
+ * @author zhou
+ *
+ */
+public interface SchoolService 
+{
+	/**
+	 * 查找学校列表
+	 */
+	public List<School> selectAllSchool();
+	
+	/**
+	 * 添加学校
+	 * @param school 待添加的学校
+	 */
+	public void addSchool(School school);
+	
+	/**
+	 * 根据不同查询条件查询学校信息 /分页查询
+	 * @param roleId 权限ID
+	 * @return 学校信息/分页
+	 */
+	public Pages getSchoolByRole(int pageSize, int page, Map<String, Object> paramMap ,
+			User user);
+	/**
+	 * 根据id获取学校信息
+	 * @param id
+	 * @return
+	 */
+	public School selectSchoolById(Long id);
+	/**
+	 * 添加学校统计信息
+	 * @param schoolCountInfo
+	 * 20151207
+	 */
+	public void addSchoolCountInfo(SchoolCountInfo schoolCountInfo);
+	/**
+	 * 获取所有学校信息，用于管理员登陆后页面
+	 * @param map
+	 * @return
+	 */
+	public Pages getAllSchoolInfo(int pageSize, int page, HashMap<String,Object> paramMap);
+	
+
+	/**
+	 * 根据id获取学校统计信息
+	 * @param id
+	 * @return
+	 * 
+	 * syj 20151208
+	 */
+	public SchoolInfo getSchoolCountInfoById(Long schoolId);
+	
+	/**
+	 * 根据id获取更新学校统计信息
+	 * @param schoolId
+	 * @return
+	 */
+	public void updateSchoolCountInfo(HashMap<String, Object> paramMap);
+	/**
+	 * 根据学校编码获取学校信息
+	 * @param schoolId
+	 * @return
+	 */
+	public School getSchoolInfoBySchoolId(long schoolId);
+	/**
+	 * 修改学校信息
+	 * @param school
+	 */
+	public void updataSchoolDetail(School school);
+	/**
+	 * 获取所有未绑定代理商的学校列表
+	 * @return
+	 */
+	public Pages getAllSchoolWithoutAuthentication(int page,int pageSize,HashMap<String, Object> map);
+	/**
+	 * 获取所有绑定代理商的学校列表
+	 * @return
+	 */
+	public Pages getAllSchoolWithAuthentication(int page,int pageSize,HashMap<String, Object> map);
+	
+	/**
+	 * 获取所有未绑定技术支持的学校列表
+	 * @return
+	 * 
+	 * add by syj 20151215
+	 */
+	public List<Agency> getAllSchoolWithoutTechnicalSupport(HashMap<String, Object> map);
+	/**
+	 * 获取所有未绑定技术支持的学校列表总数
+	 * @return
+	 */
+	public Integer getAllSchoolWithoutTechnicalSupportCount(HashMap<String, Object> map);
+	/**
+	 * 获取所有绑定技术支持的学校列表
+	 * @return
+	 * 
+	 * add by syj 20151215
+	 */
+	public List<Agency> getAllSchoolWithTechnicalSupport(HashMap<String, Object> map);
+	/**
+	 * 获取所有绑定技术支持的学校列表
+	 * @return
+	 */
+	public Integer getAllSchoolWithTechnicalSupportCount(HashMap<String, Object> map);
+	
+	/**
+	 * 根据学校ID判断代理商授权是否存在
+	 * @param schoolId
+	 * @param agencyId
+	 * @return
+	 */
+	public boolean isExistBySchoolId(long schoolId);
+	
+	/**
+	 * 根据学校ID判断学校是否存在技术支持人员
+	 * @param schoolId
+	 * @param supportId
+	 * @return true:存在  false：不存在
+	 */
+	public boolean isExistSupportBySchoolId(HashMap<String, Object> map);
+	
+	/**
+	 * 添加学校代理商关系
+	 * @param schoolId
+	 * @param agencyId
+	 */
+	public void addSchoolAndAgencyLink(Long schoolId, Integer agencyId);
+	
+	/**
+	 * 添加学校和技术支持的关系
+	 * @param schoolId
+	 * @param supportId
+	 */
+	public void addSchoolAndSupport(Long schoolId, Integer new_supportUserId);
+	
+	/**
+	 * 修改学校代理商关系
+	 * @param schoolId
+	 * @param agencyId
+	 */
+	public void modifySchoolAndAgencyLink(Long schoolId, Integer agencyId);
+	
+	/**
+	 * 修改学校技术支持关系
+	 * @param schoolId
+	 * @param supportId
+	 */
+	public void modifySchoolAndSupport(Long schoolId, Integer new_supportUserId,Integer orig_supportUserId);
+	/**
+	 * 根据用户ID获取归属学校列表
+	 * @param userId
+	 * @return
+	 */
+	public List<School> getSchoolListByUserId(Integer userId);
+	/**
+	 * 根据用户ID获取归属学校列表 For 福建
+	 * @param userId
+	 * @return
+	 */
+	public List<School> getSchoolsByUserIdForFJ(Integer userId);
+	/**
+	 * 根据代理商用户ID获取代理商代理的学校列表
+	 * @param userId
+	 * @return
+	 */
+	public Pages getSchoolListByAgencyUserId4Manage(int pageSize, int page, HashMap<String, Object> map);
+	/**
+	 * 根据代理商用户ID获取代理商代理的学校列表
+	 * @param userId
+	 * @return
+	 */
+	public List<SchoolInfo> getSchoolListByAgencyUserId(HashMap<String, Object> map);
+	/**
+	 * 根据技术支持ID获取学校列表
+	 */
+	public Pages getSchoolListBySupportUserId4Manage(int pageSize, int page, HashMap<String, Object> map);
+	/**
+	 * 获得所有学校
+	 * @author chenyong
+	 * @Time 2017年3月13日 下午1:00:02
+	 */
+	public Pages getAllSchool(int pageSize, int page, HashMap<String, Object> map);
+	/**
+	 * 根据技术支持ID获取学校列表
+	 */
+	public List<SchoolInfo> getSchoolListBySupportUserId(HashMap<String, Object> map);
+	/**
+	 * 获取新闻列表
+	 * @return
+	 */
+	public List<News> getNewsList();
+	
+	/**
+	 * 查询用户和学校的关系 或者类型是否已经存在
+	 * @param userBoundSchool
+	 * @return
+	 */
+	public String getUserBoundSchool(UserBoundSchool userBoundSchool);
+	
+	/**
+	 * 添加用户和学校 入学年份的关系
+	 * @param userBoundSchool
+	 */
+	public	void addUserBoundSchool(UserBoundSchool userBoundSchool);
+	
+	/**
+	 * 删除用户和学校 入学年份的关系
+	 * @param userBoundSchool
+	 */
+	public void deleteUserSchoolByHuxin(UserBoundSchool userBoundSchool);
+	
+	/**
+	 * 获取用户和学校入学年份的关系
+	 * @param paramMap
+	 * @return
+	 */
+	public List<UserBoundSchool> getUserSchoolByApiKey(Integer userId);
+	
+	/**
+	 * 根据学校id查询学校详情超管首页展示时使用
+	 * @param schoolId
+	 * @return
+	 */
+	public SchoolInfo getSchoolDetailBySchoolId(String schoolId);
+}

@@ -1,0 +1,1110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Inout">
+	<typeAlias alias="inout" type="com.guotop.palmschool.entity.Inout"/>
+	<typeAlias alias="inoutMeeting" type="com.guotop.palmschool.check.entity.InoutMeeting"/>
+	<typeAlias alias="inoutDormitory" type="com.guotop.palmschool.dormitory.entity.InoutDormitory"/>
+	<typeAlias alias="onSchoolbus" type="com.guotop.palmschool.schoolbus.entity.OnSchoolBus"/>
+
+	<resultMap class="com.guotop.palmschool.entity.Inout" id="result-inout">
+		<result property="id" column="id" />
+		<result property="code" column="code" />
+		<result property="status" column="status" />
+		<result property="position" column="position" />
+		<result property="userId" column="userid" />
+		<result property="userName" column="name" />
+		<result property="createTime" column="createtime" />
+		<result property="sync" column="sync" />
+		<result property="positionName" column="positionName" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.Inout" id="result-inout-tmp">
+		<result property="id" column="id" />
+		<result property="code" column="code" />
+		<result property="status" column="status" />
+		<result property="position" column="position" />
+		<result property="userId" column="userid" />
+		<result property="userName" column="name" />
+		<result property="createTime" column="createtime" />
+		<result property="sync" column="sync" />
+		<result property="positionName" column="positionName" />
+		<result property="itemName" column="itemName" />
+		<result property="imgPath" column="imgPath" />
+	</resultMap>	
+	<resultMap class="com.guotop.palmschool.entity.Inout" id="result-in">
+		<result property="id" column="id" />
+		<result property="code" column="code" />
+		<result property="status" column="status" />
+		<result property="position" column="position" />
+		<result property="userId" column="userid" />
+		<result property="createTime" column="createtime" />
+		<result property="sync" column="sync" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.Inout" id="result_inoutmain">
+	    <result property="id" column="id" />
+		<result property="code" column="code" />
+		<result property="status" column="status" />
+		<result property="position" column="position" />
+		<result property="userId" column="userid" />
+		<result property="createTime" column="createtime" />
+		<result property="sync" column="sync" />
+	</resultMap>
+	
+	<!-- 通过userid查询刷卡记录 并取最后一条-->
+	<select id="selectInoutByUserId" parameterClass="HashMap" resultMap="result-in" >
+ 		SELECT * FROM palm_inout WHERE userid = #userId# AND status = #status#  ORDER BY createtime DESC LIMIT 0,1		
+	</select>
+	
+	<!-- 通过userid查询刷卡记录 并取最后一条-->
+	<select id="selectInoutByUser" parameterClass="Integer" resultMap="result-in" >
+ 		SELECT * FROM palm_inout WHERE userid = #userId# ORDER BY createtime DESC LIMIT 0,1		
+	</select>
+
+	<!-- 查询所有的进出记录 -->
+	<select id="selectInoutCount" parameterClass="String" resultMap="result_inoutmain">
+		SELECT * FROM palm_inout
+		limit 1
+	</select>
+	
+	<!-- 添加校门出入记录 -->
+	<insert id="addInout" parameterClass="inout">
+		insert into palm_inout
+		(
+			code, 
+			status, 
+			position,
+			userId,
+			createTime,
+			sync,
+			imgPath
+		)
+		values
+		(
+			#code#,
+			#status#, 
+			#position#,
+			#userId#,
+			#createTime#,
+			1,			
+			#imgPath#
+		)
+	</insert>
+	
+	<!-- 添加校门出入记录 错误记录 没有通过卡号找到对应的用户-->
+	<insert id="addInoutError" parameterClass="inout">
+		insert into palm_inout_error
+		(
+			code, 
+			status, 
+			position,
+			userId,
+			createTime,
+			sync
+		)
+		values
+		(
+			#code#,
+			#status#, 
+			#position#,
+			#userId#,
+			#createTime#,
+			1
+		)
+	</insert>
+	
+	<!-- 添加会议出入记录 -->
+	<insert id="addInoutMeeting" parameterClass="inoutMeeting">
+		insert into palm_meeting_inout
+		(
+			code, 
+			status, 
+			position,
+			userId,
+			createTime,
+			meetingId
+		)
+		values
+		(
+			#code#,
+			#status#, 
+			#position#,
+			#userId#,
+			#createTime#,
+			#meetingId#
+		)
+	</insert>
+	
+	<!-- 添加宿舍出入记录 20151211 -->
+	<insert id="addInoutDormitory" parameterClass="inoutDormitory">
+		insert into palm_dormitory_inout
+		(
+			code, 
+			status, 
+			position,
+			userId,
+			createTime
+		)
+		values
+		(
+			#code#,
+			#status#, 
+			#position#,
+			#userId#,
+			#createTime#
+		)
+	</insert>
+	
+	<!-- 添加校车刷卡记录  20151211 -->
+	<insert id="addOnSchoolBus" parameterClass="onSchoolBus">
+		insert into palm_schoolbus_inout
+		(
+			code, 
+			status, 
+			position,
+			userId,
+			createTime,
+			driverName
+		)
+		values
+		(
+			#code#,
+			#status#, 
+			#position#,
+			#userId#,
+			#createTime#,
+			#driverName#
+		)
+	</insert>
+	
+	<!--根据用户ID查找所有进出记录-->
+	<select id="selectInoutListByUserId" parameterClass="Integer" resultMap="result-inout">
+		select io.*, u.name, p.name as positionName  
+			from palm_inout io, palm_user u, palm_position p
+			where u.id = io.userid 
+				and p.id = io.position
+				and u.id = #userId#
+	</select>
+	
+	
+	<!-- 查找所有人员进出记录(校长，管理员) 20151201-->
+	<select id="getInoutListAsHeadMaster" parameterClass="HashMap" resultMap="result-inout-tmp">
+		<isNotEmpty property="type">
+		   <!-- 教师 -->
+		  <isEqual property="type" compareValue="1">
+			  SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime, 
+			  u.realName as name, device.name AS positionName, d.departmentName AS itemName, io.imgPath 
+                 FROM palm_inout io, platform.user_detail u, palm_device device,palm_user_department ud, palm_department d
+                   WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId = ud.userId 
+			         AND ud.departmentId = d.id 
+					<isNotEmpty prepend="and" property="queryContent">
+						(u.realName LIKE CONCAT('%',#queryContent#,'%') or d.departmentName LIKE CONCAT('%',#queryContent#,'%'))
+				    </isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						<isEqual property="inoutType" compareValue="0">
+							io.status in (0,1,2)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="1">
+							(io.status = #inoutType# OR io.status = 0)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="2">
+							io.status = #inoutType#
+						</isEqual>
+				    </isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime <![CDATA[ >= ]]> #startTime# 
+				    </isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						io.createtime <![CDATA[ <= ]]> #endTime# 
+				    </isNotEmpty>
+				    ORDER BY io.id DESC
+				    <isNotEmpty property="startIndex">
+						LIMIT #startIndex#, #length#
+					</isNotEmpty>
+		  </isEqual>
+		 <!-- 学生 -->
+		  <isEqual property="type" compareValue="2">
+			 SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime,
+			  u.realName AS NAME, device.name AS positionName, c.clazzName AS itemName, io.imgPath 
+                FROM palm_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc,palm_clazz c,palm_grade g
+			       WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId = sc.userId 
+			         AND sc.clazzId = c.id
+			         AND g.id = c.gradeId
+			         AND g.state = '0'
+					<isNotEmpty prepend="and" property="queryContent">
+					   (u.realName LIKE CONCAT('%',#queryContent#,'%') or c.clazzName LIKE CONCAT('%',#queryContent#,'%'))
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						<isEqual property="inoutType" compareValue="0">
+							io.status in (0,1,2)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="1">
+							(io.status = #inoutType# OR io.status = 0)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="2">
+							io.status = #inoutType#
+						</isEqual>
+				    </isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime <![CDATA[ >= ]]> #startTime# 
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						io.createtime <![CDATA[ <= ]]> #endTime# 
+			    	</isNotEmpty>
+			    	ORDER BY io.id DESC
+			    	<isNotEmpty property="startIndex">
+						LIMIT #startIndex#, #length#
+					</isNotEmpty>
+	      </isEqual>
+	      <!-- 家长 -->
+		  <isEqual property="type" compareValue="3">
+			 SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime, 
+			 u.realName as name, device.name AS positionName, '' AS itemName, io.imgPath 
+                 FROM palm_inout io, platform.user_detail u, palm_device device, palm_user_role ur
+			       WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND ur.userId = io.userId 
+			         AND ur.roleCode = 'parent'
+					<isNotEmpty prepend="and" property="queryContent">
+					   u.realName LIKE CONCAT('%',#queryContent#,'%')
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						<isEqual property="inoutType" compareValue="0">
+							io.status in (0,1,2)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="1">
+							(io.status = #inoutType# OR io.status = 0)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="2">
+							io.status = #inoutType#
+						</isEqual>
+				    </isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime <![CDATA[ >= ]]> #startTime# 
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						io.createtime <![CDATA[ <= ]]> #endTime#
+			    	</isNotEmpty>
+			    	ORDER BY io.id DESC
+			    	<isNotEmpty property="startIndex">
+						LIMIT #startIndex#, #length#
+					</isNotEmpty>
+	      </isEqual>
+	  </isNotEmpty>	
+	  <isEmpty property="type">
+					select temp.* from (SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime,
+			         u.realName AS NAME, device.name AS positionName, c.clazzName AS itemName, io.imgPath 
+                     FROM palm_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc,palm_clazz c,palm_grade g, palm_user_role ur
+			         WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId = sc.userId 
+			         AND sc.clazzId = c.id
+			         AND g.id = c.gradeId
+			         AND g.state = '0'
+			         AND ur.userId = io.userId
+			          UNION 
+			         SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime, 
+			         u.realName as name, device.name AS positionName, d.departmentName AS itemName, io.imgPath 
+                     FROM palm_inout io, platform.user_detail u, palm_device device,palm_user_department ud, palm_department d
+                     WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId = ud.userId 
+			         AND ud.departmentId = d.id 
+			          UNION
+			         SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime, 
+			         u.realName as name, device.name AS positionName, '' AS itemName, io.imgPath 
+                     FROM palm_inout io, platform.user_detail u, palm_device device, palm_user_role ur
+			         WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND ur.userId = io.userId 
+			         AND ur.roleCode = 'parent') temp
+			         where 1=1
+			         <isNotEmpty prepend="and" property="queryContent">
+					   temp.name LIKE CONCAT('%',#queryContent#,'%')
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						<isEqual property="inoutType" compareValue="0">
+							temp.status in (0,1,2)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="1">
+							(temp.status = #inoutType# OR temp.status = 0)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="2">
+							temp.status = #inoutType#
+						</isEqual>
+				    </isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						temp.createtime <![CDATA[ >= ]]> #startTime# 
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						temp.createtime <![CDATA[ <= ]]> #endTime# 
+			    	</isNotEmpty>
+			    	  ORDER BY temp.id DESC
+			    	<isNotEmpty property="startIndex">
+						LIMIT #startIndex#, #length#
+					</isNotEmpty>
+		</isEmpty>
+	</select>
+	
+	<!-- 查找所有人员进出记录总数(校长，管理员) 20151201-->
+	<select id="getInoutCountAsHeadMaster" parameterClass="java.util.HashMap" resultClass="Integer">
+		<isNotEmpty property="type">
+		   <!-- 教师 -->
+		  <isEqual property="type" compareValue="1">
+			 SELECT COUNT(*) FROM ( 
+			  SELECT io.id
+                 FROM palm_inout io, platform.user_detail u, palm_device device,palm_user_department ud, palm_department d
+                   WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId = ud.userId 
+			         AND ud.departmentId = d.id 
+					<isNotEmpty prepend="and" property="queryContent">
+						(u.realName LIKE CONCAT('%',#queryContent#,'%') or d.departmentName LIKE CONCAT('%',#queryContent#,'%'))
+				    </isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						<isEqual property="inoutType" compareValue="0">
+							io.status in (0,1,2)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="1">
+							(io.status = #inoutType# OR io.status = 0)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="2">
+							io.status = #inoutType#
+						</isEqual>
+				    </isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime <![CDATA[ >= ]]> #startTime# 
+				    </isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						io.createtime <![CDATA[ <= ]]> #endTime#
+				    </isNotEmpty>
+				    )tt
+		  </isEqual>
+		 <!-- 学生 -->
+		  <isEqual property="type" compareValue="2">
+			SELECT COUNT(*) FROM (
+			 SELECT io.id
+                FROM palm_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc, palm_clazz c,palm_grade g
+			       WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId = sc.userId 
+			         AND sc.clazzId = c.id 
+			         AND g.id = c.gradeId
+			         AND g.state = '0'
+					<isNotEmpty prepend="and" property="queryContent">
+					   (u.realName LIKE CONCAT('%',#queryContent#,'%') or c.clazzName LIKE CONCAT('%',#queryContent#,'%'))
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						<isEqual property="inoutType" compareValue="0">
+							io.status in (0,1,2)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="1">
+							(io.status = #inoutType# OR io.status = 0)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="2">
+							io.status = #inoutType#
+						</isEqual>
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime <![CDATA[ >= ]]> #startTime# 
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						io.createtime <![CDATA[ <= ]]> #endTime# 
+			    	</isNotEmpty>
+			    	)tt
+	      </isEqual>
+	      <!-- 家长 -->
+		  <isEqual property="type" compareValue="3">
+			SELECT COUNT(*) FROM (
+			 SELECT io.id
+                 FROM palm_inout io, platform.user_detail u, palm_device device, palm_user_role ur
+			       WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND ur.userId = io.userId 
+			         AND ur.roleCode = 'parent'
+					<isNotEmpty prepend="and" property="queryContent">
+					   u.realName LIKE CONCAT('%',#queryContent#,'%')
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						<isEqual property="inoutType" compareValue="0">
+							io.status in (0,1,2)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="1">
+							(io.status = #inoutType# OR io.status = 0)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="2">
+							io.status = #inoutType#
+						</isEqual>
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime <![CDATA[ >= ]]> #startTime# 
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						io.createtime <![CDATA[ <= ]]> #endTime#  
+			    	</isNotEmpty>
+			    	)tt
+	      </isEqual>
+	  </isNotEmpty>	
+	  <isEmpty property="type">
+					select count(*) from (io.id,io.status,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime,u.realName AS NAME
+                     FROM palm_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc,palm_clazz c,palm_grade g
+			         WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId = sc.userId 
+			         AND sc.clazzId = c.id
+			         AND g.id = c.gradeId
+			         AND g.state = '0'
+			          UNION 
+			         SELECT io.id,io.status,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime,u.realName AS NAME
+                     FROM palm_inout io, platform.user_detail u, palm_device device,palm_user_department ud, palm_department d
+                     WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId = ud.userId 
+			         AND ud.departmentId = d.id 
+			          UNION
+			         SELECT io.id,io.status,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime,u.realName AS NAME
+                     FROM palm_inout io, platform.user_detail u, palm_device device, palm_user_role ur
+			         WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND ur.userId = io.userId 
+			         AND ur.roleCode = 'parent') temp
+			         where 1=1
+			         <isNotEmpty prepend="and" property="queryContent">
+					   temp.name LIKE CONCAT('%',#queryContent#,'%')
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						<isEqual property="inoutType" compareValue="0">
+							temp.status in (0,1,2)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="1">
+							(temp.status = #inoutType# OR temp.status = 0)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="2">
+							temp.status = #inoutType#
+						</isEqual>
+				    </isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						temp.createtime <![CDATA[ >= ]]> #startTime# 
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						temp.createtime <![CDATA[ <= ]]> #endTime#  
+			    	</isNotEmpty>
+		</isEmpty>
+	</select>
+	
+	<!-- 查找所有进出记录(权限：家长) 查看(自己)/(孩子)的进出记录   20151202 -->
+	<select id="getInoutListAsParent" parameterClass="HashMap" resultMap="result-inout-tmp">
+		<isNotEmpty property="type">
+		 <!-- 学生 -->
+		  <isEqual property="type" compareValue="2">
+			SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime, 
+			u.realName as name, device.name AS positionName, c.clazzName AS itemName, io.imgPath 
+                FROM palm_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc, palm_clazz c,palm_grade g
+			       WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId = sc.userId 
+			         AND sc.clazzId = c.id 
+			         AND g.id = c.gradeId 
+			         AND g.state = '0'
+			         AND io.userId in (SELECT sp.userId FROM platform.student_parent sp  WHERE sp.parent_userId = #userId#)
+			        <isNotEmpty prepend="and" property="queryContent">
+					   (u.realName LIKE CONCAT('%',#queryContent#,'%') or c.clazzName LIKE CONCAT('%',#queryContent#,'%'))
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						<isEqual property="inoutType" compareValue="0">
+							io.status in (0,1,2)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="1">
+							(io.status = #inoutType# OR io.status = 0)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="2">
+							io.status = #inoutType#
+						</isEqual>
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime <![CDATA[ >= ]]> #startTime# 
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						io.createtime <![CDATA[ <= ]]> #endTime# 
+			    	</isNotEmpty>
+			    		ORDER BY io.id DESC
+			    	<isNotEmpty property="startIndex">
+						LIMIT #startIndex#, #length#
+					</isNotEmpty>	
+		  </isEqual>
+		  <!-- 家长 -->
+		  <isEqual property="type" compareValue="3">
+			SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime,
+			 u.realName AS NAME, device.name AS positionName, '' AS itemName, io.imgPath 
+                 FROM palm_inout io, platform.user_detail u, palm_device device, palm_user_role ur,platform.student_parent p
+			       WHERE io.userId =p.parent_userId 
+				 	 AND p.parent_userId = u.userId
+			         AND device.id = io.position
+			         AND ur.userId = p.parent_userId
+			         AND ur.roleCode = 'parent'
+			         AND p.parent_userId= #userId#
+			        <isNotEmpty prepend="and" property="queryContent">
+					   u.realName LIKE CONCAT('%',#queryContent#,'%')
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						<isEqual property="inoutType" compareValue="0">
+							io.status in (0,1,2)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="1">
+							(io.status = #inoutType# OR io.status = 0)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="2">
+							io.status = #inoutType#
+						</isEqual>
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime <![CDATA[ >= ]]> #startTime# 
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						io.createtime <![CDATA[ <= ]]> #endTime# 
+			    	</isNotEmpty>
+			    		ORDER BY io.id DESC
+			    	<isNotEmpty property="startIndex">
+						LIMIT #startIndex#, #length#
+					</isNotEmpty>	
+		  </isEqual>				
+	    </isNotEmpty>	
+				
+	</select>
+	
+	<!-- 查找所有进出记录(权限：家长) 查看(自己)/(孩子)的进出记录的总数  20151202-->
+	<select id="getInoutCountAsParent" parameterClass="java.util.HashMap" resultClass="Integer">
+		<isNotEmpty property="type">
+		<!-- 学生 -->
+		  <isEqual property="type" compareValue="2">
+		     SELECT COUNT(*) FROM(
+				  SELECT io.id
+	                FROM palm_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc, palm_clazz c,palm_grade g
+				       WHERE io.userId = u.userId
+				         AND device.id = io.position
+				         AND io.userId = sc.userId 
+				         AND sc.clazzId = c.id 
+				         AND g.id = c.gradeId 
+			             AND g.state = '0'
+				         AND io.userId in (SELECT sp.userId FROM platform.student_parent sp  WHERE sp.parent_userId = #userId#)
+				        <isNotEmpty prepend="and" property="queryContent">
+						   (u.realName LIKE CONCAT('%',#queryContent#,'%') or c.clazzName LIKE CONCAT('%',#queryContent#,'%'))
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="inoutType">
+							<isEqual property="inoutType" compareValue="0">
+								io.status in (0,1,2)
+							</isEqual>
+							<isEqual property="inoutType" compareValue="1">
+								(io.status = #inoutType# OR io.status = 0)
+							</isEqual>
+							<isEqual property="inoutType" compareValue="2">
+								io.status = #inoutType#
+							</isEqual>
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="startTime">
+							io.createtime <![CDATA[ >= ]]> #startTime# 
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="endTime">
+							io.createtime <![CDATA[ <= ]]> #endTime# 
+				    	</isNotEmpty>
+				)AS TT	
+		  </isEqual>
+		  <!-- 家长 -->
+		  <isEqual property="type" compareValue="3">
+			 SELECT COUNT(*) FROM(
+				SELECT io.id
+	                 FROM palm_inout io, platform.user_detail u, palm_device device, palm_user_role ur,platform.student_parent p
+				       WHERE io.userId =p.parent_userId 
+				 	 AND p.parent_userId = u.userId
+			         AND device.id = io.position
+			         AND ur.userId = p.parent_userId
+			         AND ur.roleCode = 'parent'
+			         and p.parent_userId= #userId#
+				        <isNotEmpty prepend="and" property="queryContent">
+						   u.realName LIKE CONCAT('%',#queryContent#,'%')
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="inoutType">
+							<isEqual property="inoutType" compareValue="0">
+								io.status in (0,1,2)
+							</isEqual>
+							<isEqual property="inoutType" compareValue="1">
+								(io.status = #inoutType# OR io.status = 0)
+							</isEqual>
+							<isEqual property="inoutType" compareValue="2">
+								io.status = #inoutType#
+							</isEqual>
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="startTime">
+							io.createtime <![CDATA[ >= ]]> #startTime# 
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="endTime">
+							io.createtime <![CDATA[ <= ]]> #endTime# 
+				    	</isNotEmpty>
+			  ) AS TT	
+		  </isEqual>	
+		</isNotEmpty>	
+	</select>
+	
+	
+	<!-- 查找所有进出记录(权限：学生) 查看(自己)/(家长)的进出记录   20151202 -->
+	<select id="getInoutListAsStudent" parameterClass="HashMap" resultMap="result-inout-tmp">
+		<isNotEmpty property="type">
+		  <!-- 学生 -->
+		  <isEqual property="type" compareValue="2">
+			SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime, 
+			u.realName as name, device.name AS positionName, c.clazzName AS itemName, io.imgPath 
+	              FROM palm_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc, palm_clazz c,palm_grade g
+				     WHERE io.userId = u.userId
+				       AND device.id = io.position
+				       AND io.userId = sc.userId 
+				       AND sc.clazzId = c.id
+				       AND g.id = c.gradeId 
+			           AND g.state = '0' 
+				        AND io.userId = #userId#
+				       <isNotEmpty prepend="and" property="queryContent">
+						   (u.realName LIKE CONCAT('%',#queryContent#,'%') or c.clazzName LIKE CONCAT('%',#queryContent#,'%'))
+				       </isNotEmpty>
+					   <isNotEmpty prepend="and" property="inoutType">
+					   		<isEqual property="inoutType" compareValue="0">
+								io.status in (0,1,2)
+							</isEqual>
+							<isEqual property="inoutType" compareValue="1">
+								(io.status = #inoutType# OR io.status = 0)
+							</isEqual>
+							<isEqual property="inoutType" compareValue="2">
+								io.status = #inoutType#
+							</isEqual>
+				       </isNotEmpty>
+					   <isNotEmpty prepend="and" property="startTime"> 
+							io.createtime <![CDATA[ >= ]]> #startTime# 
+				       </isNotEmpty>
+					   <isNotEmpty prepend="and" property="endTime">
+					   		io.createtime <![CDATA[ <= ]]> #endTime# 
+				      </isNotEmpty>
+				      	ORDER BY io.id DESC
+			    	<isNotEmpty property="startIndex">
+						LIMIT #startIndex#, #length#
+					</isNotEmpty>	  
+		  </isEqual>
+		  <!-- 家长 --> 
+		  <isEqual property="type" compareValue="3">
+			SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime, 
+			u.realName AS NAME, device.name AS positionName, '' AS itemName, io.imgPath 
+                 FROM palm_inout io, platform.user_detail u, palm_device device
+			       WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId in (SELECT sp.parent_userId FROM platform.student_parent sp  WHERE sp.userId = #userId#)
+			        <isNotEmpty prepend="and" property="queryContent">
+					   u.realName LIKE CONCAT('%',#queryContent#,'%')
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						<isEqual property="inoutType" compareValue="0">
+							io.status in (0,1,2)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="1">
+							(io.status = #inoutType# OR io.status = 0)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="2">
+							io.status = #inoutType#
+						</isEqual>
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime <![CDATA[ >= ]]> #startTime# 
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						io.createtime <![CDATA[ <= ]]> #endTime# 
+			    	</isNotEmpty>
+			    		ORDER BY io.id DESC
+			    	<isNotEmpty property="startIndex">
+						LIMIT #startIndex#, #length#
+					</isNotEmpty>	
+		  </isEqual>
+	    </isNotEmpty>	
+	</select>
+	
+	<!-- 查找所有进出记录(权限：学生) 查看(自己)/(家长)的进出记录总数 20151202 -->
+	<select id="getInoutCountAsStudent" parameterClass="java.util.HashMap" resultClass="Integer">
+		<isNotEmpty property="type">
+		  <!-- 学生 -->
+		  <isEqual property="type" compareValue="2">
+		     SELECT COUNT(*) FROM(
+				  SELECT io.id
+	                FROM palm_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc, palm_clazz c,palm_grade g
+				       WHERE io.userId = u.userId
+				         AND device.id = io.position
+				         AND io.userId = sc.userId 
+				         AND sc.clazzId = c.id 
+				         AND ur.userId = io.userId
+				         AND g.id = c.gradeId 
+			             AND g.state = '0' 
+				         AND io.userId = #userId#
+				        <isNotEmpty prepend="and" property="queryContent">
+						   (u.realName LIKE CONCAT('%',#queryContent#,'%') or c.clazzName LIKE CONCAT('%',#queryContent#,'%'))
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="inoutType">
+							<isEqual property="inoutType" compareValue="0">
+								io.status in (0,1,2)
+							</isEqual>
+							<isEqual property="inoutType" compareValue="1">
+								(io.status = #inoutType# OR io.status = 0)
+							</isEqual>
+							<isEqual property="inoutType" compareValue="2">
+								io.status = #inoutType#
+							</isEqual>
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="startTime">
+							io.createtime <![CDATA[ >= ]]> #startTime# 
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="endTime">
+							io.createtime <![CDATA[ <= ]]> #endTime# 
+				    	</isNotEmpty>
+				)AS TT	
+		  </isEqual>
+		  <!-- 家长 -->
+		 <isEqual property="type" compareValue="3">
+	      SELECT COUNT(*) FROM(
+				SELECT io.id
+                 FROM palm_inout io, platform.user_detail u, palm_device device
+			       WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId in (SELECT sp.parent_userId FROM platform.student_parent sp  WHERE sp.userId = #userId#)
+			        <isNotEmpty prepend="and" property="queryContent">
+					   u.realName LIKE CONCAT('%',#queryContent#,'%')
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						<isEqual property="inoutType" compareValue="0">
+							io.status in (0,1,2)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="1">
+							(io.status = #inoutType# OR io.status = 0)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="2">
+							io.status = #inoutType#
+						</isEqual>
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime <![CDATA[ >= ]]> #startTime# 
+			    	</isNotEmpty> 
+					<isNotEmpty prepend="and" property="endTime">
+						io.createtime <![CDATA[ <= ]]> #endTime# 
+			    	</isNotEmpty>
+			 )AS TT		
+		  </isEqual>
+		</isNotEmpty>	
+	</select>	
+	
+	<!-- 查找所有进出记录(教职工：自己或其管理的班级/部门) 的进出记录   20151201 -->
+	<select id="getInoutListAsTeachingStaff" parameterClass="HashMap" resultMap="result-inout-tmp">
+		<isNotEmpty property="type">
+		<!-- 教师 -->
+		  <isEqual property="type" compareValue="1">
+		       SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime, 
+		       u.realName as name, device.name AS positionName, d.departmentName AS itemName, io.imgPath 
+	                 FROM palm_inout io, platform.user_detail u, palm_device device,palm_user_department ud, palm_department d
+	                   WHERE io.userId = u.userId
+				         AND device.id = io.position
+				         AND io.userId = ud.userId 
+				         AND ud.departmentId = d.id 
+				         AND (io.userId = #userId#
+			            <isNotEmpty prepend="or" property="departmentIdList">
+						    ud.departmentId IN 
+				            <iterate open="(" close=")" conjunction="," property="departmentIdList" > 
+				                #departmentIdList[]# 
+				            </iterate> 
+					     </isNotEmpty>
+					     
+					     <isEmpty prepend="or" property="departmentIdList">
+						      ud.departmentId is null
+					     </isEmpty>
+					     )
+					<isNotEmpty prepend="and" property="queryContent">
+						(u.realName LIKE CONCAT('%',#queryContent#,'%') or d.departmentName LIKE CONCAT('%',#queryContent#,'%'))
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						<isEqual property="inoutType" compareValue="0">
+							io.status in (0,1,2)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="1">
+							(io.status = #inoutType# OR io.status = 0)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="2">
+							io.status = #inoutType#
+						</isEqual>
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime <![CDATA[ >= ]]> #startTime# 
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						io.createtime <![CDATA[ <= ]]> #endTime# 
+			    	</isNotEmpty>
+			    	ORDER BY io.id DESC
+			    	<isNotEmpty property="startIndex">
+					LIMIT #startIndex#, #length#
+					</isNotEmpty>
+		  </isEqual>
+		 <!-- 学生 -->
+		  <isEqual property="type" compareValue="2">
+			SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime, 
+			u.realName AS NAME, device.name AS positionName, c.clazzName AS itemName, io.imgPath 
+                FROM palm_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc, palm_clazz c,palm_grade g
+			       WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND io.userId = sc.userId 
+			         AND sc.clazzId = c.id 
+			         AND g.id = c.gradeId 
+			         AND g.state = '0'
+			         <isNotEmpty prepend="and" property="clazzIdList">
+						sc.clazzId IN 
+				       <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+				           #clazzIdList[]# 
+				       </iterate> 
+				     </isNotEmpty>
+					     
+					 <isEmpty prepend="and" property="clazzIdList">
+						sc.clazzId is null
+					 </isEmpty>
+					 
+			        <isNotEmpty prepend="and" property="queryContent">
+					   (u.realName LIKE CONCAT('%',#queryContent#,'%') or c.clazzName LIKE CONCAT('%',#queryContent#,'%'))
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						<isEqual property="inoutType" compareValue="0">
+							io.status in (0,1,2)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="1">
+							(io.status = #inoutType# OR io.status = 0)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="2">
+							io.status = #inoutType#
+						</isEqual>
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime <![CDATA[ <= ]]> #startTime# 
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						io.createtime <![CDATA[ <= ]]> #endTime# 
+			    	</isNotEmpty>
+			    		ORDER BY io.id DESC
+			    	<isNotEmpty property="startIndex">
+						LIMIT #startIndex#, #length#
+					</isNotEmpty>	
+		  </isEqual>
+		  <!-- 家长 -->
+		  <isEqual property="type" compareValue="3">
+			SELECT io.id,io.code,io.status,io.position,io.userId,io.sync,DATE_FORMAT(io.createTime,"%Y-%m-%d %T") createTime, 
+			u.realName AS NAME, device.name AS positionName, '' AS itemName, io.imgPath 
+                 FROM palm_inout io, platform.user_detail u, palm_device device, palm_user_role ur
+			       WHERE io.userId = u.userId
+			         AND device.id = io.position
+			         AND ur.userId = io.userId 
+			         AND ur.roleCode = 'parent'
+			         AND io.userId IN
+			            (SELECT DISTINCT sp.parent_userId FROM platform.student_parent sp 
+                               WHERE sp.userId IN 
+                                  (SELECT sc.userId FROM palm_student_clazz sc
+                                      WHERE 1 = 1
+                                        <isNotEmpty prepend="and" property="clazzIdList">
+										    sc.clazzId IN 
+											<iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+											    #clazzIdList[]# 
+											</iterate> 
+										</isNotEmpty>
+									    <isEmpty prepend="and" property="clazzIdList">
+											   sc.clazzId is null
+										</isEmpty>
+									)
+                            )
+			        <isNotEmpty prepend="and" property="queryContent">
+					   u.realName LIKE CONCAT('%',#queryContent#,'%')
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						<isEqual property="inoutType" compareValue="0">
+							io.status in (0,1,2)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="1">
+							(io.status = #inoutType# OR io.status = 0)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="2">
+							io.status = #inoutType#
+						</isEqual>
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime <![CDATA[ >= ]]> #startTime# 
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						io.createtime <![CDATA[ <= ]]> #endTime# 
+			    	</isNotEmpty>
+			    		ORDER BY io.id DESC
+			    	<isNotEmpty property="startIndex">
+						LIMIT #startIndex#, #length#
+					</isNotEmpty>	
+		  </isEqual>				
+	    </isNotEmpty>	
+				
+	</select>
+	
+	<!-- 查找所有进出记录(教职工：自己或其管理的班级/部门)的进出记录的总数  20151201-->
+	<select id="getInoutCountAsTeachingStaff" parameterClass="java.util.HashMap" resultClass="Integer">
+		<isNotEmpty property="type">
+		<!-- 教师 -->
+		<isEqual property="type" compareValue="1">
+	      SELECT COUNT(*) FROM(
+				 SELECT io.id
+	                 FROM palm_inout io, platform.user_detail u, palm_device device,palm_user_department ud, palm_department d
+	                   WHERE io.userId = u.userId
+				         AND device.id = io.position
+				         AND io.userId = ud.userId 
+				         AND ud.departmentId = d.id 
+				         AND (io.userId = #userId#
+			            <isNotEmpty prepend="or" property="departmentIdList">
+						    ud.departmentId IN 
+				            <iterate open="(" close=")" conjunction="," property="departmentIdList" > 
+				                #departmentIdList[]# 
+				            </iterate> 
+					     </isNotEmpty>
+					     
+					     <isEmpty prepend="or" property="departmentIdList">
+						      ud.departmentId is null
+					     </isEmpty>
+					     )
+					<isNotEmpty prepend="and" property="queryContent">
+						(u.realName LIKE CONCAT('%',#queryContent#,'%') or d.departmentName LIKE CONCAT('%',#queryContent#,'%'))
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="inoutType">
+						<isEqual property="inoutType" compareValue="0">
+							io.status in (0,1,2)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="1">
+							(io.status = #inoutType# OR io.status = 0)
+						</isEqual>
+						<isEqual property="inoutType" compareValue="2">
+							io.status = #inoutType#
+						</isEqual>
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="startTime">
+						io.createtime <![CDATA[ >= ]]> #startTime# 
+			    	</isNotEmpty>
+					<isNotEmpty prepend="and" property="endTime">
+						io.createtime <![CDATA[ <= ]]> #endTime# 
+			    	</isNotEmpty>
+			 )AS TT		
+		  </isEqual>
+		<!-- 学生 -->
+		  <isEqual property="type" compareValue="2">
+		     SELECT COUNT(*) FROM(
+				  SELECT io.id
+	                FROM palm_inout io, platform.user_detail u, palm_device device,palm_student_clazz sc,palm_clazz c,palm_grade g
+				       WHERE io.userId = u.userId
+				         AND device.id = io.position
+				         AND io.userId = sc.userId 
+				         AND sc.clazzId = c.id 
+				         AND g.id = c.gradeId 
+			             AND g.state = '0'
+				         <isNotEmpty prepend="and" property="clazzIdList">
+						   sc.clazzId IN 
+				           <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+				                #clazzIdList[]# 
+				           </iterate> 
+					     </isNotEmpty>
+						     
+						 <isEmpty prepend="and" property="clazzIdList">
+							     sc.clazzId is null
+						 </isEmpty>
+				        <isNotEmpty prepend="and" property="queryContent">
+						   (u.realName LIKE CONCAT('%',#queryContent#,'%') or c.clazzName LIKE CONCAT('%',#queryContent#,'%'))
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="inoutType">
+							<isEqual property="inoutType" compareValue="0">
+								io.status in (0,1,2)
+							</isEqual>
+							<isEqual property="inoutType" compareValue="1">
+								(io.status = #inoutType# OR io.status = 0)
+							</isEqual>
+							<isEqual property="inoutType" compareValue="2">
+								io.status = #inoutType#
+							</isEqual>
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="startTime">
+							io.createtime <![CDATA[ >= ]]> #startTime# 
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="endTime">
+							io.createtime <![CDATA[ <= ]]> #endTime# 
+				    	</isNotEmpty>
+				)AS TT	
+		  </isEqual>
+		  <!-- 家长 -->
+		  <isEqual property="type" compareValue="3">
+			 SELECT COUNT(*) FROM(
+				SELECT io.id
+	                 FROM palm_inout io, platform.user_detail u, palm_device device, palm_user_role ur
+				       WHERE io.userId = u.userId
+				         AND device.id = io.position
+				         AND ur.userId = io.userId 
+				         AND ur.roleCode = 'parent'
+				         AND io.userId IN
+				         (SELECT DISTINCT sp.parent_userId FROM platform.student_parent sp 
+	                              WHERE sp.userId IN 
+	                                  (SELECT sc.userId FROM palm_student_clazz sc
+	                                        WHERE 1=1 
+	                                        <isNotEmpty prepend="and" property="clazzIdList">
+											      sc.clazzId IN 
+											      <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+											           #clazzIdList[]# 
+											      </iterate> 
+												  </isNotEmpty>
+													     
+											      <isEmpty prepend="and" property="clazzIdList">
+													  sc.clazzId is null
+											      </isEmpty>
+                                         )
+	                      )
+				        <isNotEmpty prepend="and" property="queryContent">
+						   u.realName LIKE CONCAT('%',#queryContent#,'%')
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="inoutType">
+							<isEqual property="inoutType" compareValue="0">
+								io.status in (0,1,2)
+							</isEqual>
+							<isEqual property="inoutType" compareValue="1">
+								(io.status = #inoutType# OR io.status = 0)
+							</isEqual>
+							<isEqual property="inoutType" compareValue="2">
+								io.status = #inoutType#
+							</isEqual>
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="startTime">
+							io.createtime <![CDATA[ >= ]]> #startTime# 
+				    	</isNotEmpty>
+						<isNotEmpty prepend="and" property="endTime">
+							io.createtime <![CDATA[ <= ]]> #endTime# 
+				    	</isNotEmpty>
+			  ) AS TT	
+		  </isEqual>	
+		</isNotEmpty>	
+	</select>
+	
+	<!-- 参数集 -->  
+    <parameterMap id="StudentParameterMap" class="map">  
+        <parameter property="in_clazzId" jdbcType="INTEGER" javaType="java.lang.Integer" mode="IN"/> 
+        <parameter property="in_currentTime" jdbcType="DATETIME" javaType="java.lang.String" mode="IN"/> 
+    </parameterMap>  
+  	<!-- 调用学生考勤统计存储过程 -->
+    <procedure id="call_abnomalByclazzIdPro" parameterMap="StudentParameterMap">  
+        {call abnomalByclazzIdPro(?,?)}   
+    </procedure> 
+    
+    <!-- 参数集 -->  
+    <parameterMap id="TeacherParameterMap" class="map">  
+        <parameter property="in_userId" jdbcType="INTEGER" javaType="java.lang.Integer" mode="IN"/> 
+        <parameter property="in_currentTime" jdbcType="DATETIME" javaType="java.lang.String" mode="IN"/>  
+    </parameterMap>  
+  	<!-- 调用教师考勤统计存储过程 -->
+    <procedure id="call_abnormalByUserIdPro" parameterMap="TeacherParameterMap">  
+        {call abnormalByUserIdPro(?,?)}   
+    </procedure> 
+</sqlMap>

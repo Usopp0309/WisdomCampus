@@ -1,0 +1,388 @@
+package com.guotop.palmschool.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.common.entity.ResultInfo;
+import com.guotop.palmschool.entity.Card;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.entity.UserCard;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.service.CardService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+
+@Service("cardService")
+public class CardServiceImpl extends BaseService implements CardService
+{
+
+	/**
+	 * 电子卡增加
+	 **/
+	public void addCard(Card card)
+	{
+		getBaseDao().addObject("Card.addCard", card);
+	}
+
+	/**
+	 * 根据电子卡号查找电子卡id
+	 * 
+	 * @param code
+	 *            电子卡号
+	 * @return 电子卡id
+	 */
+	@SuppressWarnings("unchecked")
+	public Integer selectCardIdByCardCode(String code)
+	{
+		List<Integer> result = getBaseDao().selectListByObject("Card.selectCardIdByCardCode", code);
+		if (null != result && result.size() > 0)
+		{
+			return result.get(0);
+		}
+		return null;
+	}
+
+	/**
+	 * 电子卡用户关联增加
+	 * 
+	 * @param paramMap
+	 *            参数map
+	 */
+	public void addUserCard(Map<String, Object> paramMap)
+	{
+		getBaseDao().addObject("Card.addUserCard", paramMap);
+	}
+
+	/**
+	 * 电子卡修改
+	 **/
+	public void modifyCard(Map<String, Object> paramMap)
+	{
+		getBaseDao().updateObject("Card.modifyCard", paramMap);
+	}
+
+	/**
+	 * 查找所有电子卡信息
+	 * 
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Card> selectAllCard()
+	{
+		return getBaseDao().selectListBySql("Card.selectCardList");
+	}
+
+	/**
+	 * 根据ID查找到电子卡bean
+	 * 
+	 * @param cardId
+	 *            电子卡ID
+	 * @return 查找到的电子卡bean
+	 */
+	public Card selectCardById(Integer cardId)
+	{
+		return (Card) getBaseDao().selectObjectByObject("Card.selectCardById", cardId);
+	}
+
+	@SuppressWarnings("unchecked")
+	public Pages getCardList(int pageSize, int page, User user, HashMap<String, Object> paramMap)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<Card> list = new ArrayList<Card>();
+
+		allRow = (Integer) this.getBaseDao().selectObjectByObject("Card.getCardListCount", paramMap);
+
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		currentPage = Pages.countCurrentPage(page);
+
+		// 解决ibatis框架的分页问题
+		// 起始数据坐标
+		paramMap.put("startIndex", offset);
+		// 单页数据量
+		paramMap.put("length", length);
+
+		list = this.getBaseDao().selectListByObject("Card.getCardList", paramMap);
+
+		
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	/**
+	 * 根据ID修改电子卡号
+	 **/
+	public void modifyCardById(Map<String, Object> paramMap)
+	{
+		getBaseDao().updateObject("Card.modifyCardById", paramMap);
+	}
+
+	/**
+	 * 用户新增修改时调用(教师、学生)---begin
+	 */
+	/**
+	 * 给用户添加卡号
+	 * 
+	 * @param userId
+	 *            用户ID
+	 * @param cardList
+	 *            卡号列表
+	 */
+	public void addCardForUser(Integer userId, List<Card> cardList)
+	{
+		for (Card card : cardList)
+		{
+			/**
+			 * 如果卡存在则查找该卡号是否有持有者，如果有持有者则此单卡插入失败，continue;
+			 * 如果没有持有者则将此cardId插入palm_user_card中
+			 */
+			if (checkCardExists(card.getCardCode()))
+			{
+				if (checkCardIsUsed(card.getCardCode()))
+				{
+					continue;
+				} else
+				{
+					Integer cardId = selectCardIdByCardCode(card.getCardCode());
+					if (null != cardId)
+					{
+						addUserCard(userId, cardId);
+					}
+				}
+			}
+			/**
+			 * 如果卡不存在则在palm_card表中插入数据，获得cardId后插入palm_user_card中
+			 */
+			else
+			{
+				if(!StringUtil.isEmpty(card.getCardCode()))
+				{
+					addCard(card);
+					addUserCard(userId, card.getId());
+				}
+			}
+		}
+	}
+
+	/**
+	 * 用户新增修改时调用(教师、学生)---end
+	 */
+	/**
+	 * 表单校验相关---begin
+	 */
+	/**
+	 * 添加电子卡时查看卡号是否存在
+	 * 
+	 * @param code
+	 *            卡号
+	 * @return 返回值
+	 */
+	public ResultInfo checkCardCode(String code)
+	{
+		Integer result = (Integer) getBaseDao().selectObjectByObject("Card.checkCardCode", code);
+		ResultInfo resultInfo = new ResultInfo();
+		if (ResultInfo.RESULT_EXISTS.equals(result))
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_SUCCESS);
+		} else
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_ERROR);
+		}
+		return resultInfo;
+	}
+
+	/**
+	 * 表单校验相关---end
+	 */
+
+
+	/**
+	 * 检查电子卡表中是否存在卡号为cardCode的电子卡
+	 * 
+	 * @param cardCode
+	 *            电子卡号
+	 * @return true : 存在 false : 不存在
+	 */
+	@SuppressWarnings("unchecked")
+	public boolean checkCardExists(String cardCode)
+	{
+		List<Integer> result = getBaseDao().selectListByObject("Card.checkCardExists", cardCode);
+
+		if (null != result && result.size() > 0)
+		{
+			return true;
+		} else
+		{
+			return false;
+		}
+	}
+
+	/**
+	 * 检查卡号为cardCode的电子卡是否存在拥有着
+	 * 
+	 * @param cardCode
+	 *            卡号
+	 * @return true : 存在 false : 不存在
+	 */
+	@SuppressWarnings("unchecked")
+	public boolean checkCardIsUsed(String cardCode)
+	{
+		List<Integer> result = getBaseDao().selectListByObject("Card.checkCardIsUsed", cardCode);
+
+		if (null != result && result.size() > 0)
+		{
+			return true;
+		} else
+		{
+			return false;
+		}
+	}
+
+	/**
+	 * 往palm_user_card表中新增数据
+	 * 
+	 * @param userId
+	 *            用户ID
+	 * @param cardId
+	 *            卡号
+	 */
+	public void addUserCard(Integer userId, Integer cardId)
+	{
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("userId", userId);
+		paramMap.put("cardId", cardId);
+
+		getBaseDao().addObject("Card.addUserCard", paramMap);
+	}
+
+	/**
+	 * 服务器校验相关---end
+	 */
+
+	
+	/**
+	 * 根据用户ID查找电子卡列表
+	 * 
+	 * @param userId
+	 * @param List
+	 *            <Card> 电子卡列表
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Card> getCardListByUserId(Integer userId)
+	{
+		return getBaseDao().selectListByObject("Card.getCardListByUserId", userId);
+
+	}
+	/**
+	 * 根据用户ID查找电子卡列表【福建专用】
+	 * 
+	 * @param userId
+	 * @param List
+	 *            <Card> 电子卡列表
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Card> getCardListByUserIdFj(Integer userId){
+		
+		return getBaseDao().selectListByObject("Card.getCardListByUserIdFj", userId);
+	}
+
+	
+	/**
+	 * 根据用户ID查找电子卡对应的ID
+	 * 20151126
+	 */
+	@SuppressWarnings("unchecked")
+	public List<UserCard> getCardIdByUserId(Integer userId)
+	{
+		return getBaseDao().selectListByObject("Card.getCardIdByUserId", userId);
+
+	}
+	
+	/**
+	 * 根据用户ID删除用户与电子卡之间的关联
+	 * 20151126
+	 * @param userId 用户Id
+	 */
+	public void deleteUserCard(Integer userId)
+	{
+		getBaseDao().deleteObject("Card.deleteUserCard", userId);
+	}
+	
+	/**
+	 * 根据userID删除电子卡和关系
+	 */
+	public void deleteCardByUserId(Integer cardId)
+	{
+		getBaseDao().deleteObject("Card.deleteUserCardByUserId", (int)cardId);		
+	}
+	
+	/**
+	 * 根据CardID删除电子卡和关系
+	 * 20151126
+	 */
+	public void deleteCardByCardId(Integer cardId)
+	{
+		getBaseDao().deleteObject("Card.deleteUserCardByCardId", (int)cardId);		
+	}
+
+	@Override
+	public String getStudentIdByCardId(String cardId) {
+		return (String) getBaseDao().selectObjectByObject("Card.getStudentIdByCardId", cardId);
+	}
+	
+	
+	@Override
+	public Card getCardByCardCode(String cardCode){
+		Card card = (Card) getBaseDao().selectObjectByObject("Card.getCardByCardCode", cardCode);
+		return card;
+	}
+	
+	@Override
+	public boolean checkCardCodeIsExist(String cardCode)
+	{
+		Map<String,Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("cardCode", cardCode);
+		Integer result = (Integer) getBaseDao().selectObjectByObject("Card.checkCardCodeIsExist", paramMap);
+		boolean flag = false;
+		if (result > 0)
+		{
+			flag = true;
+		}
+		return flag;
+	}
+
+	@Override
+	public boolean checkCardCodeIsExistInModifyCardCode(String origCardCode, String cardCode)
+	{
+		Map<String,Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("origCardCode", origCardCode);
+		paramMap.put("cardCode", cardCode);
+		Integer result = (Integer) getBaseDao().selectObjectByObject("Card.checkCardCodeIsExistInModifyCardCode", paramMap);
+		boolean flag = false;
+		if (result > 0)
+		{
+			flag = true;
+		}
+		return flag;
+	}
+}

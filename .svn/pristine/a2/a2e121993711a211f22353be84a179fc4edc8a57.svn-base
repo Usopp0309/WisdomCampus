@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="SmsMT">
+	<typeAlias alias="smsMt" type="com.guotop.palmschool.common.entity.SmsMT" />
+	
+
+	<!--发送短信 -->
+	<insert id="addSmsMt" parameterClass="smsMt">
+		insert into sms_rich.sms_mt
+		(
+			SMSID,
+			DESTADDR,
+			MESSAGE,
+			ORGID,
+			SEND_USERID,
+			<isNotEmpty property="channel">
+				<isNotNull>
+					CHANNEL,
+				</isNotNull>	
+			</isNotEmpty>
+			CREATE_TIME,
+			PRESEND_TIME
+		)
+		values
+		(
+			#smsId#,
+			#destAddr#,
+			#message#,
+			#orgId#,
+			#sendUserId#,
+			<isNotEmpty property="channel">
+				<isNotNull>
+					#channel#,
+				</isNotNull>	
+			</isNotEmpty>
+			#createTime#,
+			#presendTime#
+		)
+	</insert>
+</sqlMap>

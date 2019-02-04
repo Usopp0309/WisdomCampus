@@ -1,0 +1,1357 @@
+package com.guotop.palmschool.constant;
+
+import com.guotop.palmschool.util.HttpPostUtil;
+
+/**
+ * 常量类
+ * 
+ * @author zhou
+ *
+ */
+public class Cons
+{
+	//服务端口枚举
+	public static enum SERVERPORT{
+		HTTPPORT
+		{
+			public int getPort()
+			{
+				return 9080;
+			}
+		},
+		HTTPSPORT
+		{
+			public int getPort()
+			{
+				return 9081;
+			}
+		};
+		public abstract int getPort();
+	}
+	
+	public static enum PUSHTYPE
+	{
+		TEACHERPUSH
+		{
+			public String getName()
+			{
+				return "教师通知";
+			}
+
+			public int getType()
+			{
+				return 6;
+			}
+
+			public int getContentType()
+			{
+				return 1;
+			}
+		},
+
+		STUDENTPUSH
+		{
+			public String getName()
+			{
+				return "学生通知";
+			}
+
+			public int getType()
+			{
+				return 6;
+			}
+
+			public int getContentType()
+			{
+				return 2;
+			}
+		},
+
+		SCOREPUSH
+		{
+			public String getName()
+			{
+				return "成绩通知";
+			}
+
+			public int getType()
+			{
+				return 7;
+			}
+
+			public int getContentType()
+			{
+				return 1;
+			}
+		},
+
+		MEETINGPUSH
+		{
+			public String getName()
+			{
+				return "会议通知";
+			}
+
+			public int getType()
+			{
+				return 3;
+			}
+
+			public int getContentType()
+			{
+				return 1;
+			}
+		},
+
+		SCHOOLBUSINPUSH
+		{
+			public String getName()
+			{
+				return "校车上车通知";
+			}
+
+			public int getType()
+			{
+				return 5;
+			}
+
+			public int getContentType()
+			{
+				return 1;
+			}
+		},
+
+		SCHOOLBUSOUTPUSH
+		{
+			public String getName()
+			{
+				return "校车下车通知";
+			}
+
+			public int getType()
+			{
+				return 5;
+			}
+
+			public int getContentType()
+			{
+				return 2;
+			}
+		},
+
+		SYSANNOUNCEMENTPUSH
+		{
+			public String getName()
+			{
+				return "系统公告通知";
+			}
+
+			public int getType()
+			{
+				return 1;
+			}
+
+			public int getContentType()
+			{
+				return 4;
+			}
+		},
+
+		SCHOOLANNOUNCEMENTPUSH
+		{
+			public String getName()
+			{
+				return "学校公告通知";
+			}
+
+			public int getType()
+			{
+				return 1;
+			}
+
+			public int getContentType()
+			{
+				return 1;
+			}
+		},
+
+		DEPARTANNOUNCEMENTPUSH
+		{
+			public String getName()
+			{
+				return "部门公告通知";
+			}
+
+			public int getType()
+			{
+				return 1;
+			}
+
+			public int getContentType()
+			{
+				return 2;
+			}
+		},
+
+		CLAZZANNOUNCEMENTPUSH
+		{
+			public String getName()
+			{
+				return "班级公告通知";
+			}
+
+			public int getType()
+			{
+				return 1;
+			}
+
+			public int getContentType()
+			{
+				return 3;
+			}
+		},
+
+		LEAVEAUDITPUSH
+		{
+			public String getName()
+			{
+				return "请假审批通知";
+			}
+
+			public int getType()
+			{
+				return 2;
+			}
+
+			public int getContentType()
+			{
+				return 1;
+			}
+		},
+
+		LEAVEPASSPUSH
+		{
+			public String getName()
+			{
+				return "请假审批通过通知";
+			}
+
+			public int getType()
+			{
+				return 2;
+			}
+
+			public int getContentType()
+			{
+				return 2;
+			}
+		},
+
+		LEAVENOTPASSPUSH
+		{
+			public String getName()
+			{
+				return "请假审批拒绝通知";
+			}
+
+			public int getType()
+			{
+				return 2;
+			}
+
+			public int getContentType()
+			{
+				return 3;
+			}
+		},
+
+		INSCHOOLPUSH
+		{
+			public String getName()
+			{
+				return "进学校通知";
+			}
+
+			public int getType()
+			{
+				return 8;
+			}
+
+			public int getContentType()
+			{
+				return 1;
+			}
+		},
+
+		OUTSCHOOLPUSH
+		{
+			public String getName()
+			{
+				return "出学校通知";
+			}
+
+			public int getType()
+			{
+				return 8;
+			}
+
+			public int getContentType()
+			{
+				return 2;
+			}
+		},
+
+		INDORMITORYPUSH
+		{
+			public String getName()
+			{
+				return "进宿舍通知";
+			}
+
+			public int getType()
+			{
+				return 4;
+			}
+
+			public int getContentType()
+			{
+				return 1;
+			}
+		},
+
+		OUTDORMITORYPUSH
+		{
+			public String getName()
+			{
+				return "出宿舍通知";
+			}
+
+			public int getType()
+			{
+				return 4;
+			}
+
+			public int getContentType()
+			{
+				return 2;
+			}
+		},
+
+		YKTBALANCEPUSH
+		{
+			public String getName()
+			{
+				return "一卡通通知余额不足";
+			}
+
+			public int getType()
+			{
+				return 9;
+			}
+
+			public int getContentType()
+			{
+				return 1;
+			}
+		},
+
+		YKTCONSUMPTIONPUSH
+		{
+			public String getName()
+			{
+				return "一卡通通知消费";
+			}
+
+			public int getType()
+			{
+				return 9;
+			}
+
+			public int getContentType()
+			{
+				return 2;
+			}
+		},
+
+		YKTDEPOSITPUSH
+		{
+			public String getName()
+			{
+				return "一卡通通知充值(存款)";
+			}
+
+			public int getType()
+			{
+				return 9;
+			}
+
+			public int getContentType()
+			{
+				return 3;
+			}
+		},
+
+		YKTOPENACCOUNTPUSH
+		{
+			public String getName()
+			{
+				return "一卡通通知开户";
+			}
+
+			public int getType()
+			{
+				return 9;
+			}
+
+			public int getContentType()
+			{
+				return 4;
+			}
+		},
+
+		INTEGRATEDMACHINE
+		{
+			public String getName()
+			{
+				return "一体机";
+			}
+
+			public int getType()
+			{
+				return 10;
+			}
+
+			public int getContentType()
+			{
+				return 1;
+			}
+		},
+
+		MORNINGCHECKNORMAL
+		{
+			public String getName()
+			{
+				return "晨检结果正常";
+			}
+
+			public int getType()
+			{
+				return 11;
+			}
+
+			public int getContentType()
+			{
+				return 1;
+			}
+		},
+
+		MORNINGCHECKABNORMAL
+		{
+			public String getName()
+			{
+				return "晨检结果异常";
+			}
+
+			public int getType()
+			{
+				return 11;
+			}
+
+			public int getContentType()
+			{
+				return 2;
+			}
+		},
+
+		SETSCHEDULETIME
+		{
+			public String getName()
+			{
+				return "作息时间设置";
+			}
+
+			public int getType()
+			{
+				return 12;
+			}
+
+			public int getContentType()
+			{
+				return 1;
+			}
+		},
+
+		TEACHEREVALUATE
+		{
+			public String getName()
+			{
+				return "幼儿园老师评价";
+			}
+
+			public int getType()
+			{
+				return 13;
+			}
+
+			public int getContentType()
+			{
+				return 1;
+			}
+		},
+
+		RECIPE
+		{
+			public String getName()
+			{
+				return "食谱变动";
+			}
+
+			public int getType()
+			{
+				return 14;
+			}
+
+			public int getContentType()
+			{
+				return 1;
+			}
+		},
+
+		TASKSENDPUSH
+		{
+			public String getName()
+			{
+				return "作业发布";
+			}
+
+			public int getType()
+			{
+				return 15;
+			}
+
+			public int getContentType()
+			{
+				return 1;
+			}
+		},
+
+		SCHOOLNEWS
+		{
+			public String getName()
+			{
+				return "校园新闻";
+			}
+
+			public int getType()
+			{
+				return 16;
+			}
+
+			public int getContentType()
+			{
+				return 1;
+			}
+		},
+
+		SCHOOLACTIVITY
+		{
+			public String getName()
+			{
+				return "校园活动";
+			}
+
+			public int getType()
+			{
+				return 16;
+			}
+
+			public int getContentType()
+			{
+				return 2;
+			}
+		},
+
+		SCHOOLRECRUITMENT
+		{
+			public String getName()
+			{
+				return "校园招生信息";
+			}
+
+			public int getType()
+			{
+				return 16;
+			}
+
+			public int getContentType()
+			{
+				return 3;
+			}
+		},
+
+		PARENTCLASS
+		{
+			public String getName()
+			{
+				return "家长课堂";
+			}
+
+			public int getType()
+			{
+				return 16;
+			}
+
+			public int getContentType()
+			{
+				return 4;
+			}
+		},
+
+		CLASSACTIVITY
+		{
+			public String getName()
+			{
+				return "班级每日活动";
+			}
+
+			public int getType()
+			{
+				return 16;
+			}
+
+			public int getContentType()
+			{
+				return 5;
+			}
+		};
+
+		public abstract String getName();
+
+		public abstract int getType();
+
+		public abstract int getContentType();
+
+	}
+
+	/**
+	 * 每条短息的费用是多少 单位：元
+	 */
+	public static final Double THE_AVERAGE_COST_OF_EACH_SMS = 0.075;
+
+	/**
+	 * 记住我
+	 */
+	/**
+	 * 需要记住我 remember
+	 */
+	public static final Integer NEED_REMEMBER = 1;
+
+	/**
+	 * 不需要记住我
+	 */
+	public static final Integer NO_NEED_REMEMBER = 0;
+
+	/**
+	 * 权限相关---begin
+	 */
+	/**
+	 * 系统管理员权限
+	 */
+	public static final Integer ROLE_ADMIN = 1;
+
+	/**
+	 * 超级管理员权限(学校管理员权限)
+	 */
+	public static final Integer ROLE_SCHOOLADMIN = 2;
+
+	/**
+	 * 校长权限
+	 */
+	public static final Integer ROLE_HEADMASTER = 3;
+
+	/**
+	 * 年级组长
+	 */
+	public static final Integer ROLE_GRADELEADER = 8;
+
+	/**
+	 * 班主任权限
+	 */
+	public static final Integer ROLE_HEADTEACHER = 4;
+
+	/**
+	 * 教师权限
+	 */
+	public static final Integer ROLE_NORMALTEACHER = 5;
+
+	/**
+	 * 家长权限
+	 */
+	public static final Integer ROLE_HEADFAMILY = 6;
+
+	/**
+	 * 学生权限
+	 */
+	public static final Integer ROLE_STUDENT = 7;
+
+	/**
+	 * 司机权限
+	 */
+	public static final Integer ROLE_DRIVER = 9;
+	/**
+	 * 权限相关---end
+	 */
+
+	/**
+	 * 权限INT(用于switch-case场景)
+	 */
+	/**
+	 * 系统管理员权限
+	 */
+	public static final int ROLE_ADMIN_INT = 1;
+
+	/**
+	 * 超级管理员权限(学校管理员权限)
+	 */
+	public static final int ROLE_SCHOOLADMIN_INT = 2;
+
+	/**
+	 * 校长权限
+	 */
+	public static final int ROLE_HEADMASTER_INT = 3;
+
+	/**
+	 * 班主任权限
+	 */
+	public static final int ROLE_HEADTEACHER_INT = 4;
+
+	/**
+	 * 年级主任权限
+	 */
+	public static final int ROLE_HEADGRADE_INT = 8;
+
+	/**
+	 * 教师权限
+	 */
+	public static final int ROLE_NORMALTEACHER_INT = 5;
+
+	/**
+	 * 家长权限
+	 */
+	public static final int ROLE_HEADFAMILY_INT = 6;
+
+	/**
+	 * 学生权限
+	 */
+	public static final int ROLE_STUDENT_INT = 7;
+
+	/**
+	 * 存在查询结果
+	 */
+	public static final Integer RESULT_QUERYEXIST = 1;
+
+	/**
+	 * 页面select相关---begin
+	 */
+	/**
+	 * 选择全部年级
+	 */
+	public static final String GRADE_CHOOSEALL = "0";
+
+	/**
+	 * 选择全部班级
+	 */
+	public static final String CLAZZ_CHOOSEALL = "-1";
+
+	/**
+	 * 页面select相关---end
+	 */
+
+	/**
+	 * 学生短信发送相关---begin
+	 */
+	/**
+	 * 发送类型：粗细度：班级
+	 */
+	public static final String SENDTYPE_CLAZZ = "1";
+
+	/**
+	 * 发送类型：粗细度：学生
+	 */
+	public static final String SENDTYPE_STUDENT = "2";
+	/**
+	 * 学生短信发送相关---end
+	 */
+
+	/**
+	 * 公告类别---begin
+	 */
+	/**
+	 * 最新公告
+	 */
+	public static final Integer ANNOUNCEMENT_NEW = 0;
+
+	/**
+	 * 学校公告
+	 */
+	public static final Integer ANNOUNCEMENT_SCHOOL = 1;
+
+	/**
+	 * 部门公告
+	 */
+	public static final Integer ANNOUNCEMENT_DEPARTMENT = 2;
+
+	/**
+	 * 班级公告
+	 */
+	public static final Integer ANNOUNCEMENT_CLAZZ = 3;
+
+	/**
+	 * 系统公告
+	 */
+	public static final Integer ANNOUNCEMENT_SYSTEM = 4;
+	/**
+	 * 公告类别---end
+	 */
+
+	/**
+	 * 请假类别---begin
+	 */
+	/**
+	 * 班主任请假
+	 */
+	public static final String LEAVEROLE_HEADTEACHER = "3";
+
+	/**
+	 * 普通用户请假
+	 */
+	public static final String LEAVEROLE_NORMALUSER = "4";
+
+	/**
+	 * 事假
+	 */
+	public static final Integer LEAVETYPE_AFFAIR = 0;
+
+	/**
+	 * 病假
+	 */
+	public static final Integer LEAVETYPE_SICK = 1;
+
+	/**
+	 * 产假
+	 */
+	public static final Integer LEAVETYPE_MATERNITY = 2;
+
+	/**
+	 * 出差
+	 */
+	public static final Integer LEAVETYPE＿BUSINESSTRIP = 3;
+
+	/**
+	 * 请假类别---end
+	 */
+
+	/**
+	 * 师生类型---begin
+	 */
+	/**
+	 * 全部
+	 */
+	public static final Integer TCHSTUTYPE_ALL = 0;
+
+	/**
+	 * 教师
+	 */
+	public static final Integer TCHSTUTYPE_TEACHER = 1;
+
+	/**
+	 * 学生
+	 */
+	public static final Integer TCHSTUTYPE_STUDENT = 2;
+
+	/**
+	 * 师生类别---end
+	 */
+
+	/**
+	 * 短信头相关---begin
+	 */
+	public static final String PRE_ALL = "A"; // 全部
+	public static final String PRE_CLAZZ = "C"; // 班级
+	public static final String PRE_GRADE = "G"; // 年级
+	public static final String PRE_STUDENT = "S"; // 学生
+	public static final String PRE_TEACHER = "T"; // 教师
+	public static final String PRE_DEPARTMENT = "D"; // 部门
+	public static final String PRE_USER = "U"; // 成员
+	public static final String PRE_STUDENT_PARENT = "P"; // 家长
+
+	public static final String PRE_ONLINEMESSAGE_TYPE_DONE = "0"; // 在线留言——已读
+	public static final String PRE_ONLINEMESSAGE_TYPE_DONING = "1"; // 在线留言——未读
+	/**
+	 * 短信头相关---end
+	 */
+
+	/**
+	 * 短信所属模块
+	 */
+	public static final Integer MODULE_SCHOOLAFFAIRS = 1; // 校务管理
+	public static final Integer MODULE_STUDENTSERVICE = 2; // 学生服务
+	public static final Integer MODULE_CHECK = 3; // 考勤系统
+	public static final Integer MODULE_SCORE = 4; // 成绩下发
+	public static final Integer MODULE_TASK = 5; // 作业发布
+
+	/**
+	 * 短信发送结果---begin
+	 */
+	/**
+	 * 待发送
+	 */
+	public static final Integer SMS_RESULT_WAITSEND = 0;
+
+	/**
+	 * 发送成功
+	 */
+	public static final Integer SMS_RESULT_SUCCESS = 1;
+
+	/**
+	 * 发送失败
+	 */
+	public static final Integer SMS_RESULT_FAIL = 2;
+
+	/**
+	 * 部分成功
+	 */
+	public static final Integer SMS_RESULT_PARTSUCCESS = 3;
+
+	/**
+	 * 无接收人
+	 */
+	public static final Integer SMS_RESULT_NORECEIVER = 4;
+
+	/**
+	 * 短信内容有误
+	 */
+	public static final Integer SMS_RESULT_CONTENTERROR = 5;
+
+	/**
+	 * 短信测试
+	 */
+	public static final Integer SMS_RESULT_TESTING = 99;
+	/**
+	 * 短信发送结果---end
+	 */
+
+	public static final String SMS_TIMING = "0"; // 定时发送
+	public static final String SMS_REALTIME = "1"; // 即时发送
+
+	/**
+	 * 作息时间
+	 */
+	/**
+	 * 上课
+	 */
+	public static final Integer SCHEDULE_CLASSES = 0;
+
+	/**
+	 * 休息
+	 */
+	public static final Integer SCHEDULE_REST = 1;
+
+	/**
+	 * 考勤相关
+	 */
+	/**
+	 * 老师未离校数量
+	 */
+	public static final Integer CHECK_TEACHERNOTLEAVECOUNT = 50;
+
+	/**
+	 * 老师未到校数量
+	 */
+	public static final Integer CHECK_TEACHERNOTARRIVECOUNT = 50;
+
+	/**
+	 * 老师迟到数量 : 如果有大量老师(数量可配置，数量配置项为)同时迟到，认为这些老师参加集体活动，考勤正常，不做短信提示
+	 */
+	public static final Integer CHECK_TEACHERLATECOUNT = 50;
+
+	/**
+	 * 老师早退数量 : 如果有大量老师(数量可配置，数量配置项为)同时迟到，认为这些老师参加集体活动，考勤正常，不做短信提示
+	 */
+	public static final Integer CHECK_TEACHERLEAVECOUNT = 50;
+
+	/**
+	 * 学生未离校数量
+	 */
+	public static final Integer CHECK_STUDENTNOTLEAVECOUNT = 50;
+
+	/**
+	 * 学生未到校数量
+	 */
+	public static final Integer CHECK_STUDENTNOTARRIVECOUNT = 50;
+
+	/**
+	 * 学生迟到数量
+	 */
+	public static final Integer CHECK_STUDENTLATECOUNT = 50;
+
+	/**
+	 * 学生早退数量
+	 */
+	public static final Integer CHECK_STUDENTLEAVECOUNT = 50;
+
+	/**
+	 * 考勤异常类型
+	 */
+	/**
+	 * 早退
+	 */
+	public static final Integer ABNORMAL_LEAVEEARLY = 0;
+
+	/**
+	 * 迟到
+	 */
+	public static final Integer ABNORMAL_ARRIVELATE = 1;
+
+	/**
+	 * 未到校
+	 */
+	public static final Integer ABNORMAL_NOTARRIVE = 2;
+
+	/**
+	 * 未离校
+	 */
+	public static final Integer ABNORMAL_NOTLEAVE = 3;
+
+	/**
+	 * 违规离校
+	 */
+	public static final Integer ABNORMAL_WRONGLEAVE = 4;
+
+	/**
+	 * 住校生到校
+	 */
+	public static final Integer ABNORMAL_RESIDENTSTUARRIVE = 5;
+
+	/**
+	 * 卡状态
+	 */
+	/**
+	 * 在校
+	 */
+	public static final Integer CARDSTATUS_INSCHOOL = 1;
+
+	/**
+	 * 离校
+	 */
+	public static final Integer CARDSTATUS_OUTSCHOOL = 0;
+
+	/**
+	 * 上校车未刷卡
+	 */
+	public static final int ONSCHOOLBUS_NOSWINGCARD = 1;
+
+	/**
+	 * 下校车未刷卡
+	 */
+	public static final int OFFSCHOOLBUS_NOSWINGCARD = 2;
+
+	/**
+	 * 系统管理
+	 */
+	/**
+	 * 待导入
+	 */
+	public static final Integer IMPORT_WAITIMPORT = 0;
+
+	/**
+	 * 导入中
+	 */
+	public static final Integer IMPORT_IMPORTING = 1;
+
+	/**
+	 * 导入失败
+	 */
+	public static final Integer IMPORT_ERROR = 2;
+
+	/**
+	 * 导入成功
+	 */
+	public static final Integer IMPORT_SUCCESS = 3;
+
+	/**
+	 * 考勤统计---begin
+	 */
+	/**
+	 * 人员类型
+	 */
+	public static final int TOTAL_PEOPLETYPE_TEACHER = 1; // 教师
+
+	public static final int TOTAL_PEOPLETYPE_STUDENT = 2; // 学生
+
+	/**
+	 * 统计规模 0:全校，1:年级，2:班级，3:个人
+	 */
+	public static final int TOTAL_SCALE_SCHOOL = 0; // 全校
+
+	public static final int TOTAL_SCALE_GRADE = 1; // 年级
+
+	public static final int TOTAL_SCALE_CLASS = 2; // 班级
+
+	public static final int TOTAL_SCALE_PERSON = 3; // 个人
+
+	/**
+	 * 统计周期，0:月，1:周，2:日
+	 */
+	public static final int TOTAL_PERIOD_MONTH = 0; // 月
+
+	public static final int TOTAL_PERIOD_WEEK = 1; // 周
+
+	public static final int TOTAL_PERIOD_DAY = 2; // 日
+
+	/**
+	 * 考勤统计---end
+	 */
+
+	/**
+	 * 设备类型---begin
+	 */
+	/**
+	 * 校门
+	 */
+	public static final String POSITIONTYPE_SCHOOLGATE = "1";
+
+	/**
+	 * 宿舍
+	 */
+	public static final String POSITIONTYPE_DORMITORY = "2";
+
+	/**
+	 * 会议
+	 */
+	public static final String POSITIONTYPE_MEETING = "3";
+
+	/**
+	 * 校车
+	 */
+	public static final String POSITIONTYPE_SCHOOLBUS = "4";
+	
+	/**
+	 * 教室
+	 */
+	public static final String POSITIONTYPE_CLASSROME = "5";
+	
+	/**
+	 * 设备类型---end
+	 */
+
+	/**
+	 * 进出类型---begin
+	 */
+	/**
+	 * 不区分进出类型
+	 */
+	public static final String INOUTTYPE_NODISTINGUISH = "0";
+
+	/**
+	 * 进
+	 */
+	public static final String INOUTTYPE_IN = "1";
+
+	/**
+	 * 出
+	 */
+	public static final String INOUTTYPE_OUT = "2";
+
+	/**
+	 * 进出类型---end
+	 */
+
+	/**
+	 * 宿舍异常统计规模
+	 */
+	// 校
+	public static final Integer SCALE_SCHOOL = 0;
+
+	// 年级
+	public static final Integer SCALE_GRADE = 1;
+
+	// 班级
+	public static final Integer SCALE_CLAZZ = 2;
+
+	/**
+	 * 进出宿舍
+	 */
+	// 进
+	public static final Integer DORMITORY_IN = 1;
+
+	// 出
+	public static final Integer DORMITORY_OUT = 2;
+	// 管理员
+	public static final String PERMISSION_ADMIN = "admin";
+
+	/**
+	 * 登录超时提示语
+	 */
+	public static final String LOGIN_APIKEY_INVALID = "您的会话已过期,您的账户可能被别人登陆，请修改密码或重新登陆";
+	/**
+	 * 图片地址
+	 */
+	public static final String IMGBASEPATH = "http://121.199.27.191:18086/wisdomcampus/";
+
+	public static final String HEADIMGBASEPATH = "http://121.199.27.191:18086/huxin/";
+	
+	/**
+	 * 进出记录抓拍照片地址
+	 */
+	public static final String KINDERGARTENINOUTIMAGEBASEPATH = "http://121.199.27.191:18086/wcftp/";
+
+	
+	//回调枚举
+	public static enum CALLBACKURL{
+		QINIU_NOTIFYURL
+		{
+			/**
+			 * 七牛转码回调
+			 */
+			public String getBasePathURL(int port)
+			{
+				return HttpPostUtil.getWisdomCampusUrl(port);
+			}
+		},
+		ALI_NOTIFY_URL
+		{
+			/**
+			 * 支付宝异步返回消息地址
+			 */
+			public String getBasePathURL(int port)
+			{
+				return HttpPostUtil.getWisdomCampusUrl(port)+"jsp/alipay/notify_url.jsp";
+			}
+		},
+		ALI_RETURN_URL
+		{
+			/**
+			 * 支付宝同步返回消息地址
+			 */
+			public String getBasePathURL(int port)
+			{
+				return HttpPostUtil.getWisdomCampusUrl(port)+"jsp/alipay/return_url.jsp";
+			}
+		},
+		WC_NOTIFY_URL
+		{
+			/**
+			 * 微信异步通知地址
+			 */
+			public String getBasePathURL(int port)
+			{
+				return HttpPostUtil.getWisdomCampusUrl(port)+"wcPayController/notify_Url.do";
+			}
+		};
+		public abstract String getBasePathURL(int port);
+	}
+	
+	/**
+	 * 班级相册七牛 bucketname
+	 */
+	public static final String QINIU_BUCKETNAME_CLASSALBUM = "class-album";
+	/**
+	 * 班级相册七牛外网访问地址
+	 */
+	public static final String QINIU_URL_CLASSALBUM = "http://img-ca.richx.cn/";
+
+	/**
+	 * 成长手册空间
+	 */
+	public static final String QINIU_BUCKETNAME_GROWTH = "growth-archive";
+	/**
+	 * 成长手册图片访问路径
+	 */
+	public static final String QINIU_BUCKETNAME_GROWTH_URL = "http://img-ga.richx.cn/";
+
+	/**
+	 * 食谱(七牛空间)
+	 */
+	public static final String QINIU_BUCKETNAME_SCHOOLRECIPE = "school-recipe";
+	/**
+	 * 食谱图片访问路径
+	 */
+	public static final String QINIU_BUCKETNAME_SCHOOLRECIPE_URL = "http://img-sr.richx.cn/";
+
+	/**
+	 * 校园新闻(七牛空间)
+	 */
+	public static final String QINIU_BUCKETNAME_SCHOOLRNEWS = "school-news";
+	/**
+	 * 校园新闻图片访问路径
+	 */
+	public static final String QINIU_BUCKETNAME_SCHOOLRNEWS_URL = "http://img-sn.richx.cn/";
+
+	/**
+	 * 学校网盘(七牛空间) rich-cloud
+	 */
+	public static final String QINIU_BUCKETNAME_RICH_CLOUD = "teaching-res";
+	/**
+	 * 学校网盘访问路径 rich-cloud
+	 */
+	public static final String QINIU_BUCKETNAME_RICH_CLOUD_URL = "http://ocb3z15mk.bkt.clouddn.com/";
+
+	/**
+	 * 学校网盘任务
+	 */
+	public static final String QINIU_MEDIA_TASK = "media-task";
+
+	/**
+	 * 亦信首页广告图(七牛空间)
+	 */
+	public static final String QINIU_BUCKETNAME_RICH_AD = "rich-ad";
+	/**
+	 * 亦信首页广告图访问路径
+	 */
+	public static final String QINIU_BUCKETNAME_RICH_AD_URL = "http://img-ad.richx.cn/";
+
+	/**
+	 * 福建资源云平台appID
+	 */
+	public static final String FJEDU_APPID = "AP060000012784";
+
+	/**
+	 * 福建资源云平台appKEY
+	 */
+	public static final String FJEDU_APPKEY = "0ecdd83b77af21305eb623d4f52fdaf2";
+
+	/**
+	 * 账单类型 收入-充值
+	 */
+	public static final int BILLTYPE_IN_RECHARGE = 1;
+	/**
+	 * 账单类型 收入-退款
+	 */
+	public static final int BILLTYPE_IN_REFUND = 2;
+	/**
+	 * 账单类型 收入-分成
+	 */
+	public static final int BILLTYPE_IN_DIVIDED = 3;
+	/**
+	 * 账单类型 收入-转账
+	 */
+	public static final int BILLTYPE_IN_TRANSFER = 4;
+	/**
+	 * 账单类型 支出-购买
+	 */
+	public static final int BILLTYPE_OUT_PURCHASE = 5;
+	/**
+	 * 账单类型支出-提现
+	 */
+	public static final int BILLTYPE_OUT_APPLYCASH = 6;
+	/**
+	 * 账单类型 支出-短信支出
+	 */
+	public static final int BILLTYPE_OUT_SMS = 7;
+	/**
+	 * 账单类型 支出-转账支出
+	 */
+	public static final int BILLTYPE_OUT_TRANSFER = 8;
+		
+}

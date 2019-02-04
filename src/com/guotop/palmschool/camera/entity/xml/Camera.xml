@@ -1,0 +1,597 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Camera">
+	<typeAlias alias="place" type="com.guotop.palmschool.entity.Place" />
+	<typeAlias alias="camera" type="com.guotop.palmschool.camera.entity.Camera" />
+	<typeAlias alias="cameraRelation" type="com.guotop.palmschool.camera.entity.CameraRelation" />
+
+	<resultMap class="place" id="result-place-list" groupBy="id">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="cameraList" resultMap="Camera.camera-list" />
+	</resultMap>
+<!-- 	<resultMap class="cameraRelation" id="useCameraRelation" > -->
+<!-- 		<result property="userId" column="userId" /> -->
+<!-- 		<result property="cameraId" column="cameraId" /> -->
+<!-- 	</resultMap> -->
+	<resultMap class="camera" id="camera-list">
+		<result property="cameraId" column="cameraId" />
+		<result property="cameraCode" column="cameraCode" />
+		<result property="password" column="password" />
+		<result property="placeId" column="placeId" />
+		<result property="cameraName" column="cameraName" />
+		<result property="type" column="type" />
+		<result property="startDay" column="startDay" />
+		<result property="endDay" column="endDay" />
+		<result property="startTime" column="startTime" />
+		<result property="endTime" column="endTime" />
+	</resultMap>
+  
+   <!-- 分页获得摄像头和班级的关系-->
+   <select id="getPagesCameraClazzUser" parameterClass="HashMap" resultClass="com.guotop.palmschool.camera.entity.Camera">
+   
+	select * from (
+	   select z.createTime,(SELECT CONCAT( 
+				CASE 
+				WHEN g.type = 0 THEN '幼儿园' 
+				WHEN g.type = 1 THEN '小学' 
+				WHEN g.type = 2 THEN '初中' 
+		 WHEN g.type = 3 THEN '高中'END,c.clazzName) as out_ClazzName 
+		FROM palm_clazz c, palm_grade g WHERE c.gradeId = g.id AND c.id = z.clazzId) as name,z.clazzId as userIdOrClazzId
+
+		from palm_camera_clazz z where cameraId=#cameraId#
+	   UNION 
+	   select z.createTime,platform.getRealName(z.userId) as name,z.userId as userIdOrClazzId from palm_camera_user z where cameraId=#cameraId#)t order by t.createTime DESC
+	   LIMIT #startIndex#, #length# 
+   </select>
+   <select id="getPagesCameraClazzUserCount" parameterClass="HashMap" resultClass="java.lang.Integer">
+	   select count(*) from (select z.createTime from palm_camera_clazz z where cameraId=#cameraId#
+	   UNION 
+	   select z.createTime from palm_camera_user z where cameraId=#cameraId#)t
+   </select>
+   
+   <!-- 手机端获取摄像头list -->
+	<select id="getPlaceList" parameterClass="Integer" resultMap="result-place-list">
+		SELECT
+			pp.id,
+			pp. NAME AS NAME,
+			pp.type AS TYPE,
+			pp.createTime AS createTime,
+			pc.*
+		FROM
+			palm_place pp,
+			palm_camera pc
+		WHERE
+			pp.id = pc.placeId
+		AND pc.type = 2
+		UNION
+				SELECT
+					pp.id,
+					pp. NAME AS NAME,
+					pp.type AS TYPE,
+					pp.createTime AS createTime,
+					pc.*
+				FROM
+					palm_place pp,
+					palm_camera pc,
+					palm_camera_clazz cc
+				WHERE
+					pp.id = pc.placeId
+				AND pc.type = 0
+				AND cc.cameraId = pc.cameraId
+				AND cc.clazzId IN (
+					SELECT
+						optClazzId
+					FROM
+						palm_user_permission
+					WHERE
+						userId = #userId# GROUP BY optClazzId)
+			UNION
+				SELECT
+					pp.id,
+					pp. NAME AS NAME,
+					pp.type AS TYPE,
+					pp.createTime AS createTime,
+					pc.*
+				FROM
+					palm_place pp,
+					palm_camera pc,
+					palm_camera_user cu
+				WHERE
+					pp.id = pc.placeId
+				AND pc.type = 1
+				AND cu.cameraId = pc.cameraId
+				AND cu.userId = #userId#
+			UNION
+				SELECT
+					pp.id,
+					pp. NAME AS NAME,
+					pp.type AS TYPE,
+					pp.createTime AS createTime,
+					pc.*
+				FROM
+					palm_place pp,
+					palm_camera pc,
+					palm_camera_clazz cc
+				WHERE
+					pp.id = pc.placeId
+				AND pc.type = 0
+				AND cc.cameraId = pc.cameraId
+				AND cc.clazzId IN (
+					SELECT
+						clazzId
+					FROM
+						palm_student_clazz
+					WHERE
+						(userId = #userId# OR userId IN
+							(SELECT userId FROM platform.student_parent WHERE parent_userId = #userId# )
+						) 
+						GROUP BY clazzId)
+				UNION
+					SELECT
+						pp.id,
+						pp. NAME AS NAME,
+						pp.type AS TYPE,
+						pp.createTime AS createTime,
+						pc.*
+					FROM
+						palm_place pp,
+						palm_camera pc,
+						palm_camera_user cu
+					WHERE
+						pp.id = pc.placeId
+					AND pc.type = 1
+					AND cu.cameraId = pc.cameraId
+					AND (cu.userId = #userId# OR  cu.userId IN 
+							(SELECT userId FROM platform.student_parent WHERE  parent_userId= #userId# )
+						)	
+	</select>
+	
+	 <!-- 手机端获取摄像头list（超管、校长、学校管理员） -->
+	<select id="getPlaceListByAdmin" resultMap="result-place-list">
+		SELECT pp.id, pp.name AS NAME,pp.type AS TYPE, pp.createTime AS createTime, pc.*
+			FROM palm_place pp, palm_camera pc 
+			 WHERE pp.id=pc.placeId
+	</select>	
+	
+	<!-- 查找摄像头数量(全部管理员) -->
+	<select id="getCameraListCount" parameterClass="java.util.HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM (
+			select c.*,p.name placeName from palm_place p, palm_camera c
+		  		 where p.id = c.placeId
+			   	 <isNotEmpty property="placeId">
+				   AND c.placeId = #placeId#
+			     </isNotEmpty>
+			     <isNotEmpty property="queryContent">
+				   AND( p.name LIKE CONCAT('%',#queryContent#,'%')
+				       OR c.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+			    </isNotEmpty>
+		) t
+	</select>
+	
+	<!-- 查找摄像头信息（全部 校长管理员）-->
+	<select id="getCameraList" parameterClass="java.util.HashMap" resultClass="camera">
+		  select c.*,p.name placeName from palm_place p, palm_camera c
+		       where p.id = c.placeId
+			   	 <isNotEmpty property="placeId">
+				   AND c.placeId = #placeId#
+			     </isNotEmpty>
+			     <isNotEmpty property="queryContent">
+				   AND( p.name LIKE CONCAT('%',#queryContent#,'%')
+				       OR c.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+			     </isNotEmpty>
+			<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length# 
+			</isNotEmpty>     
+	</select>
+	
+	<!-- 查找摄像头数量（家长） -->
+	<select id="getCameraListCountParent" parameterClass="java.util.HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM (
+		 SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc 
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 2
+			   <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+		UNION 
+		SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc,palm_camera_clazz cc
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 0
+			   AND cc.cameraId = pc.cameraId 
+			   AND cc.clazzId IN ( SELECT clazzId FROM palm_student_clazz WHERE (userId = #userId# OR userId IN (SELECT userId FROM platform.student_parent WHERE parent_userId = #userId# ))GROUP BY clazzId )
+			   <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+		UNION 
+		SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc,palm_camera_user cu
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 1
+			   AND cu.cameraId = pc.cameraId 
+			   AND (cu.userId = #userId# OR  cu.userId IN (SELECT userId FROM platform.student_parent WHERE parent_userId = #userId# ))	
+		       <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+		) t
+	</select>
+	
+	<!-- 查找摄像头信息（家长）-->
+	<select id="getCameraListParent" parameterClass="java.util.HashMap" resultClass="camera">
+	    SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc 
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 2
+			   <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+		UNION 
+		SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc,palm_camera_clazz cc
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 0
+			   AND cc.cameraId = pc.cameraId 
+			   AND cc.clazzId IN ( SELECT clazzId FROM palm_student_clazz WHERE userId IN (SELECT userId FROM platform.student_parent WHERE parent_userId = #userId#) GROUP BY clazzId )
+			   <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+		UNION 
+		SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc,palm_camera_user cu
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 1
+			   AND cu.cameraId = pc.cameraId 
+			   AND cu.userId IN (SELECT userId FROM platform.student_parent WHERE parent_userId = #userId#)	
+		       <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+			<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length# 
+			</isNotEmpty>    
+	</select>
+	
+	<!-- 查找摄像头数量（学生） -->
+	<select id="getCameraListCountStudent" parameterClass="java.util.HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM (
+		 SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc 
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 2
+			   <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+		UNION 
+		SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc,palm_camera_clazz cc
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 0
+			   AND cc.cameraId = pc.cameraId 
+			   AND cc.clazzId IN ( SELECT clazzId FROM palm_student_clazz WHERE userId = #userId# GROUP BY clazzId )
+			   <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+		UNION 
+		SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc,palm_camera_user cu
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 1
+			   AND cu.cameraId = pc.cameraId 
+			   AND cu.userId = #userId#	
+		       <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+		) t
+	</select>
+	
+	<!-- 查找摄像头信息（学生）-->
+	<select id="getCameraListStudent" parameterClass="java.util.HashMap" resultClass="camera">
+	    SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc 
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 2
+			   <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+		UNION 
+		SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc,palm_camera_clazz cc
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 0
+			   AND cc.cameraId = pc.cameraId 
+			   AND cc.clazzId IN ( SELECT clazzId FROM palm_student_clazz WHERE userId = #userId# GROUP BY clazzId )
+			   <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+		UNION 
+		SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc,palm_camera_user cu
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 1
+			   AND cu.cameraId = pc.cameraId 
+			   AND cu.userId = #userId#	
+		       <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+			<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length# 
+			</isNotEmpty>    
+	</select>
+	
+	<!-- 查找摄像头数量（班主任） -->
+	<select id="getCameraListCountClassLeader" parameterClass="java.util.HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM (
+		  SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc 
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 2
+			   <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+		UNION 
+		SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc,palm_camera_clazz cc
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 0
+			   AND cc.cameraId = pc.cameraId 
+			   AND cc.clazzId IN ( SELECT optClazzId FROM palm_user_permission WHERE userId = #userId# GROUP BY optClazzId)
+			   <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+		UNION 	   
+		SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc,palm_camera_user cu
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 1
+			   AND cu.cameraId = pc.cameraId 
+			   AND  cu.userId IN (SELECT userId FROM palm_student_clazz WHERE clazzId IN ( SELECT optClazzId FROM palm_user_permission WHERE userId = #userId# GROUP BY optClazzId))
+			   <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+		) t
+	</select>
+	
+	<!-- 查找摄像头信息（班主任）-->
+	<select id="getCameraListClassLeader" parameterClass="java.util.HashMap" resultClass="camera">
+	    SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc 
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 2
+			   <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+		UNION 
+		SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc,palm_camera_clazz cc
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 0
+			   AND cc.cameraId = pc.cameraId 
+			   AND cc.clazzId IN ( SELECT optClazzId FROM palm_user_permission WHERE userId = #userId# GROUP BY optClazzId)
+			   <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+		UNION 	   
+		SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc,palm_camera_user cu
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 1
+			   AND cu.cameraId = pc.cameraId 
+			   AND  cu.userId IN (SELECT userId FROM palm_student_clazz WHERE clazzId IN ( SELECT optClazzId FROM palm_user_permission WHERE userId = #userId# GROUP BY optClazzId))
+			   <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+			<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length# 
+			</isNotEmpty>    
+	</select>
+	
+	<!-- 查找摄像头数量（教师） -->
+	<select id="getCameraListCountTeacher" parameterClass="java.util.HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM (
+			SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc 
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 2
+			   <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+		) t
+	</select>
+	
+	<!-- 查找摄像头信息（教师）-->
+	<select id="getCameraListTeacher" parameterClass="java.util.HashMap" resultClass="camera">
+		    SELECT pp.name placeName, pc.*
+			FROM palm_place pp, palm_camera pc 
+			 WHERE pp.id=pc.placeId
+			   AND pc.type = 2
+			   <isNotEmpty property="queryContent">
+			      AND( pp.name LIKE CONCAT('%',#queryContent#,'%') OR pc.cameraCode LIKE CONCAT('%',#queryContent#,'%'))
+		       </isNotEmpty>
+		       <isNotEmpty property="placeId">
+				   AND pc.placeId = #placeId#
+			   </isNotEmpty>
+			<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length# 
+			</isNotEmpty>    
+	</select>
+	
+	
+	
+	
+	<!-- 增加教师，学生时增加卡号  20151124-->
+	<insert id="addCamera" parameterClass="camera">
+		insert into palm_camera
+		(
+			cameraCode,
+			cameraName,
+			password,
+			placeId,
+			type,
+			startDay,
+			endDay,
+			startTime,
+			endTime,
+			createTime
+		)
+		values
+		(
+			#cameraCode#,
+			#cameraName#,
+			#password#,
+			#placeId#,
+			#type#,
+			#startDay#,
+			#endDay#,
+			#startTime#,
+			#endTime#,
+			#createTime#
+		)
+         <selectKey resultClass="int" type="post" keyProperty="cameraId">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	<!-- 修改设备 -->
+	<update id="modifyCamera" parameterClass="camera">
+		update palm_camera
+			set cameraCode = #cameraCode#,
+			<isNotEmpty property="cameraName">
+				cameraName = #cameraName#,
+			</isNotEmpty>
+			<isNotEmpty property="password">
+				password = #password#,
+			</isNotEmpty>
+			placeId = #placeId#,
+			type = #type#,
+			startDay = #startDay#,
+			endDay = #endDay#,
+			startTime = #startTime#,
+			endTime = #endTime#,
+			updateTime = #updateTime#
+		where cameraId = #cameraId#	
+	</update>
+	
+	<!-- 删除设备 -->
+	<delete id="deleteCamera" parameterClass="Integer">
+		delete from  palm_camera where cameraId = #cameraId#	
+	</delete>
+	
+	<!-- 根据cameraId查找摄像头信息-->
+	<select id="getCameraById" parameterClass="Integer" resultClass="camera">
+		select c.*,(select p.name from palm_place p where p.id=placeId) as placeName from palm_camera c where cameraId = #cameraId#
+	</select>
+	<!-- 根据clazzId查找摄像头信息-->
+	<select id="getCameraByClazzId" parameterClass="java.util.HashMap" resultClass="cameraRelation">
+		select * from palm_camera_clazz c where c.clazzId = #clazzId# and c.cameraId=#cameraId#
+	</select>
+	<select id="getCameraUserByUserId" parameterClass="java.util.HashMap" resultClass="cameraRelation">
+		select * from palm_camera_user c where c.userId = #userId# and c.cameraId=#cameraId#
+	</select>
+	
+	<!-- 根据cameraCode查找摄像头信息-->
+	<select id="getCameraByCameraCode" parameterClass="String" resultClass="camera">
+		select c.* from palm_camera c where cameraCode = #cameraCode#
+	</select>
+	
+	<!-- 修改设备时校验设备是否存在-->
+	<select id="checkCameraCodeByModify" parameterClass="HashMap" resultClass="camera">
+		select c.* from palm_camera c where cameraCode = #cameraCode# and cameraCode != #originalcode#
+	</select>
+	
+	<!-- 根据类型查找摄像头 -->
+	<select id="getCameraListByType" parameterClass="Integer" resultClass="camera">
+		select c.* from palm_camera c where type = #type#
+	</select>
+	
+	<!--添加摄像头和班级的关系-->
+	<insert id="addClazzCamera" parameterClass="java.util.List">
+		insert into palm_camera_clazz (clazzId,cameraId,createTime) values
+	    <iterate conjunction=",">  
+	        (#cameraRelationList[].clazzId#,#cameraRelationList[].cameraId#,#cameraRelationList[].createTime#)
+	    </iterate>  
+	</insert>
+	<!-- 根据摄像头的Id删除与班级的关系 -->
+	<delete id="deleteCameraClazzBycameraId" parameterClass="java.util.List">
+	delete from palm_camera_clazz where 
+     <iterate conjunction="or" open="(" close=")">  
+	    cameraId=#cameraRelationList[].cameraId# and clazzId=#cameraRelationList[].clazzId#
+	 </iterate> 
+	</delete>
+	<!-- 根据摄像头的Id删除与人员的关系 -->
+	<delete id="deleteCameraUserBycameraId" parameterClass="java.util.List">
+	delete from palm_camera_user where 
+     <iterate conjunction="or" open="(" close=")">  
+	     cameraId = #cameraRelationList[].cameraId#  and userId=#cameraRelationList[].userId#  
+	  </iterate> 
+	</delete>
+	
+	<!--添加摄像头和人员的关系-->
+	<insert id="addUserCamera" parameterClass="java.util.List">
+		insert into palm_camera_user (userId,cameraId,createTime) values
+	    <iterate conjunction=",">  
+	        (#cameraRelationList[].userId#,#cameraRelationList[].cameraId#,#cameraRelationList[].createTime#)
+	    </iterate>  
+	</insert>
+	
+
+</sqlMap>

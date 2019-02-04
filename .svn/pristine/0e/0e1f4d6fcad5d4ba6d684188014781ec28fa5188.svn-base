@@ -1,0 +1,50 @@
+package com.guotop.palmschool.service.impl;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.entity.Agency;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.service.AgencyService;
+import com.guotop.palmschool.service.BaseService;
+
+@Service("/agencyService")
+public class AgencyServiceImpl extends BaseService implements AgencyService
+{
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Agency> getAgencyList()
+	{
+		// TODO Auto-generated method stub
+		return getBaseDao().selectListBySql("Agency.getAgencyList");
+	}
+
+	/**
+	 * 获取一个代理商对应的技术支持人员
+	 * @return
+	 * 
+	 * add by syj 20151215
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<User> getSupportUserListByAgencyId(Integer agencyId)
+	{
+		return getBaseDao().selectListByObject("User.getSupportUserListByAgencyId", agencyId);
+	}
+
+	@Override
+	public boolean isBelongAgency(Integer userId)
+	{
+		boolean flag = false;
+		int count = (Integer)getBaseDao().selectObjectByObject("Agency.isBelongAgency", userId);
+		if (count > 0)
+		{
+			flag = true;
+		}
+		return flag;
+	}
+
+	
+}

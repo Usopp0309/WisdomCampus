@@ -1,0 +1,1372 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>考勤统计</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+</head>
+	<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+		<input class="themes" type="hidden" value="<%=ThemePath%>">
+	    <!-- 公共顶部开始-->
+	    <%@ include file="/public_module/public_header.jsp"%>    
+	    <!--公共顶部结束-->
+	    <div class="clearfix"> </div>
+	    <!-- 内容页开始 -->
+	    <div class="page-container">
+	        <!--主菜单开始-->
+	        <%@include file="/public_module/public_menu.jsp"%>
+	        <!--主菜单结束-->
+	        <div class="page-content-wrapper">
+	            <div class="page-content m_overflow_hidden m_page_content">
+	            	<!-- 页面内容开始 -->
+	            	<div class="col-md-12 col-sm-12 m_page_con">
+	                <div class="page-bar m_margin_0_0_0_0">
+	                    <ul class="page-breadcrumb">
+	                         <li><a href="<%=basePath %>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+	                        <li><a href="javascript:void(0);">考勤统计</a><i class="fa fa-circle"></i></li>
+	                        <li><span>考勤统计列表</span></li>
+	                    </ul>
+	                </div>
+	                <h3 class="page-title">考勤统计列表</h3>
+	                <div class="row">
+	                    <div class="col-md-12 col-sm-12">
+	                        <!-- 页面搜索开始 -->
+	                        <div class="portlet light bordered search_box">
+		                         <div class="row">
+		                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+		                         		<span class="m_span">选择时间：</span>
+		                         		<input type="text"  name="time" id="time"  class="form-control m_input"/>
+		                         	</div>
+		                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+		                         		<button type="button" class="btn green" id="search">查找</button>
+										<input type="hidden" value="${type }" name="type" id="type">
+		                         	</div>
+		                         </div>
+	                        </div>
+	                     
+	                       	<div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption">
+	                                    <i class="fa fa-list"></i>考勤统计</div>
+	                            </div>
+	                            <div class="portlet-body m_overflow_hidden">
+	                                <c:if test="${type eq 0 }">
+										<div id="firstDiv">
+									</c:if>
+									<c:if test="${type eq 1 }">
+										<div id="firstDiv" style = "display:none">
+									</c:if>	
+									  <div class="col-md-6 col-sm-6 col-lg-6" id="ryfb">
+											<h3>上午考勤统计</h3>
+												<div id="totalChart" class="chart"></div>
+												<table class="table table-bordered table-hover" style="display:none">
+													<tbody>
+														<tr>
+															<td>
+																<div class="border_div">
+																	<div  class="border_con" style="border:5px solid rgb(237,194,64);"></div>
+																</div>
+															</td>
+															<td>上午正常上班<span id="am_td1"></span>人</td>
+														</tr>
+														<tr>
+															<td>
+																<div class="border_div">
+																	<div class="border_con" style="border:5px solid rgb(175,216,248);"></div>
+																</div>
+															</td>
+															<td>上午迟到<span id="am_td2"></span>人</td>
+														</tr>
+														<tr>
+															<td>
+																<div class="border_div">
+																	<div class="border_con" style="border:5px solid rgb(203,75,75);"></div>
+																</div>
+															</td>
+															<td>上午正常下班<span id="am_td3"></span>人</td>
+														</tr>
+														<tr>
+															<td>
+																<div class="border_div">
+																	<div class="border_con" style="border:5px solid rgb(77,167,77);"></div>
+																</div>
+															</td>
+															<td>上午早退<span id="am_td4"></span>人</td>
+														</tr>
+														<tr>
+															<td>
+																<div class="border_div">
+																	<div class="border_con" style="border:5px solid rgb(148,64,237);"></div>
+																</div>
+															</td>
+															<td>上午旷工<span id="am_td5"></span>人</td>
+														</tr>
+														<tr>
+															<td>
+																<div class="border_div">
+																	<div class="border_con" style="border:5px solid rgb(189,155,51);"></div>
+																</div>
+															</td>
+															<td>其他<span id="am_td6"></span>人</td>
+														</tr>
+														<tr>
+															<td>
+																<div class="border_div">
+																	<div class="border_con" style="border:5px solid rgb(140,172,198);"></div>
+																</div>
+															</td>
+															<td>上午非正常进校<span id="am_td7"></span>人</td>
+														</tr>
+														<tr>
+															<td>
+																<div class="border_div">
+																	<div class="border_con" style="border:5px solid rgb(162,60,60);"></div>
+																</div>
+															</td>
+															<td>上午非正常出校<span id="am_td8"></span>人</td>
+														</tr>
+														<tr>
+															<td>
+																<div class="border_div">
+																	<div class="border_con" style="border:5px solid rgb(61,133,61);"></div>
+																</div>
+															</td>
+															<td>总人数<span id="am_td9"></span>人 </td>
+														</tr>
+													</tbody>
+												</table>
+												
+													<div class="row" id="totalNotFound" style="display:none;">
+														<img src="<%=basePath%>assets/global/img/null_img.jpg">
+													</div>
+											</div>
+										  	</div>
+											<div class="col-md-6 col-sm-6 col-lg-6" id="">
+												<h3>下午考勤统计</h3>
+												<div id="groupChart" class="chart"></div>
+													<table class="count" style="display:none">
+														<tbody>
+															<tr>
+																<td>
+																	<div class="border_div">
+																		<div  class="border_con" style="border:5px solid rgb(237,194,64);"></div>
+																	</div>
+																</td>
+																<td>下午正常上班<span id="pm_td1"></span>人</td>
+															</tr>
+															<tr>
+																<td>
+																	<div class="border_div">
+																		<div class="border_con" style="border:5px solid rgb(175,216,248);"></div>
+																	</div>
+																</td>
+																<td>下午迟到<span id="pm_td2"></span>人</td>
+															</tr>
+															<tr>
+																<td>
+																	<div class="border_div">
+																		<div class="border_con" style="border:5px solid rgb(203,75,75);"></div>
+																	</div>
+																</td>
+																<td>下午正常下班<span id="pm_td3"></span>人</td>
+															</tr>
+															<tr>
+																<td>
+																	<div class="border_div">
+																		<div class="border_con" style="border:5px solid rgb(77,167,77);"></div>
+																	</div>
+																</td>
+																<td>下午早退<span id="pm_td4"></span>人</td>
+															</tr>
+															<tr>
+																<td>
+																	<div class="border_div">
+																		<div class="border_con" style="border:5px solid rgb(148,64,237);"></div>
+																	</div>
+																</td>
+																<td>下午旷工<span id="pm_td5"></span>人</td>
+															</tr>
+															<tr>
+																<td>
+																	<div class="border_div">
+																		<div class="border_con" style="border:5px solid rgb(189,155,51);"></div>
+																	</div>
+																</td>
+																<td>其他<span id="pm_td6"></span>人</td>
+															</tr>
+															<tr>
+																<td>
+																	<div class="border_div">
+																		<div class="border_con" style="border:5px solid rgb(140,172,198);"></div>
+																	</div>
+																</td>
+																<td>下午非正常进校<span id="pm_td7"></span>人</td>
+															</tr>
+															<tr>
+																<td>
+																	<div class="border_div">
+																		<div class="border_con" style="border:5px solid rgb(162,60,60);"></div>
+																	</div>
+																</td>
+																<td>下午非正常出校<span id="pm_td8"></span>人</td>
+															</tr>
+															<tr>
+																<td>
+																	<div class="border_div">
+																		<div class="border_con" style="border:5px solid rgb(61,133,61);"></div>
+																	</div>
+																</td>
+																<td>总人数<span id="pm_td9"></span>人 </td>
+															</tr>
+														</tbody>
+													</table>
+													<div class="row" id="groupNotFound" style="display:none;">
+															<img src="<%=basePath%>assets/global/img/null_img.jpg">
+													</div>
+											</div>
+										<c:if test="${type eq 0 }">
+											<div  id="secondDiv" style = "display:none">
+										</c:if>
+										<c:if test="${type eq 1 }">
+											<div  id="secondDiv">
+										</c:if>		
+				
+					<div class="col-md-6 col-sm-6 col-lg-6" id="ryfb" >
+							<h3>下午考勤统计</h3>
+							<div id="todayChart" class="chart"></div>
+							<table  class="table table-bordered table-hover" style="display:none">
+								<tbody>
+									<tr>
+										<td>
+											<div class="border_div">
+												<div  class="border_con" style="border:5px solid rgb(237,194,64);"></div>
+											</div>
+										</td>
+										<td>正常上班<span id="td1"></span>人</td>
+									</tr>
+									<tr>
+										<td>
+											<div class="border_div">
+												<div class="border_con" style="border:5px solid rgb(175,216,248);"></div>
+											</div>
+										</td>
+										<td>迟到<span id="td2"></span>人</td>
+									</tr>
+									<tr>
+										<td>
+											<div class="border_div">
+												<div class="border_con" style="border:5px solid rgb(203,75,75);"></div>
+											</div>
+										</td>
+										<td>正常下班<span id="td3"></span>人</td>
+									</tr>
+									<tr>
+										<td>
+											<div class="border_div">
+												<div class="border_con" style="border:5px solid rgb(77,167,77);"></div>
+											</div>
+										</td>
+										<td>早退<span id="td4"></span>人</td>
+									</tr>
+									<tr>
+										<td>
+											<div class="border_div">
+												<div class="border_con" style="border:5px solid rgb(148,64,237);"></div>
+											</div>
+										</td>
+										<td>旷工<span id="td5"></span>人</td>
+									</tr>
+									<tr>
+										<td>
+											<div class="border_div">
+												<div class="border_con" style="border:5px solid rgb(189,155,51);"></div>
+											</div>
+										</td>
+										<td>其他<span id="td6"></span>人</td>
+									</tr>
+									<tr>
+										<td>
+											<div class="border_div">
+												<div class="border_con" style="border:5px solid rgb(140,172,198);"></div>
+											</div>
+										</td>
+										<td>非正常进校<span id="td7"></span>人</td>
+									</tr>
+									<tr>
+										<td>
+											<div class="border_div">
+												<div class="border_con" style="border:5px solid rgb(162,60,60);"></div>
+											</div>
+										</td>
+										<td>非正常出校<span id="td8"></span>人</td>
+									</tr>
+									<tr>
+										<td>
+											<div class="border_div">
+												<div class="border_con" style="border:5px solid rgb(61,133,61);"></div>
+											</div>
+										</td>
+										<td>总人数<span id="td9"></span>人 </td>
+									</tr>
+								</tbody>
+							</table>
+							
+							<div class="row" id="todayNotFound" style="display:none;">
+									<img src="<%=basePath%>assets/global/img/null_img.jpg">
+								</div>
+			
+							</div>
+						</div>
+				<div class="row" id="inoutAbnormalDetail" style="display:none;">	
+					<div class="col-md-12 col-sm-12 col-lg-12">
+						<div class="portlet">
+								<div class="search_box">
+									<form action="<%=basePath%>check/loadTeacherCheckList.do" class="form-horizontal" method="post" style="margin: 0px">
+										<div class="search_box">
+		                                   <div class="row m_margin_10_auto">
+					                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+					                         		<span class="m_span">部门：</span>
+					                         		<select class="m_select form-control"  id="departmentSelect" name="departmentId"></select>
+					                         	</div>
+					                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+					                         		<span class="m_span">搜索内容：</span>
+					                         		<input type="text" placeholder="姓名..." class="m_input form-control" id="queryContent"/>
+																		
+					                         	</div>
+					                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+					                         		<button type="button" class="btn green" id="search">查找</button>
+					                         		 <button type="button" class="btn green f_right" id="export"><i class="icon-share-alt"></i>导出</button>
+					                         	</div>
+				                         		<input type="hidden" value="" name="depart" id="depart"/>
+				                         	</div>
+				                        </div>
+									</form>
+								</div>
+							</div>
+	                            <div class="note note-success">
+                                        <h3>(<span id="itemName" class="font-red-mint"></span>)人员详情</h3>
+                                    </div>
+								<table class="table table-bordered table-hover">
+									<thead>
+										<tr>
+											<th>部门</th>
+											<th>工号</th>
+											<th>姓名</th>
+											<th>状态</th>
+											<th>更新时间</th>
+										</tr>
+									</thead>
+									<tbody id="tbody">
+									</tbody>
+								</table>
+
+
+						</div>
+						
+						</div>
+	                       <!-- 列表展现开始 -->
+	                    </div>
+	                </div>
+	                </div>
+	                <!--页面内容结束 -->
+	            </div>
+	        </div>
+	        <!-- 亦信聊天开始 -->
+	    	<%@ include file="/public_module/public_QQ.jsp" %>
+	        <!-- 亦信聊天结束 -->
+	    </div>
+	    <!-- 内容页结束 -->
+	    <!-- 底部开始 -->
+	    <%@ include file="/public_module/public_footer.jsp" %>
+	    <!-- 底部结束 -->
+	</body>
+    <!-- 公共js开始 -->
+    <%@ include file="/public_module/public_js.jsp" %>
+    <!-- 公共js结束 -->
+</html>
+	<script src="<%=basePath%>assets/global/plugins/jquery-migrate-1.2.1.min.js"></script>
+	<script src="<%=basePath%>assets/global/plugins/jquery-ui-1.10.1.custom.min.js"></script>
+	<script src="<%=basePath%>assets/global/plugins/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+	<script src="<%=basePath%>assets/global/plugins/jquery.blockui.min.js"></script>
+	<script src="<%=basePath%>assets/global/plugins/jquery.cookie.min.js"></script>
+	<script src="<%=basePath%>assets/global/plugins/uniform/jquery.uniform.min.js"></script>
+	
+	<script src="<%=basePath%>assets/pages/flot/jquery.flot.js"></script>
+	<script src="<%=basePath%>assets/pages/flot/jquery.flot.resize.js"></script>
+	<script src="<%=basePath%>assets/pages/flot/jquery.flot.pie.js"></script>
+	<script src="<%=basePath%>assets/pages/flot/jquery.flot.stack.js"></script>
+	<script src="<%=basePath%>assets/pages/flot/jquery.flot.crosshair.js"></script>
+	<script src="<%=basePath%>assets/global/plugins/jquery.dataTables.min.js"></script>
+	<script src="<%=basePath%>assets/pages/flot/attendance.js"></script>
+	<script src="<%=basePath%>library/json2.js"></script>
+	<script src="<%=basePath%>assets/global/plugins/table-advanced.js"></script>
+	
+	<script type="text/javascript">
+	    var amTotalDataList = new Attendance();
+	    var pmTotalDataList = new Attendance();
+	    var totalDataList = new Attendance();
+		$(function(){
+			loadSubMenu("attendance"); 
+			//选取当前菜单位置
+			setActive("attendance","attendanceReport");      
+			$('#time').datetimepicker({
+				format:'Y-m-d',
+				timepicker:false
+			});
+			//页面初始化时候的数据加载
+			var roleId = $("ul li.active").find('a').attr("attr2");
+			var type = $("#type").val();
+			
+			if (type == 0){
+				loadAmTotalData(null, 0, null, roleId);
+				loadPmTotalData(null, 0,null, roleId);
+			}else if (type == 1){
+				loadTotalData(null, 0, null, roleId);
+			}
+			//初始化部门select
+			loadDepartmentList(null, roleId); 
+			
+			
+			//查找全校统计
+			$("#search").click(function(){
+				$("#inoutAbnormalDetail").hide();
+				
+				var time = $("#time").val();
+				var type = $("#type").val();
+				$.ajax({
+					type: "post",
+					url: "<%=basePath%>schedule/loadEditSchedule.do",
+					data:{
+						liveingDate : time
+					},
+					dataType:"json",
+					success: function(data){
+						if(data!=null && data.length>0){
+						var type = data[0].type;
+						$("#type").val(type);
+						if (type == 0){
+							loadAmTotalData(time, 0, null, roleId);
+							loadPmTotalData(time, 0,null, roleId);
+							$("#firstDiv").show();
+							$("#secondDiv").hide();
+						}else if (type == 1){
+							$("#firstDiv").hide();
+							$("#secondDiv").show();
+							loadTotalData(time, 0, null, roleId);
+						}
+						}
+					},
+				});
+				
+			    //初始化部门select
+			    loadDepartmentList(null, roleId);
+			  
+
+			});
+			
+			//异常人员列表详情查询
+			$("#searchAbnormal").click(function(){
+
+				var roleId = $("ul li.active").find('a').attr("attr2");
+				
+				//年级ID
+				var gradeName = $("#departmentSelect").val();
+				
+				//卡号
+				var queryContent = $("#queryContent").val();
+				var type = $("#depart").val();
+				if (type== 5)
+	            { 
+	               list = amTotalDataList._getOnWorkNormalList();
+	            }
+				else if (type== 2)
+	            { 
+	               list = amTotalDataList._getLatelList();
+	            }
+				else if (type== 3)
+	            { 
+	               list = amTotalDataList._getLeavelList();
+	            }
+				else if (type== 3)
+	            { 
+	               list = amTotalDataList._getOffWorkNormalList();
+	            }
+				else if (type== 1)
+	            { 
+	               list = amTotalDataList._getAbsenteeismList();
+	            }
+				else if (type== 6)
+	            { 
+	               list = amTotalDataList._getAbnormalInList();
+	            }
+				else if (type== 7)
+	            { 
+	               list = amTotalDataList._getAbnormalOutList();
+	            }
+				else if (type== 11)
+	            { 
+	               list = pmTotalDataList._getOnWorkNormalList();
+	            }
+				else if (type== 12)
+	            { 
+	               list = pmTotalDataList._getOffWorkNormalList();
+	            }
+	            else if (type== 9)
+	            { 
+	               list = pmTotalDataList._getLatelList();
+	            }
+	            else if (type== 10)
+	            { 
+	               list = pmTotalDataList._getLeavelList();
+	            }
+	            else if (type== 8)
+	            { 
+	               list = pmTotalDataList._getAbsenteeismList();
+	            }
+	            else if (type== 13)
+	            { 
+	               list = pmTotalDataList._getAbnormalInList();
+	            }
+	            else if (type== 14)
+	            { 
+	               list = pmTotalDataList._getAbnormalOutList();
+	            }
+	            else if (type== 22)
+	            { 
+	               list = totalDataList._getOnWorkNormalList();
+	            }
+				else if (type== 23)
+	            { 
+	               list = totalDataList._getLatelList();
+	            }
+				else if (type== 24)
+	            { 
+	               list = totalDataList._getLeavelList();
+	            }
+				else if (type== 25)
+	            { 
+	               list = totalDataList._getOffWorkNormalList();
+	            }
+				else if (type== 26)
+	            { 
+	               list = totalDataList._getAbsenteeismList();
+	            }
+				else if (type== 27)
+	            { 
+	               list = totalDataList._getAbnormalInList();
+	            }
+				else if (type== 28)
+	            { 
+	               list = totalDataList._getAbnormalOutList();
+	            }
+	            var appendHtml = '';
+				$.each(list, function(n, value) 
+				{  
+					if(gradeName.indexOf(value.gradeName) > -1)
+					{
+					    if(queryContent.indexOf(value.name) > -1)
+					    {
+							appendHtml += '<tr>';
+				           	appendHtml += '<td>' + value.gradeName + '</td>';
+				            appendHtml += '<td>' + value.code + '</td>';
+				            appendHtml += '<td> '+ value.name +'</td>';
+				            appendHtml += '<td> '+ value.statusName +'</td>';			
+			            	appendHtml += '<td>' + value.createDate + '</td>';
+			           		appendHtml += '</tr>';
+			           		
+					    }else if(queryContent=="")
+					    {
+							appendHtml += '<tr>';
+				           	appendHtml += '<td>' + value.gradeName + '</td>';
+				            appendHtml += '<td>' + value.code + '</td>';
+				            appendHtml += '<td> '+ value.name +'</td>';
+				            appendHtml += '<td> '+ value.statusName +'</td>';						
+			            	appendHtml += '<td>' + value.createDate + '</td>';
+			           		appendHtml += '</tr>';
+					    } 
+						 
+			           		
+		           	}else if(gradeName == 0){
+			           	 if(queryContent.indexOf(value.name) > -1)
+					    {
+						    
+							appendHtml += '<tr>';
+				           	appendHtml += '<td>' + value.gradeName + '</td>';
+				            appendHtml += '<td>' + value.code + '</td>';
+				            appendHtml += '<td> '+ value.name +'</td>';
+				            appendHtml += '<td> '+ value.statusName +'</td>';					
+			            	appendHtml += '<td>' + value.createDate + '</td>';
+			           		appendHtml += '</tr>';
+			           		
+					    }else if(queryContent=="")
+					    {
+							appendHtml += '<tr>';
+				           	appendHtml += '<td>' + value.gradeName + '</td>';
+				            appendHtml += '<td>' + value.code + '</td>';
+				            appendHtml += '<td> '+ value.name +'</td>';
+				            appendHtml += '<td> '+ value.statusName +'</td>';					
+				            
+			            	appendHtml += '<td>' + value.createDate + '</td>';
+			           		appendHtml += '</tr>';
+					    } 
+		           	}
+		           		
+		          }); 
+		          			
+				$("#tbody").html(appendHtml);
+				
+			});
+			
+			/* $("#queryContent").keypress(function(){
+			
+				if(event.which == "13")    
+            	{
+					$("#searchAbnormal").click();
+					return false;
+            	}
+			
+			}); */
+			
+			//导出数据
+			$("#export").click(function(){
+				
+				//开始时间
+				var startTime = $("#startTime").val();
+				//结束时间
+				var endTime = $("#endTime").val();
+				//部门ID
+				var departmentId = $("#departmentSelect").val();
+				//查询内容
+				var queryContent = encodeURI(encodeURI($("#queryContent").val()));
+				//用户ID
+				var userId = $("ul li.active").find('a').attr("attr1");
+				//角色ID
+				var roleId = $("ul li.active").find('a').attr("attr2");
+				
+				var list = null;
+				
+				var type = $("#depart").val();
+				if (type== 5)
+	            { 
+	               list = amTotalDataList._getOnWorkNormalList();
+	            }
+				else if (type== 2)
+	            { 
+	               list = amTotalDataList._getLatelList();
+	            }
+				else if (type== 3)
+	            { 
+	               list = amTotalDataList._getLeavelList();
+	            }
+				else if (type== 4)
+	            { 
+	               list = amTotalDataList._getOffWorkNormalList();
+	            }
+				else if (type== 1)
+	            { 
+	               list = amTotalDataList._getAbsenteeismList();
+	            }
+				else if (type== 6)
+	            { 
+	               list = amTotalDataList._getAbnormalInList();
+	            }
+				else if (type== 7)
+	            { 
+	               list = amTotalDataList._getAbnormalOutList();
+	            }
+				else if (type== 11)
+	            { 
+	               list = pmTotalDataList._getOnWorkNormalList();
+	            }
+				else if (type== 12)
+	            { 
+	               list = pmTotalDataList._getOffWorkNormalList();
+	            }
+				else if (type== 9)
+	            { 
+	               list = pmTotalDataList._getLatelList();
+	            }
+				else if (type== 10)
+	            { 
+	               list = pmTotalDataList._getLeavelList();
+	            }
+				else if (type== 8)
+	            { 
+	               list = pmTotalDataList._getAbsenteeismList();
+	            }
+				else if (type== 13)
+	            { 
+	               list = pmTotalDataList._getAbnormalInList();
+	            }
+				else if (type== 14)
+	            { 
+	               list = pmTotalDataList._getAbnormalOutList();
+	            }
+				else if (type== 22)
+	            { 
+	               list = totalDataList._getOnWorkNormalList();
+	            }
+				else if (type== 23)
+	            { 
+	               list = totalDataList._getLatelList();
+	            }
+				else if (type== 24)
+	            { 
+	               list = totalDataList._getLeavelList();
+	            }
+				else if (type== 25)
+	            { 
+	               list = totalDataList._getOffWorkNormalList();
+	            }
+				else if (type== 26)
+	            { 
+	               list = totalDataList._getAbsenteeismList();
+	            }
+				else if (type== 27)
+	            { 
+	               list = totalDataList._getAbnormalInList();
+	            }
+				else if (type== 28)
+	            { 
+	               list = totalDataList._getAbnormalOutList();
+	            }
+	            var jsonObj =  JSON.stringify(list);
+	            
+				//standardPost('<%=basePath%>check/doExportExcelTeacherRecord.do',{userId:userId,roleId:roleId,departmentId:departmentId,queryContent:queryContent,jsonObj:jsonObj});
+				$.ajax({
+				type: "post",
+				url: "<%=basePath%>check/doExportExcelTeacherRecord.do",
+				data:{
+						jsonObj : jsonObj,
+						roleId : roleId,
+						userId : userId,
+						departmentId : departmentId,
+						queryContent : queryContent
+					},
+				success: function(data){
+					window.location.href="<%=basePath%>temp/excel/kaoqintongji.xls";
+				},
+			  });
+			});
+
+		});
+		
+		//加载部门列表
+		function loadDepartmentList(userId, roleId)
+		{
+
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>baseData/getDepartmentList.do",
+				
+				success: function(data){
+					var departmentList = eval("(" + data + ")");
+					
+					var appendHtml = '<option value="0">--选择所有部门--</option>';
+					
+					$.each(departmentList, function(n, value) {
+           				appendHtml += '<option value="' + value.departmentName + '">' + value.departmentName + '</option>';
+           			}); 
+
+           			$("#departmentSelect").html(appendHtml);
+
+           			//初始化带选框
+           			var appendHtml = $("#departmentSelect").html();
+				},
+			});
+
+		}
+		
+
+		//加载总数据(上午)
+		//time 时间
+		//type 0:早退  1:迟到
+		function loadAmTotalData(time, type, userId, roleId)
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>check/loadAmTotalData.do",
+				data:{
+					time : time,
+					userId : userId,
+					roleId : roleId,
+					type : type		
+				},
+				success: function(data){
+					//var total = eval("(" + data + ")");
+					var total = $.parseJSON(data);
+					amTotalDataList._setOnWorkNormalList(total.onWorkNormalList);
+					amTotalDataList._setOffWorkNormalList(total.offWorkNormalList);
+					amTotalDataList._setLatelList(total.latelList);
+					amTotalDataList._setLeavelList(total.leavelList);
+					amTotalDataList._setAbsenteeismList(total.absenteeismList);
+					amTotalDataList._setAbnormalInList(total.abnormalInList);
+					amTotalDataList._setAbnormalOutList(total.abnormalOutList);
+					
+					var amOnWorkNormalCount = total.onWorkNormalList.length;//正常上班人数
+					var amOffWorkNormalCount = total.offWorkNormalList.length;//正常下班人数
+					var amLatelCount = total.latelList.length;//迟到人数
+					var amLeavelCount = total.leavelList.length;//早退人数
+					var amAbsenteeismCount = total.absenteeismList.length;//旷工人数
+					var amAbnormalInCount = total.abnormalInList.length;//非正常进
+					var amAbnormalOutCount = total.abnormalOutList.length;//非正常出
+					var sum = total.sum;//学校总人数
+					var other = sum-amOnWorkNormalCount-amLatelCount-amAbsenteeismCount;//学校总人数
+					if(other<0){
+					     other = 0;
+					}
+					
+					
+					//未查询到统计数据
+					if (amOnWorkNormalCount == 0&&amOffWorkNormalCount == 0&&amLatelCount == 0&&amLeavelCount == 0&&amAbsenteeismCount == 0)
+					{
+						$("#totalChart").hide();
+						$("#totalNotFound").show();
+					}
+					else
+					{
+						$("#totalNotFound").hide();
+						$("#totalChart").show();
+					}
+					
+					
+					//初始化当天时间
+					if (null == time)
+					{
+						$("#time").val(total.time);
+					}
+					
+					var data = [];
+					
+					//未正常离校学生数量
+			        data[0] = {
+			           label:"上午正常上班" + amOnWorkNormalCount + "人",
+			            data: amOnWorkNormalCount
+			          };
+			            //正常离校学生数量
+			        data[1] = {
+			           label: "上午迟到" + amLatelCount + "人",
+			            data: amLatelCount
+			          };
+			            //正常离校学生数量
+			        data[2] = {
+			           	label: "上午正常下班 " + amOffWorkNormalCount + "人",
+			             data: amOffWorkNormalCount
+			          };
+			        data[3] = {
+			           	label: "上午早退" + amLeavelCount + "人",
+			             data: amLeavelCount
+			          };
+			        data[4] = {
+			           	label: "上午旷工" + amAbsenteeismCount + "人",
+			             data: amAbsenteeismCount
+			          };
+			        data[5] = {
+			           	label: "其他" + other + "人",
+			             data: other
+			          };
+			        data[6] = {
+			           	label: "上午非正常进校" + amAbnormalInCount + "人",
+			             data: amAbnormalInCount
+			          };
+			        data[7] = {
+			           	label: "上午非正常出校" + amAbnormalOutCount + "人",
+			             data: amAbnormalOutCount
+			          }; 
+			        data[8] = {
+			           	label: "总人数" + sum + "人 ",
+			             data: 0
+			          }; 
+			          $("#am_td1").text(amOnWorkNormalCount);
+			          $("#am_td2").text(amLatelCount);
+			          $("#am_td3").text(amOffWorkNormalCount);
+			          $("#am_td4").text(amLeavelCount);
+			          $("#am_td5").text(amAbsenteeismCount);
+			          $("#am_td6").text(other);
+			          $("#am_td7").text(amAbnormalInCount);
+			          $("#am_td8").text(amAbnormalOutCount);
+			          $("#am_td9").text(sum);
+					
+		          // DEFAULT
+					$.plot($("#totalChart"), data, {
+		            	series: {
+			                pie: {
+			                    show: true,
+			                    radius: 1,
+		                        label: {
+		                            show: true,
+		                            radius: 1,
+		                            formatter: function (label, series) {
+		                                return '<div style="font-size:20px;text-align:center;padding:2px;color:black;">' + Math.round(series.percent) + '%</div>';
+		                            },
+		                            background: {
+		                                opacity: 0.8
+		                            }
+		                        }
+		                       
+			                },
+			                status: {status:4},
+			            },
+			            grid: {
+			                hoverable: true,
+			                clickable: true
+			            }
+		            });
+
+					$("#totalChart").bind("plotclick", pieClick);
+				},
+			});
+		}
+
+		//加载总数据(下午)
+		//time 时间
+		//type 
+		function loadPmTotalData(time, type, userId, roleId)
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>check/loadPmTotalData.do",
+				data:{
+					time : time,
+					userId : userId,
+					roleId : roleId,
+					type : type		
+				},
+				success: function(data){
+					//var total = eval("(" + data + ")");
+					var total = $.parseJSON(data);
+					pmTotalDataList._setOnWorkNormalList(total.onWorkNormalList);
+					pmTotalDataList._setOffWorkNormalList(total.offWorkNormalList);
+					pmTotalDataList._setLatelList(total.latelList);
+					pmTotalDataList._setLeavelList(total.leavelList);
+					pmTotalDataList._setAbsenteeismList(total.absenteeismList);
+					pmTotalDataList._setAbnormalInList(total.abnormalInList);
+					pmTotalDataList._setAbnormalOutList(total.abnormalOutList);
+					
+					var pmOnWorkNormalCount = total.onWorkNormalList.length;
+					var pmOffWorkNormalCount = total.offWorkNormalList.length;
+					var pmLatelCount = total.latelList.length;
+					var pmLeavelCount = total.leavelList.length;
+					var pmAbsenteeismCount = total.absenteeismList.length;
+					var pmAbnormalInCount = total.abnormalInList.length;//非正常进
+					var pmAbnormalOutCount = total.abnormalOutList.length;//非正常出
+					
+					
+					var sum = total.sum;//学校总人数
+					var other = sum-pmOnWorkNormalCount-pmLatelCount-pmAbsenteeismCount;//学校总人数
+					if(other<0){
+					     other = 0;
+					}
+
+					//未查询到统计数据
+					if (pmOnWorkNormalCount == 0&&pmOffWorkNormalCount == 0&&pmLatelCount == 0&&pmLeavelCount == 0&&pmAbsenteeismCount == 0)
+					{
+						$("#groupChart").hide();
+						$("#groupNotFound").show();
+					}
+					else
+					{
+						$("#groupNotFound").hide();
+						$("#groupChart").show();
+					}
+					
+					var time = total.time;
+					
+					//初始化当天时间
+					if (null == time)
+					{
+						$("#time").val(total.time);
+					}
+					
+					var data = [];
+					
+					//未正常离校学生数量
+			        data[0] = {
+			           label: "下午正常上班" + pmOnWorkNormalCount + "人",
+			            data: pmOnWorkNormalCount
+			          };
+			            //正常离校学生数量
+					
+			        data[1] = {
+			           label: "下午迟到" + pmLatelCount + "人",
+			            data: pmLatelCount
+			          };
+			       data[2] = {
+			           	label: "下午正常下班 " + pmOffWorkNormalCount + "人",
+			             data: pmOffWorkNormalCount
+			          };
+			            //正常离校学生数量
+					data[3] = {
+			           	label: "下午早退" + pmLeavelCount + "人",
+			             data: pmLeavelCount
+			          };
+			        data[4] = {
+			           	label: "下午旷工" + pmAbsenteeismCount + "人",
+			             data: pmAbsenteeismCount
+			          }; 
+					data[5] = {
+			           	label: "其他" + other + "人",
+			             data: other
+			          }; 
+			        data[6] = {
+			           	label: "下午非正常进校" + pmAbnormalInCount + "人",
+			             data: pmAbnormalInCount
+			          };
+			        data[7] = {
+			           	label: "下午非正常出校" + pmAbnormalOutCount + "人",
+			             data: pmAbnormalOutCount
+			          }; 
+			        data[8] = {
+			           	label: "总人数" + sum + "人",
+			             data: 0
+			          };
+			          $("#pm_td1").text(pmOnWorkNormalCount);
+			          $("#pm_td2").text(pmLatelCount);
+			          $("#pm_td3").text(pmOffWorkNormalCount);
+			          $("#pm_td4").text(pmLeavelCount);
+			          $("#pm_td5").text(pmAbsenteeismCount);
+			          $("#pm_td6").text(other);
+			          $("#pm_td7").text(pmAbnormalInCount);
+			          $("#pm_td8").text(pmAbnormalOutCount);
+			          $("#pm_td9").text(sum);
+		          // DEFAULT
+					$.plot($("#groupChart"), data, {
+		            	series: {
+			                pie: {
+			                    show: true,
+			                    radius: 1,
+		                        label: {
+		                            show: true,
+		                            radius: 1,
+		                            formatter: function (label, series) {
+		                           
+		                                return '<div style="font-size:20px;text-align:center;padding:2px;color:black;">' + Math.round(series.percent) + '%</div>';
+		                            },
+		                            background: {
+		                                opacity: 0.8
+		                            }
+		                        }
+			                },
+			            },
+			            grid: {
+			                hoverable: true,
+			                clickable: true
+			            }
+		            });
+
+					$("#groupChart").bind("plotclick", pieClick);
+				},
+			});
+		}
+		//加载总数据
+		//time 时间
+		//type 0:早退  1:迟到
+		function loadTotalData(time, type, userId, roleId)
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>check/loadTotalData.do",
+				data:{
+					time : time,
+					userId : userId,
+					roleId : roleId,
+					type : type		
+				},
+				success: function(data){
+					//var total = eval("(" + data + ")");
+					var total = $.parseJSON(data);
+					totalDataList._setOnWorkNormalList(total.onWorkNormalList);
+					totalDataList._setOffWorkNormalList(total.offWorkNormalList);
+					totalDataList._setLatelList(total.latelList);
+					totalDataList._setLeavelList(total.leavelList);
+					totalDataList._setAbsenteeismList(total.absenteeismList);
+					totalDataList._setAbnormalInList(total.abnormalInList);
+					totalDataList._setAbnormalOutList(total.abnormalOutList);
+					
+					var onWorkNormalCount = total.onWorkNormalList.length;//正常上班人数
+					var offWorkNormalCount = total.offWorkNormalList.length;//正常下班人数
+					var latelCount = total.latelList.length;//迟到人数
+					var leavelCount = total.leavelList.length;//早退人数
+					var absenteeismCount = total.absenteeismList.length;//旷工人数
+					var abnormalInCount = total.abnormalInList.length;//非正常进
+					var abnormalOutCount = total.abnormalOutList.length;//非正常出
+					var sum = total.sum;//学校总人数
+					var other = sum-onWorkNormalCount-latelCount-absenteeismCount;//学校总人数
+					if(other<0){
+					     other = 0;
+					}
+					
+					
+					//未查询到统计数据
+					if (onWorkNormalCount == 0&&offWorkNormalCount == 0&&latelCount == 0&&leavelCount == 0&&absenteeismCount == 0)
+					{
+						$("#todayChart").hide();
+						$("#todayNotFound").show();
+					}
+					else
+					{
+						$("#todayNotFound").hide();
+						$("#todayChart").show();
+					}
+					
+					
+					//初始化当天时间
+					if (null == time)
+					{
+						$("#time").val(total.time);
+					}
+					
+					var data = [];
+					
+					//未正常离校学生数量
+			        data[0] = {
+			           label:"正常上班" + onWorkNormalCount + "人",
+			            data: onWorkNormalCount
+			          };
+			            //正常离校学生数量
+			        data[1] = {
+			           label: "迟到" + latelCount + "人",
+			            data: latelCount
+			          };
+			            //正常离校学生数量
+			        data[2] = {
+			           	label: "正常下班 " + offWorkNormalCount + "人",
+			             data: offWorkNormalCount
+			          };
+			        data[3] = {
+			           	label: "早退" + leavelCount + "人",
+			             data: leavelCount
+			          };
+			        data[4] = {
+			           	label: "旷工" + absenteeismCount + "人",
+			             data: absenteeismCount
+			          };
+			        data[5] = {
+			           	label: "其他" + other + "人",
+			             data: other
+			          };
+			        data[6] = {
+			           	label: "非正常进校" + abnormalInCount + "人",
+			             data: abnormalInCount
+			          };
+			        data[7] = {
+			           	label: "非正常出校" + abnormalOutCount + "人",
+			             data: abnormalOutCount
+			          }; 
+			        data[8] = {
+			           	label: "总人数" + sum + "人 ",
+			             data: 0
+			          }; 
+			          $("#am_td1").text(onWorkNormalCount);
+			          $("#am_td2").text(latelCount);
+			          $("#am_td3").text(offWorkNormalCount);
+			          $("#am_td4").text(leavelCount);
+			          $("#am_td5").text(absenteeismCount);
+			          $("#am_td6").text(other);
+			          $("#am_td7").text(abnormalInCount);
+			          $("#am_td8").text(abnormalOutCount);
+			          $("#am_td9").text(sum);
+					
+		          // DEFAULT
+					$.plot($("#todayChart"), data, {
+		            	series: {
+			                pie: {
+			                    show: true,
+			                    radius: 1,
+		                        label: {
+		                            show: true,
+		                            radius: 1,
+		                            formatter: function (label, series) {
+		                                return '<div style="font-size:20px;text-align:center;padding:2px;color:black;">' + Math.round(series.percent) + '%</div>';
+		                            },
+		                            background: {
+		                                opacity: 0.8
+		                            }
+		                        }
+		                       
+			                },
+			                status: {status:4},
+			            },
+			            grid: {
+			                hoverable: true,
+			                clickable: true
+			            }
+		            });
+
+					$("#todayChart").bind("plotclick", pieClick);
+				},
+			});
+		}
+
+		function pieClick(event, pos, obj) 
+		{
+            if (!obj)
+            {
+            	return;
+            }
+			var name = obj.series.label;
+			var type = $("#type").val();
+			
+			var list = null;
+			if(type == 0){
+				if (name.indexOf("上午正常上班") > -1)
+	            { 
+	               $("#depart").val("5");
+	               list = amTotalDataList._getOnWorkNormalList();
+	            }
+				else if (name.indexOf("上午正常下班") > -1)
+	            { 
+	               $("#depart").val("4");
+	               list = amTotalDataList._getOffWorkNormalList();
+	            }
+				else if (name.indexOf("上午迟到") > -1)
+	            { 
+	               $("#depart").val("2");
+	               list = amTotalDataList._getLatelList();
+	            }
+				else if (name.indexOf("上午早退") > -1)
+	            { 
+	               $("#depart").val("3");
+	               list = amTotalDataList._getLeavelList();
+	            }
+				else if (name.indexOf("上午旷工") > -1)
+	            { 
+	               $("#depart").val("1");
+	               list = amTotalDataList._getAbsenteeismList();
+	            }
+				else if (name.indexOf("上午非正常进") > -1)
+	            { 
+	               $("#depart").val("6");
+	               list = amTotalDataList._getAbnormalInList();
+	            }
+				else if (name.indexOf("上午非正常出") > -1)
+	            { 
+	               $("#depart").val("7");
+	               list = amTotalDataList._getAbnormalOutList();
+	            }
+				else if (name.indexOf("下午正常上班") > -1)
+	            { 
+	               $("#depart").val("11");
+	               list = pmTotalDataList._getOnWorkNormalList();
+	            }
+				else if (name.indexOf("下午正常下班") > -1)
+	            { 
+	               $("#depart").val("12");
+	               list = pmTotalDataList._getOffWorkNormalList();
+	            }
+				else if (name.indexOf("下午迟到") > -1)
+	            { 
+	               $("#depart").val("9");
+	               list = pmTotalDataList._getLatelList();
+	            }
+				else if (name.indexOf("下午早退") > -1)
+	            { 
+	               $("#depart").val("10");
+	               list = pmTotalDataList._getLeavelList();
+	            }
+				else if (name.indexOf("下午旷工") > -1)
+	            { 
+	               $("#depart").val("8");
+	               list = pmTotalDataList._getAbsenteeismList();
+	            }
+				else if (name.indexOf("下午非正常进") > -1)
+	            { 
+	               $("#depart").val("13");
+	               list = pmTotalDataList._getAbnormalInList();
+	            }
+				else if (name.indexOf("下午非正常出") > -1)
+	            { 
+	               $("#depart").val("14");
+	               list = pmTotalDataList._getAbnormalOutList();
+	            }
+	            
+				else if (name.indexOf("其他") > -1)
+	            { 
+	               $("#inoutAbnormalDetail").hide();
+	               return ;
+	            }
+			}else if (type == 1){
+				if (name.indexOf("正常上班") > -1)
+	            { 
+	               $("#depart").val("22");
+	               list = totalDataList._getOnWorkNormalList();
+	            }
+				else if (name.indexOf("正常下班") > -1)
+	            { 
+	               $("#depart").val("25");
+	               list = totalDataList._getOffWorkNormalList();
+	            }
+				else if (name.indexOf("迟到") > -1)
+	            { 
+	               $("#depart").val("23");
+	               list = totalDataList._getLatelList();
+	            }
+				else if (name.indexOf("早退") > -1)
+	            { 
+	               $("#depart").val("24");
+	               list = totalDataList._getLeavelList();
+	            }
+				else if (name.indexOf("旷工") > -1)
+	            { 
+	               $("#depart").val("26");
+	               list = totalDataList._getAbsenteeismList();
+	            }
+				else if (name.indexOf("非正常进") > -1)
+	            { 
+	               $("#depart").val("27");
+	               list = totalDataList._getAbnormalInList();
+	            }
+				else if (name.indexOf("非正常出") > -1)
+	            { 
+	               $("#depart").val("28");
+	               list = totalDataList._getAbnormalOutList();
+	            }
+				else if (name.indexOf("其他") > -1)
+	            { 
+	               $("#inoutAbnormalDetail").hide();
+	               return ;
+	            }
+			}
+            $("#inoutAbnormalDetail").show();
+			$("#itemName").html(name);
+
+			var time = $("#time").val();
+			var roleId = $("ul li.active").find('a').attr("attr2");
+			var userId = $("ul li.active").find('a').attr("attr1");
+			
+			//var page = eval("(" + date + ")");
+			var appendHtml = '';
+			$.each(list, function(n, value) 
+			{  
+			   if (n%2 == 0)
+			{
+				appendHtml += '<tr style="background-color: #ededed">';
+			}
+			else
+			{
+				appendHtml += '<tr>';
+			}
+				
+           	appendHtml += '<td>' + value.gradeName + '</td>';
+            appendHtml += '<td>' + value.code + '</td>';
+            appendHtml += '<td> '+ value.name +'</td>';
+            appendHtml += '<td> '+ value.statusName +'</td>';			
+           
+           				 
+            	appendHtml += '<td>' + value.createDate + '</td>';
+           		appendHtml += '</tr>';
+          	}); 
+          			
+			$("#tbody").html(appendHtml);
+		
+        }
+	</script>
+	</html>

@@ -1,0 +1,368 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>维修人员添加</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束--> 
+ 	<style type="text/css">
+ 		input[type="radio"]{margin-left:-2px!important;}
+ 		.search_box .m_select,.search_box .m_input{
+ 		    height:34px;
+ 		    line-height:34px;
+ 		}
+ 	</style>    
+</head>
+	<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+		<input class="themes" type="hidden" value="<%=ThemePath%>">
+	    <!-- 公共顶部开始-->
+	    <%@ include file="/public_module/public_header.jsp"%>    
+	    <!--公共顶部结束-->
+	    <div class="clearfix"> </div>
+	    <!-- 内容页开始 -->
+	    <div class="page-container">
+	        <!--主菜单开始-->
+	        <%@include file="/public_module/public_menu.jsp"%>
+	        <!--主菜单结束-->
+	        <div class="page-content-wrapper">
+	            <div class="page-content m_overflow_hidden m_page_content">
+	            	
+	            	<!-- 页面内容开始 -->
+	            	<div class="col-md-12 col-sm-12 m_page_con">
+	                <div class="page-bar m_margin_0_0_0_0">
+	                    <ul class="page-breadcrumb">
+	                        <li><a href="<%=basePath%>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+	                        <li><a href="<%=basePath%>asset/toAssetInfoList.do">资产管理</a><i class="fa fa-circle"></i></li>
+	                        <li><span>维修人员添加</span></li>
+	                    </ul>
+	                </div>
+	                <div class="row">
+	                    <div class="col-md-12 col-sm-12">
+	                        <!-- 添加功能菜单开始 -->
+	                        <div class="portlet light form-fit m_margin_15_auto_0 m_text_align_right">
+                        		<a class="btn green add_serviceman">添加多个维修人员</a>
+	                        </div>
+	                        <!-- 添加功能菜单结束 -->
+	                        <!-- 页面搜索开始 -->
+	                       	<div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption">
+	                                    <i class="fa fa-list"></i>添加维修人员</div>
+	                            </div>
+	                            <div class="portlet-body form-horizontal">
+	                            <form action="<%=basePath%>asset/doAddServiceman.do" method="post" id="addForm1">
+	                            	<div class="row m_margin_10_auto search_box">
+			                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+			                         		<span class="m_span">维修人员</span>
+			                         		<select class="form-control select2me m_select serviceman" id="serviceman1" name="serviceman">
+	                                    	</select>
+			                         	</div>
+			                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+			                         		<span class="m_span">员工编号</span>
+	                                        <input class="form-control m_input" disabled="disabled" id="code1" name="code">
+			                         	</div>
+			                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+			                         		<span class="m_span">手机号</span>
+                                        	<input class="form-control m_input" disabled="disabled" id="phone1" name="phone">
+			                         	</div>
+			                         </div>
+			                         <div class="row m_margin_10_auto search_box">
+			                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+			                         		<span class="m_span">维修类型</span>
+	                                        <select class="form-control m_select" id="type1" name="type">
+		                                    </select>
+			                         	</div>
+			                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+			                         		<span class="m_span">领导1</span>
+	                                        <select class="form-control select2me m_select" id="leaderone1" name="leaderone">
+		                                    </select>
+			                         	</div>
+			                         	<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+			                         		<span class="m_span">领导2</span>
+	                                        <select class="form-control select2me m_select" id="leadertwo1" name="leadertwo">
+		                                    </select>
+			                         	</div>
+			                         	
+			                         </div>
+                          		</form>
+                           </div>
+                       </div>
+                       <p class="m_margin_top-15 m_text_align_conter">
+                       	<button type="button" id="save" onclick="saveData()" class="btn green">保存</button>
+                       	<button type="button" class="btn default" onclick="history.go(-1);" id="cancel">返回</button>
+                       </p>
+	                   <!-- 列表展现开始 -->
+	            </div>
+	        </div>
+	        <!-- 亦信聊天开始 -->
+	    	<%@ include file="/public_module/public_QQ.jsp" %>
+	        <!-- 亦信聊天结束 -->
+	    </div>
+	    <!-- 内容页结束 -->
+	    <!-- 底部开始 -->
+	    <%@ include file="/public_module/public_footer.jsp" %>
+	    <!-- 底部结束 -->
+	</body>
+    <!-- 公共js开始 -->
+    <%@ include file="/public_module/public_js.jsp" %>
+    <!-- 公共js结束 -->
+   
+   <script type="text/javascript">
+   var num = 1;
+   	$(function(){
+   	    //选取当前菜单位置
+   		setActive("assetManagement","assetServicemanList");
+   	    loadTyepList(1);
+   	    loadRespPersonList(1);
+   	 	loadLeaderList('','','');
+   		$(".add_serviceman").on("click",function(){
+   			num++;
+			var appendhttp="";
+			appendhttp +='<form action="<%=basePath%>asset/doAddServiceman.do" method="post" id="addForm'+num+'">';
+			appendhttp +='<div class="row m_margin_10_auto search_box"  style="border-top:1px solid #ccc">';
+			appendhttp +='<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">';
+			appendhttp +='<span class="m_span">维修人员</span>';
+			appendhttp +='<select class="form-control select2me m_select serviceman'+num+'" id="serviceman'+num+'" name="serviceman">';
+			appendhttp +='</select>';
+			appendhttp +='</div>';
+			appendhttp +='<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">';
+			appendhttp +='<span class="m_span">员工编号</span>';
+			appendhttp +='<input class="form-control m_input code" disabled="disabled" id="code'+num+'" name="code">';
+			appendhttp +='</div>';
+			appendhttp +='<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">';
+			appendhttp +='<span class="m_span">手机号</span>';
+			appendhttp +='<input class="form-control m_input phone" disabled="disabled" id="phone'+num+'" name="phone">';
+			appendhttp +='</div>';
+			appendhttp +='<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">';
+			appendhttp +='<span class="m_span">领导1</span>';
+			appendhttp +='<select class="form-control select2me m_select leaderone" id="leaderone'+num+'" name="leaderone">';
+			appendhttp +='</select>';
+			appendhttp +='</div>';
+			appendhttp +='<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">';
+			appendhttp +='<span class="m_span">领导2</span>';
+			appendhttp +='<select class="form-control select2me m_select leadertwo" id="leadertwo'+num+'" name="leadertwo">';
+			appendhttp +='</select>';
+			appendhttp +='</div>';
+			appendhttp +='<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">';
+			appendhttp +='<span class="m_span">维修类型</span>';
+			appendhttp +='<select class="form-control m_select" id="type'+num+'" name="type">';
+			appendhttp +='</select>';
+			appendhttp +='</div>';
+			appendhttp +='</div>';
+			appendhttp +='</form>';
+			$(".portlet-body").append(appendhttp);
+			loadTyepList(num);
+	   	    loadRespPersonList(num);
+	   	 	$(".serviceman"+num).change(function(){
+				var userId = $(this).find("option:selected").val();
+				var code = $(this).find("option:selected").attr("attr1");
+				var phone = $(this).find("option:selected").attr("attr2");
+				$(this).parent().parent().parent().find(".code").val(code);
+				$(this).parent().parent().parent().find(".phone").val(phone);
+				var leaderone= $(this).parent().parent().parent().find(".leaderone").attr("id");
+				var leadertwo= $(this).parent().parent().parent().find(".leadertwo").attr("id");
+				loadLeaderList(userId,leaderone,leadertwo);
+	   	    });
+   	  });
+   	  
+   	  $(".serviceman").change(function(){
+			var userId = $(this).find("option:selected").val();
+			var code = $(this).find("option:selected").attr("attr1");
+			var phone = $(this).find("option:selected").attr("attr2");
+			$("#code1").val(code);
+			$("#phone1").val(phone);
+			loadLeaderList(userId,"leaderone1","leadertwo1");
+			
+   	  });
+   	})
+   	
+   	function loadRespPersonList(num)
+    {
+    	$.ajax({
+			type: "post",
+			async: false,
+			url: "<%=basePath%>asset/getRespPerson.do",
+			data:{
+			},
+			success: function(data){
+				var list = eval("(" + data + ")");
+                var appendHtml = '';
+                appendHtml += '<option value="" attr1="" attr2="">---请选择---</option>';
+				$.each(list, function(n, value) {  
+       				appendHtml += '<option value="'+value.userId+'" attr1="'+value.code+'" attr2="'+value.phone+'">'+value.realName+'</option>';
+      			}); 
+				var va =$("#serviceman1").val();
+				if(va==null||va==''){
+					va='---请选择---'
+				}
+				$("#select2-serviceman"+num+"-container").attr("title",va);
+          		$("#select2-serviceman"+num+"-container").text(va);
+      			$("#serviceman"+num).html(appendHtml);
+			},
+		});
+    }
+   	
+   	//根据维修人查询对应的领导
+   	function loadLeaderList(userId,leaderone,leadertwo)
+    {
+   		if(userId==''){
+   			$("#select2-leadertwo1-container").attr("title","---请选择---");
+      		$("#select2-leadertwo1-container").text("---请选择---")
+   			$("#select2-leaderone1-container").attr("title","---请选择---");
+      		$("#select2-leaderone1-container").text("---请选择---")
+   		}else{
+   			$.ajax({
+   				type: "post",
+   				async: false,
+   				url: "<%=basePath%>asset/getLeaderListByUserId.do",
+   				data:{
+   					userId : userId
+   				},
+   				success: function(data){
+   					var list = eval("(" + data + ")");
+   	                var appendHtml = '';
+   	                appendHtml += '<option value="" attr1="" attr2="">---请选择---</option>';
+   					$.each(list, function(n, value) {  
+   	       				appendHtml += '<option value="'+value.userId+'">'+value.realName+'</option>';
+   	      			}); 
+   	      			$("#"+leaderone).html(appendHtml);
+   	      			$("#"+leadertwo).html(appendHtml);
+   				},
+   			});
+   		}
+    	
+    }
+   
+    function loadTyepList(num)
+    {
+    	$.ajax({
+			type: "post",
+			async: false,
+			url: "<%=basePath%>asset/getAssetTypeList.do",
+			data:{
+			},
+			success: function(data){
+				var list = eval("(" + data + ")");
+                var appendHtml = '';
+				$.each(list, function(n, value) {  
+       				appendHtml += '<option value="'+value.id+'">'+value.name+'</option>';
+      			}); 
+      			$("#type"+num).html(appendHtml);
+				
+			},
+		});
+    }
+    
+    function saveData()
+    {
+    	if(num>1)
+   		{
+    		for(var i=1;i<=num;i++)
+       		{
+    			var servicemanId = $("#serviceman"+i).val();
+        		var serviceman = $("#serviceman"+i+" option:selected").text();
+    			if(servicemanId==""){
+    				layer.tips('请选择维修人员', '#serviceman'+i);
+    				return;
+    			}
+    			var code = $("#code"+i).val();
+        		var phone = $("#phone"+i).val();
+        		
+    			var leaderIdOne = $("#leaderone"+i).val();
+    			var leaderOne = $("#leaderone"+i+" option:selected").text();
+    			if(leaderIdOne==""){
+    				layer.tips('请选择领导1', '#leaderone'+i);
+    				return;
+    			}
+    			var leaderIdTwo = $("#leadertwo"+i).val();
+    			var leaderTwo = $("#leadertwo"+i+" option:selected").text();
+    			if(leaderIdOne == leaderIdTwo)
+   				{
+    				layer.tips('领导1和领导2重复', '#leadertwo'+i);
+    				return;
+   				}
+    			
+    			var type = $("#type"+i).val();
+    			var data={"servicemanId":servicemanId,"serviceman":serviceman,"code":code,"phone":phone,"leaderIdOne":leaderIdOne,
+    					"leaderOne":leaderOne,"leaderIdTwo":leaderIdTwo,"leaderTwo":leaderTwo,"type":type};
+    			if(i==num)
+   				{
+    				submitDate(true,data);
+   				}
+    			else
+   				{
+    				submitDate(false,data);
+   				}
+       		}
+   		}
+    	else
+   		{
+    		var servicemanId = $("#serviceman1").val();
+    		var serviceman = $('#serviceman1 option:selected').text();
+			if(servicemanId==""){
+				layer.tips('请选择维修人员', '#serviceman1');
+				return;
+			}
+			var code = $("#code1").val();
+    		var phone = $("#phone1").val();
+    		
+			var leaderIdOne = $("#leaderone1").val();
+			var leaderOne = $('#leaderone1 option:selected').text();
+			if(leaderIdOne==""){
+				layer.tips('请选择领导1', '#leaderone1');
+				return;
+			}
+			var leaderIdTwo = $("#leadertwo1").val();
+			var leaderTwo = $('#leadertwo1 option:selected').text();
+			if(leaderIdOne == leaderIdTwo)
+			{
+				layer.tips('领导1和领导2重复', '#leadertwo1');
+				return;
+			}
+			var type = $("#type1").val();
+			var data={"servicemanId":servicemanId,"serviceman":serviceman,"code":code,"phone":phone,"leaderIdOne":leaderIdOne,
+					"leaderOne":leaderOne,"leaderIdTwo":leaderIdTwo,"leaderTwo":leaderTwo,"type":type};
+			submitDate(true,data);
+   		}
+    }
+    
+    function submitDate(flag,data)
+    {
+    	var indexlayer = layer.msg('正在保存数据,请稍候。。。',{icon: 16,time:0,shade:0.3});
+		$.ajax({
+			type: "post",
+			url: "<%=basePath%>asset/doAddServiceman.do",
+			dataType:"json",
+			async: false, 
+			data:data,
+			dataType:"json",
+			error:function(){
+				layer.close(indexlayer);	
+			},
+			success: function(data){
+				if(data){
+					setTimeout(function(){
+						layer.msg("添加成功",{icon:1,time:1000});
+						if(flag)
+						{
+							location.href="<%=basePath%>asset/toAssetServicemanList.do";
+						}
+						layer.close(indexlayer);
+					},1000);
+				}else{
+					layer.msg("维修人员已经存在",{icon:2,time:1000});	
+				}
+			}
+		});
+		
+    }
+   	   	
+   </script>
+</html>

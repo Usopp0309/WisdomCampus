@@ -1,0 +1,351 @@
+package com.guotop.palmschool.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.gson.Gson;
+import com.guotop.palmschool.common.entity.ResultInfo;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.entity.Card;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.service.CardService;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 电子卡控制类
+ * @author shi
+ *
+ */
+@RequestMapping("/card")
+@Controller
+public class CardController extends BaseController
+{
+	
+	@Resource 
+	private CardService cardService;
+	
+	@Resource
+	private CommonService commonService;
+	
+	/**
+	 * 进入年级管理页面
+	 */
+	@RequestMapping(value="/toCardList.do")
+	public String toCardList()
+	{
+		return "card/card_list";
+	}
+	
+	/**
+	 * 不同权限查看到不同的page
+	 * 20151129
+	 */
+	@RequestMapping(value="/getCardList.do")
+	public String getcardList(HttpServletRequest request, HttpServletResponse response,
+			HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		
+		try
+		{
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+			
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			}
+			catch (Exception e)
+			{
+				currentPage = 1;
+			}
+			
+			/**
+			 * 卡号
+			 */
+			String queryContent = request.getParameter("queryContent");
+			
+			/**
+			 * 持有者
+			 */
+			//String ower = request.getParameter("ower");
+			
+			/**
+			 * 记录点
+			 */
+			String position = request.getParameter("position");
+			/*
+			 * 更新时间
+			 */
+			String updatetime = request.getParameter("updatetime");
+			
+			/**
+			 * 参数
+			 */
+			HashMap<String , Object> paramMap = new HashMap<String, Object>();
+			
+			User user = (User) session.getAttribute("user");
+			paramMap.put("queryContent", queryContent);
+			paramMap.put("position", position);
+			paramMap.put("updatetime", updatetime);
+			
+			/**
+			 * 选定user
+			 */
+			paramMap.put("schoolId",user.getSchoolId());
+			
+			this.getPages().setPageSize(100);
+			Pages pages = cardService.getCardList(this.getPages().getPageSize(),
+					currentPage,user,paramMap);
+			
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	/**
+	 * 进入增加电子卡页面
+	 */
+	@RequestMapping(value="/toAddCard.do")
+	public String toAddCard(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		
+		/**
+		 * 从session中取出指定的user
+		 */
+		User user = (User)session.getAttribute("user");
+		
+		/**
+		 * 存放页面隐藏域
+		 */
+		modelMap.addAttribute("user", user);
+		
+		return "card/card_add";
+	}
+	
+	/**
+	 * 执行增加年级逻辑
+	 */
+	@RequestMapping(value="/doAddCard.do")
+	public String doAddCard(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		
+		/*List<User> userList = (List<User>) session.getAttribute("user");
+		
+		*//**
+		 * 用户ID
+		 *//*
+		Integer userId = Integer.valueOf(request.getParameter("userId"));
+		
+		*//**
+		 * 权限ID
+		 *//*
+		Integer roleId = Integer.valueOf(request.getParameter("roleId"));*/
+		
+		/**
+		 * 从session中取出指定的user
+		 */
+		//User user = commonService.selectUserFromSessionByUserId(userList, userId, roleId);
+		
+		/**
+		 * 卡号
+		 */
+		String code = request.getParameter("code");
+		
+		
+		
+
+		Card card = new Card();
+		card.setCardCode(code);
+		card.setCreatetime(formatter.format(new Date()));
+		card.setUpdatetime(formatter.format(new Date()));
+		card.setStatus("1");
+		/**
+		 * 添加班级
+		 */
+		cardService.addCard(card);
+		
+		return "card/card_list";
+	}
+	
+	/**
+	 * 进入修改电子卡页面
+	 * 20151130
+	 */
+	@RequestMapping(value="/toModifyCard.do")
+	public String toModifyCard(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		User user = (User) session.getAttribute("user");
+		
+		Integer cardId = Integer.valueOf(request.getParameter("cardId"));
+		Card card =cardService.selectCardById(cardId);
+		
+		/**
+		 * 存放页面隐藏域
+		 */
+		modelMap.addAttribute("cardId", cardId);
+		modelMap.addAttribute("user", user);
+		modelMap.addAttribute("card", card);
+		
+		return "card/card_modify";
+	}
+	
+	/**
+	 * 执行修改逻辑
+	 */
+	@RequestMapping(value="/doModifyCard.do")
+	public String doModifyCard(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
+		
+		/**
+		 * cardId
+		 */
+		Integer cardId = Integer.valueOf(request.getParameter("cardId"));
+		
+		/**
+		 * 卡号
+		 */
+		String code = request.getParameter("code");
+		
+		/**
+		 * 修改时间
+		 */
+		String updatetime = formatter.format(new Date());
+		//状态
+		String status = request.getParameter("status");
+
+		/**
+		 * 参数
+		 */
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("cardId", cardId);
+		paramMap.put("code", code);
+		paramMap.put("updatetime", updatetime);
+		paramMap.put("status", status);
+		
+		/**
+		 * 添加年级
+		 */
+		cardService.modifyCard(paramMap);
+		return "card/card_list";
+	}
+	
+	/**
+	 * 表单校验---begin
+	 */
+	@RequestMapping(value="/checkCardCode.do")
+	public String checkCardCode(HttpServletRequest request,
+			HttpServletResponse response, HttpSession session) 
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try 
+		{
+			String code = request.getParameter("code");
+			ResultInfo resultInfo = cardService.checkCardCode(code);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(resultInfo);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		}
+		catch (Exception e) 
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	/**
+	 * 表单校验---end
+	 */
+	
+	/**
+	 * 表单校验---begin
+	 */
+	@RequestMapping(value="/checkCardCodeBycode.do")
+	public String checkCardCodeBycode(HttpServletRequest request,
+			HttpServletResponse response, HttpSession session) 
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try 
+		{
+			String cardCode = request.getParameter("cardCode");		
+			boolean cardCodeFlag = cardService.checkCardCodeIsExist(cardCode);
+
+			Gson gson = new Gson();
+			String json = gson.toJson(cardCodeFlag);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		}
+		catch (Exception e) 
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	/**
+	 * 表单校验---end
+	 */
+	@RequestMapping(value="/deleteCard.do")
+	public String deleteCard(HttpServletRequest request,
+			HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		ResultInfo resultInfo = new ResultInfo();
+		try
+		{
+			String cardId = request.getParameter("cardId");
+			
+			if (cardId != null)
+			{
+				
+				cardService.deleteCard(Integer.valueOf(cardId));
+				resultInfo.setResultCode("0");
+			}
+			
+		}catch(Exception e)
+		{
+			resultInfo.setResultCode("-1");
+			e.printStackTrace();
+		}
+		try
+		{
+			Gson gson = new Gson();
+			String json = gson.toJson(resultInfo);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		}catch(Exception ex)
+		{
+			
+		}
+		return null;
+	}
+	
+}

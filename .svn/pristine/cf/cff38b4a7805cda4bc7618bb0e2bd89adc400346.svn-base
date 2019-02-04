@@ -1,0 +1,34 @@
+package com.guotop.palmschool.service;
+
+import java.util.List;
+
+import com.guotop.palmschool.entity.Agency;
+import com.guotop.palmschool.entity.User;
+
+/**
+ * 代理商服务接口
+ * @author jfy
+ * @date 2015年12月14日
+ */
+public interface AgencyService
+{
+	/**
+	 * 获取代理商列表
+	 * @return
+	 */
+	public List<Agency> getAgencyList();
+	
+	/**
+	 * 获取一个代理商对应的技术支持人员
+	 * @return
+	 * 
+	 * add by syj 20151215
+	 */
+	public List<User> getSupportUserListByAgencyId(Integer agencyId);
+	/**
+	 * 是否归属代理商
+	 * @param userId
+	 * @return
+	 */
+	public boolean isBelongAgency(Integer userId);
+}

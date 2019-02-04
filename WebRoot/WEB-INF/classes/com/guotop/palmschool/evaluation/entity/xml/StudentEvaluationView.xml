@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="StudentEvaluationView">
+
+	<typeAlias alias="evaluationTime" type="com.guotop.palmschool.evaluation.entity.EvaluationTime"/>
+	<typeAlias alias="evaluateModel" type="com.guotop.palmschool.evaluation.entity.EvaluateModel"/>
+	<typeAlias alias="teacherEvaluatePhraseModel" type="com.guotop.palmschool.evaluation.entity.TeacherEvaluatePhraseModel"/>
+	<typeAlias alias="teacherEvaluateFormModel" type="com.guotop.palmschool.evaluation.entity.TeacherEvaluateFormModel"/>
+	
+	
+	<resultMap class="com.guotop.palmschool.evaluation.entity.EvaluationClazzModel" id="result_evaluationClazzModel">
+		<result property="id" column="id"/>
+		<result property="evaluatetimeId" column="evaluatetimeId"/>
+		<result property="teachingfolderId" column="teachingfolderId"/>	
+		<result property="status" column="status"/>
+		<result property="userType" column="userType"/>
+		<result property="semester" column="semester"/>
+		<result property="name" column="name"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.evaluation.entity.TeacherEvaluateDetail" id="teacher_evaluate_detail">
+		<result property="userId" column="userId"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.evaluation.entity.TeacherEvaluateTitleModel" id="teacher_evaluate_title">
+		<result property="id" column="id"/>
+		<result property="formId" column="formId"/>
+		<result property="modelId" column="modelId"/>
+		<result property="title" column="title"/>	
+		<result property="formType" column="formType"/>
+		<result property="contextType" column="contextType"/>
+		<result property="titleType" column="titleType"/>
+	</resultMap>
+	
+   <resultMap class="com.guotop.palmschool.evaluation.entity.TeacherEvaluatePhraseModel" id="teacher_evaluate_phrase">
+		<result property="id" column="id"/>
+		<result property="formId" column="formId"/>
+		<result property="modelId" column="modelId"/>
+		<result property="titleId" column="titleId"/>	
+		<result property="text" column="text"/>
+		<result property="userId" column="userId"/>
+		<result property="realName" column="realName"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.evaluation.entity.TeacherEvaluateFormModel" id="teacher_evaluate_form">
+		<result property="id" column="id"/>
+		<result property="name" column="name"/>
+		<result property="gradeId" column="gradeId"/>	
+		<result property="clazzId" column="clazzId"/>
+		<result property="type" column="type"/>
+		<result property="sid" column="sid"/>
+		<result property="userId" column="userId"/>
+		<result property="modelId" column="modelId"/>
+	</resultMap>
+	
+	<!-- 根据Id查询对应的评价 -->
+	<select id="getEvaluateClazzByClazzId" parameterClass="HashMap" resultMap="result_evaluationClazzModel">
+		SELECT ecm.*,tef.name,tef.semester,et.* FROM palm_evaluate_clazz_model ecm ,palm_evaluation_time et ,teachingexercisesfolder tef
+			WHERE ecm.evaluatetimeId = et.id 
+			  AND ecm.teachingfolderId = tef.id
+			  AND ( et.clazzId = #clazzId# or (et.clazzId = 0 and et.gradeId = #gradeId#) or (et.clazzId = 0 and et.gradeId = 0) )
+			  AND ecm.status=1 AND ecm.usertype= #userType#
+	</select>
+	
+    <!-- 查询评价信息 -->
+	<select id="getStudentEvaluateForm" parameterClass="HashMap" resultClass="evaluateModel">
+		SELECT f.id,
+		       ud.realName,
+				(
+				  SELECT COUNT(DISTINCT d.userId)  FROM palm_teacher_evaluate_detail d WHERE d.formId=f.id
+				) AS nums 
+			FROM palm_teacher_evaluate_form f ,platform.user_detail ud 
+			  WHERE ud.userId = f.userId 
+			   AND f.clazzId = #clazzId#  
+			   AND f.type= #type#
+	</select>
+	
+	<!-- 查询所有评价信息 -->
+	<select id="getSteudentEvaluateFormAll" parameterClass="HashMap" resultMap="teacher_evaluate_form">
+		SELECT * FROM palm_teacher_evaluate_form WHERE clazzId = #clazzId# AND type = #type# and sid = 2
+	</select>
+	
+	<!-- 根据模板Id查询对应的时间段 -->
+	<select id="getEvaluationTime" parameterClass="HashMap" resultClass="evaluationTime">
+		SELECT et.* FROM palm_evaluate_clazz_model ec, palm_evaluation_time et 
+		WHERE et.id = ec.evaluatetimeId 
+		 AND ( et.clazzId = #clazzId# or (et.clazzId = 0 and et.gradeId = #gradeId#) or (et.clazzId = 0 and et.gradeId = 0) )
+		 AND ec.teachingfolderId = #folderId# order by et.id desc limit 1
+	</select>
+	
+	<!-- 查询所有的教师 -->
+	<select id="getTeachers" parameterClass="HashMap" resultClass="Integer">
+		<![CDATA[
+		SELECT DISTINCT cu.subjectsUser FROM palm_curriculum cu,palm_curriculum_semester cs
+		  WHERE cu.semesterId = cs.id 
+		   AND cu.clazzId = #clazzId#
+		   AND (   (cs.beginDate <= #startTime# and cs.endDate >= #endTime#)
+			    OR (cs.beginDate <= #startTime# and cs.endDate <= #endTime#)  
+			    OR (cs.endDate <= #startTime# and cs.endDate <= #endTime#)
+		    	)
+		    ORDER BY cs.id DESC
+		    ]]>
+	</select>
+	
+	<!-- 根据Id查找对应的选项 -->
+	<select id="getStudentEvaluateDetailByStuNums" parameterClass="Integer" resultMap="teacher_evaluate_detail">
+		select DISTINCT userId from palm_teacher_evaluate_detail where formId = #id#
+	</select>
+	
+	<!-- 根据Id查找评价信息 -->
+	<select id="getStudentEvaluateFormById" parameterClass="Integer" resultClass="teacherEvaluateFormModel">
+		SELECT f.*,ud.realName FROM palm_teacher_evaluate_form f ,platform.user_detail ud  WHERE f.userId = ud.userId AND f.id = #id#
+	</select>
+	
+     <!-- 根据Id查找 评价信息标题（选项数量） -->
+	<select id="getStudentEvaluateTitleList" parameterClass="Integer" resultClass="evaluateModel">
+		SELECT t.id,t.title,
+		(SELECT SUM(LEVEL) FROM palm_teacher_evaluate_detail a WHERE a.titleId=t.modelId AND a.formId=#id# AND  a.text='A') AS asum,
+		(SELECT SUM(LEVEL) FROM palm_teacher_evaluate_detail b WHERE b.titleId=t.modelId AND b.formId=#id# AND b.text='B') AS bsum,
+		(SELECT SUM(LEVEL) FROM palm_teacher_evaluate_detail c WHERE c.titleId=t.modelId AND c.formId=#id# AND c.text='C') AS csum,
+		(SELECT SUM(LEVEL) FROM palm_teacher_evaluate_detail d WHERE d.titleId=t.modelId AND d.formId=#id# AND d.text='D') AS dsum,
+		t.titleType,t.modelId,
+		(SELECT COUNT(*) FROM palm_teacher_evaluate_detail a WHERE a.titleId=t.modelId AND a.formId=#id# AND  a.text='A' ) AS anum,
+		(SELECT COUNT(*) FROM palm_teacher_evaluate_detail b WHERE b.titleId=t.modelId AND b.formId=#id# AND b.text='B') AS bnum,
+		(SELECT COUNT(*) FROM palm_teacher_evaluate_detail c WHERE c.titleId=t.modelId AND c.formId=#id# AND c.text='C') AS cnum,
+		(SELECT COUNT(*) FROM palm_teacher_evaluate_detail d WHERE d.titleId=t.modelId AND d.formId=#id# AND d.text='D') AS dnum,
+		t.titleType
+		FROM palm_teacher_evaluate_title t WHERE t.formId=#id#
+	</select>
+	
+	<!-- 根据Id查找 评价信息标题 -->
+	<select id="getStudentEvaluateTitleForLevel" parameterClass="Integer" resultMap="teacher_evaluate_title">
+		select * from palm_teacher_evaluate_title where formId = #id#
+	</select>
+	
+	<select id="getSumLevel" parameterClass="Integer" resultClass="Integer">
+		SELECT SUM(td.integral) FROM teachingexercisesdetail AS td,teachingexercises AS t,palm_evaluate_form_model AS p 
+          WHERE p.type=t.paperId AND t.id=td.exId AND p.id=#id# GROUP by td.integral desc
+	</select>
+	
+	<!-- 根据Id查找 评价短语 （感想建议题）-->
+	<select id="getStudentEvaluatePhraseList" parameterClass="HashMap" resultMap="teacher_evaluate_phrase">
+		SELECT p.*,ud.realName FROM palm_teacher_evaluate_phrase p,platform.user_detail ud 
+			  WHERE ud.userId = p.userId  
+				and p.formId IN (SELECT t.formId FROM palm_teacher_evaluate_title t WHERE t.formId=#formId#) 
+				and p.titleId=#modelId# order by p.id asc
+	</select>
+	
+	
+</sqlMap>

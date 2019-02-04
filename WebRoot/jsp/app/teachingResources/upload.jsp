@@ -1,0 +1,73 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<%
+   String  apiKey=request.getParameter("apiKey");
+   String schoolId =request.getParameter("schoolId");
+ %>
+ <!DOCTYPE html>
+<head>
+	<title>教学资源上传</title>
+  	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+	<!--公共css开始-->
+	<%@ include file="/public_module/app_public_css.jsp"%>
+	<!--公共css结束--> 
+</head>
+<body>
+	<div class="app_head">
+		<i class="m_icon-return icon_left" onclick="history.go(-1);"></i>教学资源上传
+	</div>
+	<div>
+	<div id="container" style="text-align: center;margin-top:50px">
+	<form action="#" method="POST" enctype="multipart/form-data">  
+			<div class="modal-body" style="text-align: center;" id="uploadHtml">
+										<div class="" style="text-align: center;">
+										<input type="text" placeholder="请输入文件名" style="width:99%;" id="file_name">
+										</div>
+										<div data-provides="fileupload" class="fileupload fileupload-new" id="fileupload-exists">
+												<div class="input-append" style="width:50%;float: left;">
+													<div class="uneditable-input">
+														<i class="icon-file fileupload-exists"></i> 
+														<span class="fileupload-preview"></span>
+													</div>
+													<span class="btn btn-file">
+													<span class="fileupload-new" id="uploadFile">选择文件</span>
+													<span class="fileupload-exists">换一个</span>
+													<input type="file" class="default">
+													</span>
+													<a data-dismiss="fileupload" class="btn fileupload-exists" href="#">移除</a>
+												</div>
+											</div>
+									</div>
+									<div class="modal-footer" style="float: left;margin-top: -20px;">
+										<!-- <button class="btn" data-dismiss="modal" type="button" id="quxiao">取消</button> -->
+										<button class="btn green upload_btn" type="button" id="upload">上传</button>
+									</div>
+		 <!-- 是新建空间的域名 -->
+		<input id="domain" type="hidden" value="<%=Cons.QINIU_BUCKETNAME_TEACHING_RES_URL%>">
+		<!--用于获取uptoken  -->
+        <input id="uptoken_url" type="hidden" value="<%=basePath%>teachingResources/getUpTokenInJS.do">
+        <!-- 提交到后台的地址 -->
+        <input id="basePath_" type="hidden" value="<%=basePath%>teachingResources/addAppTeachingResources.do">
+        <input id="base_" type="hidden" value="<%=basePath%>">
+         <input value="${sessionScope.user.userId}" id="userId_" type="hidden">
+         <input type="hidden" name="schoolId" value="<%=schoolId%>">
+	    <input type="hidden" name="apiKey" value="<%=apiKey%>">
+       <%--  <input type="hidden" name="schoolId" id="schoolId" value="${sessionScope.user.schoolId}"/>	 --%>
+		</form>
+		</div>
+	</div>
+	
+	</body>
+	<!--公共js开始-->
+	<%@ include file="/public_module/app_public_js.jsp"%>
+	<!--公共js结束--> 
+   <script type="text/javascript">
+    var indexlayer="";
+	var qiniukey_="";
+	function loading_(){
+		indexlayer = layer.msg('正在上传数据,请稍候。。。',{icon: 16,time:0,shade:0.3});
+	}
+   </script>
+
+</html>

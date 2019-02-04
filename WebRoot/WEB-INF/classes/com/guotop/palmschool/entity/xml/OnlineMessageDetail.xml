@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="OnlineMessageDetail">
+	<typeAlias alias="onlinemessagedetail" type="com.guotop.palmschool.entity.OnlineMessageDetail" />
+
+	<resultMap class="com.guotop.palmschool.entity.OnlineMessageDetail" id="result-onlinemessagedetail">
+		<result property="id" column="id" />
+		<result property="content" column="content" />
+		<result property="senderId" column="senderId" />
+		<result property="senderName" column="senderName" />
+		<result property="receiverId" column="receiverId" />
+		<result property="receiverName" column="receiverName" />
+		<result property="status" column="status" />
+		<result property="onlineMessageId" column="onlinemessageid" />
+		<result property="createTime" column="createTime" />
+		<result property="sentTime" column="sentTime" />
+	</resultMap>
+
+	<!--新增在线留言详情内容 syj 20151214 -->
+	<insert id="addOnlineMessageDetail" parameterClass="onlinemessagedetail">
+		insert into palm_online_message_detail
+		(
+		content,
+		senderId,
+		senderName,
+		receiverId,
+		receiverName,
+		status,
+		onlineMessageid,
+		createTime,
+		sentTime
+		)
+		values
+		(
+		#content#,
+		#senderId#,
+		#senderName#,
+		#receiverId#,
+		#receiverName#,
+		#status#,
+		#onlineMessageId#,
+		#createTime#,
+		#sentTime#
+		)
+	</insert>
+
+	<!-- 通过userId 找到该用户三条未读留言   syj 20151214-->
+	<select id="selectUnReadOnlineMessageByUserIdLimitThree" parameterClass="java.util.HashMap" resultMap="result-onlinemessagedetail">
+		select * from palm_online_message_detail
+		where 1 = 1
+		<isNotEmpty prepend="and" property="receiverIdList">
+			receiverId IN 
+            <iterate open="(" close=")" conjunction="," property="receiverIdList" > 
+                #receiverIdList[]# 
+            </iterate>
+		</isNotEmpty>
+		and status=1
+		order by sentTime DESC
+		limit 4
+	</select>
+   <!-- 通过userId 找到该用户所有未读留言数量 -->
+	<select id="selectUnReadOnlineMessageByUserIdCount" parameterClass="java.util.HashMap" resultClass="Integer">
+		select count(*) from palm_online_message_detail
+		where 1 = 1
+		<isNotEmpty prepend="and" property="receiverIdList">
+			receiverId IN 
+            <iterate open="(" close=")" conjunction="," property="receiverIdList"> 
+                #receiverIdList[]# 
+            </iterate>
+		</isNotEmpty>
+		and status=1
+		order by sentTime DESC
+	</select>
+	<!-- 通过userId 找到该用户所有未读留言  syj 20151214-->
+	<select id="selectUnReadOnlineMessageByUserId" parameterClass="java.util.HashMap" resultMap="result-onlinemessagedetail">
+		select * from palm_online_message_detail
+		where 1 = 1
+		<isNotEmpty prepend="and" property="receiverIdList">
+			receiverId IN 
+            <iterate open="(" close=")" conjunction="," property="receiverIdList" > 
+                #receiverIdList[]# 
+            </iterate>
+		</isNotEmpty>
+		and status=1
+		order by sentTime DESC
+	</select>
+	
+	<!-- 通过userId 找到该用户所有留言 分页   syj 20151214-->
+	<select id="selectOnlineMessageByUserId" parameterClass="java.util.HashMap" resultMap="result-onlinemessagedetail">
+		select * from palm_online_message_detail
+		where 1 = 1
+		<isNotEmpty prepend="and" property="receiverIdList">
+			receiverId IN 
+            <iterate open="(" close=")" conjunction="," property="receiverIdList" > 
+                #receiverIdList[]# 
+            </iterate>
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="status">
+			status = #status#
+		</isNotEmpty>
+		order by sentTime DESC
+	</select>
+	
+	<!-- 通过 onlinemessageid 查找该留言详情  syj 20151214-->
+	<select id="loadSmsListAsMessageId" parameterClass="java.lang.Integer" resultMap="result-onlinemessagedetail">
+			SELECT *
+			FROM palm_online_message_detail
+			WHERE onlineMessageid = #messageId#
+	</select>
+	
+	<!-- 通过Id 找到该id对应的留言的详情  syj 20151214 -->
+	<select id="selectOnlineMessageById" parameterClass="Integer" resultMap="result-onlinemessagedetail">
+		select *
+		from palm_online_message_detail
+		where id = #id#
+	</select>
+
+	<!-- 通过Id将在线留言修改状态为已读  syj 20151214-->
+	<update id="updateStatusById" parameterClass="Integer">
+		update
+		palm_online_message_detail
+		set status = 0
+		where id = #id#
+	</update>
+
+	<!-- 在线留言全部修改状态为已读 -->
+	<update id="updateStatus" parameterClass="java.util.HashMap">
+		update palm_online_message_detail
+		set status = 0
+		where 1 = 1
+		<isNotEmpty prepend="and" property="receiverIdList">
+			receiverId IN 
+            <iterate open="(" close=")" conjunction="," property="receiverIdList" > 
+                #receiverIdList[]# 
+            </iterate>
+		</isNotEmpty>
+	</update>
+</sqlMap>

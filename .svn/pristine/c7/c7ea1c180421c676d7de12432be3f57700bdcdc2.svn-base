@@ -1,0 +1,329 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>RichX智慧校园 - 补卡申请</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+ 	<link href="<%=basePath%>assets/global/css/skin_m.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<%@include file="/public_module/header.jsp" %>
+	<div class="Fill_Card">
+		<div class="header">
+			
+			<div class="pablic_search_box Fill_Card_search_box">
+						<button type="button" class="fa fa-search search_submit" onclick="getData(1);"></button>
+						<input class="search_text" type="text" id="realName" placeholder="请输入申请人名称..." value=""></input> 
+				</div>
+		</div>
+		<div class="con">
+			<h3><a class="type" style="padding-right: 20px;" href="<%=basePath%>cardApply/toCardApplyAuditList.do">学校补办卡</a> <a href="<%=basePath%>cardApply/toCardApplyPerson.do" class="type type_select" style="padding-left:20px;border-left:2px solid #e4e4e4">个人补办卡</a></h3>
+			<div class="tabbable tabbable-custom">
+			<ul class="nav nav-tabs" id="tabs_">
+					<li class="active"><a href="javascript:void(0);" onclick="showList(0,this);" style="cursor: pointer;">待审批</a></li>
+					<li style="border-right:none!important"><a  href="javascript:void(0);" onclick="showList(1,this);">已审批</a></li>
+			</ul>
+			
+				<p class="manager_title manager_title_bg">
+					<span class="m_width_20">申请人</span>
+					<span class="m_width_20">订单状态</span>
+					<span class="m_width_20">申请人电话</span>
+					<span class="m_width_20">缴费</span>
+					<span class="m_width_20">申请时间</span>
+			</p>
+			<div class="tab-content" style="padding: 0px;">
+					<div class="tab-pane active" id="tab_1_1">
+						<div class="panel-group accordion" id="accordion0">
+						</div>
+						<div id="passMore0"></div>
+						<a class="page_more"  id="genduo">已加载完</a>
+					</div>
+					<div class="tab-pane" id="tab_1_2">
+						<div class="panel-group accordion" id="accordion1">
+						
+						</div>
+						<div id="passMore1"></div>
+						<a class="page_more" id="genduo1">已加载完</a>
+					</div>
+			</div>
+
+		</div>
+		</div>
+		<input value="" type="hidden" id="status_">
+	</div>
+	<%@include file="/public_module/public_footer.jsp" %>
+	</body>
+	<%@include file="/public_module/public_js.jsp" %>
+	
+	<script type="text/javascript">
+		$(function() {
+			App.init();
+			$("#status_").val(0);
+			//导航定位
+			$(".menu_li a").removeClass("hover");
+			$("#menu1").addClass("hover");
+			getData(1);
+		});
+		function showList(type,obj){
+			$("#tabs_").find("li").removeClass("active");
+			$(obj).parent().addClass("active");
+			//待审核
+			if(type==0){
+			$("#tab_1_1").show();	
+			$("#tab_1_2").hide();
+			}else{//已审核
+			$("#tab_1_1").hide();	
+			$("#tab_1_2").show();	
+			}
+			$("#status_").val(type);
+			getData(1);
+		}
+		function getData(page){
+			if(page==1){
+				$("#accordion0").html('');
+				$("#accordion1").html('');
+			}
+			var type=$("#status_").val();
+			var realName=$("#realName").val();
+			var status=0;
+			if(type!=0){
+				status="1,2";	
+			}
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>cardApply/getReissuedcardPerson.do",
+				data:{
+					"realName" : realName,
+					"status" : status,
+					"page":page
+					 },
+					 dataType:"json",
+				success: function(data) 
+				{
+				    if(data.isPermission){
+				    	var html='';
+				    	var list=data.list;
+				    	if(status==0){
+				    		if(list.length>0){
+				    			for(var i=0;i<list.length;i++){
+						    		status0Data(list[i]);	
+						    	}
+				    			$("#genduo").remove();
+				    			$("#passMore0").html('<a class="page_more" id="genduo" onclick="getData('+(page+1)+')">加载更多</a>');
+				    		}else{
+				    			$("#genduo").remove();
+				    			$("#passMore0").html('<a class="page_more" id="genduo">已加载完</a>');	
+				    		}
+				    	}else{
+				    		if(list.length>0){
+				    			for(var i=0;i<list.length;i++){
+						    		status1Data(list[i]);	
+						    	}
+				    			$("#genduo1").remove();
+				    			$("#passMore1").html('<a class="page_more" id="genduo1" onclick="getData('+(page+1)+')">加载更多</a>');
+				    		}else{
+				    			$("#genduo1").remove();
+				    			$("#passMore1").html('<a class="page_more" id="genduo1">已加载完</a>');	
+				    		}	
+				    	}
+				    	
+				    }else{
+				    	layer.msg("您没有权限访问",{icon:4,time:2500});
+				    }
+				  //点击状态改变
+					$(".accordion-toggle").on("click", function() {
+						if($(this).parent().parent().find(".accordion-body").hasClass("in")){
+							$(this).removeAttr("style");
+							$(this).find("span").removeAttr("style");
+							$(this).find("i").removeClass("icon-chevron-down");
+						}else{
+							$(".accordion").find(".accordion-toggle").removeAttr("style");
+							$(".accordion").find(".accordion-toggle").find("span").removeAttr("style");
+							$(".accordion").find("i").removeClass("icon-chevron-down");
+							$(this).css({"background-color":"#3aa4f1","display":"block"}).find("span").css({"color":"#fff"});
+							$(this).find("i").addClass("icon-chevron-down");
+						};
+						
+					});
+				}
+			});	
+			
+		}
+		 function status0Data(data){
+			var html='';
+			html+='<div class="panel panel-default">';
+			html+='<div class="panel-heading">';
+			html+='<h4 class="panel-title">';
+			html+='<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion0" href="#collapse_'+data.id+'">';
+			html+='<p class="manager_title manager_con_border_bottom">';
+			html+='<span class="m_width_20">'+data.applyUserName+'</span>';
+			////状态：0待支付 1支付成功 2支付失败 3完成 4付款一部分
+			if(data.orderStatue==0){
+			html+='<span class="m_width_20">待支付</span>';
+			}else if(data.orderStatue==1){
+			html+='<span class="m_width_20">支付成功</span>';
+			}else if(data.orderStatue==2){
+			html+='<span class="m_width_20">支付失败</span>';	
+			}else if(data.orderStatue==3){
+				html+='<span class="m_width_20">完成</span>';	
+			}else if(data.orderStatue==4){
+				html+='<span class="m_width_20">付款一部分</span>';	
+			}
+			html+='<span class="m_width_20">'+data.phone+'</span><span class="m_width_20">'+data.orderMoney+'</span><span class="m_width_20">'+data.applyTime+'</span>';
+			html+='	</p>';
+			html+='</a></h4>';
+			html+='</div>';
+			html+='<div id="collapse_'+data.id+'" class="panel-collapse collapse">';
+			html+='<div class="panel-body m_position_relative">';
+			html+='<p class="School_apply_info">';
+			html+=' <table class="table table-hover table-light">';
+			var imgsrc="";
+			if(data.attachPath=='' || data.attachPath==null || typeof(data.attachPath)=="undefined"){
+			}else{
+			imgsrc='<img style="height:150px" src="<%=Cons.IMGBASEPATH%>'+data.attachPath+'">';
+			}
+			html+='	 	<tr><td class="m_width_30">补办人：'+data.realName+'</td><td class="m_width_30">学号：'+data.code+'</td><td class="m_width_40" rowspan="4">'+imgsrc+'</td></tr>';
+			html+='	 	<tr><td>所属学校：'+data.schoolName+'</td>';
+			//类型 0:补卡 1:办卡
+			if(data.type==0){
+				html+='<td>类型：补卡</td></tr> ';	
+			}else{
+				html+='<td>类型：办卡</td></tr> ';	
+			}
+			html+='	 	<tr><td>所属班级：'+data.userInfo+'</td><td>更新时间：'+data.updateTime+'</td></tr>';
+			if(typeof(data.remark)!="undefined"){
+			html+='<tr><td>备注：'+data.remark+'</td><td></td></tr>';	
+			}else{
+			html+='<tr><td>备注：</td><td></td></tr>';		
+			}
+			html+='		 </table>';
+			html+='	</p>';
+			html+='	<div class="Fill_Card_Operation">';
+			html+='		<button class="btn dispaly_in" style="background-color: #3aa4f0" onclick="passRefuse('+data.id+',1,'+data.applyUserId+',\''+data.schoolId+'\')">';
+			html+='			<i class="icon-ok padding_right_5"></i>通过';
+			html+='		</button>';
+			html+='	<button class="btn dispaly_in" onclick="passRefuse('+data.id+',2,'+data.applyUserId+',\''+data.schoolId+'\')">';
+			html+='		<i class="icon-remove padding_right_5"></i>拒绝';
+			html+='		</button>';
+			html+='	</div>';
+			html+='</div>';
+			html+='</div>';
+			html+='</div>';
+			$("#accordion0").append(html);
+		}
+		 function status1Data(data){
+				var html='';
+				html+='<div class="panel panel-default">';
+				html+='<div class="panel-heading"> <h4 class="panel-title">';
+				html+='<a href="#collapse1_'+data.id+'"';
+				html+=' data-toggle="collapse" data-parent="#accordion1"';
+				html+='	class="accordion-toggle">';
+				html+='	<p class="manager_title manager_con_border_bottom">';
+				html+='		<span class="m_width_20">'+data.applyUserName+'</span>';
+				////状态：0待支付 1支付成功 2支付失败 3完成 4付款一部分
+				if(data.orderStatue==0){
+				html+='<span class="m_width_20">待支付</span>';
+				}else if(data.orderStatue==1){
+				html+='<span class="m_width_20">支付成功</span>';
+				}else if(data.orderStatue==2){
+				html+='<span class="m_width_20">支付失败</span>';	
+				}else if(data.orderStatue==3){
+					html+='<span class="m_width_20">完成</span>';	
+				}else if(data.orderStatue==4){
+					html+='<span class="m_width_20">付款一部分</span>';	
+				}
+				html+='	<span class="m_width_20">'+data.phone+'</span>  <span class="m_width_20">'+data.orderMoney+'</span><span class="m_width_20">'+data.applyTime+'</span>';
+				html+='	</p>';
+				html+='</a>';
+				html+='</div>';
+
+				
+				html+='<div class="panel-collapse collapse" id="collapse1_'+data.id+'" ><div class="panel-body m_position_relative">';
+				html+='<p class="School_apply_info">';
+				html+=' <table class="table table-hover table-light">';
+				var imgsrc="";
+				if(data.attachPath=='' || data.attachPath==null || typeof(data.attachPath)=="undefined"){
+				}else{
+				imgsrc='<img style="height:150px" src="<%=Cons.IMGBASEPATH%>'+data.attachPath+'">';
+				}
+				html+='	 	<tr><td class="m_width_30">补办人：'+data.realName+'</td><td class="m_width_30">学号：'+data.code+'</td><td class="m_width_40" rowspan="4">'+imgsrc+'</td></tr>';
+				html+='	 	<tr><td>所属学校：'+data.schoolName+'</td>';
+				//类型 0:补卡 1:办卡
+				if(data.type==0){
+					html+='<td>类型：补卡</td></tr> ';	
+				}else{
+					html+='<td>类型：办卡</td></tr> ';	
+				}
+				html+='	 	<tr><td>所属班级：'+data.userInfo+'</td><td>更新时间：'+data.updateTime+'</td></tr>';
+				if(typeof(data.remark)!="undefined"){
+				html+='<tr><td>备注：'+data.remark+'</td><td></td></tr>';	
+				}else{
+				html+='<tr><td>备注：</td><td></td></tr>';		
+				}
+				html+='		 </table>';
+				html+='	</p>';
+				html+='	<div class="Fill_Card_Operation">';
+				if(data.auditstatus==1){
+					html+='		<button class="btn dispaly_in" style="background-color: #3aa4f0">';
+					html+='			<i class="icon-ok padding_right_5"></i>已通过';
+					html+='		</button>';
+				}else{
+					html+='	<button class="btn dispaly_in">';
+					html+='		<i class="icon-remove padding_right_5"></i>已拒绝';
+					html+='		</button>';	
+				}
+				html+='	</div>';
+				html+='	</div>';
+				html+='	</div></div>';
+				$("#accordion1").append(html);
+			}
+		//通过
+		function passRefuse(id,type,applyUserId,schoolId){
+			
+			var ll=layer.confirm('确定要提交？', {
+				  btn: ['确定','取消'] //按钮
+				}, function(){
+				 layer.close(ll);
+				 var indexlayer = layer.msg('正在处理数据,请稍候。。。',{icon: 16,time:0,shade:0.3});
+				 $.ajax({
+						type: "post",
+						url: "<%=basePath%>cardApply/modifyReissuedcardPerson.do",
+						data:{
+							"id" : id,
+							"status" : type,
+							"applyUserId":applyUserId,
+							"schoolId":schoolId
+							 },
+							 dataType:"json",
+							success: function(data) 
+							{
+								layer.close(indexlayer);
+							    if (data=="0"){
+							    	layer.msg("提交失败！",{icon:2,time:1000});
+							    }else{
+							    	layer.msg("提交成功！",{icon:1,time:1000});
+							    	window.location.reload();
+							    }
+							   
+							}
+					});
+				}, function(){
+				 
+				});
+		}
+		function changeShow(obj){
+			$("#status").val(obj);
+			$("#lastId").val("");
+			$("#searchForm").submit();
+		}
+		
+	</script>
+</html>

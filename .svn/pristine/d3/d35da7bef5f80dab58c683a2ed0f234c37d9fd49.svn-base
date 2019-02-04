@@ -1,0 +1,884 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="SchoolBus">
+
+    <typeAlias alias="schoolBusAbnormalDetail" type="com.guotop.palmschool.schoolbus.entity.SchoolBusAbnormalDetail"/>
+    <typeAlias alias="schoolBusAbnormalTotal" type="com.guotop.palmschool.schoolbus.entity.SchoolBusAbnormalTotal"/>
+
+	<resultMap class="com.guotop.palmschool.schoolbus.entity.OnSchoolBus" id="result-onSchoolBus">
+		<result property="id" column="id" />
+		<result property="code" column="code" />
+		<result property="status" column="status" />
+		<result property="position" column="position" />
+		<result property="userId" column="userId" />
+		<result property="createTime" column="createTime" />
+		<result property="sync" column="sync" />
+		<result property="driverName" column="driverName" />
+		<result property="realName" column="realName" />
+		<result property="roleName" column="roleName" />
+		<result property="clazzName" column="clazzName" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.schoolbus.entity.PointInfo" id="result-pointInfo">
+		<result property="id" column="id"/>
+		<result property="x" column="x"/>
+		<result property="y" column="y"/>	
+		<result property="address" column="address"/>
+		<result property="status" column="status"/>
+		<result property="temperature" column="temperature"/>
+		<result property="createTime" column="createtime"/>
+		<result property="carId" column="carId"/>
+		<result property="userId" column="userId"/>
+		<result property="driveStatus" column="driveStatus"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.schoolbus.entity.OnSchoolBus" id="result-schoolBus">
+		<result property="id" column="id" />
+		<result property="code" column="code" />
+		<result property="status" column="status" />
+		<result property="position" column="position" />
+		<result property="userId" column="userId" />
+		<result property="createTime" column="createTime" />
+		<result property="sync" column="sync" />
+		<result property="driverName" column="driverName" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-driver">
+		<result property="realName" column="realName"/>	
+		<result property="phone" column="phone"/>
+		<result property="position" column="position"/>
+	</resultMap>
+	
+	
+	<!-- 查询学校总人数（校长管理员）  20151209-->
+	<select id="getStudentSumAsAdminPermission" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM palm_user_role ur WHERE roleCode = 'student'
+	</select>
+	
+	<!-- 查询学生总人数（自己管理的班级） 20151209-->
+	<select id="getStudentSumAsTeachingStaff" parameterClass="HashMap" resultClass="Integer">
+         SELECT COUNT(*) FROM  palm_student_clazz sc
+           WHERE 1 = 1
+           <isNotEmpty prepend="and" property="clazzIdList">
+				sc.clazzId IN 
+				<iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+				    #clazzIdList[]# 
+				</iterate> 
+		   </isNotEmpty>
+		   <isEmpty prepend="and" property="clazzIdList">
+				sc.clazzId is null
+		   </isEmpty>
+	</select>
+	
+	<!-- 查询学校当天刷校卡人总数（校长管理员） 20151209-->
+	<select id="getStudentSwingCardAsAdminPermission" parameterClass="HashMap" resultClass="Integer">
+          SELECT COUNT(*) FROM (SELECT DISTINCT CODE,i.userId FROM palm_schoolbus_inout i , palm_user_role ur
+                      WHERE i.userId = ur.userId
+                      AND ur.roleCode = 'student'
+                      <isNotEmpty property="type">
+	                      <!-- 学生回家上车 -->
+			              <isEqual property="type" compareValue="1">
+	                           AND i.status = 1
+	                      </isEqual>
+	                      <!-- 学生上学下车 -->
+			              <isEqual property="type" compareValue="2">
+	                           AND i.status = 2
+	                      </isEqual>
+	                  </isNotEmpty>    
+                      AND i.createtime LIKE CONCAT('%',#time#,'%')
+                   ) t          
+	</select>
+	
+	<!-- 查询当天刷校卡人总数（自己管理的班级） 20151209 -->
+	<select id="getStudentSwingCardAsTeachingStaff" parameterClass="HashMap" resultClass="Integer">
+          SELECT COUNT(*) FROM 
+               (SELECT DISTINCT CODE,i.userId FROM palm_schoolbus_inout i, palm_student_clazz sc
+                     WHERE i.userId = sc.userId
+	                      <isNotEmpty property="type">
+		                      <!-- 学生回家上车 -->
+				              <isEqual property="type" compareValue="1">
+		                           AND i.status = 1
+		                      </isEqual>
+		                      <!-- 学生上学下车 -->
+				              <isEqual property="type" compareValue="2">
+		                           AND i.status = 2
+		                      </isEqual>
+		                  </isNotEmpty>  
+		                  <isNotEmpty prepend="and" property="clazzIdList">
+							sc.clazzId IN 
+							<iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+							    #clazzIdList[]# 
+							</iterate> 
+						  </isNotEmpty>
+						  <isEmpty prepend="and" property="clazzIdList">
+							sc.clazzId is null
+						  </isEmpty>
+                      AND i.createtime LIKE CONCAT('%',#time#,'%')
+                ) t            
+	</select>
+	
+	<!-- 查询学校当天刷卡人员(校长)  20151209-->
+	<select id="getSwingCardDetailDataAsAdminPermission" parameterClass="HashMap" resultClass="schoolBusAbnormalDetail">
+       SELECT tt.*,getClazzName(cl.id) clazzName FROM
+        (SELECT DISTINCT u.userId,u.code, u.realName ,sc.clazzId,i.createTime,'已刷卡' AS status, i.position
+           FROM platform.user_detail u ,palm_schoolbus_inout i, palm_student_clazz sc
+           WHERE  i.userId = u.userId
+           AND i.userId = sc.userId
+           <isNotEmpty property="type">
+		      <!-- 学生回家上车 -->
+		      <isEqual property="type" compareValue="1">
+		          AND i.status = 1
+		      </isEqual>
+		      <!-- 学生上学下车 -->
+			  <isEqual property="type" compareValue="2">
+		          AND i.status = 2
+		      </isEqual>
+		   </isNotEmpty>
+           AND i.createtime LIKE CONCAT('%',#time#,'%')
+           <isNotEmpty  property="queryContent">
+				AND (u.code  LIKE CONCAT('%',#queryContent#,'%')
+					 OR u.realName  LIKE CONCAT('%',#queryContent#,'%')
+				)
+		   </isNotEmpty>  
+        ) tt  LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id
+        
+        <!-- 查询班级 -->	
+		<isNotEmpty property="clazzList">
+			WHERE cl.id = #clazzList#
+		</isNotEmpty>
+	</select>
+	
+	<!-- 查询学校当天刷卡人员（自己管理的班级）20151210-->
+	<select id="getSwingCardDetailDataAsTeachingStaff" parameterClass="HashMap" resultClass="schoolBusAbnormalDetail">
+         SELECT tt.*,getClazzName(cl.id) clazzName FROM 
+	        (SELECT DISTINCT u.userId,u.code, u.realName ,sc.clazzId,i.createTime,'已刷卡' AS status, i.position
+	            FROM platform.user_detail u,palm_schoolbus_inout i, palm_student_clazz sc
+		           WHERE  i.userId = u.userId
+			           AND i.userId = sc.userId
+			           <isNotEmpty property="type">
+					      <!-- 学生回家上车 -->
+					      <isEqual property="type" compareValue="1">
+					          AND i.status = 1
+					      </isEqual>
+					      <!-- 学生上学下车 -->
+						  <isEqual property="type" compareValue="2">
+					          AND i.status = 2
+					      </isEqual>
+					   </isNotEmpty>
+			           <isNotEmpty prepend="and" property="clazzIdList">
+							  sc.clazzId IN 
+							 <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+								 #clazzIdList[]# 
+							 </iterate> 
+					   </isNotEmpty>
+					   <isEmpty prepend="and" property="clazzIdList">
+							 sc.clazzId is null
+					   </isEmpty>
+			           AND i.createtime LIKE CONCAT('%',#time#,'%')
+			           <isNotEmpty  property="queryContent">
+						 AND (u.code  LIKE CONCAT('%',#queryContent#,'%')
+								 OR u.name  LIKE CONCAT('%',#queryContent#,'%')
+							 )
+					   </isNotEmpty>  
+	        ) tt  LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id
+        
+        <!-- 查询班级 -->
+		<isNotEmpty property="clazzList">
+			WHERE cl.id = #clazzList#
+		</isNotEmpty>
+	</select>
+	
+	<!-- 查询学校当天未刷卡人员(校长管理员权限) 20151210 -->
+	<select id="getNoSwingCardDetailDataAsAdminPermission" parameterClass="HashMap" resultClass="schoolBusAbnormalDetail">
+        SELECT tt.*,getClazzName(cl.id) clazzName FROM 
+		   (SELECT u.userId,u.code, u.realName ,sc.clazzId,'' AS createTime,'未刷卡' AS status, '' AS position
+		         FROM platform.user_detail u, palm_student_clazz sc
+                      WHERE u.userId = sc.userId
+                      AND NOT EXISTS 
+                         (SELECT i.userId FROM palm_schoolbus_inout i , palm_student_clazz sc
+							   WHERE i.userid = u.userId
+							     AND i.userId = sc.userId
+							     <isNotEmpty property="type">
+								      <!-- 学生回家上车 -->
+								      <isEqual property="type" compareValue="1">
+								          AND i.status = 1
+								      </isEqual>
+								      <!-- 学生上学下车 -->
+									  <isEqual property="type" compareValue="2">
+								          AND i.status = 2
+								      </isEqual>
+							   </isNotEmpty>
+								 AND i.createtime LIKE CONCAT('%',#time#,'%')
+						)
+					<isNotEmpty  property="queryContent">
+					   AND (u.code LIKE CONCAT('%',#queryContent#,'%') or 
+						    u.realName LIKE CONCAT('%',#queryContent#,'%')
+						   )
+				   </isNotEmpty> 
+           ) tt LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id
+           
+        <!-- 查询班级 -->
+		<isNotEmpty property="clazzList">
+			WHERE cl.id = #clazzList#
+		</isNotEmpty>
+		
+	</select>
+	
+	<!-- 查询学校当天未刷卡人员(自己管理的班级)  20151210-->
+	<select id="getNoSwingCardDetailDataAsTeachingStaff" parameterClass="HashMap" resultClass="schoolBusAbnormalDetail">
+        SELECT tt.*,getClazzName(cl.id) clazzName FROM 
+		   (SELECT u.userId,u.code, u.realName ,sc.clazzId,'' AS createTime,'未刷卡' AS status, '' AS position
+		         FROM platform.user_detail u, palm_student_clazz sc
+                      WHERE u.userId = sc.userId
+                      <isNotEmpty prepend="and" property="clazzIdList">
+							  sc.clazzId IN 
+							 <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+								 #clazzIdList[]# 
+							 </iterate> 
+					   </isNotEmpty>
+					   <isEmpty prepend="and" property="clazzIdList">
+							 sc.clazzId is null
+					   </isEmpty>
+                      AND NOT EXISTS 
+                         (SELECT i.userId FROM palm_schoolbus_inout i , palm_student_clazz sc
+							   WHERE i.userid = u.userId
+							     AND i.userId = sc.userId
+							     <isNotEmpty property="type">
+								      <!-- 学生回家上车 -->
+								      <isEqual property="type" compareValue="1">
+								          AND i.status = 1
+								      </isEqual>
+								      <!-- 学生上学下车 -->
+									  <isEqual property="type" compareValue="2">
+								          AND i.status = 2
+								      </isEqual>
+							   </isNotEmpty>
+								 AND i.createtime LIKE CONCAT('%',#time#,'%')
+						)
+					<isNotEmpty  property="queryContent">
+					   AND (u.code LIKE CONCAT('%',#queryContent#,'%') or 
+						    u.realName LIKE CONCAT('%',#queryContent#,'%')
+						   )
+				   </isNotEmpty> 
+           ) tt LEFT JOIN palm_clazz cl ON tt.clazzId= cl.id
+           
+        <!-- 查询班级 -->
+		<isNotEmpty property="clazzList">
+			WHERE cl.id = #clazzList#
+		</isNotEmpty>
+	</select>
+	
+	<!-- 查询所有的检测记录(权限：校长)  syj 20151208-->
+	<select id="selectSchoolBusAdmin" parameterClass="HashMap" resultMap="result-onSchoolBus" >
+		<!-- 学生的校车刷卡记录-->
+		<isEqual property="type" compareValue="1">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, getClazzName(sc.clazzId) AS clazzName
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r , palm_student_clazz sc
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ud.userId = sc.userId
+	           AND ur.roleCode = 'student'
+	           <isNotEmpty  property="clazzId">
+	           AND sc.clazzId = #clazzId#
+	           </isNotEmpty>
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+				)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+		</isEqual>
+		<!-- 家长的校车刷卡记录 -->
+		<isEqual property="type" compareValue="2">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, NULL AS clazzName
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ur.roleCode = 'parent'
+	           <isNotEmpty  property="clazzId">
+	           		AND i.userId IN
+			            (SELECT DISTINCT sp.parent_userId FROM platform.student_parent sp , palm_student_clazz sc
+						           WHERE sp.userId  = sc.userId
+						           	AND sc.clazzId = #clazzId#
+                         )
+               </isNotEmpty>
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+					)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+		</isEqual>
+		<!-- 司机 -->
+		<isEqual property="type" compareValue="3">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, NULL AS clazzName 
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ur.roleCode != 'parent'
+			   AND ur.roleCode != 'student'
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+				)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+		</isEqual>
+  	</select>
+  	
+  	<!-- 查询所有的检测记录(权限：家长)  syj 20151209-->
+	<select id="selectSchoolBusParent" parameterClass="HashMap" resultMap="result-onSchoolBus" >
+		<!-- 学生的校车刷卡记录-->
+ 		<isEqual property="type" compareValue="1">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, getClazzName(sc.clazzId) AS clazzName  , sp.parent_userId
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r ,platform.student_parent sp , palm_student_clazz sc
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ud.userId = sc.userId
+	           AND ud.userId = sp.userId
+	           AND ur.roleCode = 'student'
+	           AND sp.userId = sc.userId
+	           AND sp.parent_userId = #userId#
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+				)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+		</isEqual>
+		<!-- 家长的校车刷卡记录 -->
+		<isEqual property="type" compareValue="2">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, NULL AS clazzName 
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ur.roleCode = 'parent'
+			   AND ud.userId = #userId#
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+				)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+		</isEqual>
+		<!-- 司机的校车刷卡记录  家长登陆看不到司机刷卡信息-->
+		<isEqual property="type" compareValue="3">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, NULL AS clazzName 
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r
+	           WHERE  1 != 1
+		</isEqual> 
+	</select>
+	
+	<!-- 查询所有的检测记录(权限：学生)  syj 20151209-->
+	<select id="selectSchoolBusStudent" parameterClass="HashMap" resultMap="result-onSchoolBus" >
+		<!-- 学生的校车刷卡记录-->
+ 		<isEqual property="type" compareValue="1">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, getClazzName(sc.clazzId) AS clazzName
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r , palm_student_clazz sc
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ud.userId = sc.userId
+	           AND ur.roleCode = 'student'
+	           AND ud.userId = #userId#
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+				)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+		</isEqual>
+		<!-- 家长的校车刷卡记录 -->
+		<isEqual property="type" compareValue="2">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, NULL AS clazzName 
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ur.roleCode = 'parent'
+	           AND i.userId IN
+			            (SELECT DISTINCT sp.parent_userId FROM platform.student_parent sp , palm_student_clazz sc
+						           WHERE sp.userId  = sc.userId
+						           	AND sc.userId = #userId#
+                         )
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+				)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+		</isEqual>
+        <!-- 司机的校车刷卡记录  学生登陆看不到司机刷卡信息-->
+		<isEqual property="type" compareValue="3">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, NULL AS clazzName 
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r
+	           WHERE  1 != 1
+		</isEqual> 
+	</select>
+	
+	<!-- 查询所有的检测记录(权限：一般管理人员)  syj 20151208-->
+	<select id="selectSchoolBusList" parameterClass="HashMap" resultMap="result-onSchoolBus" >
+		<!-- 学生的校车刷卡记录-->
+		<isEqual property="type" compareValue="1">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, getClazzName(sc.clazzId) AS clazzName
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r , palm_student_clazz sc
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ud.userId = sc.userId
+	           AND ur.roleCode = 'student'
+		        <isNotEmpty prepend="and" property="clazzIdList">
+				    sc.clazzId IN 
+		            <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+		                #clazzIdList[]# 
+		            </iterate> 
+			     </isNotEmpty>
+			     
+			     <isEmpty prepend="and" property="clazzIdList">
+				      sc.clazzId is null
+			     </isEmpty>
+			
+	           <isNotEmpty  property="clazzId">
+	           AND sc.clazzId = #clazzId#
+	           </isNotEmpty>
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+				)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+		</isEqual>
+		<!-- 家长的校车刷卡记录 -->
+		<isEqual property="type" compareValue="2">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, NULL AS clazzName
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ur.roleCode = 'parent'
+	           <isNotEmpty prepend="and" property="clazzIdList">
+	           		i.userId IN
+	           			(SELECT DISTINCT sp.parent_userId FROM platform.student_parent sp , palm_student_clazz sc
+						           WHERE sp.userId  = sc.userId
+						           	AND sc.clazzId IN 
+											<iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+											    #clazzIdList[]# 
+											</iterate> 
+									<isNotEmpty  property="clazzId">
+										AND sc.clazzId = #clazzId#
+									</isNotEmpty>
+						)				
+				</isNotEmpty>
+			    <isEmpty prepend="and" property="clazzIdList">
+					   1 != 1
+				</isEmpty>
+               
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+					)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+		</isEqual>
+		<!-- 司机的校车刷卡记录 这里的话只能查看自己的刷卡记录-->
+		<isEqual property="type" compareValue="3">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, NULL AS clazzName 
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+			   AND ud.userId = #userId#
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+				)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+		</isEqual>
+  	</select>
+  	
+  	<!-- 刷卡时校验刷卡记录是否在时间段之内已存在  20151211-->
+	<select id="getSchoolBusOn" parameterClass="HashMap" resultMap="result-schoolBus" >
+ 	   <![CDATA[	
+  		   select i.* from palm_schoolbus_inout i 
+ 			  where i.userId = #userId# 
+				and i.code = #code# 
+ 				and i.createTime >= #beginTime# 
+				and i.createTime <= #nowTime# 
+ 				order by i.id desc	
+	   ]]>				 
+	</select>
+	
+	<!-- 刷卡时校验学生在刷卡之前是否有家长刷卡  20151212-->
+	<select id="getSchoolBusOnParentCardRecordsByStudent" parameterClass="HashMap" resultMap="result-schoolBus" >
+ 	  <![CDATA[	
+  		select i.* from palm_schoolbus_inout i,palm_user u,palm_user_role ur 
+ 			where i.userid =u.id 
+ 			  and u.id = ur.userId  
+ 			   and ur.roleId = 6 
+ 			    and u.username = #username# 
+ 				and i.createtime LIKE CONCAT('%',#time#,'%') 
+ 				order by i.id desc	 
+ 	  ]]>				 
+	</select>
+	
+	<!-- 查询司机  20151214-->
+	<select id="selectDriverRecords" parameterClass="HashMap" resultMap="result-driver">
+		 <![CDATA[
+	 		 SELECT u.realName,us.phone,io.position 
+	 		   FROM palm_schoolbus_inout io,palm_user_role ur ,platform.user_detail u,platform.userbase us
+				   WHERE io.userId= u.userId 
+					 AND u.userId = us.userId
+					 AND io.userId = ur.userId 
+					 AND ur.roleCode NOT IN ('parent','student')  
+					 AND io.position = #position# 
+					 AND io.createTime LIKE CONCAT ('%',#day#,'%') 
+					 LIMIT 1
+          ]]>
+	</select>
+	
+	
+	<!-- 查询所有的检测记录(权限：校长APP) -->
+	<select id="selectSchoolBusAdminAPP" parameterClass="HashMap" resultMap="result-onSchoolBus" >
+		<!-- 学生的校车刷卡记录-->
+		<isEqual property="type" compareValue="1">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, getClazzName(sc.clazzId) AS clazzName
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r , palm_student_clazz sc
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ud.userId = sc.userId
+	           AND ur.roleCode = 'student'
+	           <isNotEmpty  property="clazzId">
+	           AND sc.clazzId = #clazzId#
+	           </isNotEmpty>
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+				)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+			<isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			</isNotEmpty>
+		</isEqual>
+		<!-- 家长的校车刷卡记录 -->
+		<isEqual property="type" compareValue="2">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, NULL AS clazzName
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ur.roleCode = 'parent'
+	           <isNotEmpty  property="clazzId">
+	           		AND i.userId IN
+			            (SELECT DISTINCT sp.parent_userId FROM platform.student_parent sp , palm_student_clazz sc
+						           WHERE sp.userId  = sc.userId
+						           	AND sc.clazzId = #clazzId#
+                         )
+               </isNotEmpty>
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+					)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+	        <isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			</isNotEmpty>
+		</isEqual>
+		<!-- 司机 -->
+		<isEqual property="type" compareValue="3">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, NULL AS clazzName 
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ur.roleCode != 'parent'
+			   AND ur.roleCode != 'student'
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+				)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+	        <isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			</isNotEmpty>
+		</isEqual>
+  	</select>
+  	
+  	<!-- 查询所有的检测记录(权限：家长)APP-->
+	<select id="selectSchoolBusParentAPP" parameterClass="HashMap" resultMap="result-onSchoolBus" >
+		<!-- 学生的校车刷卡记录-->
+ 		<isEqual property="type" compareValue="1">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, getClazzName(sc.clazzId) AS clazzName  , sp.parent_userId
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r ,platform.student_parent sp , palm_student_clazz sc
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ud.userId = sc.userId
+	           AND ud.userId = sp.userId
+	           AND ur.roleCode = 'student'
+	           AND sp.userId = sc.userId
+	           AND sp.parent_userId = #userId#
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+				)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+	           <isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			  </isNotEmpty>
+		</isEqual>
+		<!-- 家长的校车刷卡记录 -->
+		<isEqual property="type" compareValue="2">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, NULL AS clazzName 
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ur.roleCode = 'parent'
+			   AND ud.userId = #userId#
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+				)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+	           <isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			  </isNotEmpty>
+		</isEqual>
+		<!-- 司机的校车刷卡记录  家长登陆看不到司机刷卡信息-->
+		<isEqual property="type" compareValue="3">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, NULL AS clazzName 
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r
+	           WHERE  1 != 1
+		</isEqual> 
+	</select>
+	
+	<!-- 查询所有的检测记录(权限：学生)  APP-->
+	<select id="selectSchoolBusStudentAPP" parameterClass="HashMap" resultMap="result-onSchoolBus" >
+		<!-- 学生的校车刷卡记录-->
+ 		<isEqual property="type" compareValue="1">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, getClazzName(sc.clazzId) AS clazzName
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r , palm_student_clazz sc
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ud.userId = sc.userId
+	           AND ur.roleCode = 'student'
+	           AND ud.userId = #userId#
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+				)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+	           <isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			  </isNotEmpty>
+		</isEqual>
+		<!-- 家长的校车刷卡记录 -->
+		<isEqual property="type" compareValue="2">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, NULL AS clazzName 
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ur.roleCode = 'parent'
+	           AND i.userId IN
+			            (SELECT DISTINCT sp.parent_userId FROM platform.student_parent sp , palm_student_clazz sc
+						           WHERE sp.userId  = sc.userId
+						           	AND sc.userId = #userId#
+                         )
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+				)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+	           <isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			   </isNotEmpty>
+		</isEqual>
+        <!-- 司机的校车刷卡记录  学生登陆看不到司机刷卡信息-->
+		<isEqual property="type" compareValue="3">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, NULL AS clazzName 
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r
+	           WHERE  1 != 1
+		</isEqual> 
+	</select>
+	
+	
+	<!-- 查询所有的检测记录(权限：一般管理人员) APP-->
+	<select id="selectSchoolBusListAPP" parameterClass="HashMap" resultMap="result-onSchoolBus" >
+		<!-- 学生的校车刷卡记录-->
+		<isEqual property="type" compareValue="1">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %T") createTime, ud.realName AS realName, r.roleName AS roleName, getClazzName(sc.clazzId) AS clazzName
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r , palm_student_clazz sc
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ud.userId = sc.userId
+	           AND ur.roleCode = 'student'
+		        <isNotEmpty prepend="and" property="clazzIdList">
+				    sc.clazzId IN 
+		            <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+		                #clazzIdList[]# 
+		            </iterate> 
+			     </isNotEmpty>
+			     
+			     <isEmpty prepend="and" property="clazzIdList">
+				      sc.clazzId is null
+			     </isEmpty>
+			
+	           <isNotEmpty  property="clazzId">
+	           AND sc.clazzId = #clazzId#
+	           </isNotEmpty>
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+				)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+	           <isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			   </isNotEmpty>
+		</isEqual>
+		<!-- 家长的校车刷卡记录 -->
+		<isEqual property="type" compareValue="2">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, NULL AS clazzName
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+	           AND ur.roleCode = 'parent'
+	           <isNotEmpty prepend="and" property="clazzIdList">
+	           		i.userId IN
+	           			(SELECT DISTINCT sp.parent_userId FROM platform.student_parent sp , palm_student_clazz sc
+						           WHERE sp.userId  = sc.userId
+						           	AND sc.clazzId IN 
+											<iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+											    #clazzIdList[]# 
+											</iterate> 
+									<isNotEmpty  property="clazzId">
+										AND sc.clazzId = #clazzId#
+									</isNotEmpty>
+						)				
+				</isNotEmpty>
+			    <isEmpty prepend="and" property="clazzIdList">
+					   1 != 1
+				</isEmpty>
+               
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+					)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+	           <isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			   </isNotEmpty>
+		</isEqual>
+		<!-- 司机的校车刷卡记录 这里的话只能查看自己的刷卡记录-->
+		<isEqual property="type" compareValue="3">
+			SELECT i.id,i.code,i.status,i.position,i.userId,i.sync,i.driverName,DATE_FORMAT(i.createTime,"%Y-%m-%d %H:%i") createTime, ud.realName AS realName, r.roleName AS roleName, NULL AS clazzName 
+	           FROM platform.user_detail ud ,palm_schoolbus_inout i , palm_user_role ur , palm_role r
+	           WHERE  ud.userId = i.userId
+	           AND ud.userId = ur.userId
+	           AND ur.roleCode = r.roleCode
+			   AND ud.userId = #userId#
+	           <isNotEmpty  property="queryContent">
+				AND (i.code  LIKE CONCAT('%',#queryContent#,'%')
+					 or ud.realName  LIKE CONCAT('%',#queryContent#,'%')
+				)
+			  </isNotEmpty>
+	           ORDER BY i.id DESC
+	           <isNotEmpty property="startIndex">
+				LIMIT #startIndex#, #length#
+			   </isNotEmpty>
+		</isEqual>
+  	</select>
+	<select id="selectSchoolBusPosition" parameterClass="HashMap" resultMap="result-pointInfo">
+		<isEqual property="type" compareValue="1">
+			select wa.*, case when d.status=1 then '行驶中' when d.status=2 then '休息中' end  as driveStatus
+			from (select * from pointinfo where createTime <![CDATA[ <= now() ]]> order by createTime desc) wa,palm_device_monitor d 
+			where wa.carId = d.code 
+			and exists(select cardCode from (select pca.cardCode from platform.student_parent sp,palm_card pca, palm_user_card puc where sp.parent_userId=#userId# 
+			and puc.cardId = pca.id and (sp.userId = puc.userId or sp.parent_userId =puc.userId)) gc where gc.cardCode = wa.userId)  and (address like CONCAT('%',#queryContent#,'%') or carId LIKE CONCAT('%',#queryContent#,'%')) 
+			group by carId,userId
+		</isEqual>
+		<isEqual property="type" compareValue="2">
+			select wa.*, case when d.status=1 then '行驶中' when d.status=2 then '休息中' end  as driveStatus
+			from (select * from pointinfo where createTime <![CDATA[ <= now() ]]> order by createTime desc) wa,palm_device_monitor d where wa.carId = d.code 
+			and exists(
+			select pca.cardCode from (select ud.userId from (select p.userId,p.parent_userid from (select s.userId 
+			from (select per.optClazzId from palm_user_permission per where per.userId=#userId# and per.permissionCode=#permissionCode# and per.optClazzId is not null
+					union
+					select pc.id from palm_clazz pc where pc.leaderId=#userId#) c,palm_student_clazz s where c.optClazzId = s.clazzId
+					<isNotEmpty  property="clazzId">
+						and s.clazzId = #clazzId#
+					</isNotEmpty>
+					) u,platform.student_parent p 
+			where u.userId = p.userId) ws,platform.user_detail ud where ws.userId = ud.userId or ws.parent_userId = ud.userId) ui ,palm_card pca, palm_user_card puc 
+			where ui.userId = puc.userId and puc.cardId = pca.id and pca.cardCode = wa.userId
+			)   and (address like CONCAT('%',#queryContent#,'%') or carId LIKE CONCAT('%',#queryContent#,'%'))  group by carId,wa.userId
+		</isEqual>
+		<isEqual property="type" compareValue="3">
+			select wa.*, case when d.status=1 then '行驶中' when d.status=2 then '休息中' end  as driveStatus
+			from (select * from pointinfo where createTime <![CDATA[ <= now() ]]> order by createTime desc) wa,palm_device_monitor d where wa.carId = d.code   and (address like CONCAT('%',#queryContent#,'%') or carId LIKE CONCAT('%',#queryContent#,'%'))  group by carId
+		</isEqual>
+		<isEqual property="type" compareValue="4">
+			select wa.*, case when d.status=1 then '行驶中' when d.status=2 then '休息中' end  as driveStatus
+			from (select * from pointinfo where createTime <![CDATA[ <= now() ]]> order by createTime desc) wa,palm_device_monitor d where wa.carId = d.code
+			and wa.userId in (select pca.cardCode from palm_card pca, palm_user_card puc where puc.cardId = pca.id and puc.userId=#userId#)   and (address like CONCAT('%',#queryContent#,'%') or carId LIKE CONCAT('%',#queryContent#,'%')) 
+		    group by carId
+		</isEqual>
+  	</select>
+	<select id="selectSchoolBusPositionCount" parameterClass="HashMap" resultClass="Integer">
+		<isEqual property="type" compareValue="1">
+			select count(*) from (select wa.*, case when d.status=1 then '行驶中' when d.status=2 then '休息中' end  as driveStatus
+			from (select * from pointinfo where createTime <![CDATA[ <= now() ]]> order by createTime desc) wa,palm_device_monitor d 
+			where wa.carId = d.code 
+			and exists(select cardCode from (select pca.cardCode from platform.student_parent sp,palm_card pca, palm_user_card puc where sp.parent_userId=#userId# 
+			and puc.cardId = pca.id and (sp.userId = puc.userId or sp.parent_userId =puc.userId)) gc where gc.cardCode = wa.userId)   and (address like CONCAT('%',#queryContent#,'%') or carId LIKE CONCAT('%',#queryContent#,'%')) 
+			group by carId,userId) aaaa
+		</isEqual>
+		<isEqual property="type" compareValue="2">
+			select count(*) from (select wa.*, case when d.status=1 then '行驶中' when d.status=2 then '休息中' end  as driveStatus
+			from (select * from pointinfo where createTime <![CDATA[ <= now() ]]> order by createTime desc) wa,palm_device_monitor d where wa.carId = d.code 
+			and exists(
+			select pca.cardCode from (select ud.userId from (select p.userId,p.parent_userid from (select s.userId 
+			from (select per.optClazzId from palm_user_permission per where per.userId=#userId# and per.permissionCode=#permissionCode# and per.optClazzId is not null
+					union
+					select pc.id from palm_clazz pc where pc.leaderId=#userId#) c,palm_student_clazz s where c.optClazzId = s.clazzId
+					<isNotEmpty  property="clazzId">
+						and s.clazzId = #clazzId#
+					</isNotEmpty>
+					) u,platform.student_parent p 
+			where u.userId = p.userId) ws,platform.user_detail ud where ws.userId = ud.userId or ws.parent_userId = ud.userId) ui ,palm_card pca, palm_user_card puc 
+			where ui.userId = puc.userId and puc.cardId = pca.id and pca.cardCode = wa.userId
+			)   and (address like CONCAT('%',#queryContent#,'%') or carId LIKE CONCAT('%',#queryContent#,'%'))  group by carId,wa.userId) aaaa
+		</isEqual>
+		<isEqual property="type" compareValue="3">
+			select count(*) from (select wa.*, case when d.status=1 then '行驶中' when d.status=2 then '休息中' end  as driveStatus
+			from (select * from pointinfo where createTime <![CDATA[ <= now() ]]> order by createTime desc) wa,palm_device_monitor d where wa.carId = d.code   and (address like CONCAT('%',#queryContent#,'%') or carId LIKE CONCAT('%',#queryContent#,'%'))  group by carId) aaaa
+		</isEqual>
+		<isEqual property="type" compareValue="4">
+			select count(*) from (select wa.*, case when d.status=1 then '行驶中' when d.status=2 then '休息中' end  as driveStatus
+			from (select * from pointinfo where createTime <![CDATA[ <= now() ]]> order by createTime desc) wa,palm_device_monitor d where wa.carId = d.code
+			and wa.userId in (select pca.cardCode from palm_card pca, palm_user_card puc where puc.cardId = pca.id and puc.userId=#userId#)   and (address like CONCAT('%',#queryContent#,'%') or carId LIKE CONCAT('%',#queryContent#,'%')) 
+			 group by carId) aaaa
+		</isEqual>
+  	</select>
+</sqlMap>

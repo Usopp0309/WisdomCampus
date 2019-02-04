@@ -1,0 +1,557 @@
+package com.guotop.palmschool.check.controller;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFFont;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.gson.Gson;
+import com.guotop.palmschool.check.service.AbnormalService;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.controller.BaseController;
+import com.guotop.palmschool.entity.AbnormalInformation;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.WebWriteFile;
+
+/**
+ * 异常信息控制类
+ * 
+ * @author zhou
+ */
+@RequestMapping("/abnormal")
+@Controller
+public class AbnormalController extends BaseController
+{
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private AbnormalService abnormalService;
+
+	@Resource
+	private UserService userService;
+
+	/**
+	 * 进入异常报警页面
+	 */
+	@RequestMapping(value = "/toAbnormalList.do")
+	public String toAbnormalList()
+	{
+		return "safeSchool/abnormal_list";
+	}
+
+
+	/**
+	 * 不同权限查看到不同的page 加载异常报警list
+	 */
+	@RequestMapping(value = "/getAbnormalList.do")
+	public String getAbnormalList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		/**
+		 * 参数map
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		try
+		{
+			User login = (User)session.getAttribute("user");
+			String roleCode = request.getParameter("roleId");
+
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			/**
+			 * 姓名
+			 */
+			String name = request.getParameter("name");
+
+			/**
+			 * 异常类型
+			 */
+			Integer abnormalType = 0;
+			try
+			{
+				abnormalType = Integer.valueOf(request.getParameter("abnormalType"));
+				if (-1 == abnormalType)
+				{
+					abnormalType = null;
+				}
+			} catch (Exception e)
+			{
+				abnormalType = null;
+			}
+
+			/**
+			 * 师生类型
+			 */
+			String type = "";
+			try
+			{
+				type =request.getParameter("tchStuType");
+				
+			} catch (Exception e)
+			{
+				type = null;
+			}
+
+
+			/**
+			 * 选定user
+			 */
+			paramMap.put("clazzId", login.getClazzId());
+			paramMap.put("type", type);
+			paramMap.put("name", name);
+			paramMap.put("abnormalType", abnormalType);
+			paramMap.put("userId", login.getUserId());
+			paramMap.put("roleCode", roleCode);
+
+			Pages pages = abnormalService.getAbnormalList(this.getPages().getPageSize(), currentPage, paramMap, login);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 导出查询记录
+	 */
+	@RequestMapping(value = "/doExportExcel.do")
+	public void doExportExcel(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		try
+		{
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			/**
+			 * 初始化excel各项参数---begin
+			 */
+			// 创建Excel的工作书册 Workbook,对应到一个excel文档
+			HSSFWorkbook wb = new HSSFWorkbook();
+
+			// 创建Excel的工作sheet,对应到一个excel文档的tab
+			HSSFSheet sheet = wb.createSheet("异常报警");
+
+			// 创建字体样式
+			HSSFFont font = wb.createFont();
+
+			// 创建单元格样式
+			HSSFCellStyle style = wb.createCellStyle();
+
+			WebWriteFile.getInstance().init(wb, sheet, font, style);
+			/**
+			 * 初始化excel各项参数---end
+			 */
+			HSSFRow row = sheet.createRow(0);
+			row.setHeight((short) 500);// 设定行的高度
+			// 创建一个Excel的单元格
+			HSSFCell cell = row.createCell(0);
+			// 给Excel的单元格设置样式和赋值
+			cell.setCellValue("姓名");
+
+			style.setWrapText(true);
+			cell = row.createCell(1);
+			cell.setCellValue("异常类型");
+
+			style.setWrapText(true);
+			cell = row.createCell(2);
+			cell.setCellValue("内容");
+
+			style.setWrapText(true);
+			cell = row.createCell(3);
+			cell.setCellValue("创建时间");
+
+			/**
+			 * 页面加载数据---begin
+			 */
+			String roleCode = request.getParameter("roleCode");
+
+			/**
+			 * 师生类型
+			 */
+			Integer type = 0;
+			try
+			{
+				type = Integer.valueOf(request.getParameter("type"));
+				/**
+				 * 全部即不设师生类型
+				 */
+				if (Cons.TCHSTUTYPE_ALL.equals(type))
+				{
+					type = null;
+				}
+			} catch (Exception e)
+			{
+				type = null;
+			}
+
+			/**
+			 * 姓名
+			 */
+			String name = request.getParameter("name");
+
+			/*
+			 * 报警类型
+			 */
+			String typeAbnorma = request.getParameter("typeAbnorma");
+
+			User user = (User) session.getAttribute("user");
+
+			/**
+			 * 选定user
+			 */
+			paramMap.put("type", type);
+			paramMap.put("name", name);
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("typeAbnorma", typeAbnorma);
+			paramMap.put("roleCode", roleCode);
+			
+			List<AbnormalInformation> abnormalList = abnormalService.getAbnormalListForExport(paramMap, user);
+			/**
+			 * 页面数据加载---end
+			 */
+
+			/**
+			 * 将数据写入excel中---begin
+			 */
+			int i = 1;
+			for (AbnormalInformation abnormal : abnormalList)
+			{
+				row = sheet.createRow(i);
+				row.setHeight((short) 500);// 设定行的高度
+				// 创建一个Excel的单元格
+				cell = row.createCell(0);
+				// 给Excel的单元格设置样式和赋值
+				cell.setCellValue(abnormal.getRealName());
+
+				style.setWrapText(true);
+				cell = row.createCell(1);
+				switch (abnormal.getType())
+				{
+				case 0:
+					cell.setCellValue("迟到");
+					break;
+				case 1:
+					cell.setCellValue("早退");
+					break;
+				case 2:
+					cell.setCellValue("未到校");
+					break;
+				case 3:
+					cell.setCellValue("未离校");
+					;
+					break;
+				case 4:
+					cell.setCellValue("违规离校");
+					break;
+				case 5:
+					cell.setCellValue("住校生到校");
+					break;
+				default:
+					cell.setCellValue("未知异常");
+					break;
+				}
+
+				style.setWrapText(true);
+				cell = row.createCell(2);
+				cell.setCellValue(abnormal.getContent());
+
+				style.setWrapText(true);
+				cell = row.createCell(3);
+				cell.setCellValue(abnormal.getCreateTime().substring(0, abnormal.getCreateTime().length() - 2));
+
+				i++;
+			}
+			/**
+			 * 将数据写入excel中---end
+			 */
+
+			/**
+			 * 磁盘创建文件并生出输出流
+			 */
+			File file = new File("D:\\report\\" + new Date().getTime() + ".xls");
+			FileOutputStream os = new FileOutputStream(file);
+			wb.write(os);
+			os.close();
+
+			WebWriteFile.getInstance().write(file, response, "异常报警.xls");
+			file.delete();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	
+	/************************* 手机端 begin*******************************/
+	
+	@RequestMapping(value = "/toAbnormalListByHuxinId.do")
+	public String toAbnormalListByHuxinId(HttpServletRequest request, HttpServletResponse response, HttpSession session,ModelMap modelMap)
+	{
+		String apiKey = request.getParameter("apiKey");
+		String schoolId = request.getParameter("schoolId");
+
+		// 这边是利用apikey 进行模拟登录
+		User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+		if (loginUser != null)
+		{
+			session.setAttribute("user", loginUser);
+			
+			DBContextHolder.setDBType(loginUser.getSchoolId());
+			
+			/**
+			 * 参数map
+			 */
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+
+			try
+			{
+				User login = (User)session.getAttribute("user");
+				
+				// 角色code
+				String roleCode = request.getParameter("roleCode");
+
+				if (StringUtil.isEmpty(roleCode))
+				{
+					roleCode = loginUser.getRoleList().get(0).getRoleCode();
+				}
+
+				/**
+				 * 分页信息
+				 */
+				Integer currentPage = 1;
+
+				try
+				{
+					currentPage = Integer.valueOf(request.getParameter("cPage"));
+				} catch (Exception e)
+				{
+					currentPage = 1;
+				}
+
+				/**
+				 * 姓名
+				 */
+				String name = request.getParameter("name");
+
+				/**
+				 * 异常类型
+				 */
+				Integer abnormalType = 0;
+				try
+				{
+					abnormalType = Integer.valueOf(request.getParameter("abnormalType"));
+					if (-1 == abnormalType)
+					{
+						abnormalType = null;
+					}
+				} catch (Exception e)
+				{
+					abnormalType = null;
+				}
+
+				/**
+				 * 师生类型
+				 */
+				String type = "";
+				try
+				{
+					type =request.getParameter("type");
+					
+				} catch (Exception e)
+				{
+					type = null;
+				}
+
+
+				/**
+				 * 选定user
+				 */
+				paramMap.put("clazzId", login.getClazzId());
+				paramMap.put("type", type);
+				paramMap.put("name", name);
+				paramMap.put("abnormalType", abnormalType);
+				paramMap.put("userId", login.getUserId());
+				paramMap.put("roleCode", roleCode);
+
+				this.getPages().setPageSize(20);
+				List<AbnormalInformation> list = abnormalService.getAbnormalListAPP(this.getPages().getPageSize(), currentPage, paramMap, login);
+				
+				currentPage = currentPage + 1;
+				modelMap.addAttribute("roleList", loginUser.getRoleList());
+				modelMap.addAttribute("roleListSize", loginUser.getRoleList().size());
+				modelMap.addAttribute("abnormalList", list);
+				modelMap.addAttribute("listSize", list.size());
+				modelMap.addAttribute("roleCode", roleCode);
+				modelMap.addAttribute("cPage", currentPage);
+				modelMap.addAttribute("type", type);
+				modelMap.addAttribute("abnormalType", abnormalType);
+				modelMap.addAttribute("name", name);
+				
+			} catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+			
+			modelMap.addAttribute("apiKeyTimeOut", "2");
+		} else
+		{
+			modelMap.addAttribute("apiKeyTimeOut", "1");
+		}
+		
+		modelMap.addAttribute("apiKey", apiKey);
+		modelMap.addAttribute("schoolId", schoolId);
+
+		return "app/safeSchool/abnormal_list_app";
+
+	}
+	
+	
+	/**
+	 * 加载异常信息记录页面（APP）
+	 */
+	@RequestMapping(value = "/toLoadMoreAbnormalListAPP.do")
+	public String toLoadMoreSchoolBusInoutList(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+
+			/**
+			 * 参数map
+			 */
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+
+			// 角色code
+			String roleCode = request.getParameter("roleCode");
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			/**
+			 * 姓名
+			 */
+			String name = request.getParameter("name");
+
+			/**
+			 * 异常类型
+			 */
+			Integer abnormalType = 0;
+			try
+			{
+				abnormalType = Integer.valueOf(request.getParameter("abnormalType"));
+				if (-1 == abnormalType)
+				{
+					abnormalType = null;
+				}
+			} catch (Exception e)
+			{
+				abnormalType = null;
+			}
+
+			/**
+			 * 师生类型
+			 */
+			String type = "";
+			try
+			{
+				type =request.getParameter("type");
+				
+			} catch (Exception e)
+			{
+				type = null;
+			}
+			
+			User user = (User) session.getAttribute("user");
+
+			/**
+			 * 选定user
+			 */
+			paramMap.put("clazzId", user.getClazzId());
+			paramMap.put("type", type);
+			paramMap.put("name", name);
+			paramMap.put("abnormalType", abnormalType);
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("roleCode", roleCode);
+
+			List<AbnormalInformation> list = abnormalService.getAbnormalListAPP(this.getPages().getPageSize(), currentPage, paramMap, user);
+			
+			currentPage = currentPage + 1;
+			modelMap.addAttribute("roleList", user.getRoleList());
+			modelMap.addAttribute("roleListSize", user.getRoleList().size());
+			modelMap.addAttribute("abnormalList", list);
+			modelMap.addAttribute("listSize", list.size());
+			modelMap.addAttribute("roleCode", roleCode);
+			modelMap.addAttribute("cPage", currentPage);
+			modelMap.addAttribute("type", type);
+			modelMap.addAttribute("abnormalType", abnormalType);
+			modelMap.addAttribute("name", name);
+			modelMap.addAttribute("apiKeyTimeOut", "2");
+			modelMap.addAttribute("apiKey", apiKey);
+			modelMap.addAttribute("schoolId", schoolId);
+
+			Gson gson = new Gson();
+			String json = gson.toJson(modelMap);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+}

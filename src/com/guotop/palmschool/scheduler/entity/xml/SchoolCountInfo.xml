@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="SchoolCountInfo">
+	<typeAlias alias="schoolCountInfo" type="com.guotop.palmschool.scheduler.entity.SchoolCountInfo" />
+	<typeAlias alias="inout" type="com.guotop.palmschool.entity.Inout" />
+	<typeAlias alias="schoolCountInfoServiceHistory" type="com.guotop.palmschool.scheduler.entity.SchoolCountInfoServiceHistory" />
+
+	<resultMap class="com.guotop.palmschool.scheduler.entity.SchoolCountInfo" id="result_countInfo">
+		<result property="schoolId" column="schoolId" />
+		<result property="userCount" column="userCount" />
+		<result property="teacherCount" column="teacherCount" />
+		<result property="studentCount" column="studentCount" />
+		<result property="smsCount" column="smsCount" />
+		<result property="mobileSmsCount" column="mobileSmsCount" />
+		<result property="unicomSmsCount" column="unicomSmsCount" />
+		<result property="telecomSmsCount" column="telecomSmsCount" />
+	</resultMap>
+	
+	<!-- 查找统计信息-->
+	<select id="getAllCountInfo" resultMap="result_countInfo">
+		select * from platform.school_countInfo
+	</select>
+	
+	<select id="getCountInfoBySchoolId" parameterClass="Long" resultClass="schoolCountInfo">
+		select * from platform.school_countInfo where schoolId=#schoolId#
+	</select>	
+	
+	<select id="getCountInfoBySchoolIdAndStartTimeAndEndTime" parameterClass="HashMap" resultClass="schoolCountInfo">
+		select schoolId,userCount,teacherCount,studentCount,smsCount,mobileSmsCount,unicomSmsCount,telecomSmsCount 
+		from platform.school_countinfo_bk 
+		where schoolId=#schoolId#
+		<isNotEmpty prepend="and" property="startTime">
+			createtime <![CDATA[ >= ]]> #startTime# 
+	    </isNotEmpty>
+		<isNotEmpty prepend="and" property="endTime">
+			createtime <![CDATA[ <= ]]> #endTime# 
+	    </isNotEmpty>
+	    ORDER BY createTime DESC
+		LIMIT 1
+	</select>	
+	
+	<select id="getSchoolDataSorceList" resultClass="schoolCountInfo">
+		select schoolId from platform.school_datasource
+	</select>
+	
+	<!-- 获取用户总数 -->
+	<select id="getUserCountBySchoolId" parameterClass="Long" resultClass="Integer">
+		select COUNT(DISTINCT tmp.parentId) count  from (
+			SELECT sc.userId parentId FROM palm_student_clazz sc ,palm_clazz c,palm_grade g WHERE sc.clazzId = c.id AND c.gradeId = g.id AND g.state = 0
+			UNION 
+			SELECT DISTINCT ud.userId parentId FROM palm_user_department ud 
+			UNION 
+			SELECT DISTINCT sp.parent_userId parentId FROM platform.student_parent sp
+			WHERE sp.userId IN (SELECT sc.userId FROM  platform.`userbase` ub ,palm_student_clazz sc ,palm_clazz c,palm_grade g WHERE  ub.`userId` = sc.`userId` AND sc.clazzId = c.id AND c.gradeId = g.id AND g.state = 0)
+		)tmp 
+	</select>
+	<!-- 获取学生总数 -->
+	<select id="getStudentCountBySchoolId"  resultClass="Integer">
+		SELECT COUNT(sc.userId) count 
+		FROM platform.`userbase` ub ,palm_student_clazz sc ,palm_clazz c,palm_grade g 
+		WHERE ub.`userId` = sc.`userId`
+		AND sc.clazzId = c.id 
+		AND c.gradeId = g.id 
+		AND g.state = 0
+	</select>
+	<!-- 获取老师总数 -->
+	<select id="getTeacherCountBySchoolId" resultClass="Integer">
+		SELECT COUNT(DISTINCT ud.userId) count FROM palm_user_department ud 
+	</select>
+	<!-- 增加统计信息 20151207-->
+	<insert id="addInitCountInfo" parameterClass="schoolCountInfo">
+		INSERT INTO platform.school_countInfo
+		(
+			schoolId
+		)
+		VALUES
+		(
+			#schoolId#
+		)
+	</insert>
+	<!-- 增加备份的统计信息 20170328 -->
+	<insert id="addCountInfoBK" parameterClass="schoolCountInfo">
+		INSERT INTO platform.school_countinfo_bk
+		(
+			schoolId,
+			userCount,
+			teacherCount,
+			studentCount,
+			smsCount,
+			mobileSmsCount,
+			unicomSmsCount,
+			telecomSmsCount,
+			createTime,
+			updateTime
+		)
+		VALUES
+		(
+			#schoolId#,
+			#userCount#,
+			#teacherCount#,
+			#studentCount#,
+			#smsCount#,
+			#mobileSmsCount#,
+			#unicomSmsCount#,
+			#telecomSmsCount#,
+			now(),
+			now()
+		)
+	</insert>
+	
+	<!-- 更新统计信息 -->
+	<update id="updateCountInfoBySchoolId" parameterClass="schoolCountInfo">
+		update platform.school_countInfo set userCount=#userCount#
+			<isNotEmpty prepend="," property="teacherCount">
+				teacherCount=#teacherCount#
+			</isNotEmpty> 
+			<isNotEmpty prepend="," property="studentCount">
+				studentCount=#studentCount#
+			</isNotEmpty> 
+			where schoolId=#schoolId#
+	</update>
+	
+	<!-- 根据学校Id获取服务费总额 -->
+	<select id="getServiceTotalAmount" parameterClass="HashMap" resultClass="Double">
+	    SELECT IFNULL(SUM(IFNULL(tmp.servicePrice,0)),0) 
+		FROM platform.orders o,(
+				SELECT MAX(omu.id),omu.orderId,MAX(omu.servicePrice) servicePrice
+				FROM palm_order_message_user omu 
+				WHERE omu.status = 0
+				<isNotEmpty prepend="and" property="startTime">
+					omu.createtime <![CDATA[ >= ]]> #startTime# 
+	    		</isNotEmpty>
+				<isNotEmpty prepend="and" property="endTime">
+					omu.createtime <![CDATA[ <= ]]> #endTime# 
+	    		</isNotEmpty>
+				GROUP BY omu.orderId
+				)tmp
+		WHERE tmp.orderId = o.id AND o.status=1
+	</select>
+	
+	<!-- 根据学校Id获取智慧校园卡总数-->
+	<select id="getCardNumber" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(id) count FROM palm_card 
+	</select>
+	
+	<!-- 根据学校Id获取智慧校园卡押金总额 -->
+	<select id="getCardTotalDepositAmount" parameterClass="HashMap" resultClass="Double">
+		SELECT IFNULL(SUM(IFNULL(omcd.cardPrice,0)),0) FROM palm_order_message_card_deposit omcd,platform.orders o 
+		WHERE omcd.orderId = o.id AND o.status=1
+		<isNotEmpty prepend="and" property="startTime">
+			omcd.createtime <![CDATA[ >= ]]> #startTime# 
+	    </isNotEmpty>
+		<isNotEmpty prepend="and" property="endTime">
+			omcd.createtime <![CDATA[ <= ]]> #endTime# 
+	    </isNotEmpty>
+	</select>
+	
+	<!-- 根据学校Id获取缴纳智慧校园卡押金总人数 -->
+	<select id="getCardDepositCount" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(omcd.id) FROM palm_order_message_card_deposit omcd,platform.orders o 
+		WHERE omcd.orderId = o.id AND o.status=1
+		<isNotEmpty prepend="and" property="startTime">
+			omcd.createtime <![CDATA[ >= ]]> #startTime# 
+	    </isNotEmpty>
+		<isNotEmpty prepend="and" property="endTime">
+			omcd.createtime <![CDATA[ <= ]]> #endTime# 
+	    </isNotEmpty>
+	</select>
+	
+	<!-- 保存学校服务费缴纳统计历史表 -->
+	<insert id="addSchoolCountInfoServiceHistory" parameterClass="schoolCountInfoServiceHistory">
+		INSERT INTO platform.school_countinfo_service_history
+		(
+			schoolId,
+			userCount,
+			teacherCount,
+			studentCount,
+			alreadyPayCount,
+			unPayCount,
+			freePayCount,
+			messageId,
+			name,
+			price,
+			startTime,
+			endTime,
+			type,
+			status,
+			isVirtual,
+			rangeObject,
+			cardPrice,
+			servicePrice,
+			createTime,
+			updateTime
+		)
+		VALUES
+		(
+			#schoolId#,
+			#userCount#,
+			#teacherCount#,
+			#studentCount#,
+			#alreadyPayCount#,
+			#unPayCount#,
+			#freePayCount#,
+			#messageId#,
+			#name#,
+			#price#,
+			#startTime#,
+			#endTime#,
+			#type#,
+			#status#,
+			#isVirtual#,
+			#rangeObject#,
+			#cardPrice#,
+			#servicePrice#,
+			now(),
+			now()
+		)
+	</insert>
+	
+	<select id="getServiceHistoryList" parameterClass="HashMap" resultClass="schoolCountInfoServiceHistory">
+		SELECT scsh.* FROM platform.school_countinfo_service_history scsh,
+		(
+		SELECT MAX(id) AS id FROM platform.school_countinfo_service_history WHERE schoolId=#schoolId# 
+		<isNotEmpty prepend="and" property="startTime">
+			createtime <![CDATA[ >= ]]> #startTime# 
+	    </isNotEmpty>
+		<isNotEmpty prepend="and" property="endTime">
+			createtime <![CDATA[ <= ]]> #endTime# 
+	    </isNotEmpty>
+		GROUP BY messageId) tmp
+		WHERE scsh.id=tmp.id 
+	</select>
+	
+	<!-- 获取本学校的短信验证码发送条数 -->
+	<select id="getAuthCodeCountBySchoolIdAndStartTimeAndEndTime" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(ac.id) FROM platform.authcode ac, platform.userbase ub,platform.user_school us
+		WHERE ac.phone = ub.bindPhone 
+		AND ub.userId = us.userId 
+		AND us.schoolId = #schoolId# 
+		<isNotEmpty prepend="and" property="startTime">
+			ac.createtime <![CDATA[ >= ]]> #startTime# 
+    	</isNotEmpty>
+		<isNotEmpty prepend="and" property="endTime">
+			ac.createtime <![CDATA[ <= ]]> #endTime# 
+    	</isNotEmpty>
+	</select>
+	
+	<!-- 根据schoolId获取学校内所有用户的账户余额(包含未处理的提现金额) -->
+	<select id="getAccountAmountBySchoolId" parameterClass="HashMap" resultClass="Double">
+		SELECT convert(IFNULL(SUM(IFNULL(tmp.amount,0)),0),decimal) FROM (
+			SELECT (IFNULL(ua.balance,0) + IFNULL(ua.applyBalance,0)) AS amount FROM platform.user_account ua, platform.userbase ub,platform.user_school us
+			WHERE ua.userId = ub.userId 
+			AND ub.userId = us.userId 
+			AND us.schoolId = #schoolId# 
+		)tmp
+	</select>
+	
+	<!-- 根据schoolId获取学校内时间段内提现金额 -->
+	<select id="getApplyCashAmountByStatus" parameterClass="HashMap" resultClass="Double">
+			SELECT convert(IFNULL(SUM(IFNULL(uaac.applyCash,0)),0) ,decimal) 
+			FROM platform.user_account_apply_cash uaac, platform.userbase ub,platform.user_school us
+			WHERE uaac.userId = ub.userId 
+			AND ub.userId = us.userId
+			AND uaac.applyStatus IN 
+			<iterate open="(" close=")" conjunction="," property="applyStatusList" > 
+		                #applyStatusList[]# 
+		    </iterate>
+			AND us.schoolId = #schoolId# 
+			<isNotEmpty prepend="and" property="startTime">
+				uaac.createtime <![CDATA[ >= ]]> #startTime# 
+    		</isNotEmpty>
+			<isNotEmpty prepend="and" property="endTime">
+				uaac.createtime <![CDATA[ <= ]]> #endTime# 
+    		</isNotEmpty>
+	</select>
+	
+	
+	<!--palm_sys_message -->
+	<select id="getSysMessage"  parameterClass="HashMap" resultClass="Integer">
+		SELECT count(*) FROM palm_sys_message WHERE createTime <![CDATA[ <= ]]> #startTime# 
+	</select>
+	<!--创建palm_sys_message_back -->
+	<update id="createTableSysMessageBack">
+		<![CDATA[ 
+			create table if not exists `palm_sys_message_back` LIKE palm_sys_message
+		 ]]>
+	</update>
+	
+	<!--添加数据palm_sys_message_back -->
+	<insert id="addPalmMessageBack" parameterClass="HashMap">
+		Insert into palm_sys_message_back(
+			userId,type,
+			messageType,
+			content,
+			createTime
+		)  select 
+				userId,type,
+				messageType,
+				content,
+				createTime 
+			from palm_sys_message where createTime <![CDATA[ <= ]]> #startTime# 
+	</insert>
+	<!--删除palm_sys_message数据 -->
+	<delete id="deleteMessageByCreateTime">
+		DELETE FROM palm_sys_message WHERE createTime <![CDATA[ <= ]]> #startTime# 
+	</delete>
+	
+	
+	
+	
+	<!--palm_inout -->
+	<select id="getPlamInout"  parameterClass="HashMap" resultClass="Integer">
+		SELECT count(*) FROM palm_inout WHERE createTime <![CDATA[ <= ]]> #startTime# 
+	</select>
+	<!--创建palm_inout_back -->
+	<update id="createTableInout">
+		<![CDATA[ 
+			create table if not exists `palm_inout_back` LIKE palm_inout
+		 ]]>
+	</update>
+	<!--添加数据palm_inout_back -->
+	<insert id="addPalmInoutBack" parameterClass="HashMap">
+		Insert into palm_inout_back(
+			code,status,
+			position,userId,
+			createTime,
+			sync,
+			imgPath
+		)  select 
+				code,status,
+				position,userId,
+				createTime,
+				sync,
+				imgPath 
+			from palm_inout where createTime <![CDATA[ <= ]]> #startTime# 
+	</insert>
+	<!--删除palm_inout数据 -->
+	<delete id="deleteInoutByCreateTime">
+		DELETE FROM palm_inout WHERE createTime <![CDATA[ <= ]]> #startTime# 
+	</delete>
+	
+	
+	
+	<!--palm_sms_detail -->
+	<select id="getSmsDetail"  parameterClass="HashMap" resultClass="Integer">
+		SELECT count(*) FROM palm_sms_detail WHERE createTime <![CDATA[ <= ]]> #startTime# 
+	</select>
+	<!--创建palm_inout_back -->
+	<update id="createTableSmsDetailBack">
+		<![CDATA[ 
+			create table if not exists `palm_sms_detail_back` LIKE palm_sms_detail
+		 ]]>
+	</update>
+	<!--添加数据palm_sms_detail_back -->
+	<insert id="addSmsDetailBack" parameterClass="HashMap">
+		Insert into palm_sms_detail_back(
+			content,senderId,
+			senderName,receiverId,
+			phone,receiverName,
+			seq,report,status,
+			smsId,reportTime,
+			createTime,type,
+			sentTime
+		)  select 
+				content,senderId,
+				senderName,receiverId,
+				phone,receiverName,
+				seq,report,status,
+				smsId,reportTime,
+				createTime,type,
+				sentTime
+			from palm_sms_detail where createTime <![CDATA[ <= ]]> #startTime# 
+	</insert>
+	<!--删除palm_sms_detail数据 -->
+	<delete id="deleteSmsDetailByCreateTime">
+		DELETE FROM palm_sms_detail WHERE createTime <![CDATA[ <= ]]> #startTime# 
+	</delete>
+	
+	
+	
+	<!--palm_checkattendance -->
+	<select id="getCheckattendance"  parameterClass="HashMap" resultClass="Integer">
+		SELECT count(*) FROM palm_checkattendance WHERE createTime <![CDATA[ <= ]]> #startTime# 
+	</select>
+	<!--创建palm_checkattendance_back -->
+	<update id="createCheckattendanceBack">
+		<![CDATA[ 
+			create table if not exists `palm_checkattendance_back` LIKE palm_checkattendance
+		 ]]>
+	</update>
+	<!--添加数据palm_checkattendance_back -->
+	<insert id="addCheckattendanceBack" parameterClass="HashMap">
+		Insert into palm_checkattendance_back(
+			userId,departmentId,
+			clazzId,status,
+			remark,type,
+			createDate,createTime,
+			inoutTime
+		)  select 
+				userId,departmentId,
+				clazzId,status,
+				remark,type,
+				createDate,createTime,
+				inoutTime
+			from palm_checkattendance where createTime <![CDATA[ <= ]]> #startTime# 
+	</insert>
+	<!--删除palm_checkattendance数据 -->
+	<delete id="deleteCheckattendanceByCreateTime">
+		DELETE FROM palm_checkattendance WHERE createTime <![CDATA[ <= ]]> #startTime# 
+	</delete>
+</sqlMap>

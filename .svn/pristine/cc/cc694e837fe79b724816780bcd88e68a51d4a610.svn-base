@@ -1,0 +1,262 @@
+package com.guotop.palmschool.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.entity.OrderMessage;
+import com.guotop.palmschool.entity.OrderMessageGrade;
+import com.guotop.palmschool.entity.OrderMessageSchool;
+import com.guotop.palmschool.entity.OrderMessageUser;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.service.OrderMessageService;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 设备管理业务类实现类
+ */
+@Service("orderMessageService")
+public class OrderMessageServiceImpl extends BaseService implements OrderMessageService
+{
+	
+	/**
+	 * 加载所有短信套餐List 分页
+	 * @param pageSize
+	 * @param currentPage
+	 * @param paramMap
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages getAllMessageList(int pageSize, int page, Map<String,Object> paramMap)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+
+		currentPage = Pages.countCurrentPage(page);
+
+		// 解决ibatis框架的分页问题
+		// 起始数据坐标
+		paramMap.put("startIndex", offset);
+		// 单页数据量
+		paramMap.put("length", length);
+
+		List<OrderMessage> list = new ArrayList<OrderMessage>();
+
+		allRow = this.getBaseDao().getAllRowCountByCondition("OrderMessage.getAllMessage", paramMap);
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+		list = this.getBaseDao().queryForPageByCondition("OrderMessage.getAllMessage", paramMap, offset, length);
+		
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	/**
+	 * 获取短信套餐(不管套餐状态，因为套餐状态仅仅是用于是否能够在购买页面显示)
+	 */
+	@SuppressWarnings("unchecked")
+	public List<OrderMessage>  getProduct()
+	{
+		return (List<OrderMessage>)getBaseDao().selectListBySql("OrderMessage.getProduct");
+	}
+	
+	/**
+	 * 根据用户Id获取对应的电话号码
+	 */
+	public String  getUserPhoneByUserId(Integer userId)
+	{
+		return (String)getBaseDao().selectObject("OrderMessage.getUserPhoneByUserId", userId);
+	}
+	
+	/**
+	 * 根据状态获取短信套餐list
+	 * @param status 0:是 1:否
+	 * @param rangeObject 套餐范围0:学校,1:个人
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<OrderMessage> getMessageListByStatus(int status,int rangeObject)
+	{
+		Map<String,Object> map = new HashMap<String, Object>();
+		map.put("status", status);
+		map.put("rangeObject", rangeObject);
+		return (List<OrderMessage>) getBaseDao().selectListByObject("OrderMessage.getMessageListByStatus", map);
+	}
+	
+	/**
+	 * 根据id查找短信套餐
+	 */
+	public OrderMessage getMessageById(int id)
+	{
+		return (OrderMessage) getBaseDao().selectObject("OrderMessage.getMessageById", id);
+	}
+	
+	/**
+	 * 根据userId和状态查找用户套餐使用情况
+	 * @param paramMap
+	 * @return
+	 */
+	public OrderMessageUser getOrderMessageUserByUserId(Map<String,Object> paramMap)
+	{
+		return (OrderMessageUser)getBaseDao().selectObjectByObject("OrderMessage.getOrderMessageUserByUserId", paramMap);
+	}
+	/**
+	 * 获得短信套餐表的数量
+	  @author chenyong
+	  @date 2016年10月9日 下午5:37:34
+	 * @return
+	 */
+	@Override
+	public Integer getPalmOrderMessageCount()
+	{
+		
+		return (Integer) getBaseDao().selectObjectByObject("OrderMessage.getPalmOrderMessageCount", null);
+	}
+	/**
+	 * 获得购买的学生人数
+	  @author chenyong
+	  @date 2016年10月10日 上午11:20:51
+	 * @return
+	 */
+	@Override
+	public Integer getOrderMessgeYesOrNo()
+	{
+		return (Integer) getBaseDao().selectObjectByObject("OrderMessage.getOrderMessgeYesOrNo", null);
+	}
+	
+	/**
+	 * 增加短信套餐
+	 * @param orderMessage
+	 */
+	public Integer addOrderMessage(OrderMessage orderMessage)
+	{
+		return (Integer)getBaseDao().addObject("OrderMessage.addOrderMessage", orderMessage);
+	}
+	
+	/**
+	 * 根据id修改短信套餐
+	 * @param orderMessage
+	 */
+	public void modifyMessageById(OrderMessage orderMessage)
+	{
+		getBaseDao().updateObject("OrderMessage.modifyMessageById", orderMessage);
+	}
+	
+	/**
+	 * 更新服务费状态
+	 */
+	public void updateVirtualMessage(String status){
+		getBaseDao().updateObject("OrderMessage.updateVirtualMessage", status);
+	}
+	
+	/**
+	 * 获取虚拟服务费状态
+	 */
+	public String getVirtualMessageStatus(){
+		String status = (String) getBaseDao().selectObjectByObject("OrderMessage.getVirtualMessageStatus", null);
+		return status;
+	}
+	/**
+	 * 删除短信套餐
+	 * @param id
+	 */
+	public void deleteMessageById()
+	{
+		getBaseDao().deleteObjectById("OrderMessage.deleteMessageById", null);
+	}
+	
+	/**
+	 * 在学校的短信套餐学校信息表里插入对应的用户信息
+	 */
+	public void saveOrderMessageSchool(OrderMessageSchool orderMessageSchool){
+		getBaseDao().addObject("OrderMessage.saveOrderMessageSchool", orderMessageSchool);
+	}
+	
+	/**
+	 * 修改学校的短信套餐学校信息表的中的状态为可用状态
+	 */
+	public void updateOrderMessageSchoolByOrederId(Integer orderId){
+		getBaseDao().updateObject("OrderMessage.updateOrderMessageSchoolByOrederId", orderId);
+	}
+	
+	/**
+	 * 查询出购买学校范围的条数套餐余量
+	 * @return
+	 */
+	public Integer getRemainCountBySchoolIdForSchoolRange(String schoolId){
+		return  (Integer) getBaseDao().selectObjectByObject("OrderMessage.getRemainCountBySchoolIdForSchoolRange", schoolId);
+	}
+	
+	/**
+	 * 更新学校剩余条数
+	 * @param schoolId
+	 */
+	public void updateOrderMessageSchoolById(String schoolId){
+		List<OrderMessageSchool> list = getOrderMessageSchoolBySchoolId(schoolId);
+		for(OrderMessageSchool  orderMessageSchool :list){
+			if(orderMessageSchool.getRemainCount() > 0){
+				Integer remainCount = orderMessageSchool.getRemainCount();
+				remainCount = remainCount -1;
+				Map<String, Object> map = new HashMap<String, Object>();
+				map.put("id", orderMessageSchool.getId());
+				map.put("remainCount", remainCount);
+				getBaseDao().updateObject("OrderMessage.updateOrderMessageSchoolById", map);
+				break;
+			}
+		}
+		
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<OrderMessageSchool> getOrderMessageSchoolBySchoolId(String schoolId){
+		return getBaseDao().selectListByObject("OrderMessage.getOrderMessageSchoolBySchoolId", schoolId);
+	}
+	
+	/**
+	 * 添加套餐和年级对应的关系
+	 * @param orderMessageGrade
+	 */
+	public void addOrderMessageGrade(OrderMessageGrade orderMessageGrade)
+	{
+		getBaseDao().addObject("OrderMessage.addOrderMessageGrade", orderMessageGrade);
+	}
+	
+	/**
+	 * 根据orderMessageId 获取年级信息 （包含未选中的年级）
+	 * @param orderMessageId
+	 */
+	@SuppressWarnings("unchecked")
+	public List<OrderMessageGrade> getAllGradeListByOrderMessageId(Integer orderMessageId)
+	{
+		return (List<OrderMessageGrade>)getBaseDao().selectList("OrderMessage.getAllGradeListByOrderId", orderMessageId);
+	}
+	
+	/**
+	 * 根据gradeId和orderMessageId查询关系是否存在
+	 * @param paramMap
+	 * @return
+	 */
+	public void deleteMessageGradeByOrderMessageId(Integer orderMessageId)
+	{
+		getBaseDao().deleteObjectById("OrderMessage.deleteMessageGradeByOrderMessageId", orderMessageId);
+	}
+}

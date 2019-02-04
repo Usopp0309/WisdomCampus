@@ -1,0 +1,63 @@
+package com.guotop.palmschool.system.service;
+
+import java.util.List;
+
+import com.guotop.palmschool.entity.UserForYixinToWisdom;
+import com.guotop.palmschool.entity.YintowisdomLog;
+
+
+/**
+ * 亦信用户一键转为智慧校园服务费
+ * @author shengyinjiang
+ *
+ */
+public interface OnekeyYinToWisdomService 
+{
+	/**
+	 * 添加一键亦信用户转智慧校园用户日志
+	 * 
+	 * @author chenyong
+	 * @date 2016年12月3日 下午4:06:28
+	 * @param yintowisdomLog
+	 */
+	public void addYintowisdomLog(YintowisdomLog yintowisdomLog);
+	
+	/**
+	 * 获取该学校中所有既是亦信用户又是智慧校园用户
+	 * 但是钱包中没有钱或者钱包余额为0的用户
+	 * @param schoolId
+	 */
+	public List<UserForYixinToWisdom> getAllUserButWalletBalanceLessThan0(String schoolId);
+
+	/**
+	 * 获取该学校中所有既是亦信用户又是智慧校园用户
+	 * 但是【亦信账户中】钱包中中余额钱包余额大于0的用户
+	 * @param schoolId
+	 */
+	public List<UserForYixinToWisdom> getAllUserButYinxinWalletBalanceGreaterThan0(String schoolId);
+	
+	/**
+	 * 获取该学校中所有既是亦信用户又是智慧校园用户
+	 * 但是【智慧校园账户中】钱包中中余额钱包余额大于0的用户
+	 * @param schoolId
+	 */
+	public List<UserForYixinToWisdom> getAllUserButWisdomWalletBalanceGreaterThan0(String schoolId);
+	
+	/**
+	 * 【沒有】餘額的亦信賬戶轉為智慧校園賬號
+	 * @param yUserId
+	 * @param yBindPhone
+	 * @param wUserId
+	 * @param yintowisdomLog
+	 */
+	public void noMoneySetYixinToWisdom(Integer yUserId,String yBindPhone,Integer wUserId,YintowisdomLog yintowisdomLog);
+	
+	/**
+	 * 【有】餘額的亦信賬戶轉為智慧校園賬號
+	 * @param yUserId
+	 * @param yBindPhone
+	 * @param balance
+	 * @param wUserId
+	 */
+	public void haveMoneySetYixinToWisdom(Integer yUserId,String yBindPhone,Integer wUserId,YintowisdomLog yintowisdomLog);
+}

@@ -1,0 +1,421 @@
+package com.guotop.palmschool.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.guotop.palmschool.common.entity.ResultInfo;
+import com.guotop.palmschool.entity.Department;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.entity.UserDepartment;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.service.DepartmentService;
+import com.guotop.palmschool.util.Pages;
+
+@Service("departmentService")
+public class DepartmentServiceImpl extends BaseService implements DepartmentService
+{
+	/**
+	 * 添加部门人员 20151127
+	 * 
+	 * @param 待添加的部门人员
+	 */
+	public void doAddTeacherToDepartment(Map<String, Object> paramMap)
+	{
+		//添加之前先判断存不存在
+		List<UserDepartment> userDepartments = getTeacherByUserIdAndDepartmentId(paramMap);
+		if(CollectionUtils.isEmpty(userDepartments)){
+			getBaseDao().addObject("User.addUserDepartment", paramMap);
+		}
+	}
+
+	/**
+	 * 通过部门id 和 userId 来删除部门中人员
+	 */
+	public void deleteUserFromDepartmentById(Map<String, Object> paramMap)
+	{
+		getBaseDao().deleteObject("UserDepartment.deleteUserFromDepartmentByUserIdAndDepartmentId", paramMap);
+	}
+
+	/**
+	 * 通过部门id 和 userId 来查询部门中人员 20151127
+	 */
+	@SuppressWarnings("unchecked")
+	public List<UserDepartment> getTeacherByUserIdAndDepartmentId(Map<String, Object> paramMap)
+	{
+		return (List<UserDepartment>) getBaseDao().selectListByObject("UserDepartment.getTeacherByUserIdAndDepartmentId", paramMap);
+	}
+
+	/**
+	 * 删除部门时判断除了本部门和未分组里是否存在
+	 */
+	@SuppressWarnings("unchecked")
+	public List<UserDepartment> getTeacherList(Integer departmentId)
+	{
+		return (List<UserDepartment>) getBaseDao().selectListByObject("UserDepartment.getTeacherList", departmentId);
+	}
+	/**
+	 * 添加部门
+	 * 20151129
+	 * @param depart
+	 *            待添加的部门
+	 */
+	public Integer addDepart(Department depart)
+	{
+
+		return (Integer) getBaseDao().addObject("Depart.addDepart", depart);
+
+	}
+	
+	/**
+	 * 添加部门 FOR 福建
+	 * 
+	 * @param depart
+	 *            待添加的部门
+	 */
+	public Integer addDepartForFJ(Department depart){
+		return (Integer) getBaseDao().addObject("Depart.addDepartForFJ", depart);
+	}
+
+	/**
+	 * 表单校验相关---begin
+	 */
+	/**
+	 * 添加部门编号时查询部门编号是否存在
+	 * 
+	 * @param code
+	 *            部门编号
+	 * @return 返回值
+	 */
+	public ResultInfo checkDepartmCode(String code)
+	{
+		Integer result = (Integer) getBaseDao().selectObjectByObject("Depart.checkDepartmCode", code);
+		if (null == result)
+		{
+			result = 1;
+		} else
+		{
+
+			result = 0;
+		}
+		ResultInfo resultInfo = new ResultInfo();
+		if (ResultInfo.RESULT_EXISTS.equals(result))
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_SUCCESS);
+		} else
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_ERROR);
+		}
+		return resultInfo;
+	}
+
+	/**
+	 * 表单校验相关---begin
+	 */
+	/**
+	 * 添加部门编号时查询部门编号是否存在
+	 * 
+	 * @param code
+	 *            部门编号
+	 * @return 返回值
+	 */
+	public ResultInfo checkDepartmName(String name)
+	{
+		Integer result = (Integer) getBaseDao().selectObjectByObject("Depart.checkDepartmName", name);
+		if (null == result)
+		{
+			result = 1;
+		} else
+		{
+
+			result = 0;
+		}
+		ResultInfo resultInfo = new ResultInfo();
+		if (ResultInfo.RESULT_EXISTS.equals(result))
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_SUCCESS);
+		} else
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_ERROR);
+		}
+		return resultInfo;
+	}
+
+	/**
+	 * 根据部门名查找部门
+	 * 
+	 * @param departmentName
+	 *            部门名
+	 * @return Department 查到的部门 20151126 tao
+	 */
+	public Department selectDepartmentByName(String departmentName)
+	{
+		return (Department) getBaseDao().selectObjectByObject("Depart.getDepartmentByName", departmentName);
+	}
+	
+	/**
+	 * 根据部门名查找部门 For 福建
+	 * @param departmentName 部门名
+	 * @return Department 查到的部门
+	 */
+	public Department getDepartmentByNameForFJ(String departmentName,String fjSchoolId){
+		Map<String, Object> parmMap = new HashMap<String, Object>();
+		parmMap.put("departmentName", departmentName);
+		parmMap.put("fjSchoolId", fjSchoolId);
+		return (Department) getBaseDao().selectObjectByObject("Depart.getDepartmentByNameForFJ", parmMap);
+	}
+
+	/**
+	 * 根据部门的id查部门 为修改
+	 */
+
+	public Department getDepartmentById(Integer departId)
+	{
+
+		return (Department) getBaseDao().selectObject("Depart.selectDepartmentById", departId);
+	}
+
+	/**
+	 * 根据部门的id查部门人员 为修改
+	 */
+
+	@SuppressWarnings("unchecked")
+	public List<Department> loadDepartPeopleDetailList(Integer departId)
+	{
+
+		return (List<Department>) getBaseDao().selectList("Depart.selectDepartPeopleById", departId);
+	}
+
+	/**
+	 * 修改部门
+	 * 20151127
+	 **/
+	public void modifyDepartmentById(Map<String, Object> paramMap)
+	{
+		getBaseDao().updateObject("Depart.modifyDepartmentById", paramMap);
+	}
+
+	/**
+	 * 根据部门的id查部门人员 为修改
+	 */
+	@SuppressWarnings("unchecked")
+	public List<UserDepartment> selectDepartListForDelete(Integer id)
+	{
+		 return (List<UserDepartment>) getBaseDao().selectList("UserDepartment.selectDepartListForDelete", id);
+	}
+
+	/**
+	 * 删除部门
+	 * 
+	 * @param departmentId
+	 */
+	public void deleteDepartment(Integer departmentId)
+	{
+		getBaseDao().deleteObject("Depart.deleteDepartment", departmentId);
+	}
+
+	/**
+	 * 根据用户Id和部门Id修改部门 20151126
+	 */
+	public void modifyDepartmentByUserIdAndDepartmentId(Map<String, Object> paramMap)
+	{
+		getBaseDao().updateObject("Depart.modifyDepartmentByUserIdAndDepartId", paramMap);
+
+	}
+	
+	/**
+	 * 根据部门的id查询部门的详细列表 分页
+	 * 
+	 * @param pageSize
+	 * @param page
+	 * @param paramMap
+	 *            参数列表
+	 * @return 根据不同权限加载部门人员数据(分页) 20151127 tao
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages getDepartDetailList(int pageSize, int page, Map<String, Object> paramMap)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<User> list = new ArrayList<User>();
+
+		allRow = this.getBaseDao().getAllRowCountByCondition("User.getDepartUserList", paramMap);
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		currentPage = Pages.countCurrentPage(page);
+		list = this.getBaseDao().queryForPageByCondition("User.getDepartUserList", paramMap, offset, length);
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+
+	}
+	
+	/**
+	 * 根据用户Id修改部门 20151127
+	 */
+	public void modifyDepartmentByUserId(Map<String, Object> paramMap)
+	{
+		getBaseDao().updateObject("UserDepartment.modifyDepartmentByUserId", paramMap);
+
+	}
+	
+	/**
+	 * 根据用户Id 查询是否有部门管理员权限
+     * 20151127
+	 */
+	@Override
+	public void  addUserRole(Map<String, Object> paramMap)
+	{
+		 getBaseDao().addObject("UserRole.addUserRole", paramMap);
+	}
+	
+	/**
+	 * 修改部门信息时查看部门编号是否存在
+	 * @param map一个为原始部门编号 一个为修改的部门编号
+	 * @return 返回值
+	 * 20151127
+	 */
+	public ResultInfo checkModifyDepartmentByCode(Map<String, Object> paramMap) {
+
+		Integer result = (Integer) getBaseDao().selectObjectByObject(
+				"Depart.checkModifyDepartmentByCode", paramMap);
+		ResultInfo resultInfo = new ResultInfo();
+		if (ResultInfo.RESULT_EXISTS.equals(result)) {
+			resultInfo.setResultCode(ResultInfo.RESULT_SUCCESS);
+		} else {
+			resultInfo.setResultCode(ResultInfo.RESULT_ERROR);
+		}
+		return resultInfo;
+	}
+	
+	/**
+	 * 修改部门信息时查看部门名称是否存在
+	 * 20151127
+	 * @param map一个为原始部门名称
+	 *            一个为修改的部门名称
+	 * @return 返回值
+	 */
+	public ResultInfo checkModifyDepartmentByName(Map<String, Object> paramMap) {
+
+		Integer result = (Integer) getBaseDao().selectObjectByObject(
+				"Depart.checkModifyDepartmentByName", paramMap);
+
+		ResultInfo resultInfo = new ResultInfo();
+		if (ResultInfo.RESULT_EXISTS.equals(result)) {
+			resultInfo.setResultCode(ResultInfo.RESULT_SUCCESS);
+		} else {
+			resultInfo.setResultCode(ResultInfo.RESULT_ERROR);
+		}
+		return resultInfo;
+	}
+	/**
+	 * 根据用户ID获取所属部门列表
+	 * @param userId
+	 * @return
+	 * 20151128
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Department> getDepartListByUserId(int userId)
+	{
+		return getBaseDao().selectListByObject("Depart.getDepartListByUserId", userId);
+	}
+	
+	/**
+	 * 获取有部门管理员角色人员列表
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> getDepartManagerList()
+	{
+		return getBaseDao().selectListBySql("User.getDepartManagerList");
+	}
+
+	/**
+	 * 根据用户ID获取所属部门列表
+	 * @param leaderId
+	 * @return
+	 * 20151202
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Department> getDepartmentListByLeaderId(Integer leaderId)
+	{
+		return getBaseDao().selectListByObject("Depart.getDepartmentListByLeaderId", leaderId);
+	}
+	@SuppressWarnings("unchecked")
+	public List<User> getUserIdListByDepartmentId(Integer departmentId)
+	{
+		return getBaseDao().selectListByObject("Depart.getUserIdListByDepartId", departmentId);
+	}
+	
+	/**
+	 * 根据不同的角色加载不同的部门list
+	 * @param User 
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Department> getDepartListByRoleCode(String roleCode,Integer userId,String permissionCode)
+	{
+		List<Department> list = null;
+		if(roleCode != null && (roleCode.equals("admin")||roleCode.equals("president")))
+		{
+			list = getBaseDao().selectListByObject("Depart.getDepartList", null);
+		}else
+		{
+			list = new ArrayList<Department>();
+			//获取自己是否是摸个部门的leaderId
+			list = getBaseDao().selectListByObject("Depart.getDepartmentListByLeaderId", userId);
+			//根据权限code获取自己的管理的部门列表
+			
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("userId", userId);
+			paramMap.put("permissionCode", permissionCode);
+			List<Department> departmentList = getBaseDao().selectListByObject("UserPermission.getDepartmentListByUserIdAndPermissionCode", paramMap);
+			list.addAll(departmentList);
+		}
+		
+		return list;
+	}
+   /**
+    * 获得部门【福建专用】
+     @author chenyong
+     @date 2016年11月4日 下午6:56:52
+    * @param map
+    * @return
+    */
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Department> getDepartListFj(Map<String,Object> map)
+	{
+		return getBaseDao().selectListByObject("Depart.getDepartListFj",map);
+	}
+	
+	/**
+	 * 根据userId获取用户在userpermission中所有可以操作的部门
+	 * @param userId
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Department> getDepartmentListForSetPermission(Integer userId){
+		return getBaseDao().selectListByObject("UserPermission.getOptDepartsByUserId",userId);
+	}
+}

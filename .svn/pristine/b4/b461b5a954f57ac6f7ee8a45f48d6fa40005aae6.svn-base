@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Score">
+	<typeAlias alias="score" type="com.guotop.palmschool.entity.Score" />
+	<resultMap class="com.guotop.palmschool.entity.Score" id="reult_getScoreList">
+		<result property="id" column="id" />
+		<result property="userId" column="userId" />
+		<result property="testType" column="testType" />
+		<result property="subject" column="subject" />
+		<result property="score" column="score" />
+		<result property="clazzName" column="clazzName" />
+		<result property="createTime" column="createTime" />
+		<result property="createUserId" column="createUserId" />
+		<result property="clazzId" column="clazzId" />
+		<result property="realName" column="realName" />
+	</resultMap>
+	<!-- 添加成绩 add by shengyinjiang 20151214 -->
+	<insert id="addScore" parameterClass="score">
+		insert into
+		palm_achievement
+		(
+		userId,
+		testType,
+		subject,
+		score,
+		clazzName,
+		gradeName,
+		createTime,
+		createUserId,
+		clazzId
+		)
+		values
+		(
+		#userId#,
+		#testType#,
+		#subject#,
+		#score#,
+		#clazzName#,
+		#gradeName#,
+		#createTime#,
+		#createUserId#,
+		#clazzId#
+		)
+	</insert>
+	<select id="getScoreList4Admin" parameterClass="HashMap"
+		resultMap="reult_getScoreList">
+		<![CDATA[select a.*, ud.realName from palm_achievement a, platform.user_detail
+		ud where a.userId = ud.userId and a.createTime >= #startTime# and
+		a.createTime <= #endTime#]]>
+		<isNotNull property="queryCondition">
+			<isNotEmpty prepend="and" property="queryCondition">
+				ud.realName like concat('%',#queryCondition#,'%')
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="clazz">
+			<isNotEmpty prepend="and" property="clazz">
+				a.clazzId = #clazz#
+			</isNotEmpty>
+		</isNotNull>
+		 group by a.userId,a.createTime,a.subject  order by a.createTime desc, a.userid
+		
+	</select>
+	<select id="getScoreList4Parent" parameterClass="HashMap"
+		resultMap="reult_getScoreList">
+		<![CDATA[select a.*, ud.realName from palm_achievement a, platform.user_detail ud, platform.student_parent sp where a.userId = ud.userId and a.userId=sp.userId and a.createTime >= #startTime# and
+		a.createTime <= #endTime# and sp.parent_userId=#userId#]]>
+		<isNotNull property="queryCondition">
+			<isNotEmpty prepend="and" property="queryCondition">
+				ud.realName like concat('%',#queryCondition#,'%')
+			</isNotEmpty>
+		</isNotNull>
+		 group by a.userId,a.createTime,a.subject  order by a.createTime desc, a.userid
+	</select>
+	<select id="getScoreList4Self" parameterClass="HashMap"
+		resultMap="reult_getScoreList">
+		<![CDATA[select a.*, ud.realName from palm_achievement a, platform.user_detail ud where a.userId = ud.userId  and a.createTime >= #startTime# and
+		a.createTime <= #endTime# and a.userId=#userId#]]>
+		<isNotNull property="queryCondition">
+			<isNotEmpty prepend="and" property="queryCondition">
+				ud.realName like concat('%',#queryCondition#,'%')
+			</isNotEmpty>
+		</isNotNull>
+		 group by a.userId,a.createTime,a.subject  order by a.createTime desc, a.userid
+	</select>
+	<select id="getScoreList4ClassLeader" parameterClass="HashMap"
+		resultMap="reult_getScoreList">
+		<![CDATA[
+		select a.*, ud.realName from palm_achievement a, platform.user_detail ud, palm_clazz c,palm_grade g 
+		where a.userId = ud.userId and a.clazzId = c.id and g.id = c.gradeId
+		and g.state = '0' and a.createTime >= #startTime# and
+		a.createTime <= #endTime# and c.leaderId=#userId#]]>
+		<isNotNull property="queryCondition">
+			<isNotEmpty prepend="and" property="queryCondition">
+				ud.realName like concat('%',#queryCondition#,'%')
+			</isNotEmpty>
+		</isNotNull>
+		 group by a.userId,a.createTime,a.subject  order by a.createTime desc, a.userid
+	</select>
+	<select id="getScoreList4Teacher" parameterClass="HashMap"
+		resultMap="reult_getScoreList">
+		<![CDATA[select a.*, ud.realName 
+		from palm_achievement a, platform.user_detail ud , palm_clazz c,palm_grade g 
+		where a.userId = ud.userId 
+		and a.clazzId = c.id 
+		and g.id = c.gradeId
+		and a.createTime >= #startTime# 
+		and a.createTime <= #endTime# ]]>
+		<isNotNull property="queryCondition">
+			<isNotEmpty prepend="and" property="queryCondition">
+				ud.realName like concat('%',#queryCondition#,'%')
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="clazzList">
+			<isNotEmpty prepend="and" property="clazzList">
+				a.clazzId 
+					IN 
+		            <iterate open="(" close=")" conjunction="," property="clazzList" > 
+		                #clazzList[]# 
+		            </iterate> 
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="clazz">
+			<isNotEmpty prepend="and" property="clazz">
+				a.clazzId = #clazz#
+			</isNotEmpty>
+		</isNotNull>
+		 group by a.userId,a.createTime,a.subject  order by a.createTime desc, a.userid
+	</select>
+</sqlMap>

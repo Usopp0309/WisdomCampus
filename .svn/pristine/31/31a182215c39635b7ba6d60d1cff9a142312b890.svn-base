@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Album">
+	<typeAlias alias="album" type="com.guotop.palmschool.classphotoalbum.entity.ClassPhotoAlbum" />
+
+	<resultMap class="com.guotop.palmschool.classphotoalbum.entity.ClassPhotoAlbum" id="result_album">
+		<result property="albumId" column="albumId" />
+	</resultMap>
+	
+
+	<!--添加相册-->
+	<insert id="addAlbum" parameterClass="album">
+		insert into palm_class_photo_album
+		(
+		albumId,
+		albumName,
+		albumDesc,
+		createUserId,
+		createUserName,
+		clazzId,
+		clazzName,
+		updateTime,
+		createTime
+		)
+		values
+		(
+		#albumId#,
+		#albumName#,
+		#albumDesc#,
+		#createUserId#,
+		#createUserName#,
+		#clazzId#,
+		#clazzName#,
+		#updateTime#,
+		#createTime#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="albumId">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	<!-- 修改相册 -->
+	<update id="modifyAlbumByAlbumId" parameterClass="album">
+		 update palm_class_photo_album
+		    set albumName = #albumName#,
+		        albumDesc = #albumDesc#,
+		        updateTime = #updateTime#
+		    where albumId = #albumId#	
+	</update>	
+	
+	<!-- 修改相册 -->
+	<update id="setAlbumCover" parameterClass="HashMap">
+		 update palm_class_photo_album
+		    set albumPath = #albumPath#
+		    where albumId = #albumId#	
+	</update>
+	
+	<!-- 根据班级Id查询对应的相册 -->
+	<select id="getAlbumListByClazzId" parameterClass="Integer" resultClass="album">
+	    SELECT a.*,(SELECT COUNT(*) FROM palm_photo p WHERE a.albumId = p.albumId ) photoNum
+	       FROM palm_class_photo_album a 
+	         WHERE a.clazzId = #clazzId# ORDER BY a.createTime DESC,a.updateTime DESC
+	</select>
+	
+	<!-- 根据albumId删除相册 -->
+	<delete id="deleteAlbumByAlbumId" parameterClass="Integer">
+	    delete from palm_class_photo_album where albumId = #albumId#	
+	</delete>
+	
+	<!-- 根据albumId查询对应的相册 -->
+	<select id="getAlbumByAlbumId" parameterClass="Integer" resultClass="album">
+	    select a.*,ud.headImg from palm_class_photo_album a, platform.user_detail ud where a.createUserId=ud.userId and a.albumId = #albumId# 
+	</select>
+	
+	<!-- 根据recordsId查询对应的相册 -->
+	<select id="getAlbumByRecordsId" parameterClass="Integer" resultClass="album">
+	    SELECT a.*,ud.headImg 
+		FROM palm_upload_records ur,palm_class_photo_album a, platform.user_detail ud 
+		WHERE ur.albumId = a.albumId
+		AND a.createUserId = ud.userId 
+		AND ur.recordsId = #recordsId# 
+	</select>
+
+</sqlMap>

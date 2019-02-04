@@ -1,0 +1,1003 @@
+package com.guotop.palmschool.rest.controller;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.entity.Card;
+import com.guotop.palmschool.entity.Clazz;
+import com.guotop.palmschool.entity.Department;
+import com.guotop.palmschool.entity.Grade;
+import com.guotop.palmschool.entity.Role;
+import com.guotop.palmschool.entity.School;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.entity.UserRole;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.listener.StartupListener;
+import com.guotop.palmschool.rest.entity.UserInfoDetail;
+import com.guotop.palmschool.service.CardService;
+import com.guotop.palmschool.service.ClazzService;
+import com.guotop.palmschool.service.DepartmentService;
+import com.guotop.palmschool.service.GradeService;
+import com.guotop.palmschool.service.SchoolService;
+import com.guotop.palmschool.service.StudentService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.StringUtil;
+import com.richx.pojo.RichHttpResponse;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 校验用户，通过则返回用户信息
+ * 
+ * @author Administrator
+ *
+ */
+@RequestMapping("/getUserInfo")
+@Controller
+public class GetUserInfoController
+{
+	private Logger logger = LoggerFactory.getLogger(GetUserInfoController.class);
+	@Resource
+	private SchoolService schoolService;
+	@Resource
+	private DepartmentService departmentService;
+	@Resource
+	private ClazzService clazzService;
+	@Resource
+	private GradeService gradeService;
+
+	@Resource
+	private UserService userService;
+	
+	@Resource
+	private StudentService studentService;
+	@Resource
+	private CommonService commonService;
+	@Resource
+	private CardService cardService;
+
+	/**
+	 * 校验用户
+	 * 
+	 * @param request
+	 * @param session
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value = "/getUserInfo.do")
+	public String getUserInfo(HttpServletRequest request, HttpSession session, HttpServletResponse response)
+	{
+
+		response.setContentType("application/json;charset=UTF-8");
+		BufferedReader br = null;
+		try
+		{
+			br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line);
+			}
+
+			String msgInfoStr = sb.toString();
+			Gson gson = new Gson();
+
+			Map<String, Object> param = gson.fromJson(msgInfoStr, new TypeToken<Map<String, Object>>()
+			{
+			}.getType());
+
+			String userName = (String) param.get("userName");
+			String passWord = (String) param.get("passWord");
+			List<User> userList = StartupListener.userService.doLogin(userName, passWord);
+			if (userList != null && userList.size() > 0)
+			{
+				Integer userId = 0;
+				List<UserRole> userRoleList = new ArrayList<UserRole>();
+				for (User u : userList)
+				{
+					List<Role> roleList = new ArrayList<Role>();
+					userRoleList.clear();
+					userId = u.getUserId();
+					List<School> schoolList = schoolService.getSchoolListByUserId(userId);
+					u.setSchoolList(schoolList);
+					if (null != schoolList && schoolList.size() > 0)
+					{
+						u.setSchoolId(String.valueOf(schoolList.get(0).getSchoolId()));
+					}
+					if ("sysadmin".equals(userName))
+					{
+						Role r = new Role();
+						r.setRoleCode("admin");
+						roleList.add(r);
+					} else
+					{
+						if (!StringUtil.isEmpty(u.getSchoolId()))
+						{
+							DBContextHolder.setDBType(u.getSchoolId());
+							userRoleList = StartupListener.commonService.getUserRoleByUserId(userId);
+							boolean isStudent = false;
+							boolean isParent = false;
+							for (UserRole ur : userRoleList)
+							{
+								Role r = new Role();
+								r.setRoleCode(ur.getRoleCode());
+								if ("student".equals(ur.getRoleCode()))
+								{
+									isStudent = true;
+								} else if ("parent".equals(ur.getRoleCode()))
+								{
+									isParent = true;
+								}
+								roleList.add(r);
+							}
+							if (isStudent)
+							{
+								List<Clazz> clazzList = clazzService.getClazzListByStudentId(u.getUserId());
+								if (null != clazzList && clazzList.size() > 0)
+								{
+									u.setClazzList(clazzList);
+									// 获得当前学生所属的学段，年级
+									for (Clazz clazz : clazzList)
+									{
+										Clazz c = clazzService.getGradeByClassId(clazz.getId());
+										if (u.getStage() == null)
+										{
+											u.setStage(Integer.valueOf(c.getType()));
+											u.setGradeName(c.getGradeName());
+										} else
+										{
+											if (u.getStage() < Integer.valueOf(c.getType()))
+											{
+												u.setStage(Integer.valueOf(c.getType()));
+												u.setGradeName(c.getGradeName());
+											}
+										}
+									}
+								}
+
+							} else if (isParent)
+							{
+								List<Clazz> clazzList = clazzService.getClazzListByParentId(u.getUserId());
+								if (null != clazzList && clazzList.size() > 0)
+								{
+									u.setClazzList(clazzList);
+								}
+							} else
+							{
+								List<Department> departList = departmentService.getDepartListByUserId(u.getUserId());
+								Map<String,Object> map=new HashMap<>();
+								map.put("userId", u.getUserId());
+								map.put("permissionCode","");
+								List<Clazz> clazzList =clazzService.getClazzListByUserIdAndPermissionCode(map);
+								u.setClazzList(clazzList);
+								if (null != departList && departList.size() > 0)
+								{
+									u.setDepartmentList(departList);
+								}
+							}
+						}
+					}
+					u.setRoleList(roleList);
+				}
+				response.getWriter().write(GsonHelper.toJson(userList));
+			} else
+			{
+				response.getWriter().write("-1");// 用户名或密码输入错误
+			}
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			try
+			{
+				response.setCharacterEncoding("utf-8");
+				response.getWriter().write("false");
+				response.getWriter().flush();
+			} catch (Exception ex)
+			{
+				ex.printStackTrace();
+			}
+		} finally
+		{
+			if (br != null)
+			{
+				try
+				{
+					br.close();
+				} catch (IOException e)
+				{
+					logger.error("getUserInfo.do关闭reader出错！");
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 根據學校ID獲取學校年級與班級信息
+	 * 
+	 * @param request
+	 * @param session
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value = "/getGradeAndClazzBySchoolId.do")
+	public String getGradeAndClazzBySchoolId(HttpServletRequest request, HttpSession session, HttpServletResponse response)
+	{
+
+		response.setContentType("application/json;charset=UTF-8");
+		try
+		{
+			BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line);
+			}
+
+			String schoolId = sb.toString();
+			DBContextHolder.setDBType(schoolId);
+			List<Grade> gradeList = gradeService.getGradeList();
+			if (null != gradeList && gradeList.size() > 0)
+			{
+				for (Grade g : gradeList)
+				{
+					Integer id = g.getId();
+					List<Clazz> clazzList = clazzService.getClazzListByGradeId(id);
+					if (null != clazzList)
+					{
+						g.setClazzList(clazzList);
+					}
+				}
+			}
+			response.getWriter().write(GsonHelper.toJson(gradeList));
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 根据学校ID及班级ID获取所有家长列表
+	 * 
+	 * @param request
+	 * @param session
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value = "/getParentsByClazzIdsAndSchoolId.do")
+	public String getParentsByClazzIdsAndSchoolId(HttpServletRequest request, HttpSession session, HttpServletResponse response)
+	{
+		response.setContentType("application/json;charset=UTF-8");
+		try
+		{
+			BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line);
+			}
+
+			String msgInfo = sb.toString();
+			Gson gson = new Gson();
+			Map<String, Object> param = gson.fromJson(msgInfo, new TypeToken<Map<String, Object>>()
+			{
+			}.getType());
+
+			DBContextHolder.setDBType(param.get("schoolId") + "");
+			String clazzIds = (String) param.get("clazzIds");
+			String[] clazzArray = clazzIds.split(",");
+			List<User> parentList = new ArrayList<User>();
+			for (String clazzId : clazzArray)
+			{
+				List<User> parents = StartupListener.userService.getAllParentListByClazz(Integer.valueOf(clazzId));
+				if (null != parents)
+				{
+					parentList.addAll(parents);
+				}
+			}
+			response.getWriter().write(GsonHelper.toJson(parentList));
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 手机端根据apikey获得用户【这样获得的用户含有角色】
+	 * 
+	 * @author chenyong
+	 * @date 2016年7月8日 下午2:31:47
+	 * @return
+	 */
+	@RequestMapping("/getUserByApiKey.do")
+	@ResponseBody
+	public String getUserByApiKey(HttpServletResponse response, HttpServletRequest request)
+	{
+		response.setContentType("application/json;charset=UTF-8");
+		BufferedReader br;
+		try
+		{
+			br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line);
+			}
+			String msgInfoStr = sb.toString();
+			Gson gson = new Gson();
+			Map<String, Object> param = gson.fromJson(msgInfoStr, new TypeToken<Map<String, Object>>()
+			{
+			}.getType());
+			String schoolId = (String) param.get("schoolId");
+			String apiKey = (String) param.get("apiKey");
+			User user = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (user == null)
+			{
+				return "-1";
+			} else
+			{
+				try
+				{
+					response.getWriter().write(GsonHelper.toJson(user));
+					response.getWriter().flush();
+				} catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
+		} catch (IOException e1)
+		{
+			e1.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 获取用户智慧校园详细信息
+	 * 
+	 * @param request
+	 * @param session
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value = "/getPalmUserDetail.do")
+	public String getPalmUserDetail(HttpServletRequest request, HttpSession session, HttpServletResponse response)
+	{
+		/*
+		 * 该接口是用于亦信显示个人信息 
+		 * 1.通过福建资源云账号登录 
+		 * 2.不是通过资源云账号登录
+		 *  2.1 有schoolId 返回智慧校园相关信息
+		 *  2.2没有schoolId 返回亦信用户自己基本信息
+		 */
+		List<ResultClass> resultList = new ArrayList<ResultClass>(); 
+		RichHttpResponse<List<ResultClass>> richHttpResponse = new RichHttpResponse<List<ResultClass>>();
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json;charset=UTF-8");
+		String json = "";
+		BufferedReader br = null;
+		try
+		{
+			// 先通过apiKey获取用户信息
+			String schoolId = request.getParameter("schoolId");
+			String apiKey = request.getParameter("apiKey");
+			User loginUser = userService.getHuxinUserByApiKey(apiKey);
+			if (null == loginUser)
+			{
+				richHttpResponse.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				json = GsonHelper.toJson(richHttpResponse);
+				response.getWriter().write(json);
+				response.getWriter().flush();
+				return null;
+			}
+			
+			UserInfoDetail ua = new UserInfoDetail();
+			if (!StringUtil.isEmpty(loginUser.getPersonid()))
+			{
+				// 是福建资源云登陆的用户
+				// 通过Personid 从user_authorization表中获取福建资源云用户信息
+				ua = userService.getFJUserDetailByPersonid(loginUser.getPersonid());
+				if (null != ua)
+				{
+					resultList = getResponseObjectByUserAuth(ua,true);
+				}
+				richHttpResponse.ResponseCode = 0;
+				richHttpResponse.ResponseResult = "获取成功";
+				richHttpResponse.ResponseObject = resultList;
+			} else
+			{
+				//不是福建资源云平台用户
+				
+				if (!StringUtil.isEmpty(schoolId))
+				{
+					//是智慧校园用户
+					User user = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+					if (null == user)
+					{
+						richHttpResponse.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+						richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+					} else
+					{
+						Integer userId = user.getUserId();
+						//返回智慧校园信息
+						ua.setRealName(user.getRealName());
+						List<Role> roleList = user.getRoleList();
+						if(!CollectionUtils.isEmpty(roleList)){
+							StringBuffer roleNameBuffer = new StringBuffer();
+							for(int i = 0;i<roleList.size();i++){
+								Role role = roleList.get(i);
+								if ((i + 1) != roleList.size())
+								{
+									roleNameBuffer.append(role.getRoleName()+",");
+								}else{
+									roleNameBuffer.append(role.getRoleName());
+								}
+								
+								if("student".equals(role.getRoleCode())){
+									//班级，班级身份
+									List<Clazz> clazzList = clazzService.getClazzListByStudentId(userId);
+									if(!CollectionUtils.isEmpty(clazzList)){
+										ua.setClazzName(clazzList.get(0).getClazzName());
+										ua.setClassidentity(clazzList.get(0).getClazzName()+":"+"成员");	
+									}
+									//家长姓名，家长手机号
+									List<User> parentList = studentService.getParentByStudentId(userId);
+									if(!CollectionUtils.isEmpty(parentList)){
+										StringBuffer parentNameBuffer = new StringBuffer();
+										StringBuffer parentPhoneBuffer = new StringBuffer();
+										for(int j=0;j<parentList.size();j++){
+											if ((j + 1) != parentList.size())
+											{
+												parentNameBuffer.append(parentList.get(j).getRealName()+",");
+												parentPhoneBuffer.append(parentList.get(j).getPhone()+",");
+											}else{
+												parentNameBuffer.append(parentList.get(j).getRealName());
+												parentPhoneBuffer.append(parentList.get(j).getPhone());
+											}
+										}
+										ua.setParentName(parentNameBuffer.toString());
+										ua.setParentPhone(parentPhoneBuffer.toString());
+									}
+									
+								}else if("parent".equals(role.getRoleCode())){
+									//小孩姓名，小孩手机号，小孩所在班级
+									StringBuffer childNameBuffer = new StringBuffer();
+									List<User> studentList = studentService.getStudentListByParentId(userId);
+									if(!CollectionUtils.isEmpty(studentList)){
+										for(int y=0;y<studentList.size();y++){
+											List<Card> cardList = cardService.getCardListByUserId(studentList.get(y).getUserId());
+											String cardCode = "";
+											if(!CollectionUtils.isEmpty(cardList)){
+												for(int t=0;t<cardList.size();t++){
+													cardCode += "," + cardList.get(t).getCardCode();
+												}
+											}
+											if ((y + 1) != studentList.size())
+											{
+												childNameBuffer.append(studentList.get(y).getClazzName()+":"+studentList.get(y).getRealName()+cardCode+",");
+											}else{
+												childNameBuffer.append(studentList.get(y).getClazzName()+":"+studentList.get(y).getRealName()+cardCode);	
+											}
+											
+										}
+										ua.setChildName(childNameBuffer.toString());
+									}
+								}else{
+									//部门，所在班级，班级身份
+									List<Department> departList = departmentService.getDepartListByUserId(userId);
+									StringBuffer departNameBuffer = new StringBuffer();
+									if(!CollectionUtils.isEmpty(departList)){
+										for(int z=0;z<departList.size();z++){
+											if ((z + 1) != departList.size())
+											{
+												departNameBuffer.append(departList.get(z).getDepartmentName()+",");
+											}else {
+												departNameBuffer.append(departList.get(z).getDepartmentName());
+											}
+											
+										}
+										ua.setDepartmentName(departNameBuffer.toString());
+									}
+									if("classLeader".equals(role.getRoleCode())){
+										List<Clazz> clazzList = commonService.loadClazzListByLeaderId(userId);
+										StringBuffer classidentityNameBuffer = new StringBuffer();
+										if(!CollectionUtils.isEmpty(clazzList)){
+											for(int x=0;x<clazzList.size();x++){
+												if ((x + 1) != clazzList.size())
+												{
+													classidentityNameBuffer.append(clazzList.get(x).getClazzName()+":班主任"+",");
+												}else {
+													classidentityNameBuffer.append(clazzList.get(x).getClazzName()+":班主任");
+												}
+											}
+											ua.setClassidentity(classidentityNameBuffer.toString());
+										}
+									}
+								}
+							}
+							ua.setRoleName(roleNameBuffer.toString());
+						}
+						School school = schoolService.getSchoolInfoBySchoolId(Long.valueOf(schoolId));
+						if(null != school){
+							ua.setProvicename(school.getAreaAddress());
+							ua.setSchoolName(school.getSchoolName());
+						}
+						
+						User userTMP = userService.getUserDetailByUserIdInPersonCenter(userId);
+						ua.setCode(userTMP.getCode());
+						ua.setPhone(userTMP.getPhone());
+					
+						if(!StringUtil.isEmpty(userTMP.getSchoolType())){
+							if("0".equals(userTMP.getSchoolType())){
+								ua.setSchoolType("走读生");
+							}else if("1".equals(userTMP.getSchoolType())){
+								ua.setSchoolType("住校生");
+							}
+						}
+						
+						//卡号
+						List<Card> cardList = cardService.getCardListByUserId(userId);
+						StringBuffer cardCodeBuffer = new StringBuffer();
+						if(!CollectionUtils.isEmpty(cardList)){
+							for(int t=0;t<cardList.size();t++){
+								if ((t + 1) != cardList.size())
+								{
+									cardCodeBuffer.append(cardList.get(t).getCardCode()+",");	
+								}else{
+									cardCodeBuffer.append(cardList.get(t).getCardCode());
+								}
+							}
+							ua.setCardCode(cardCodeBuffer.toString());
+						}
+						ua.setUserDescription(userTMP.getUserDescription());
+					}
+				}else{
+					User userTMP = userService.getUserDetailByUserIdInPersonCenter(loginUser.getUserId());
+					ua.setCode(userTMP.getCode());
+					ua.setPhone(userTMP.getPhone());
+					ua.setUserDescription(userTMP.getUserDescription());
+					
+				}
+				resultList = getResponseObjectByUserAuth(ua,false);
+				richHttpResponse.ResponseCode = 0;
+				richHttpResponse.ResponseResult = "获取成功";
+				richHttpResponse.ResponseObject = resultList;
+			}
+			
+			json = GsonHelper.toJson(richHttpResponse);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			logger.error("getPalmUserDetail.do：" + e.getMessage());
+		} finally
+		{
+			if (br != null)
+			{
+				try
+				{
+					br.close();
+				} catch (IOException e)
+				{
+					logger.error("getPalmUserDetail.do关闭reader出错！");
+				}
+			}
+		}
+		return null;
+	}
+
+	private List<ResultClass> getResponseObjectByUserAuth(UserInfoDetail ua,boolean isFujian){
+		List<ResultClass> resultList = new ArrayList<ResultClass>(); 
+		ua = changeUserAuth(ua,isFujian);
+		if (!StringUtil.isEmpty(ua.getRealName()))
+		{
+			ResultClass class1 = new ResultClass("姓名",ua.getRealName());
+			resultList.add(class1);
+		}
+		if (!StringUtil.isEmpty(ua.getRoleName()))
+		{
+			ResultClass class1 = new ResultClass("用户类型",ua.getRoleName());
+			resultList.add(class1);
+		}
+		if (!StringUtil.isEmpty(ua.getProvicename()))
+		{
+			ResultClass class1 = new ResultClass("区域",ua.getProvicename());
+			resultList.add(class1);
+		}
+		if (!StringUtil.isEmpty(ua.getSchoolName()))
+		{
+			ResultClass class1 = new ResultClass("学校",ua.getSchoolName());
+			resultList.add(class1);
+		}
+		if (!StringUtil.isEmpty(ua.getOrgaidentity()))
+		{
+			ResultClass class1 = new ResultClass("学校身份",ua.getOrgaidentity());
+			resultList.add(class1);
+		}
+		if (!StringUtil.isEmpty(ua.getDepartmentName()))
+		{
+			ResultClass class1 = new ResultClass("部门",ua.getDepartmentName());
+			resultList.add(class1);
+		}
+		if (!StringUtil.isEmpty(ua.getClazzName()))
+		{
+			ResultClass class1 = new ResultClass("班级名称",ua.getClazzName());
+			resultList.add(class1);
+		}
+		if (!StringUtil.isEmpty(ua.getClassidentity()))
+		{
+			ResultClass class1 = new ResultClass("班级身份",ua.getClassidentity());
+			resultList.add(class1);
+		}
+		if (!StringUtil.isEmpty(ua.getTeachesubjectlist()))
+		{
+			ResultClass class1 = new ResultClass("所教学科",ua.getTeachesubjectlist());
+			resultList.add(class1);
+		}
+		if (!StringUtil.isEmpty(ua.getCode()))
+		{
+			ResultClass class1 = new ResultClass("工号",ua.getCode());
+			resultList.add(class1);
+		}
+		if (!StringUtil.isEmpty(ua.getPhone()))
+		{
+			ResultClass class1 = new ResultClass("手机号",ua.getPhone());
+			resultList.add(class1);
+		}
+		if(!StringUtil.isEmpty(ua.getParentName())){
+			ResultClass class1 = new ResultClass("家长姓名",ua.getParentName());
+			resultList.add(class1);
+		}
+		if(!StringUtil.isEmpty(ua.getParentPhone())){
+			ResultClass class1 = new ResultClass("家长手机号",ua.getParentPhone());
+			resultList.add(class1);
+		}
+		if(!StringUtil.isEmpty(ua.getChildName())){
+			ResultClass class1 = new ResultClass("小孩姓名",ua.getChildName());
+			resultList.add(class1);
+		}
+		if(!StringUtil.isEmpty(ua.getChildPhone())){
+			ResultClass class1 = new ResultClass("小孩手机号",ua.getChildPhone());
+			resultList.add(class1);
+		}
+		if(!StringUtil.isEmpty(ua.getSchoolType())){
+			ResultClass class1 = new ResultClass("类型",ua.getSchoolType());
+			resultList.add(class1);
+		}
+		if (!StringUtil.isEmpty(ua.getCardCode()))
+		{
+			ResultClass class1 = new ResultClass("卡号",ua.getCardCode());
+			resultList.add(class1);
+		}
+		if (!StringUtil.isEmpty(ua.getAddress()))
+		{
+			ResultClass class1 = new ResultClass("通讯地址",ua.getAddress());
+			resultList.add(class1);
+		}
+		if (!StringUtil.isEmpty(ua.getUserDescription()))
+		{
+			ResultClass class1 = new ResultClass("个人标签",ua.getUserDescription());
+			resultList.add(class1);
+		}
+		if (!StringUtil.isEmpty(ua.getInterests()))
+		{
+			ResultClass class1 = new ResultClass("兴趣爱好",ua.getInterests());
+			resultList.add(class1);
+		}
+		return resultList;
+	}
+	
+	//转换数据
+	private UserInfoDetail changeUserAuth(UserInfoDetail ua,boolean isFujian)
+	{
+		String roleCode = ua.getRoleCode();
+		String sex = ua.getSex();
+		String credtype = ua.getCredtype();
+		String gradeId = ua.getGradeId();
+		String section = ua.getSection();
+		String classidentity = ua.getClassidentity();
+		String orgaidentity = ua.getOrgaidentity();
+		String subjects = ua.getTeachesubjectlist();
+		if(isFujian){
+			if ("0".equals(sex))
+			{
+				ua.setSex("女");
+			} else if ("1".equals(sex))
+			{
+				ua.setSex("男");
+			} else
+			{
+				ua.setSex("男");
+			}
+		}else {
+			if ("0".equals(sex))
+			{
+				ua.setSex("男");
+			} else if ("1".equals(sex))
+			{
+				ua.setSex("女");
+			} else
+			{
+				ua.setSex("男");
+			}
+		}
+		
+
+		if ("0".equals(roleCode))
+		{
+			ua.setRoleName("学生");
+		} else if ("1".equals(roleCode))
+		{
+			ua.setRoleName("老师");
+		} else if ("2".equals(roleCode))
+		{
+			ua.setRoleName("家长");
+		} else if ("3".equals(roleCode))
+		{
+			ua.setRoleName("机构");
+		} else if ("4".equals(roleCode))
+		{
+			ua.setRoleName("学校");
+		} else if ("5".equals(roleCode))
+		{
+			ua.setRoleName("学校工作人员");
+		} else if ("6".equals(roleCode))
+		{
+			ua.setRoleName("机构工作人员");
+		} else
+		{
+			ua.setRoleName("其他");
+		}
+
+		if ("0".equals(credtype))
+		{
+			ua.setCredtype("身份证");
+		} else if ("1".equals(credtype))
+		{
+			ua.setCredtype("护照");
+		} else if ("2".equals(credtype))
+		{
+			ua.setCredtype("军人证");
+		} else
+		{
+			ua.setCredtype("其他");
+		}
+
+		if ("1".equals(gradeId))
+		{
+			ua.setGradeName("一年级");
+		} else if ("2".equals(gradeId))
+		{
+			ua.setGradeName("二年级");
+		} else if ("3".equals(gradeId))
+		{
+			ua.setGradeName("三年级");
+		} else if ("4".equals(gradeId))
+		{
+			ua.setGradeName("四年级");
+		} else if ("5".equals(gradeId))
+		{
+			ua.setGradeName("五年级");
+		} else if ("6".equals(gradeId))
+		{
+			ua.setGradeName("六年级");
+		} else if ("7".equals(gradeId))
+		{
+			ua.setGradeName("初一");
+		} else if ("8".equals(gradeId))
+		{
+			ua.setGradeName("初二");
+		} else if ("9".equals(gradeId))
+		{
+			ua.setGradeName("初三");
+		} else if ("10".equals(gradeId))
+		{
+			ua.setGradeName("高一");
+		} else if ("11".equals(gradeId))
+		{
+			ua.setGradeName("高二");
+		} else if ("12".equals(gradeId))
+		{
+			ua.setGradeName("高三");
+		} else if ("13".equals(gradeId))
+		{
+			ua.setGradeName("职一");
+		} else if ("14".equals(gradeId))
+		{
+			ua.setGradeName("职二");
+		} else if ("15".equals(gradeId))
+		{
+			ua.setGradeName("职三");
+		}
+
+		if ("1".equals(section))
+		{
+			ua.setSection("小学");
+		} else if ("2".equals(section))
+		{
+			ua.setSection("初中");
+		} else if ("3".equals(section))
+		{
+			ua.setSection("高中");
+		} else if ("4".equals(section))
+		{
+			ua.setSection("高职");
+		}
+
+		StringBuffer teachesubjectlist_new = new StringBuffer();
+		StringBuffer classidentityName_new = new StringBuffer();
+		if (!StringUtil.isEmpty(subjects))
+		{
+			String[] subjectArray = subjects.split(";");
+			for (int i = 0; i < subjectArray.length; i++)
+			{
+				JSONObject obj = (JSONObject) JSONObject.fromObject(subjectArray[i]);
+				String classname = (String) obj.get("classname");
+				String subjectname = (String) obj.get("subjectname");
+				JSONArray classidentityArray = (JSONArray) obj.get("classidentity");
+				String classidentityName = "";
+				if (classidentityArray != null)
+				{
+					Object[] array1 = classidentityArray.toArray();
+					classidentity = (String) array1[0];
+					classidentityName = getClassidentityName(classidentity);
+				}
+				if ((i + 1) != subjectArray.length)
+				{
+					if ((!StringUtil.isEmpty(classname)) && (!StringUtil.isEmpty(subjectname)))
+					{
+						teachesubjectlist_new.append(classname + ":" + subjectname + ",");
+					}
+					classidentityName_new.append(classname + ":" + classidentityName + ",");
+				} else
+				{
+					if ((!StringUtil.isEmpty(classname)) && (!StringUtil.isEmpty(subjectname)))
+					{
+						teachesubjectlist_new.append(classname + ":" + subjectname);
+					}
+					classidentityName_new.append(classname + ":" + classidentityName);
+				}
+			}
+			ua.setTeachesubjectlist(teachesubjectlist_new.toString());
+		}
+
+		
+		if(!StringUtil.isEmpty(classidentityName_new.toString())){
+			ua.setClassidentity(classidentityName_new.toString());
+		}else{
+			ua.setClassidentity(getClassidentityName(classidentity));
+		}
+
+		StringBuffer orgaidentity_new = new StringBuffer();
+		if (!StringUtil.isEmpty(orgaidentity))
+		{
+			String[] array = orgaidentity.split(";");
+			for (int i = 0; i < array.length; i++)
+			{
+				String orgaidentityName = "";
+				if ("1".equals(array[i]))
+				{
+					orgaidentityName = "管理员";
+				} else if ("2".equals(array[i]))
+				{
+					orgaidentityName = "成员";
+				} else if ("3".equals(array[i]))
+				{
+					orgaidentityName = "教研员";
+				} else if ("4".equals(array[i]))
+				{
+					orgaidentityName = "教务员";
+				} else if ("5".equals(array[i]))
+				{
+					orgaidentityName = "信息员";
+				}
+				if ((i + 1) != array.length)
+				{
+					if (!orgaidentity_new.toString().contains(orgaidentityName))
+					{
+						orgaidentity_new.append(orgaidentityName + ",");
+					}
+				} else
+				{
+					if (!orgaidentity_new.toString().contains(orgaidentityName))
+					{
+						orgaidentity_new.append(orgaidentityName);
+					}
+				}
+			}
+			ua.setOrgaidentity(orgaidentity_new.toString());
+		}
+
+		return ua;
+	}
+
+	/**
+	 * 获取班级中身份
+	 * @param classidentity
+	 * @return
+	 */
+	private String getClassidentityName(String classidentity){
+		String classidentityName="";
+		if(StringUtil.isEmpty(classidentity)){
+			return classidentityName;
+		}
+		if (classidentity.contains("1"))
+		{
+			classidentityName = "班主任";
+		} else if (classidentity.contains("2"))
+		{
+			classidentityName = "班长";
+		} else if (classidentity.contains("3"))
+		{
+			classidentityName = "管理员";
+		} else if (classidentity.contains("4"))
+		{
+			classidentityName = "教师";
+		} else if (classidentity.contains("5"))
+		{
+			classidentityName = "成员";
+		} else if (classidentity.contains("6"))
+		{
+			classidentityName = "教研员";
+		} else if (classidentity.contains("7"))
+		{
+			classidentityName = "教务员";
+		} else if (classidentity.contains("8"))
+		{
+			classidentityName = "信息员";
+		}
+		return classidentityName;
+	}
+	
+
+}
+
+
+class ResultClass
+{
+	public String name;
+	public String value;
+
+	public ResultClass(String name, String value)
+	{
+		this.name = name;
+		this.value = value;
+	}
+}

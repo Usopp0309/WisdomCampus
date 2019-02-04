@@ -1,0 +1,334 @@
+package com.guotop.palmschool.bluetooth.quartz;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.quartz.CronTrigger;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerFactory;
+import org.quartz.impl.StdSchedulerFactory;
+import org.springframework.util.CollectionUtils;
+
+import com.guotop.palmschool.bluetooth.entity.BluetoothBracelet;
+import com.guotop.palmschool.bluetooth.entity.BluetoothSchool;
+import com.guotop.palmschool.bluetooth.service.BraceletService;
+import com.guotop.palmschool.util.StringUtil;
+
+/**
+ * 动态添加定时任务
+ * 
+ * @author chenyong 2016年5月13日
+ */
+public class QuarztUtils {
+	public static final SchedulerFactory getSchedulerFactory = new StdSchedulerFactory();
+
+	public static Map<String, QuarztVo> mapQuarztVo = new HashMap<String, QuarztVo>();
+
+	/**
+	 * 添加任务
+	 * 
+	 * @author chenyong 2016年5月13日
+	 * @param c
+	 * @param key
+	 * @param date
+	 */
+	public static void addJob(Class<?> c, String key, String date, long count) {
+		try {
+			Scheduler sched = getSchedulerFactory.getScheduler();
+			removeJob(key);//存在删除
+			JobDetail jobDetail = new JobDetail(key + "_job", key + "_group", c);// 任务名，任务组，任务执行类
+			jobDetail.getJobDataMap().put("key", key);
+			// 触发器
+			CronTrigger trigger = new CronTrigger(key + "_trigger", key + "_triggerGroup");// 触发器名,触发器组
+			trigger.setCronExpression(date);// 触发器时间设定
+			sched.scheduleJob(jobDetail, trigger);
+			QuarztVo vo = new QuarztVo();
+			vo.setCount(count);
+			vo.setKey(key);
+			mapQuarztVo.put(key.toString(), vo);
+			// 启动
+			if (!sched.isShutdown()) {
+				sched.start();
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * 开始执行任务
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月3日 下午2:54:09
+	 */
+	public static void addStartJob(Class<?> c, String key, String date, String setDate, long count) {
+		try {
+			String startKey = key + "_";
+			Scheduler sched = getSchedulerFactory.getScheduler();
+			JobDetail jobDetail = null;
+			CronTrigger trigger = null;
+			removeJob(startKey);//存在删除
+			removeJob(key);//存在删除
+			jobDetail = new JobDetail(key + "_job", key + "_group", c);// 任务名，任务组，任务执行类
+			jobDetail.getJobDataMap().put("key", key);
+			jobDetail.getJobDataMap().put("startKey", startKey);
+			jobDetail.getJobDataMap().put("setDate", setDate);
+			jobDetail.getJobDataMap().put("count", count);
+			// 触发器
+			trigger = new CronTrigger(startKey + "_trigger", startKey + "_triggerGroup");// 触发器名,触发器组
+			trigger.setCronExpression(date);// 触发器时间设定
+			sched.scheduleJob(jobDetail, trigger);
+			// 启动
+			if (!sched.isShutdown()) {
+				sched.start();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月3日 上午9:42:11
+	 * @param statrtTime
+	 *            手环开始使用时间
+	 * @param endTime
+	 *            手环结束使用时间
+	 * @param type
+	 *            0：每秒循环，1：每分钟循环，2：每小时循环
+	 * @param times
+	 *            执行间隔
+	 */
+	public static long CornCount(Date statrtTime, Date endTime, int type, int times) {
+		Calendar statrtCalendar = Calendar.getInstance();
+		Calendar endCalendar = Calendar.getInstance();
+		statrtCalendar.setTime(statrtTime);
+		endCalendar.setTime(endTime);
+		long start = statrtCalendar.getTimeInMillis();
+		long end = endCalendar.getTimeInMillis();
+		long count = 0;
+		if (type == 0) {// 每秒循环
+			count = ((end - start) / 1000) / times;// 执行次数
+		} else if (type == 1) {// 每分钟循环
+			count = ((end - start) / 1000 / 60) / times;// 执行次数
+		} else if (type == 2) {// 每小时循环
+			count = ((end - start) / 1000 / 60 / 60) / times;// 执行次数
+		}
+		return count;
+	}
+
+	/**
+	 * 获得定时任务开始执行的时间 [秒] [分] [小时] [日] [月] [周] [年]
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月3日 下午2:23:10
+	 */
+	public static String getStartCorn(Date startTime) {
+		startTime= new Date(startTime.getTime() +30000);//1分钟后执行
+		String corn = "";
+		Calendar c = Calendar.getInstance();
+		c.setTime(startTime);
+		int scond = c.get(Calendar.SECOND);
+		int min = c.get(Calendar.MINUTE);
+		int hours = c.get(Calendar.HOUR_OF_DAY);
+		int day = c.get(Calendar.DATE);
+		int month = c.get(Calendar.MONTH) + 1;
+		int year = c.get(Calendar.YEAR);
+		corn = "" + scond + " " + min + " " + hours + " " + day + " " + month + " ? " + year + "";
+		return corn;
+	}
+
+	/**
+	 * 获得定时任务循环执行的时间 [秒] [分] [小时] [日] [月] [周] [年]
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月3日 下午2:23:10
+	 * @param type
+	 *            0：每秒循环，1：每分钟循环，2：每小时循环
+	 * @param times
+	 *            执行间隔
+	 */
+	public static String getForCorn(int type, int times) {
+		String corn = "";
+		if (type == 0) {
+			corn = "0/" + times + " * * * * ?";
+		} else if (type == 1) {
+			corn = "0 0/" + times + " * * * ?";
+		} else if (type == 2) {
+			corn = "0 0 0/" + times + " * * ?";
+		}
+		return corn;
+	}
+
+	/**
+	 * 删除定时任务
+	 * 
+	 * @author chenyong 2016年5月13日
+	 * @param key
+	 */
+	public static void removeJob(String key) {
+		try {
+			Scheduler sched = getSchedulerFactory.getScheduler();
+			sched.pauseTrigger(key + "_job", key + "_triggerGroup");// 停止触发器
+			sched.unscheduleJob(key + "_job", key + "_triggerGroup");// 移除触发器
+			sched.deleteJob(key + "_job", key + "_group");// 删除任务
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * 初始化定时任务
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月3日 下午5:57:59
+	 */
+	public static void initTask(String schoolId, BraceletService braceletService) {
+		// 每个学校手环的最小开始时间，和最大结束时间
+		List<BluetoothSchool> listSchool = braceletService.getAllBluetoothSchool();
+		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date start = null;
+		Date end = null;
+		long count = 0;
+		String setCorn = null;
+		String startCorn = null;
+		if (!CollectionUtils.isEmpty(listSchool)) {
+			for (BluetoothSchool bluetoothSchool : listSchool) {
+				try {
+					start = f.parse(bluetoothSchool.getStartTime());
+					end = f.parse(bluetoothSchool.getEndTime());
+					Date now=new Date();
+					if (start.before(now) && end.after(now)) {
+						start = new Date();
+					} else if (end.before(now)) {// 时间不合法,已过期
+						continue;
+					}
+					count = CornCount(start, end, 1, bluetoothSchool.getTimes());// 默认按分钟循环调用count次结束
+					setCorn = getForCorn(1, bluetoothSchool.getTimes());
+					startCorn = getStartCorn(start);
+					addStartJob(StartJob.class, bluetoothSchool.getSchoolId(), startCorn, setCorn, count);
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	/**
+	 * 为学校添加定时任务
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月3日 下午6:50:00
+	 */
+	public static void addSchoolTask(String schoolId, String startTime, String endTime, Integer times) {
+		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date start = null;
+		Date end = null;
+		long count = 0;
+		String setCorn = null;
+		String startCorn = null;
+		Date now=new Date();
+		try {
+			start = f.parse(startTime);
+			end = f.parse(endTime);
+			if (start.getTime()<=now.getTime() && end.getTime()>(now.getTime()+1*60*1000)) {
+				start =now;
+			} else if (end.before(now)) {// 时间不合法,已过期
+				return;
+			}
+			count = CornCount(start, end, 1, times);// 默认按分钟循环调用count次结束
+			setCorn = getForCorn(1, times);
+			startCorn = getStartCorn(start);
+			addStartJob(StartJob.class, schoolId, startCorn, setCorn, count);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 根据手环数据设置修改定时任务
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月4日 上午10:08:19
+	 */
+	public static void reSetTask(String startTime, String endTime, BraceletService braceletService, String schoolId) {
+		if(StringUtil.isEmpty(startTime) || StringUtil.isEmpty(endTime) ){
+			return;
+		}
+		// 判断时间
+		BluetoothBracelet bluetoothBracelet = braceletService.getMaxTimeMinTime();
+		
+		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		try {
+			Date baseStart = f.parse(bluetoothBracelet.getStartTime());
+			Date baseEnd = f.parse(bluetoothBracelet.getEndTime());
+			Date st = f.parse(startTime);
+			Date et = f.parse(endTime);
+
+			String newStartTime = null;
+			String newEndTime = null;
+			boolean flag = false;
+			if (st.before(baseStart) || st.equals(baseStart)) {
+				newStartTime = startTime;
+				flag = true;
+			}
+			if (et.after(baseEnd) || et.equals(baseEnd)) {
+				newEndTime = endTime;
+				flag = true;
+			}
+			if (newStartTime == null && flag) {
+				newStartTime = bluetoothBracelet.getStartTime();
+			}
+			if (newEndTime == null && flag) {
+				newEndTime = bluetoothBracelet.getEndTime();
+			}
+			if (newEndTime != null && newStartTime != null) {
+				BluetoothSchool bluetoothSchool = braceletService.getBluetoothSchoolBySchoolId(schoolId);
+				if(bluetoothSchool==null){
+					bluetoothSchool=new BluetoothSchool();
+					bluetoothSchool = new BluetoothSchool();
+					bluetoothSchool.setEndTime(startTime);
+					bluetoothSchool.setStartTime(endTime);
+					bluetoothSchool.setSchoolId(schoolId);
+					bluetoothSchool.setTimes(5);// 默认5分钟
+					braceletService.insertBluetoothSchool(bluetoothSchool);
+				}else{
+					bluetoothSchool.setEndTime(startTime);
+					bluetoothSchool.setStartTime(endTime);
+					bluetoothSchool.setSchoolId(schoolId);
+					braceletService.updateBluetoothSchoolBySchoolId(bluetoothSchool);
+				}
+				addSchoolTask(schoolId, newStartTime, newEndTime, bluetoothSchool.getTimes());
+			}
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void main(String[] args) {
+		/*
+		 * String s = "2017-05-03 15:13:00"; String e = "2017-05-03 15:16:20";
+		 * SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		 * String corn = getForCorn(0, 5); String corn1; long d; try { Date date
+		 * = f.parse(s); Date end = f.parse(e); if (date.getTime() < new
+		 * Date().getTime() && end.getTime() > new Date().getTime()) { date =
+		 * new Date(); } else if (end.getTime() < new Date().getTime()) {//
+		 * 时间不合法 return; } d = CornCount(date, f.parse(e), 0, 10); corn1 =
+		 * getStartCorn(date); addStartJob(StartJob.class,
+		 * UUID.randomUUID().toString(), corn1, corn, d); } catch (Exception e1)
+		 * { e1.printStackTrace(); }
+		 */
+
+	}
+
+}

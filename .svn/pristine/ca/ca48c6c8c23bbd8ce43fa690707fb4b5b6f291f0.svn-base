@@ -1,0 +1,177 @@
+package com.guotop.palmschool.patrol.entity;
+
+import java.io.Serializable;
+
+/**
+ * 校务巡查巡更刷卡记录实体类
+ */
+public class PatrolInout implements Serializable
+{
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * id
+	 */
+	private Integer id;
+	
+	/**
+	 * 卡号
+	 */
+	private String code;
+	
+	/**
+	 * 用户Id
+	 */
+	private Integer userId;
+	
+	/**
+	 * 打卡的状态：1 进 2出
+	 */
+	private Integer status;
+	
+	/**
+	 * 设备ID
+	 */
+	private Integer deviceId;
+	
+	/**
+	 * 地点ID
+	 */
+	private Integer placeId;
+	
+	/**
+	 * 刷卡日期
+	 */
+	private String inoutDate;
+	
+	/**
+	 * 刷卡时间
+	 */
+	private String inoutTime;
+	
+	/**
+	 * 创建时间
+	 */
+	private String createTime;
+	
+	/**
+	 * 更新时间
+	 */
+	private String updateTime;
+
+	/**
+	 * 实际刷卡地点名称
+	 */
+	private String inoutPlaceName;
+	
+	public Integer getId()
+	{
+		return id;
+	}
+
+	public void setId(Integer id)
+	{
+		this.id = id;
+	}
+
+	public String getCode()
+	{
+		return code;
+	}
+
+	public void setCode(String code)
+	{
+		this.code = code;
+	}
+
+	public Integer getUserId()
+	{
+		return userId;
+	}
+
+	public void setUserId(Integer userId)
+	{
+		this.userId = userId;
+	}
+
+	public Integer getStatus()
+	{
+		return status;
+	}
+
+	public void setStatus(Integer status)
+	{
+		this.status = status;
+	}
+
+	public Integer getDeviceId()
+	{
+		return deviceId;
+	}
+
+	public void setDeviceId(Integer deviceId)
+	{
+		this.deviceId = deviceId;
+	}
+
+	public Integer getPlaceId()
+	{
+		return placeId;
+	}
+
+	public void setPlaceId(Integer placeId)
+	{
+		this.placeId = placeId;
+	}
+
+	public String getInoutDate()
+	{
+		return inoutDate;
+	}
+
+	public void setInoutDate(String inoutDate)
+	{
+		this.inoutDate = inoutDate;
+	}
+
+	public String getInoutTime()
+	{
+		return inoutTime;
+	}
+
+	public void setInoutTime(String inoutTime)
+	{
+		this.inoutTime = inoutTime;
+	}
+
+	public String getCreateTime()
+	{
+		return createTime;
+	}
+
+	public void setCreateTime(String createTime)
+	{
+		this.createTime = createTime;
+	}
+
+	public String getUpdateTime()
+	{
+		return updateTime;
+	}
+
+	public void setUpdateTime(String updateTime)
+	{
+		this.updateTime = updateTime;
+	}
+
+	public String getInoutPlaceName()
+	{
+		return inoutPlaceName;
+	}
+
+	public void setInoutPlaceName(String inoutPlaceName)
+	{
+		this.inoutPlaceName = inoutPlaceName;
+	}
+	
+}

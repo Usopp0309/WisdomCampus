@@ -1,0 +1,134 @@
+package com.guotop.palmschool.controller;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.StartupListener;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.PropertiesUtil;
+import com.richx.pojo.RichHttpResponse;
+
+import dev.gson.GsonHelper;
+
+/**
+ * ITC录播设备登陆接口
+ * 
+ * @author shengyinjiang
+ * 
+ */
+@RequestMapping("/userITC")
+@Controller
+public class UserITCController extends BaseController
+{
+	private Logger logger = LoggerFactory.getLogger(UserITCController.class);
+	@Resource
+	private UserService userService;
+
+	@SuppressWarnings("rawtypes")
+	@RequestMapping(value = "/doLogin.do")
+	public String doLogin(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws JSONException, IOException
+	{
+		RichHttpResponse<User> res = new RichHttpResponse<User>(); 
+		response.setContentType("application/json;charset=UTF-8");
+		
+		BufferedReader br = null;
+		try
+		{
+			br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line);
+			}
+			String msgInfoStr = sb.toString();
+			JSONObject jsonObject = new JSONObject(msgInfoStr);
+	        
+	        Map result = new HashMap();
+	        Iterator iterator = jsonObject.keys();
+	        String key = null;
+	        String value = null;
+	        
+	        while (iterator.hasNext()) {
+	            key = (String) iterator.next();
+	            value = jsonObject.getString(key);
+	            result.put(key, value);
+	        }
+	        String userName = (String) result.get("userName");
+			String passWord = (String) result.get("passWord");
+			
+			List<User> userList = StartupListener.userService.doLogin(userName, passWord);
+			Properties pro = PropertiesUtil.getInstance().read("wisdomcampus.properties");
+			String ftpUserName = pro.getProperty("testFtpUserName");
+			String ftpPassword = pro.getProperty("testFtpPassword");
+			String ftpHost = pro.getProperty("testHost");
+			String testFtpUrl = pro.getProperty("testFtpUrl");
+			String testFtpEncode = pro.getProperty("testFtpEncode");
+			User user = new User();
+			if (userList != null && userList.size() > 0)
+			{
+				user = userList.get(0);
+				user.setPassword("");
+				user.setVoipAccount("");
+				user.setFtpUserName(ftpUserName);
+				user.setFtpPassword(ftpPassword);
+				user.setFtpHost(ftpHost);
+				user.setFtpUrl(testFtpUrl);
+				user.setFtpEncode(testFtpEncode);
+				res.ResponseCode = 0;
+				res.ResponseObject = user;
+				res.ResponseResult = "登陆成功";
+			}else
+			{
+				res.ResponseCode = -1;
+				res.ResponseResult = "登陆失败";
+			}
+			response.getWriter().write(GsonHelper.toJson(res));
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			logger.error("userITC远程接口调用失败："+ e);
+			try
+			{
+				response.setCharacterEncoding("utf-8");
+				response.getWriter().write("false");
+				response.getWriter().flush();
+			} catch (Exception ex)
+			{
+				logger.error("userITC远程接口调用失败："+ ex);
+			}
+		} finally
+		{
+			if (br != null)
+			{
+				try
+				{
+					br.close();
+				} catch (IOException e)
+				{
+					logger.error("userITC远程接口r关闭reader出错！");
+				}
+			}
+		}
+		return null;
+	}
+}

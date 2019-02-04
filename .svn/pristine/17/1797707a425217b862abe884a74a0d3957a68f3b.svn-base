@@ -1,0 +1,446 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>编辑电子课程表</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+</head>
+	<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+		<input class="themes" type="hidden" value="<%=ThemePath%>">
+	    <!-- 公共顶部开始-->
+	    <%@ include file="/public_module/public_header.jsp"%>    
+	    <!--公共顶部结束-->
+	    <div class="clearfix"> </div>
+	    <!-- 内容页开始 -->
+	    <div class="page-container">
+	        <!--主菜单开始-->
+	        <%@include file="/public_module/public_menu.jsp"%>
+	        <!--主菜单结束-->
+	        <div class="page-content-wrapper">
+	            <div class="page-content m_overflow_hidden m_page_content">
+	            	<!-- 页面内容开始 -->
+	            	<div class="col-md-12 col-sm-12 m_page_con">
+	                <div class="page-bar m_margin_0_0_0_0">
+	                    <ul class="page-breadcrumb">
+	                        <li><a href="">首页</a><i class="fa fa-circle"></i></li>
+	                        <li><a href="">电子课程表</a><i class="fa fa-circle"></i></li>
+	                        <li><span>编辑电子课程表</span></li>
+	                    </ul>
+	                </div>
+	                <h3 class="page-title">编辑电子课程表</h3>
+	                <div class="row">
+	                    <div class="col-md-12 col-sm-12">
+	                        <!-- 页面搜索开始 -->
+	                        <div class="portlet light form-fit bordered search_box">
+	                        <form action="<%=basePath%>curriculum/toUpdateCurriculumTime.do" class="form-horizontal" name="defform" method="post" id="updateCurriculumTime">	
+	                         <div class="row m_margin_10_auto">
+	
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">开始日期：</span>
+	                         		<input type="text" size="16" placeholder="本学期开始日期" class="m_input form-control" name="startDay" value="${startDay}" id="startDay"/> 
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">结束日期：</span>
+	                         		<input type="text" size="16" placeholder="本学期结束日期" class="m_input form-control" name="endDay" value="${endDay}" id="endDay" />
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<a class="btn green" id="save" >保存</a>
+	                         		<a class="btn yellow" id="back" >返回</a>
+	                         	</div>
+	                         </div>
+	                         	<input type="hidden" id="semesterId" name="semesterId" value="${semesterId}"/>
+	                         
+	                        
+	                       	<div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption">
+	                                    <i class="fa fa-list"></i>编辑电子课程表</div>
+	                            </div>
+	                            <div class="portlet-body flip-scroll">
+	                                <table class="table table-bordered table-hover">
+								<tr>
+									<td class="bg">阶段</td>
+									<td class="bg">开始时间</td>
+									<td class="bg">结束时间</td>
+									<td class="bg">操作</td>
+								</tr>
+
+								<c:forEach items="${curriculumMorningTimeList}" var="mt" varStatus="cmt">
+                                      <c:choose>
+                                      	   <c:when test="${cmt.index==0}">
+												<tr id="morning${cmt.index+1}">
+													<td rowspan="${fn:length(curriculumMorningTimeList)}" class="bg" align="center" valign="middle" id="am">上午</td>
+													<td class="bg">
+													    <input placeholder="上课时间" class="form-control" name="startTimeAm" id="startTimeAm${cmt.index}" value="${mt.beginTime}" i="${cmt.index}" />
+													    <input type="text" style="display: none;" id="amSize" value="${fn:length(curriculumMorningTimeList)}" />
+													</td>
+													<td class="bg">
+													    <input placeholder="下课时间" class="form-control" name="endTimeAm" id="endTimeAm${cmt.index}" value="${mt.endTime}" i="${cmt.index}" />
+													</td>
+													<td class="bg">
+														<a class="btn mini green" onclick="appendAddAm()"><i class="fa fa-plus"></i></a>
+													</td>
+												</tr>
+		                                    </c:when>
+		                                    <c:otherwise>
+		                                       <tr id="morning${cmt.index+1}">
+		                                       		<td class="bg"  id="am" >
+													    <input placeholder="上课时间" class="form-control" name="startTimeAm" id="startTimeAm${cmt.index}" value="${mt.beginTime}" i="${cmt.index}" />
+													</td>
+													<td class="bg">
+													    <input placeholder="下课时间" class="form-control" name="endTimeAm" id="endTimeAm${cmt.index}" value="${mt.endTime}" i="${cmt.index}" />
+													</td>
+													<td class="bg">
+														<a class="btn mini green" onclick="appendAddAm()"><i class="fa fa-plus"></i></a>
+														<a class="btn mini red" onclick="removeAddAm($(this))"><i class="fa fa-minus"></i></a>
+													</td>
+												</tr>
+		                                    </c:otherwise>
+                                      </c:choose>
+                                </c:forEach>
+                                
+                                <c:forEach items="${curriculumAfternoonTimeList}" var="at" varStatus="cat">
+                                       <c:choose>
+                                      	   <c:when test="${cat.index==0}">
+		                                       <tr>
+												<td colspan="3">休息时间</td>
+											   </tr>
+												<tr id="afternoon1">
+													<td rowspan="${fn:length(curriculumAfternoonTimeList) }" class="bg" align="center" valign="middle" id="pm">下午</td>
+													<td class="bg">
+													    <input placeholder="上课时间" class="form-control" name="startTimePm" id="startTimePm${cat.index}" value="${at.beginTime}" j="${cat.index}"/>
+														 <input type="text" style="display: none;" id="pmSize" value="${fn:length(curriculumAfternoonTimeList) }" />
+													</td>
+													<td class="bg">
+													    <input placeholder="下课时间" class="form-control" name="endTimePm" id="endTimePm${cat.index}" value="${at.endTime}"j="${cat.index}" />
+													</td>
+													<td class="bg">
+														<a class="btn mini green" onclick="appendAddPm()"><i class="fa fa-plus"></i></a>
+													</td>
+												</tr>
+		                                    </c:when>
+		                                    <c:otherwise>
+		                                       <tr id="afternoon1">
+		                                       		<td  rowspan="1" class="bg" align="center" valign="middle" id="pm">
+													    <input placeholder="上课时间"  name="startTimePm" class="form-control" id="startTimePm${cat.index}" value="${at.beginTime}" j="${cat.index}"/>
+													</td>
+													<td class="bg">
+													    <input placeholder="下课时间"  name="endTimePm" class="form-control" id="endTimePm${cat.index}" value="${at.endTime}" j="${cat.index}"/>
+													</td>
+													<td class="bg">
+														<a class="btn mini green" onclick="appendAddPm()"><i class="fa fa-plus"></i></a>
+														<a class="btn mini red" onclick="removeAddAm($(this))"><i class="fa fa-minus"></i></a>
+													</td>
+												</tr>
+		                                    </c:otherwise>
+                                       </c:choose>
+							    </c:forEach>
+							    
+							     <c:forEach items="${curriculumNightTimeList}" var="nt" varStatus="cnt">
+									<c:choose>
+                                      	   <c:when test="${cnt.index==0}">
+		                                       <tr>
+												<td colspan="3">休息时间</td>
+											   </tr>
+												<tr id="night1">
+													<td rowspan="${fn:length(curriculumNightTimeList)}" class="bg" align="center" valign="middle" id="ni" >晚上</td>
+													<td class="bg">
+													    <input placeholder="上课时间" name="startTimeN" id="startTimeN${cnt.index}" class="form-control" value="${nt.beginTime}"
+														onclick="WdatePicker({el:'startTimeN${cnt.index}',dateFmt:'HH:mm',onpicked:function(){$('defform').submit();}})"  n="${cnt.index}"/>
+														 <input type="text" style="display: none;" id="niSize" value="${fn:length(curriculumNightTimeList)}" />
+													</td>
+													<td class="bg">
+													    <input placeholder="下课时间" name="endTimeN" class="form-control" id="endTimeN${cnt.index}" value="${nt.endTime}"
+														onclick="WdatePicker({el:'endTimeN${cnt.index}',dateFmt:'HH:mm',onpicked:function(){$('defform').submit();}})" j="${cnt.index}" />
+													</td>
+													
+													<td class="bg">
+														<a class="btn mini green" onclick="appendAddN()"><i class="fa fa-plus"></i></a>
+													</td>
+												</tr>
+		                                    </c:when>
+		                                    
+		                                    <c:otherwise>
+		                                      <tr id="night1">
+		                                       		<td class="bg" rowspan="1" align="center" valign="middle" id="ni">
+													    <input placeholder="上课时间" name="startTimeN" class="form-control" id="startTimeN${cnt.index}" value="${nt.beginTime}"
+														onclick="WdatePicker({el:'startTimeN${cnt.index}',dateFmt:'HH:mm',onpicked:function(){$('defform').submit();}})" j="${cmt.index}" />
+													</td>
+													<td class="bg">
+													    <input placeholder="下课时间" name="endTimeN" class="form-control" id="endTimeN${cnt.index}" value="${nt.endTime}"
+														onclick="WdatePicker({el:'endTimeN${cnt.index}',dateFmt:'HH:mm',onpicked:function(){$('defform').submit();}})" j="${cmt.index}" />
+													</td>
+													<td class="bg">
+														<a class="btn mini green" onclick="appendAddN()"><i class="fa fa-plus"></i></a>
+													</td>
+												</tr>
+		                                    </c:otherwise>
+                                     </c:choose>
+								</c:forEach>
+							</table>
+							
+	                            </div>
+	                        </div>
+	                        </form>
+	                        </div>
+	                       <!-- 列表展现开始 -->
+	                    </div>
+	                </div>
+	                </div>
+	                <!--页面内容结束 -->
+	            </div>
+	        </div>
+	        <!-- 亦信聊天开始 -->
+	    	<%@ include file="/public_module/public_QQ.jsp" %>
+	        <!-- 亦信聊天结束 -->
+	    </div>
+	    <!-- 内容页结束 -->
+	    <!-- 底部开始 -->
+	    <%@ include file="/public_module/public_footer.jsp" %>
+	    <!-- 底部结束 -->
+	</body>
+    <!-- 公共js开始 -->
+    <%@ include file="/public_module/public_js.jsp" %>
+    <!-- 公共js结束 -->
+
+	<script type="text/javascript">
+
+		$(function() {    
+			loadSubMenu("curriculum"); 
+			//选取当前菜单位置
+			setActive("curriculum","curriculumManager");  
+			$('#startDay,#endDay').datetimepicker({
+				format:'Y-m-d',
+				timepicker:false
+			});
+			$('.title_input').datetimepicker({
+				datepicker:false,
+				format:'H:i',
+				step:5
+			});
+			$('.form-control').datetimepicker({
+				datepicker:false,
+				format:'H:i',
+				step:5
+			});
+			//开始日期
+			$("#startDay").blur(function(){
+				var startDay = $("#startDay").val();
+				//未输入开始日期
+				if ("" == startDay)
+				{
+					$("#startDay").addClass("error");
+					$("#startDayHelp").show();
+					$("#startDayHelp").html("开始日期不能为空");
+				}
+				else
+				{
+					$("#startDay").removeClass("error");
+					$("#startDayHelp").hide();
+				}
+			});
+			
+			//结束日期
+			$("#endDay").blur(function(){
+				var endDay = $("#endDay").val();
+
+				var startDay = $("#startDay").val();
+				//未输入结束时间
+				if ("" == endDay)
+				{
+					$("#endDayGroup").addClass("error");
+					$("#endDayHelp").show();
+					$("#endDayHelp").html("结束日期不能为空");
+				}
+				else if(startDay > endDay)
+				{
+					$("#endDayGroup").addClass("error");
+					$("#endDayHelp").show();
+					$("#endDayHelp").html("开始日期不能晚于结束日期");
+				}	
+				else
+				{
+					$("#endDayGroup").removeClass("error");
+					$("#endDayHelp").hide();
+				}
+				
+			});
+
+			
+			//点击确定保存
+		    $("#save").on("click",function()
+		    {
+		    	var flag = true;
+		    	$("input[id^='startTimeAm']").each(function(){
+		    		var i=$(this).attr("i");
+		    		var startTimeAm=$(this).val();
+		    		$("input[id^='endTimeAm']").each(function(){
+			    		var j=$(this).attr("i");
+			    		var endTimeAm=$(this).val();
+			    		if(endTimeAm < startTimeAm && i == j){
+			    			layer.tips('开始日期不能晚于结束日期', this);
+			    			flag=false;
+			    		}
+			    		
+			    	});
+		    	});
+		    	$("input[id^='startTimePm']").each(function(){
+		    		var i=$(this).attr("j");
+		    		var startTimeAm=$(this).val();
+		    		$("input[id^='endTimePm']").each(function(){
+			    		var j=$(this).attr("j");
+			    		var endTimeAm=$(this).val();
+			    		if(endTimeAm < startTimeAm && i == j){
+			    			layer.tips('开始日期不能晚于结束日期', this);
+			    			flag=false;
+			    		}
+			    		
+			    	});
+		    	});
+		    	$("input[id^='startTimeN']").each(function(){
+		    		var i=$(this).attr("n");
+		    		var startTimeAm=$(this).val();
+		    		$("input[id^='endTimeN']").each(function(){
+			    		var j=$(this).attr("n");
+			    		var endTimeAm=$(this).val();
+			    		if(endTimeAm > startTimeAm && i == j){
+			    			layer.tips('开始日期不能晚于结束日期', this);
+			    			flag=false;
+			    		}
+			    		
+			    	});
+		    	});
+		    	if(flag){
+	 		    	$("#updateCurriculumTime").submit();
+		    	}
+
+			})
+			//点击确定保存
+		    $("#back").on("click",function()
+		    {
+		    	window.history.back(-1);
+			})
+			
+			//点击取消
+		    $("#cancel").on("click",function(){
+		    	window.location.href='javascript:history.go(-1);';
+			})
+			
+		});
+		
+		function appendAddAm(){
+			var i = parseInt($("#amSize").val()) + 1;
+			var appendHtml = '<tr id="morning'+i+'">';
+			appendHtml += '<td class="bg">';
+			appendHtml += '<input placeholder="上课时间" class="form-control add_title" name="startTimeAm" id="startTimeAm'+i+'" i="'+i+'" />';
+			appendHtml += '</td>';
+			appendHtml += '<td class="bg">';
+			appendHtml += '<input placeholder="下课时间"class="form-control add_title" name="endTimeAm" id="endTimeAm'+i+'" i="'+i+'" />';
+			appendHtml += '</td>';
+			appendHtml += '<td class="bg">';
+			appendHtml += '<a class="btn mini red" onclick="removeAddAm($(this))"><i class="fa fa-minus"></i></a>';
+			appendHtml += '</td>';
+			/* appendHtml += '<c:forEach items="${weekList}"><td></td></c:forEach>'; */
+			appendHtml += '</tr>';
+			var id = $("#am").attr("rowspan");
+			var d = parseInt(id)+1;
+			$("#am").attr("rowspan",d);
+			$("#morning1").after(appendHtml);
+			$(".add_title").datetimepicker({
+				datepicker:false,
+				format:'H:i',
+				step:5
+			});
+		}
+			function appendAddPm(){
+				var j = parseInt($("#pmSize").val()) + 1;
+				var appendHtml = '<tr id="afternoon'+j+'">';
+				appendHtml += '<td class="bg">';
+				appendHtml += '<input placeholder="上课时间" class="form-control add_title" name="startTimePm" id="startTimePm'+j+'" j="'+j+'"/>';
+				appendHtml += '</td>';
+				appendHtml += '<td class="bg">';
+				appendHtml += '<input placeholder="下课时间" class="form-control add_title" name="endTimePm" id="endTimePm'+j+'" />';
+				appendHtml += '</td>';
+				appendHtml += '<td class="bg">';
+				appendHtml += '<a class="btn mini red" onclick="removeAddPm($(this));"><i class="fa fa-minus"></i></a>';
+				appendHtml += '</td>';
+			/* 	appendHtml += '<c:forEach items="${weekList}"><td></td></c:forEach>'; */
+				appendHtml += '</tr>';
+
+				var id = $("#pm").attr("rowspan");
+				var d = parseInt(id)+1;
+				$("#pm").attr("rowspan",d);
+				$("#afternoon1").after(appendHtml);
+				$('.add_title').datetimepicker({
+					datepicker:false,
+					format:'H:i',
+					step:5
+				});
+			}
+			function appendAddN(){
+				var n = parseInt($("#niSize").val()) + 1;
+				var appendHtml = '<tr id="night'+n+'">';
+				appendHtml += '<td class="bg">';
+				appendHtml += '<input placeholder="上课时间"  class="form-control add_title" name="startTimeN" id="startTimeN'+n+'" n="'+n+'"/>';
+				appendHtml += '</td>';
+				appendHtml += '<td class="bg">';
+				appendHtml += '<input placeholder="下课时间" class="form-control add_title" name="endTimeN" id="endTimeN'+n+'" n="'+n+'"/>';
+				appendHtml += '</td>';
+				appendHtml += '<td class="bg">';
+				appendHtml += '<a class="btn mini red" onclick="removeAddN($(this));"><i class="fa fa-minus"></i></a>';
+				appendHtml += '</td>';
+				/* appendHtml += '<c:forEach items="${weekList}"><td></td></c:forEach>'; */
+				appendHtml += '</tr>';
+
+				var id = $("#ni").attr("rowspan");
+				var d = parseInt(id)+1;
+				$("#ni").attr("rowspan",d);
+				$("#night1").after(appendHtml);
+				$('.add_title').datetimepicker({
+					datepicker:false,
+					format:'H:i',
+					step:5
+				});
+			}
+			function removeAddAm(obj)
+			{
+				if(confirm("确定要删除此行吗？"))
+			 	{
+					var id = $("#am").attr("rowspan");
+					var d = parseInt(id)-1;
+					$("#am").attr("rowspan",d);
+					obj.parent().parent().remove();
+			 	}
+			}
+			
+			function removeAddPm(obj)
+			{
+				if(confirm("确定要删除此行吗？"))
+			 	{
+					var id = $("#pm").attr("rowspan");
+					var d = parseInt(id)-1;
+					$("#pm").attr("rowspan",d);
+					obj.parent().parent().remove();
+			 	}
+			}
+			
+			function removeAddN(obj)
+			{
+				if(confirm("确定要删除此行吗？"))
+			 	{
+					var id = $("#ni").attr("rowspan");
+					var d = parseInt(id)-1;
+					$("#ni").attr("rowspan",d);
+			 		obj.parent().parent().remove();
+			 	}
+			}
+	</script>
+</html>

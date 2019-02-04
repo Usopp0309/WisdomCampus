@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="UserPermission">
+	<typeAlias alias="userPermission" type="com.guotop.palmschool.entity.UserPermission"/>
+	<typeAlias alias="department" type="com.guotop.palmschool.entity.Department"/>
+	<typeAlias alias="clazz" type="com.guotop.palmschool.entity.Clazz"/>
+	
+	<resultMap class="com.guotop.palmschool.entity.UserPermission" id="result_userPermission">
+		<result property="id" column="id"/>
+		<result property="userId" column="userId"/>	
+		<result property="permissionCode" column="permissionCode"/>
+		<result property="optClazzId" column="optClazzId"/>
+		<result property="optDepartId" column="optDepartId"/>
+		<result property="roleCode" column="roleCode"/>
+	</resultMap>
+	
+	
+	<!-- 根据userId和roleId查找UserRole 20151129 -->
+	<select id="getUserPermissionByUserIdAndPermissionCode" parameterClass="java.util.HashMap" resultMap="result_userPermission">
+		SELECT * FROM palm_user_permission where userId=#userId# and permissionCode = #permissionCode#
+	</select>
+	
+	<select id="getUserPermissionByUserIdAndPermissionCodeAndRoleCode" parameterClass="java.util.HashMap" resultMap="result_userPermission">
+		SELECT * FROM palm_user_permission where userId=#userId# and permissionCode = #permissionCode# and roleCode = #roleCode#
+	</select>
+	
+	<!-- 添加用户权限关系 20151129 -->
+	<insert id="addUserPermission" parameterClass="HashMap">
+		insert into palm_user_permission
+		(
+			userId,
+			permissionCode,
+			optClazzId,
+			optDepartId,
+			roleCode
+		)
+		values
+		(
+			#userId#,
+			#permissionCode#,
+			#optClazzId#,
+			#optDepartId#,
+			#roleCode#
+			
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	<!-- 批量添加用户权限关系 20151129 -->
+	<insert id="addUserPermissionBATCH" parameterClass="java.util.List">
+		insert into palm_user_permission(userId,permissionCode,optClazzId,optDepartId,roleCode) values
+	    <iterate conjunction=",">  
+	        (
+	        #userPermissionList[].userId#,
+	        #userPermissionList[].permissionCode#,
+	        #userPermissionList[].optClazzId#,
+	        #userPermissionList[].optDepartId#,
+	        #userPermissionList[].roleCode#
+	        )
+	    </iterate>  
+	</insert>	
+	
+	<!-- 根据userid与权限编码删除用户权限 -->
+	<delete id="deleteUserPermissionByCondition" parameterClass="HashMap">
+		delete from palm_user_permission where userId=#userId# 
+		<isNotEmpty prepend="and" property="permissionCode">
+			permissionCode=#permissionCode#
+		</isNotEmpty> 
+		<isNotEmpty prepend="and" property="optClazzId">
+			optClazzId=#optClazzId#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="optDepartId">
+			optDepartId=#optDepartId# 
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="roleCode">
+			roleCode=#roleCode#
+		</isNotEmpty> 
+	</delete>
+	<!-- 根据用户ID与权限编码获取可操作的所有班级id列表   add by 姜哥  20151204-->
+	<select id="getOptClazzsByUserIdAndPermissionCode" parameterClass="HashMap" resultClass="Integer">
+		select up.optClazzId from palm_user_permission up,palm_clazz c ,palm_grade g  
+			where c.id= up.optClazzId AND c.gradeId = g.id 
+				AND g.state = '0' AND up.userId=#userId#
+				and up.permissionCode=#permissionCode# and up.optClazzId is not null
+		union
+		select c.id from palm_clazz c ,palm_grade g where g.id = c.gradeId and g.state = '0' and c.leaderId=#userId#
+	</select>
+	<!-- 根据用户ID与权限编码获取可操作的所有班级id列表 【福建专用】-->
+	<select id="getOptClazzsByUserIdAndPermissionCodeFj" parameterClass="HashMap" resultClass="Integer">
+		select up.optClazzId from fjzyyptxx.palm_user_permission up,fjzyyptxx.palm_clazz c ,fjzyyptxx.palm_grade g  
+			where c.id= up.optClazzId AND c.gradeId = g.id 
+				AND g.state = '0' AND up.userId=#userId#
+				and up.permissionCode=#permissionCode# and c.fjSchoolId=#c.fjSchoolId# and up.optClazzId is not null
+		union
+		select c.id from fjzyyptxx.palm_clazz c ,fjzyyptxx.palm_grade g where g.id = c.gradeId and g.state = '0' and c.leaderId=#userId#
+		and  c.fjSchoolId=#c.fjSchoolId#
+	</select>
+	<!-- 根据用户ID与权限编码获取可操作的所有部门id列表 add by 姜哥  20151204-->
+	<select id="getOptDepartsByUserIdAndPermissionCode" parameterClass="HashMap" resultClass="Integer">
+		select optDepartId from palm_user_permission where userId=#userId# and permissionCode=#permissionCode# and optDepartId is not null
+		union
+		select id from palm_department where leaderId=#userId#
+	</select>
+	<!-- 根据用于ID查看可操作的班级列表 -->
+	<select id="getOptClazzsByUserId" parameterClass="Integer" resultClass="clazz">
+		select c.id,getClazzName(c.id) clazzName from palm_clazz c ,palm_grade g where g.id = c.gradeId and g.state = '0' and c.id in (SELECT optClazzId FROM palm_user_permission WHERE userId=#userId# AND optClazzId IS NOT NULL)
+		union
+		select c.id,getClazzName(c.id) clazzName from palm_clazz c ,palm_grade g where g.id = c.gradeId and g.state = '0' and c.leaderId=#userId#
+	</select>
+	<!-- 根据用户id查看可操作的部门列表 -->
+	<select id="getOptDepartsByUserId" parameterClass="Integer" resultClass="department">
+		SELECT id,departmentName FROM palm_department WHERE id IN (SELECT optDepartId FROM palm_user_permission WHERE userId=#userId# AND optDepartId IS NOT NULL)
+		union
+		select id,departmentName from palm_department where leaderId=#userId#
+	</select>
+	
+	<!-- 根据用户ID与权限编码获取可操作的所有部门id列表 【福建专用】-->
+	<select id="getOptDepartsByUserIdAndPermissionCodeFj" parameterClass="HashMap" resultClass="Integer">
+		select optDepartId from fjzyyptxx.palm_user_permission where userId=#userId# and permissionCode=#permissionCode#
+		and  and optDepartId is not null
+		union
+		select id from fjzyyptxx.palm_department where leaderId=#userId# and fjSchoolId=#fjSchoolId#
+	</select>
+	
+	<!-- 根据用户ID与权限编码获取可操作的所有部门名称列表 add by syj  20151204-->
+	<select id="getDepartmentListByUserIdAndPermissionCode" parameterClass="HashMap" resultClass="department">
+		SELECT tmp.*,ud.realName leaderName from 
+		(
+		SELECT d.*
+		FROM palm_user_permission up, palm_department d 
+		WHERE up.optDepartId = d.id
+		AND up.userId=#userId# 
+		and up.permissionCode=#permissionCode#
+		and up.optDepartId is not null
+		)tmp left join platform.user_detail ud on tmp.leaderId = ud.userId
+		
+	</select>
+	<!-- 根据用户ID与权限编码获取可操作的所有部门名称列表 【福建专用】-->
+	<select id="getDepartmentListByUserIdAndPermissionCodeFj" parameterClass="HashMap" resultClass="department">
+		SELECT d.*
+		FROM palm_user_permission up, palm_department d 
+		WHERE up.optDepartId = d.id
+		AND up.userId=#userId# 
+		and up.permissionCode=#permissionCode#
+		and d.fjSchoolId=#fjSchoolId#
+		and up.optDepartId is not null
+	</select>
+	<!-- 根据userId与权限编码删除用户权限  20151215-->
+	<delete id="deletePermissionByUserIdAndpermissionCodeAndRoleCode" parameterClass="HashMap">
+		delete from palm_user_permission where userId=#userId#  and permissionCode=#permissionCode# 
+		<isNotEmpty prepend="and" property="roleCode">
+			roleCode = #roleCode#
+		</isNotEmpty>
+	</delete>
+	<!-- 批量删除 -->
+	<delete id="deleteByUserIdAndPermissionCode" parameterClass="HashMap">
+		delete from palm_user_permission 
+		where userId=#userId# 
+		<isNotEmpty property="permissionCodeList">
+			and permissionCode in 
+			<iterate open="(" close=")" conjunction="," property="permissionCodeList" > 
+				 #permissionCodeList[]# 
+			 </iterate>
+		</isNotEmpty>	 
+		and (roleCode != 'parent' or roleCode is null)
+	</delete>	
+	
+	
+	<update id="updateOptClazzIdByPermissionAndUserId" parameterClass="HashMap">
+	    update palm_user_permission
+		 set optClazzId = IF(optClazzId is null,#optClazzId#,concat(optClazzId,',',#optClazzId#))
+		WHERE userId = #userId#
+		<isNotEmpty prepend="and" property="rolePermissionList">
+			 permissionCode IN 
+			 <iterate open="(" close=")" conjunction="," property="rolePermissionList" > 
+				 #rolePermissionList[]# 
+			 </iterate> 
+		</isNotEmpty>
+		<isEmpty prepend="and" property="rolePermissionList">
+				 rolePermissionList is null
+		</isEmpty>
+	</update>
+	<update id="updateOptClazzId2NullByClazzIdAndUserId" parameterClass="HashMap">
+	    update palm_user_permission
+		 set optClazzId = null
+		WHERE userId = #userId#
+		AND roleCode = #roleCode#
+		<isEmpty prepend="and" property="optClazzId">
+				 optClazzId=#optClazzId#
+		</isEmpty>
+	</update>
+	
+	<!-- 根据userId查询班主任对应的班级权限   按照optClazzId分组-->
+	<select id="getUserPermissionGroupByOptClazzId" parameterClass="HashMap" resultClass="userPermission">
+		SELECT * FROM palm_user_permission WHERE userId=#userId# and roleCode = #roleCode# GROUP BY optClazzId
+	</select>
+	
+	<!-- 根据userId 和 optClazzId 删除对应的user_permission-->
+	<delete id="deleteUserRolePermissionByUserIdAndClazzId" parameterClass="HashMap">
+		delete from palm_user_permission where userId=#userId#  and optClazzId=#optClazzId#
+	</delete>
+	
+	<!-- 根据userId 和 optClazzId 更新对应的user_permission -->
+	<update id="updateUserPermissionById" parameterClass="HashMap">
+	    update palm_user_permission
+		set userId = #userId#
+		<isNotEmpty  property="optClazzId">
+			,optClazzId = #optClazzId#
+		</isNotEmpty>
+		<isNotEmpty  property="optDepartId">
+			,optDepartId = #optDepartId#
+		</isNotEmpty>
+		WHERE id = #id#
+	</update>
+	
+	<!-- 根据userId 和 optClazzId 更新对应的user_permission -->
+	<update id="updateUserPermissionByUserId" parameterClass="HashMap">
+	    update palm_user_permission
+		set userId = #userId#
+		<isNotEmpty  property="optClazzId">
+			,optClazzId = #optClazzId#
+		</isNotEmpty>
+		<isNotEmpty  property="optDepartId">
+			,optDepartId = #optDepartId#
+		</isNotEmpty>
+		WHERE userId = #userId#
+		AND roleCode = #roleCode#
+	</update>
+</sqlMap>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="FriendSms">
+	<typeAlias alias="friendSms" type="com.guotop.palmschool.entity.FriendSms" />
+
+	<!--新增转发的短信内容  shengyinjiang 20160203-->
+	<insert id="addFriendSms" parameterClass="friendSms">
+		insert into platform.friend_sms
+		(
+			content,
+			createTime,
+			errorSmsSum,
+			isRealTime,
+			phoneCount,
+			reportAmount,
+			result,
+			senderId,
+			senderName,
+			sentTime,
+			smsLength,
+			smsSum,
+			succAmount,
+			type
+		)
+		values
+		(
+			#content#,
+			#createTime#,
+			#errorSmsSum#,
+			#isRealTime#,
+			#phoneCount#,
+			#reportAmount#,
+			#result#,
+			#senderId#,
+			#senderName#,
+			#sentTime#,
+			#smsLength#,
+			#smsSum#,
+			#succAmount#,
+			#type#
+		)
+	<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    </selectKey>
+	</insert>
+
+	
+	<!-- 获取最后一条数据  syj 20151210 -->
+	<select id="getLastOneFromFriendSms" parameterClass="HashMap" resultClass="friendSms">
+		SELECT * FROM platform.friend_sms ORDER BY id DESC LIMIT 1
+	</select>
+	
+	<!-- 更新成功发送条数和 发送失败条数 -->
+	<update id="updateFriendSms" parameterClass="HashMap">
+		update platform.friend_sms
+			set smsSum = #smsSum#,
+				errorSmsSum = #errorSmsSum#
+			where id = #id#
+	</update>
+</sqlMap>

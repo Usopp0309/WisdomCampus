@@ -1,0 +1,225 @@
+package com.guotop.palmschool.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.entity.Leave;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.service.LeaveService;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 请假业务类实现类
+ * 
+ * @author zhou
+ *
+ */
+@Service("leaveService")
+public class LeaveServiceImpl extends BaseService implements LeaveService
+{
+	/**
+	 * 根据条件查询请假记录 /分页查询
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @return 请假记录/分页 20151130
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages<Leave> getLeaveList(int pageSize, int page, Map<String, Object> paramMap)
+	{
+		int allRow = (Integer) this.getBaseDao().selectObjectByObject("Leave.selectCountLeaveListByUserId", paramMap);
+		int totalPage = Pages.countTotalPage(pageSize, allRow);
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		int currentPage = Pages.countCurrentPage(page);
+		
+		// 解决ibatis框架的分页问题
+		// 起始数据坐标
+		paramMap.put("startIndex", offset);
+		// 单页数据量
+		paramMap.put("length", length);
+		List<Leave> list = this.getBaseDao().selectListByObject("Leave.selectLeaveListByUserId", paramMap);
+
+		Pages<Leave> pages = new Pages<Leave>();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	/**
+	 * 请假申请
+	 * 
+	 * @param leave
+	 *            待添加的请假 20151130
+	 */
+	public Integer addLeave(Leave leave)
+	{
+		Integer id = getBaseDao().addObject("Leave.addLeave", leave);
+		return id;
+	}
+
+	/**
+	 * 根据条件查询请假审核记录 /分页查询
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @return 请假审核记录/分页 20151130
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages getLeaveAuditList(int pageSize, int page, Map<String, Object> paramMap)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<Leave> list = new ArrayList<Leave>();
+
+		allRow = this.getBaseDao().getAllRowCountByCondition("Leave.getAuditLeaveList", paramMap);
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		currentPage = Pages.countCurrentPage(page);
+		list = this.getBaseDao().queryForPageByCondition("Leave.getAuditLeaveList", paramMap, offset, length);
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	/**
+	 * 根据请假单ID查找到请假单bean
+	 * 
+	 * @param leaveId
+	 *            请假单ID
+	 * @return 查找到的请假单bean
+	 */
+	public Leave selectLeaveById(Integer leaveId)
+	{
+		return (Leave) getBaseDao().selectObjectByObject("Leave.selectLeaveById", leaveId);
+	}
+
+	/**
+	 * 根据请假单ID修改请假单bean
+	 * 
+	 * @param paramMap
+	 *            参数列表
+	 */
+	public void updateLeaveById(Map<String, Object> paramMap)
+	{
+		getBaseDao().updateObject("Leave.updateLeaveById", paramMap);
+	}
+
+	/**
+	 * 根据申请Id找到对应的审核人（申请人为家长或学生） 20151201
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> getAuditPersonByApplyPersonIdFromParentOrStudent(Integer applyPersonId)
+	{
+		return getBaseDao().selectList("User.getAuditPersonByApplyPersonIdFromParentOrStudent", applyPersonId);
+	}
+
+	/**
+	 * 根据申请Id找到对应的审核人（教师，班主任，部门主管，教职工等） 20151201
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> getAuditPersonByApplyPersonId(Integer applyPersonId)
+	{
+		return getBaseDao().selectList("User.getAuditPersonByApplyPersonId", applyPersonId);
+	}
+
+	public User getUserInfoByUserId(Integer userId)
+	{
+		return (User) getBaseDao().selectObject("User.getUserByUserIdForPush", userId);
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<User> getParentInfoByStudentId(Integer studentId)
+	{
+		return (List<User>) getBaseDao().selectList("User.getParentByStudentId", studentId);
+	}
+	/**
+	 * 获取请假列表（APP）
+	 * @param userId
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Leave> getLeaveListApp(int pageSize, int page, Map<String, Object> paramMap)
+	{
+
+		String roleCode = (String) paramMap.get("roleCode");
+		final int offset = Pages.countOffset(pageSize, page);
+		
+		final int length = pageSize;
+		
+		paramMap.put("startIndex", offset);
+		//单页数据量
+		paramMap.put("length", length);
+		
+		List<Leave> list = new ArrayList<Leave>();
+		
+		if(roleCode.equals("parent"))
+		{
+			list = this.getBaseDao().selectListByObject("Leave.selectLeaveListByUserIdAppParent", paramMap);
+		}else
+		{
+			list = this.getBaseDao().selectListByObject("Leave.selectLeaveListByUserIdApp", paramMap);
+		}
+		
+		return list;
+	}
+	
+	/**
+	 * 获取请假审核列表（APP）
+	 * @param userId
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Leave> getLeaveAuditAPPList(int pageSize, int cage,Map<String, Object> paramMap)
+	{
+		List<Leave> list = new ArrayList<Leave>();
+
+		final int offset = Pages.countOffset(pageSize, cage);
+		final int length = pageSize;
+		
+		paramMap.put("startIndex", offset);
+		//单页数据量
+		paramMap.put("length", length);
+		
+		list = this.getBaseDao().selectListByObject("Leave.getAuditLeaveListApp", paramMap);
+
+		
+		return list;
+	}
+	
+	
+
+}

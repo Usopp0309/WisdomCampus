@@ -1,0 +1,100 @@
+package com.guotop.palmschool.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.guotop.palmschool.common.entity.ResultInfo;
+import com.guotop.palmschool.entity.Device;
+import com.guotop.palmschool.entity.DeviceSchool;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 设备业务类接口
+ *
+ */
+public interface DeviceService 
+{
+	/**
+	 * 查找设备列表
+	 */
+	public List<Device> selectAllDevice();
+	
+	/**
+	 * 查询条件查询设备记录 /分页查询
+	 * @param paramMap 条件
+	 * @return 记录点记录/分页
+	 */
+	public Pages selectDeviceByRole(int pageSize, int page,Map<String, Object> paramMap);
+	
+	/**
+	 * 添加设备
+	 * @param device 待添加的设备
+	 */
+	public void addDevice(Device device);
+	
+	/**
+	 * 添加记录点 同时添加对应的学校对应关系
+	 */
+	public void addDeviceSchool(DeviceSchool deviceSchool);
+	
+	/**
+	 *  修改设备
+	 * @param device 待修改的设备
+	 */
+	public void modifyDeviceById(Map<String, Object> paramMap);
+	
+	/**
+	 * 设备修改(平台库)
+	 **/
+	public void modifyDeviceCodeByCode(Map<String, Object> paramMap);
+	
+	/**
+	 * 根据设备Id查找设备
+	 * @param deviceId
+	 * @return
+	 */
+	public Device selectDeviceById(Integer deviceId);
+	
+	
+	/**
+	 * 表单校验相关---begin
+	 */
+	/**
+	 * 添加设备时查看设备编号是否存在
+	 * @param code 设备号
+	 * @return 返回值
+	 */
+	public ResultInfo selectDeviceListbyCode(String code);
+	
+	/**
+	 * 修改是设备时查看设备编号是否存在
+	 * @param paramMap 设备号
+	 * @return 返回值
+	 */
+	public ResultInfo  checkCodeByModify(Map<String, Object> paramMap);
+	
+	/**
+	 * 根据设备编号获取学校Id
+	 * @param deviceCode
+	 * @return
+	 */
+	public Long getSchoolIdByDeviceCode(String deviceCode);
+	
+	/**
+	 * 学校库删除divece对应的表
+	 * @param deviceId
+	 */
+	public void deleteDeviceById(Integer deviceId);
+	
+	/**
+	 * 根据deviceCode删除palm_device表
+	 * @param deviceCode
+	 */
+	public void deleteDeviceByDeviceCodeInSchool(String deviceCode);
+	/**
+	 * 根据deviceCode删除device_school表
+	 * @param deviceCode
+	 */
+	public void deleteDeviceByDeviceCode(String deviceCode);
+	
+}

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="BluetoothData">
+	<typeAlias alias="bluetoothData"
+		type="com.guotop.palmschool.bluetooth.entity.BluetoothData" />
+	<!-- 获取指定学生的蓝牙手环数据 -->
+	<select id="getStuDataByDate" resultClass="bluetoothData"
+		parameterClass="HashMap">
+		select * from palm_bluetooth_data s where
+		clazzId=#clazzId# and userId=#userId# and
+		DATE_FORMAT(#startTime#,'%Y%m%d')=DATE_FORMAT(s.dataTime,'%Y%m%d') order by s.dataTime asc 
+	</select>
+	<!-- 批量添加学生使用手环的数据 -->
+	<insert id="insertBathBluetoothData" parameterClass="java.util.List">
+		insert into
+		palm_bluetooth_data(bluetoothBraceletId,createTime,dataTime,calorie,heartRate,steps,userId
+		,startTime,endTime,realName,clazzId,clazzName,ip,mac,braceletMac
+		)
+		values
+		<iterate conjunction=",">
+			(#bluetoothDatas[].bluetoothBraceletId#,NOW(),#bluetoothDatas[].dataTime#,#bluetoothDatas[].calorie#,#bluetoothDatas[].heartRate#,#bluetoothDatas[].steps#,#bluetoothDatas[].userId#
+			,#bluetoothDatas[].startTime#,#bluetoothDatas[].endTime#,#bluetoothDatas[].realName#,#bluetoothDatas[].clazzId#,#bluetoothDatas[].clazzName#,#bluetoothDatas[].ip#,#bluetoothDatas[].mac#,#bluetoothDatas[].braceletMac#)
+		</iterate>
+	</insert>
+	<!-- 添加学生使用手环的数据 -->
+	<insert id="insertBluetoothData" parameterClass="bluetoothData">
+		insert into
+		palm_bluetooth_data(bluetoothBraceletId,createTime,dataTime,calorie,heartRate,steps,userId
+		,startTime,endTime,realName,clazzId,clazzName,ip,mac,braceletMac)
+		values
+		(#bluetoothBraceletId#,NOW(),#dataTime#,#calorie#,#heartRate#,#steps#,#userId#
+		,#startTime#,#endTime#,#realName#,#clazzId#,#clazzName#,#ip#,#mac#,#braceletMac#)
+	</insert>
+	<!-- 分页获得学生与手环的关系 -->
+	<select id="getPageBluetoothData" parameterClass="HashMap"
+		resultClass="bluetoothData">
+		select s.* from palm_bluetooth_data s where 1=1
+		<isNotEmpty property="clazzId">
+			and s.clazzId=#clazzId#
+		</isNotEmpty>
+		<isNotEmpty property="userId">
+			and s.userId=#userId#
+		</isNotEmpty>
+		<isNotEmpty property="startTime">
+			and
+			DATE_FORMAT(#startTime#,'%Y%m%d%H%i%s')&lt;=DATE_FORMAT(s.dataTime,'%Y%m%d%H%i%s')
+		</isNotEmpty>
+		<isNotEmpty property="endTime">
+			and
+			DATE_FORMAT(#endTime#,'%Y%m%d%H%i%s')&gt;=DATE_FORMAT(s.dataTime,'%Y%m%d%H%i%s')
+		</isNotEmpty>
+		order by dataTime desc
+		limit #startIndex#, #length#
+	</select>
+	<!-- 分页获得学生与手环的关系 -->
+	<select id="getPageBluetoothDataCount" parameterClass="HashMap"
+		resultClass="Integer">
+		select count(*) from palm_bluetooth_data s where 1=1
+		<isNotEmpty property="clazzId">
+			and s.clazzId=#clazzId#
+		</isNotEmpty>
+		<isNotEmpty property="clazzId">
+			and s.userId=#userId#
+		</isNotEmpty>
+		<isNotEmpty property="startTime">
+			and
+			DATE_FORMAT(#startTime#,'%Y%m%d%H%i%s')&lt;=DATE_FORMAT(s.startTime,'%Y%m%d%H%i%s')
+		</isNotEmpty>
+		<isNotEmpty property="endTime">
+			and
+			DATE_FORMAT(#endTime#,'%Y%m%d%H%i%s')&gt;=DATE_FORMAT(s.endTime,'%Y%m%d%H%i%s')
+		</isNotEmpty>
+	</select>
+</sqlMap>
+	

@@ -1,0 +1,212 @@
+package com.guotop.palmschool.thread;
+
+import java.io.File;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.context.ApplicationContext;
+
+import com.guotop.palmschool.common.controller.BaseImportController;
+import com.guotop.palmschool.common.entity.Excel;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.system.entity.Import;
+import com.guotop.palmschool.system.service.ImportService;
+
+/**
+ * 文件导入线程
+ * @author zhou
+ */
+public class ImportHandler extends Thread
+{
+	private Log logger = LogFactory.getLog(ImportHandler.class);
+	
+	private ApplicationContext ctx;
+	
+	@Resource
+	private ImportService importService;
+	
+	public ImportHandler(ApplicationContext ctx) 
+	{
+		logger.debug("导入进程开始");
+		this.ctx = ctx;
+		init();
+		logger.debug("导入进程初始化完成");
+		this.start();
+	}
+	
+	private void init() 
+	{
+		importService = (ImportService) ctx.getBean("importService");
+		/**
+		 * 导入中 -> 待导入
+		 */
+		importService.resetErrorImports(); // 导入中-> 待导入
+	}
+	
+	/**
+	 * 导入文件处理程序
+	 */
+	private void handle(Import imp)
+	{
+		if (null == imp)
+		{
+			return;
+		}
+		
+		logger.info("开始导入：(" + imp.getId() + ")" + imp.getFileName());
+		long start = System.currentTimeMillis();
+		
+		/**
+		 * 状态改为导入中
+		 */
+		imp.setResult(Cons.IMPORT_IMPORTING);
+		importService.updateImport(imp);
+		
+		String handler = imp.getHandler();
+		/**
+		 * 处理程序为空
+		 */
+		if (null == handler || "".equals(handler))
+		{
+			imp.setResult(Cons.IMPORT_ERROR); // 当前状态，0:待导入，1:导入中，2:导入失败，3:导入成功
+			imp.setResultDescription("无法识别处理程序");
+			imp.setEndNow(start);
+			importService.updateImport(imp);
+			return;
+		}
+		
+		/**
+		 * 导入控制为空
+		 */
+		BaseImportController importController = (BaseImportController) ctx.getBean(handler);
+		if (null == importController) 
+		{
+			imp.setResult(Cons.IMPORT_ERROR);
+			imp.setResultDescription("无法识别导入类型");
+			imp.setEndNow(start);
+			importService.updateImport(imp);
+			return;
+		}
+		
+		/**
+		 * 源文件为空
+		 */
+		File file = null;
+		String filePath = imp.getFilePath();
+		if (null != filePath && !"".equals(filePath)) 
+		{
+			file = new File(filePath);
+			if (!file.exists() || file.isDirectory())
+			{
+				file = null;
+			}
+		}
+		if (null == file) 
+		{
+			imp.setResult(Cons.IMPORT_ERROR);
+			imp.setResultDescription("源文件为空");
+			imp.setEndNow(start);
+			importService.updateImport(imp);
+			return;
+		}
+		
+		/**
+		 * 源文件没有内容
+		 */
+		Excel excel = new Excel(file);
+		excel.setOriginalFilename(imp.getFileName());
+		String[][][] data = excel.getData();
+		if (data == null || data.length == 0) 
+		{
+			imp.setResult(Cons.IMPORT_ERROR);
+			imp.setResultDescription("源文件没有内容");
+			imp.setEndNow(start);
+			importService.updateImport(imp);
+			return;
+		}
+		
+		//scoreSending-1444909475170-3418-77.xlsx  --> userId: 3418  schoolId ： 77
+		try{
+			String[] fullname=file.getName().split("-");
+			excel.setUserId(fullname[2]);
+			excel.setSchoolId(fullname[3].split("\\.")[0]);
+		}catch(Exception e){
+			excel.setUserId("");
+			excel.setSchoolId("");
+		}
+
+
+		importController.handle(excel);
+		int total = importController.getTotal();
+		String resultDescription = importController.getResultDescription();
+		if (total == 0) 
+		{
+			imp.setResult(Cons.IMPORT_ERROR);
+			imp.setResultDescription(resultDescription);
+			imp.setEndNow(start);
+			importService.updateImport(imp);
+			return;
+		}
+		
+		imp.setTotal(total);
+		imp.setResult(Cons.IMPORT_SUCCESS); // 当前状态，0:待导入，1:导入中，2:导入失败，3:导入成功
+		imp.setResultDescription(resultDescription);
+		imp.setEndNow(start);
+		importService.updateImport(imp);
+
+		logger.info("导入(" + imp.getId() + ")" + imp.getFileName() + "结果："
+				+ total + "," + resultDescription);
+	}
+	
+	public void run() 
+	{
+		while(true) 
+		{
+			try 
+			{
+				while(true)
+				{
+					Import imp = importService.getNextImport();
+					if (imp == null)
+					{
+						break;
+					}
+					handle(imp);
+				}
+			} 
+			catch (Exception e) 
+			{
+				e.printStackTrace();
+			}
+
+			try 
+			{
+				synchronized (this) 
+				{
+					wait();
+				}
+			} 
+			catch (InterruptedException e) 
+			{
+				break;
+			}
+		}
+		logger.info("导入进程中止");
+	}
+	
+	public void close() 
+	{
+		this.interrupt();
+		logger.debug("导入进程结束");
+	}
+
+	public void wakeup() 
+	{
+		synchronized (this) 
+		{
+			notify();
+		}
+	}
+}

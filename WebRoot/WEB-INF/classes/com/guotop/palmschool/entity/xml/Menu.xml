@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Menu">
+	<typeAlias alias="menu" type="com.guotop.palmschool.entity.Menu" />
+	<resultMap class="com.guotop.palmschool.entity.Menu" id="result_menuDetail">
+		<result property="id" column="id"/>
+		<result property="name" column="name"/>
+		<result property="status" column="status"/>
+		<result property="parentId" column="parentId"/>
+		<result property="url" column="url"/>
+		<result property="icon" column="icon"/>
+		<result property="isSystem" column="isSystem"/>
+		<result property="permissionCode" column="permissionCode"/>
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.Menu" id="result_menu">
+		<result property="id" column="id"/>
+		<result property="name" column="name"/>
+		<result property="parentId" column="parentId"/>
+		<result property="url" column="url"/>
+		<result property="icon" column="icon"/>
+		<result property="permissionCode" column="permissionCode"/>
+		<result property="orders" column="orders"/>
+		<result property="status" column="status"/>
+	</resultMap>
+	<!-- 获取父级菜单信息 -->
+	<select id="getParentMenuInfo" resultMap="result_menu" parameterClass="HashMap">
+		select id, name, parentId, url, icon, permissionCode,status, orders from palm_menu where 1=1 
+		<isNotNull property="status">
+		<isNotEmpty property="status" prepend="and">
+			status = #status#
+		</isNotEmpty>
+		</isNotNull>
+		 and parentId is null OR parentId='' and orders is not null order by orders
+	</select>
+	<!-- 根据父级ID获取子菜单信息 -->
+	<select id="getSubMenuInfo" resultMap="result_menu" parameterClass="HashMap">
+		select id, name, parentId, url, icon, permissionCode,status, orders from palm_menu where 1=1
+		<isNotEmpty property="status" prepend="and">
+			status = #status#
+		</isNotEmpty>
+		 and parentId=#menuId# and orders is not null order by orders
+	</select>
+	<!-- 修改菜单状态 -->
+	<update id="modifyMenuStatus" parameterClass="HashMap">
+		update palm_menu set status=#status#  where id in
+		<isNotEmpty property="notCheckMenuIdList">
+			<iterate conjunction=","  open="(" close=")" property="notCheckMenuIdList">  
+				 #notCheckMenuIdList[]#
+		    </iterate> 
+		</isNotEmpty>
+		<isNotEmpty property="checkMenuIdList">
+			<iterate conjunction=","  open="(" close=")" property="checkMenuIdList">  
+				 #checkMenuIdList[]#
+		    </iterate> 
+		</isNotEmpty>
+	</update>
+	<!-- =================================================================================================================== -->
+	<!--获得所有的子集 -->
+	<select id="getAllchildren" resultMap="result_menu" parameterClass="HashMap">
+		select id, name, parentId, url, icon, permissionCode,status, orders from palm_menu where 1=1
+		<isNotEmpty property="status" prepend="and">
+			status = #status#
+		</isNotEmpty>
+		 and parentId is not null  and orders is not null  order by orders
+	</select>
+	
+	<insert id="addMenu"  parameterClass="HashMap">
+			insert into
+		palm_menu
+		(
+		id,
+		`name`,
+		`status`,
+		parentId,
+		url,
+		icon,
+		isSystem,
+		permissionCode,
+		orders
+		)
+		values
+		(
+		#id#,
+		#name#,
+		#status#,
+		#parentId#,
+		#url#,
+		#icon#,
+		#isSystem#,
+		#permissionCode#,
+		#orders#
+
+		)
+	</insert>
+	
+	<delete id="deleteById" parameterClass="String">
+		delete from palm_menu where id = #id# OR parentId=#id#
+	</delete>
+	
+	<select id="getById" parameterClass="String" resultMap="result_menu">
+		select * from palm_menu where id = #id#
+	</select>
+	
+	<select id="getAllMenu" resultMap="result_menu">
+		select * from palm_menu 
+	</select>
+	
+	
+	<select id="getChildCount" parameterClass="String" resultClass="Integer">
+		SELECT COUNT(*) from palm_menu where parentId = #parentId#
+	</select>
+	
+	<update id="updateMenu" parameterClass="Menu">
+		update palm_menu 
+			set 
+				`name` = #name#,
+				`status` = #status#,
+				 parentId = #parentId#,
+				 url = #url#,
+				 icon = #icon#,
+				 permissionCode = #permissionCode#,
+				 orders = #orders#
+				 where id = #id#
+	</update>
+	<update id="updateStatusByParentId" parameterClass="HashMap">
+		UPDATE  palm_menu  SET  `status` = #status#  WHERE parentId=#parentId#
+	</update>
+	
+</sqlMap>

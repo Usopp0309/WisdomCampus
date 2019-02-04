@@ -1,0 +1,119 @@
+package com.guotop.palmschool.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.guotop.palmschool.check.entity.InoutAbnormalTotal;
+import com.guotop.palmschool.entity.Inout;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.schoolbus.entity.PointInfo;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 进出记录业务类接口
+ * @author zhou
+ */
+public interface InoutService 
+{
+	/**
+	 * 根据条件查询进出记录 /分页查询
+	 * @param paramMap 条件
+	 * @return 进出记录/分页
+	 * 20151130
+	 */
+	public Pages getInoutList(int pageSize, int page, Map<String, Object> paramMap, User user);
+	
+	
+	/**
+	 * 根据条件查询进出记录 /分页查询(APP)
+	 * @param paramMap 条件
+	 * @return 进出记录/分页
+	 * 20160128
+	 */
+	public List<Inout> getAppInoutList(int pageSize, int page, Map<String, Object> paramMap, User user);
+	
+	/**
+	 * 新增出入记录(刷卡产生)
+	 * @param inout 待新增的出入记录
+	 * @param ipSwitch 0:ip 1:deviceCode
+	 * @param position 记录点位置
+	 * @param isSendSMS 打卡时间超过10min之后才发来的数据只保存到inout表中，不推送不短信
+	 * @result true:保存成功
+	 * 		   false:保存失败
+	 */
+	public boolean addInout(Inout inout, String ipSwitch, String position,boolean isSendSMS);
+
+	/**
+	 * 新增出入记录(刷卡产生) 用于新读卡器及卡编号规则
+	 * @param inout 待新增的出入记录
+	 * @param ipSwitch 0:ip 1:deviceCode
+	 * @param position 记录点位置
+	 * @param isSendSMS 校园一体机打开超过10min之后才发来的数据只保存到inout表中，不推送不短信
+	 * @return true:保存成功
+	 * 		   false:保存失败
+	 */
+	public boolean addNewInout(Inout inout, String ipSwitch, String position,boolean isSendSMS);
+	
+	/**
+	 * 新增出入记录(刷卡产生) 用于无障碍通道进出校园 
+	 * @param inout 待新增的出入记录
+	 * @param ipSwitch 0:ip 1:deviceCode
+	 * @param position 记录点位置
+	 * @param inoutStatus 进出状态  0:不区分进出  1:进  2:出 
+	 * 只有当刷卡时间在作息时间范围内inoutStatus才启作用(作息时间开始前半小时作息时间后半小时也包括在内)
+	 * @param isSendSMS 校园一体机打开超过10min之后才发来的数据只保存到inout表中，不推送不短信
+	 * @return true:保存成功
+	 * 		   false:保存失败
+	 */
+	public boolean addNewInoutForAccess(Inout inout, String ipSwitch, String position,String inoutStatus,boolean isSendSMS);
+	
+	/**
+	 * 查找进出记录(为了导出excel)
+	 * @param paramMap 参数map
+	 * @param roleId 权限ID
+	 */
+	public List<Inout> loadInoutListForExport(Map<String, Object> paramMap, 
+			User user);
+	
+	/**
+	 * 根据userid查找进出记录
+	 * @param userId 用户ID
+	 * @return 进出记录列表
+	 */
+	public List<Inout> selectInoutListByUserId(Integer userId);
+	
+	public Inout selectInoutByUserId(Map<String, Object> paramMap);
+	
+	/**
+	 * 加载进出异常分组数据
+	 * @param paramMap 条件
+	 * @param roleId 权限ID
+	 * @return 进出异常分组数据
+	 */
+	public List<InoutAbnormalTotal> loadGroupData(Map<String, Object> paramMap, Integer roleId);
+	
+	/**
+	 * 校车记录坐标点
+	 */
+	public void savePointByDevide(PointInfo point);
+	
+	public boolean isValid(String code);
+
+	public List<PointInfo> findPointByDevide(PointInfo point);
+
+	public List<Inout> getInoutListAsStudent(Map<String, Object> paramMap);
+	
+	/**
+	 * 调用班级学生考勤统计存储过程
+	 * @param in_clazzId
+	 * @param in_currentTime
+	 */
+	public void call_abnomalByclazzIdPro(Integer in_clazzId,String in_currentTime);
+	
+	/**
+	 * 调用教职工考勤统计存储过程
+	 * @param in_userId
+	 * @param in_currentTime
+	 */
+	public void call_abnormalByUserIdPro(Integer in_userId,String in_currentTime);
+}

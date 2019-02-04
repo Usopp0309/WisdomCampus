@@ -1,0 +1,216 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>RICHX智慧校园</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+	<link href="<%=basePath%>assets/global/css/login_m.css" rel="stylesheet" type="text/css"/>
+</head>
+<body style="padding-top: 0px;">
+	<div class="header Response">		
+		<img style="display:block;float:left;" src="<%=basePath%>assets/global/img/m_img/logo.png"><span style="font-size:20px;line-height:40px; margin:15px 0 0 15px;float:left;font-weight:bold;color:#333;">专业信息化服务和移动e学习运营商</span>
+	</div>
+	<div id="mainBg">
+		<div class="main-inner" id="mainCnt">
+			<div id="theme" class="Response"></div>
+			<div id="loginBlock" class="login tab-1">
+				<div class="loginForm">
+					<form class="form-vertical login-form" action="" method="post" id="form">
+						<span style="color: red;">${correct}</span>
+						<h3 class="Response">RICH智慧校园 | 登陆</h3>
+						<img class="logo_m" src="<%=basePath%>assets/global/img/m_img/logo_m.png">
+						<input class="input_text m_input" type="text" placeholder="账号/手机号" id="username" name="username"/>
+						<input class="input_text m_input" type="password" id="password" placeholder="密码" name="password"/>
+						<p class="Remember">
+							<label class="checkbox choose_pwd"><input type="checkbox" id="checkboxLog" name="remember" value="1" checked="checked"/> <span id="spanZ2" >记住密码</span></label>
+							<!-- <a class="Remember_pwd" href="javascript:">忘记密码？</a> --> 
+						</p>
+							<button type="button" class="input_text logon_sub" id="butColor" style="text-indent: 0px;cursor: pointer;dispaly:block;margin:0 auto 10px!important;">登&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;录</button>   
+						<p style="line-height:30px;margin:0px auto">还没有账号？ <a href="<%=basePath%>apply/apply.do" style="color:#3986ef;">在线申请</a> <a href="javascript:addDownLoadNum();" style="color:#808080;float:right;"><i class="fa fa-mobile-phone" style="font-size:17px;margin:0px 5px 0 0"></i>APP下载</a><a href="http://121.199.27.191:18086/huxin/app/YiXin.apk"  style="display:none"><span id="downApp"></span></a></p>
+						<div class="copyright_m">
+						<div class="copyright_m_head">
+							<div class="logo">
+								<img src="<%=basePath%>assets/global/img/m_img/logo28.png">
+							</div>
+							<p>技术支持QQ:6949265</p>
+							<p>邮箱:server@richx.cn</p>
+						</div>
+							<p>Copyright © <%=currentYear%> RICHX 版权所有</p>
+							<p>隐私权政策 沪ICP备15044552</p>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	
+	
+	<div id="footer" class="footer Response">
+		<div class="footer-inner" id="footerInner">
+			<a target="_blank" href="http://www.richx.cn/" class="footerLogo">
+				<img width="140" height="30" src="<%=basePath %>assets/global/img/m_img/rich.png">
+			</a>
+			<a id="KX_IMG" style="position:absolute;right:70PX;top:24px;" href="#" target="_blank">
+				<img src="<%=basePath %>assets/global/img/m_img/knet.png" alt="可信网站，身份验证">
+			</a>
+			<div class="footerNav">
+				<p>      
+					<span><a href="http://www.richx.cn/index.html" target="_blank"><em class="Response">关于</em>RichX</a></span>
+					<span><a href="http://www.richx.cn/zhihuixiaoyuan.html" target="_blank"><em class="Response">关于</em>智慧校园</a></span>
+					<span><a href="<%=basePath%>jsp/system/RichXServer.html" target="_blank"><em class="Response">服务</em>协议</a></span>
+					<span><a href="http://wpa.qq.com/msgrd?v=3&uin=6949265&site=qq&menu=yes" target="_blank"><em class="Response">在线</em>咨询</a></span>
+					<span style="border:none;"><a href="" target="_blank"><em class="Response">客服邮箱 :</em>service@richx.cn</a></span>
+				</p>
+				<p>Copyright ©  <%=currentYear%> RichX Inc.保留所有权利  <span style="padding:0 0 0 10px;">隐私权政策 沪ICP备15044552</span></p>
+				
+			</div>
+		</div>
+	</div>
+	<%@include file="public_module/public_js.jsp" %>
+	
+	<script type="text/javascript">
+		$(function(){
+			fBodyVericalAlign();
+			fThemeChange();
+			setInterval(fThemeChange, 60000);
+			var nameCookie = $.cookie('username');
+			var passwordCookie = $.cookie('password');
+			if (null != nameCookie)
+			{
+				$("#username").val(nameCookie);
+			}
+			if (null != passwordCookie)
+			{
+				$("#password").val(passwordCookie);
+				$("#checkboxLog").prop("checked", true);
+			}else{
+				$("#checkboxLog").prop("checked", false);	
+			}
+			//onresize事件
+			$(window).resize(function(){
+				fBodyVericalAlign();
+			});
+			$('.login-form').keydown(function(e){
+			    if(e.keyCode == 13){
+			        $("#butColor").click();
+			    }
+			});
+			//提交
+		  	$("#butColor").click(function(){
+		  	    var username = $("#username").val();
+		  	    var password = $("#password").val();
+               	//是否选中
+				//是否需要记住我
+		        if($('#checkboxLog').is(':checked'))
+			    {
+		        	writeCookie("username", username);	
+		        	writeCookie("password", password);	
+				}
+		        else
+			    {
+		        	delCookie("username");
+		        	delCookie("password");
+				}
+		  	    
+		  	    $.ajax({
+					type: "post",
+					url: "<%=basePath%>user/doCheckUsernamePassword.do",
+					data:{
+							username : username,
+							password : password
+					},
+					success:function(data){
+						var result = eval("(" + data + ")");
+					    var flag = result["reg"];
+					    if(flag)
+				        {
+				            $("#checkname").show();
+				            alert("用户名或密码不对");
+				        }
+				        else
+				        {
+				        	var fjReg = result["fjReg"];
+				        	if(fjReg != null && fjReg == "0"){
+					        	$("#form").attr("action","<%=basePath%>userCas/doLoginByFJAccount.do");
+					        	$("#form").submit();
+					        }else{
+					        	window.location.href = "<%=basePath%>user/doLogin.do";
+						    }
+				        }
+					}
+				}); 
+	              
+			});
+		
+		})
+		//设置垂直居中
+			function fBodyVericalAlign(){
+				var nBodyHeight = 600;
+				var nClientHeight = document.documentElement.clientHeight;
+				if(nClientHeight >= nBodyHeight + 2){
+					var nDis = (nClientHeight - nBodyHeight)/2;
+					document.body.style.paddingTop = nDis + 'px';
+				}else{
+					document.body.style.paddingTop = '0px';
+				}
+			}
+			// 主题
+			function fThemeChange() {
+				
+				var mainCnt=$("#mainCnt")
+				var id=parseInt(3*Math.random()); 
+				$("#mainBg").removeAttr("Class");
+				$("#mainBg").addClass("theme_bg_"+ id +"");
+				 $("#theme").removeAttr("Class");
+				$("#theme").addClass("theme_"+ id +"");
+			}
+		function getCookie(name) {
+			var arr = document.cookie.split(";");
+			for (var i = 0; i < arr.length; i++) {
+				var arr2 = $.trim(arr[i]).split("=");
+				if (arr2[0] == name) {
+					return arr2[1];
+				}
+			}
+			return "";
+		}
+		//name表示写入的变量，Value表示name变量的值，hours表示保存时间。
+		function writeCookie(name, value) 
+		{
+			var expire = "";
+			expire = new Date((new Date()).getTime() + 60 * 60 * 24 * 30);
+			expire = "; expires=" + expire.toGMTString();
+			document.cookie = name + "=" + escape(value) + expire + ";path=/";
+		}
+		function addDownLoadNum(){
+			 $.ajax({
+					type: "post",
+					url: "<%=basePath%>user/addDownLoadNum.do",
+					data:{
+					},
+					success:function(data){
+					}
+				});
+			 $("#downApp").click();
+			 
+		}
+		function delCookie(name)
+		{
+			var exp = new Date();
+			exp.setTime(exp.getTime() - 1000);
+			var cval=getCookie(name);
+			if(cval!=null)
+			document.cookie= name + "="+cval+";expires="+exp.toGMTString();
+		}
+
+	</script>
+</html>

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Abnormal">
+	<typeAlias alias="abnormal" type="com.guotop.palmschool.check.entity.Abnormal"/>
+	<typeAlias alias="inoutAbnormalDetail" type="com.guotop.palmschool.check.entity.InoutAbnormalDetail"/>
+	<typeAlias alias="inoutAbnormalTotal" type="com.guotop.palmschool.check.entity.InoutAbnormalTotal"/>
+	
+	<resultMap class="com.guotop.palmschool.check.entity.Abnormal" id="result-abnormal">
+		<result property="id" column="id"/>
+		<result property="code" column="code"/>
+		<result property="type" column="type"/>	
+		<result property="message" column="message"/>
+		<result property="sentTime" column="senttime"/>
+		<result property="userId" column="userid"/>
+		<result property="createTime" column="createtime"/>
+		<result property="userName" column="userName"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.check.entity.Abnormal" id="result-abnormalmain">
+		<result property="id" column="id"/>
+		<result property="code" column="code"/>
+		<result property="type" column="type"/>	
+		<result property="message" column="message"/>
+		<result property="sentTime" column="senttime"/>
+		<result property="userId" column="userid"/>
+		<result property="createTime" column="createtime"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.check.entity.InoutAbnormalTotal" id="result-inoutAbnormalTotal">
+		<result property="id" column="id" />
+		<result property="studentSum" column="studentSum" />
+		<result property="studentAbnormal" column="studentAbnormal" />
+		<result property="time" column="time" />
+		<result property="type" column="type" />
+		<result property="scale" column="scale" />
+		<result property="itemId" column="itemId" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.check.entity.InoutAbnormalTotal" id="result-inoutAbnormalGroup">
+		<result property="id" column="id" />
+		<result property="studentAbnormal" column="studentAbnormal" />
+		<result property="time" column="time" />
+		<result property="type" column="type" />
+		<result property="itemName" column="itemName" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.check.entity.InoutAbnormalDetail" id="result-inoutAbnormalDetail">
+		<result property="id" column="id" />
+		<result property="userId" column="userId" />
+		<result property="time" column="time" />
+		<result property="gradeId" column="gradeId" />
+		<result property="clazzId" column="clazzId" />
+		<result property="type" column="type" />
+		<result property="positionId" column="positionId" />
+		<result property="positionTime" column="positionTime" />
+		<result property="userName" column="userName" />
+		<result property="gradeName" column="gradeName" />
+		<result property="clazzName" column="clazzName" />
+		<result property="positionName" column="positionName" />
+	</resultMap>
+	
+	<!-- 查找所有异常报警(权限：教师) 查看(本人)的异常报警 -->
+	<select id="selectAbnormalAsTeacher" parameterClass="HashMap" resultMap="result-abnormal">
+		select a.*, u.name as userName
+			 from palm_abnormal a, palm_user u
+			 where a.userid = u.id
+			 	<isNotEmpty prepend="and" property="name">
+					u.name = #name#
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="abnormalType">
+					a.type = #abnormalType#
+				</isNotEmpty>
+				and u.id = #userId#
+				order by a.id desc
+	</select>
+	
+	
+	<!-- 查找所有异常报警(权限：学生) 查看(本人)的异常报警 -->
+	<select id="selectAbnormalAsStudent" parameterClass="HashMap" resultMap="result-abnormal">
+		select a.*, u.name as userName
+		    from palm_abnormal a, palm_user u, palm_user_role ur
+		    where a.userid = u.id
+				and u.id = ur.userId
+	           	and u.id=#userId#
+				<!-- and u.schoolId = #schoolId# -->
+				and ur.clazzId = #clazzId#
+				order by a.id desc
+	</select>
+	
+	<!-- 查询进出（学校）异常学生总数 -->
+	<select id="selectInoutAbnormalStudentConut" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from palm_inout_abnormal_detail d, palm_user_role ur 
+			where d.time = #time#
+			and d.type = #type#
+			and d.userId = ur.userId 
+			and ur.roleId = 7
+	</select>
+	
+	<!-- 查询分组报表 (校长权限:按年级分组) -->
+	<select id="selectGroupDataAsHeadMaster" parameterClass="HashMap" resultMap="result-inoutAbnormalGroup">
+		<![CDATA[
+			SELECT t.*, g.name AS itemName FROM palm_inout_abnormal_total t, palm_grade g
+			WHERE t.time = #time#
+			AND t.type = #type#
+			AND t.itemId = g.id
+			AND g.state = '0'
+			AND t.scale = 1
+			AND t.studentAbnormal <> 0
+			GROUP BY t.itemId			
+		]]>
+	</select>
+	
+	<!-- 查询分组报表 (年级组长权限:按班级分组) -->
+	<select id="selectGroupDataAsGradeLeader" parameterClass="HashMap" resultMap="result-inoutAbnormalGroup">
+		<![CDATA[
+			SELECT t.*, c.name AS itemName FROM palm_inout_abnormal_total t, palm_clazz c,palm_grade g
+			WHERE t.time = #time#
+			AND t.type = #type#
+			AND t.itemId = #gradeId#
+			AND t.itemId = c.id
+			AND g.id = c.gradeId
+			AND g.state = '0'
+			AND t.scale = 2
+			AND t.studentAbnormal <> 0
+			GROUP BY t.itemId			
+		]]>
+	</select>
+	
+	<!-- 查询分组报表 (班主任权限:) -->
+	<select id="selectGroupDataAsHeadTeacher" parameterClass="HashMap" resultMap="result-inoutAbnormalGroup">
+		<![CDATA[
+			SELECT t.*, c.name AS itemName FROM palm_inout_abnormal_total t, palm_clazz c,palm_grade g
+			WHERE t.time = #time#
+			AND t.type = #type#
+			AND t.itemId = c.id
+			AND t.scale = 2
+			AND g.id = c.gradeId
+			AND g.state = '0'
+			AND t.studentAbnormal <> 0
+			GROUP BY t.itemId			
+		]]>
+	</select>
+	
+	
+</sqlMap>

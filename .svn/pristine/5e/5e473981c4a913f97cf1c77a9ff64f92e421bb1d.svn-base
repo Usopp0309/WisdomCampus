@@ -1,0 +1,35 @@
+/***
+Anout Us Page
+***/
+
+<!-- 行车等待标志 -->
+.map_car_chaoshi{
+	
+}
+<!-- 行车等待过长标志 -->
+.map_car_jinggao{
+	
+}
+.map_car_zhengchang{
+	
+}
+<!-- 终点按时到达标志 -->
+.map_car_end_zhengchang{
+	
+}
+<!-- 终点迟到标志 -->
+.map_car_end_chaowen{
+	
+}
+<!-- 起点正常出发标志 -->
+.map_car_start_zhengchang{
+	background-color:blue;
+	width:100px;
+	height:100px;
+}
+<!--起点超时出发标志-->
+.map_car_start_chaowen{
+	background-color:#f00;
+	width:100px;
+	height:100px;
+}

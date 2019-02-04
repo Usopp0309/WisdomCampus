@@ -1,0 +1,8 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<script src="<%=basePath%>assets/global/plugins/jquery.min.js" type="text/javascript"></script>
+<script src="<%=basePath%>assets/global/plugins/DateTime/js/mobiscroll_002.js" type="text/javascript"></script>
+<script src="<%=basePath%>assets/global/plugins/DateTime/js/mobiscroll_004.js" type="text/javascript"></script>
+<script src="<%=basePath%>assets/global/plugins/DateTime/js/mobiscroll.js" type="text/javascript"></script>
+<script src="<%=basePath%>assets/global/plugins/DateTime/js/mobiscroll_003.js" type="text/javascript"></script>
+<script src="<%=basePath%>assets/global/plugins/DateTime/js/mobiscroll_005.js" type="text/javascript"></script>
+<script src="<%=basePath%>assets/global/plugins/app_public_js.js" type="text/javascript"></script>

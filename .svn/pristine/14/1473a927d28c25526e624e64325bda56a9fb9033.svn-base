@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="SysMessage">
+	<typeAlias alias="sysMessage" type="com.guotop.palmschool.entity.SysMessage" />
+	<resultMap class="com.guotop.palmschool.entity.SysMessage" id="result_sysMessage">
+		<result property="id" column="id" />
+		<result property="content" column="content" />
+		<result property="userId" column="userId" />
+		<result property="createTime" column="createTime" />
+		<result property="type" column="type" />
+		<result property="messageType" column="messageType" />
+		<result property="realName" column="realName" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.SysMessage" id="result_sysMessageList">
+		<result property="id" column="id" />
+		<result property="content" column="content" />
+		<result property="createTime" column="createTime" />
+		<result property="type" column="type" />
+		<result property="realName" column="realName" />
+	</resultMap>
+	<insert id="addSysMessage" parameterClass="sysMessage">
+		insert into palm_sys_message(userId,type,messageType,content, createTime) values(#userId#, #type#, #messageType#,#content#, #createTime#)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	<select id="getSysMessage4Admin" parameterClass="HashMap" resultMap="result_sysMessageList">
+		select sm.id, sm.content, sm.type, sm.createTime, ud.realName from palm_sys_message sm, platform.user_detail ud where sm.userId = ud.userId
+		<isNotNull property="name">
+			<isNotEmpty prepend="and" property="name">
+			 ud.realName like concat('%',#name#,'%')
+			</isNotEmpty>
+		</isNotNull> 
+		<isNotNull property="type">
+			<isNotEmpty prepend="and" property="type">
+			 sm.type = #type#
+			</isNotEmpty>
+		</isNotNull> 
+		ORDER BY sm.createTime DESC
+	</select>
+	<select id="getSysMessage4Self" parameterClass="HashMap" resultMap="result_sysMessageList">
+		select sm.id, sm.content, sm.type, sm.createTime, ud.realName from palm_sys_message sm, platform.user_detail ud where sm.userId = ud.userId and sm.userId = #userId#
+		<isNotNull property="type">
+			<isNotEmpty prepend="and" property="type">
+			 sm.type = #type#
+			</isNotEmpty>
+		</isNotNull> 
+		ORDER BY sm.createTime DESC
+	</select>
+</sqlMap>

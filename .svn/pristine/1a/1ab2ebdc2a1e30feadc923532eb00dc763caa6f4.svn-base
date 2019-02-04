@@ -1,0 +1,594 @@
+package com.guotop.palmschool.service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.entity.UserCard;
+import com.guotop.palmschool.rest.entity.UserAuthorization;
+import com.guotop.palmschool.rest.entity.UserInfoDetail;
+
+/**
+ * 用户相关类接口
+ * @author sheng
+ *
+ */
+public interface UserService 
+{
+	/**
+	 * 登陆获取用户,多用户对应单手机号
+	 * @param userName 用户名(即手机号)
+ 	 * @param password 密码
+	 * @return 登陆成功后的用户列表，可能对应单用户多权限
+	 */
+	public List<User> doLogin(String userName, String password);
+	
+	/**
+	 * 添加userbase For 福建资源云
+	 * @param user
+	 * @return
+	 */
+	public Integer addUserBaseForFJ(User user);
+	/**
+	 * 添加userDetail For 福建资源云
+	 * @param user
+	 * @return
+	 */
+	public void addUserDetailForFJ(User user);
+	
+	/**
+	 * 根据uuserId查询用户
+	 * @param uuserId
+	 * @return
+	 */
+	public User getUserByUUserId(String uuserId);
+	
+	/**
+	 * 根据用户code获取用户card信息
+	 * @param code
+	 * @return UserCard 用户卡信息
+	 */
+	public UserCard selectUserCardByHomeId(String code);
+	
+	/**
+	 * 检查密码是否存在
+	 * @param oldPassword 待查询密码
+	 * @param userList 存在session中的用户集合
+	 * @return true:存在
+	 * 		   false:不存在
+	 */
+	public boolean checkPasswordExist(String oldPassword, Integer userId);
+	/**
+	 * 修改密码
+	 * 
+	 * */
+	public Integer modifyPassword(String oldPassword,String newPassword, Integer userId);
+	
+	/**
+	 * 修改密码【福建专用】
+	 * 
+	 * */
+	public Integer modifyPasswordFj(String oldPassword,String newPassword, Integer userId);
+	
+	/**
+	 * @param userName 用户名
+	 * @return List<User> 查找到的用户列表
+	 */
+	public List<User> getUserListByBindPhone(String bindPhone);
+	
+	/**
+	 * 根据userId查找到电子卡Id
+	 * @param code 电子卡code
+	 * @return 
+	 */
+	public UserCard selectCardIdByUserId(Integer userId);
+	
+
+	/**
+	 * 获取所有互信ID为空的用户
+	 * @return
+	 */
+	public List<User> getAllUsersWithHxIdIsNull();
+	/**
+	 * 根据ID更新互信ID
+	 */
+	public void modifyHxIdById(String huxinId,Integer id);
+	/**
+	 * 根据用户ID获取互信ID
+	 * @param userId 用户ID
+	 * @return
+	 */
+	public String getHxIdById(Integer userId);
+	
+	/**
+	 * 根据互信ID查找该互信ID能看到的所有教师(app接口)
+	 * @param huxinId 互信ID
+	 */
+	public List<User> selectTeacherListByRole(Map<String, Object> paramMap, User user);
+	/**
+	 * 添加用户
+	 * @param user
+	 */
+	public void addUser(User user);
+	
+	/**
+	 * 根据学生ID获取班级ID
+	 * @param userId
+	 * @return
+	 */
+	public String getClazzIdByUserId(Integer userId);
+	
+	/**
+	 * 根据学生ID获取年级ID
+	 * @param userId
+	 * @return
+	 */
+	public Integer getGradeIdByStudentId(Integer userId);
+	
+	
+	/**
+	 * 根据apiKey查找用户
+	 * 
+	 * @param apiKey
+	 * @return User apiKey对于的用户
+	 * update syj 20151210
+	 */
+	public List<User> getUserByApiKey(String apiKey);
+	
+	public List<User> getUserByUserId(Integer userId);
+	
+	public List<User> getUserByUserIdForFJ(Integer userId);
+	
+	
+	/**
+	 * 找userId绑定的智慧校园用户的userId
+	 * @param userId
+	 * @return
+	 */
+	public Integer getPalmUserIdbyUserId(Integer userId);
+	
+	/**
+	 * 删除亦信用户与智慧校园用户绑定关系
+	 * @param userId
+	 */
+	public void delBindPalmUserbyUserId(Integer userId);
+	
+	/**
+	 * 通过智慧校园的userId找到对应亦信用户的userId,baiduChannalId,deviceType
+	 * @param userId
+	 * @return
+	 */
+	public List<User> getYIXINUserDetailListbyUserId(Integer userId);
+	
+	public User getUserByApiKeyAndSchoolId(String apiKey,String schoolId);
+	/**
+	 * 将roleCode permissionCode 设置到user中
+	 * @param userList
+	 * 
+	 * update syj 20151210
+	 */
+	public User setRoleAndPermissionToUser(User user);
+	
+	/**
+	 * 根据apiKey查找该apiKey能看到的所有学生(app接口)
+	 * 
+	 * update syj 20151211
+	 */
+	public List<User> selectStudentListByRole(Map<String, Object> paramMap, User user);
+	/**
+	 * 根据学校ID与用户ID判断是否为学校管理员
+	 * @param schoolId
+	 * @param userId
+	 */
+	public boolean isManagerBySchoolIdAndUserId(long schoolId, Integer userId);
+	
+	/**
+	 * 根据学校ID与用户ID判断是否为学校管理员 FOR 福建
+	 * @param schoolId
+	 * @param userId
+	 */
+	public boolean isManagerBySchoolIdAndUserIdForFJ(long schoolId, Integer userId);
+	/**
+	 * 根据用户ID获取用户名称（名称为真实姓名+工号或学号)
+	 * @param userId
+	 * @return
+	 */
+	public String getUserNameByUserId(Integer userId);
+	/**
+	 * 根据学校ID获取学校所有人员ID
+	 * @param schoolId
+	 * @return
+	 */
+	public List<User> getUserIdListBySchoolId(Long schoolId);
+	/**
+	 * 根据用户id获取用户uuserid
+	 * @param userId
+	 * @return
+	 */
+	public String getUuserIdByUserId(int userId);
+	
+	/**
+	 * 根据clazzId 获取班主任信息
+	 * @param clazzId
+	 * @return
+	 * 20160122 syj
+	 */
+	public User getClazzLeaderByClazzIdInRICHBOOK(Integer clazzId);
+	/**
+	 * 根据用户ID获取用户VoipAccount
+	 * @param userId
+	 * @return
+	 */
+	public String getVoipAccountByUserId(Integer userId);
+	/**
+	 * 根据卡号获取用户信息
+	 * @param cardCode
+	 * @param schoolId
+	 * @return
+	 */
+	public User getUserInfoByCardCode(String cardCode);
+	/**
+	 * 添加app下载次数记录
+	 */
+	public void addDownLoadNum();
+	/**
+	 * 根据用户ID获取用户绑定的号码
+	 * @param userId
+	 * @return
+	 */
+	public List<String> getPhonesByUserId(Integer userId);
+	/**
+	 * 获取学校有卡的人员列表
+	 * @param schoolId
+	 * @return
+	 */
+	public List<User> getUserNameAndCardCodeList();
+	
+	/**
+	 * 获取student_parent的主键
+	 * @return
+	 */
+	public Integer getIdByStudentIdAndParentId(Integer cardId,Integer loginId);
+	
+	/**
+	 * 获取学校所有家长
+	 */
+	public List<User> getAllParentList();
+	
+	/**
+	 * 获取学校所有教职工
+	 */
+	public List<User> getAllTeacher();
+	
+	/**
+	 * 获取学校人员除了学生和家长
+	 */
+	public List<User> getAllUserExceptStudentAndPArent();
+	
+	/**
+	 * 根据班级Id获取对应的所有家长
+	 */
+	public List<User> getAllParentListByClazz(Integer clazzId);
+	/**
+	 * 根据班级数组获得家长
+	 * @author chenyong
+	 * @Time 2017年4月18日 上午10:28:50
+	 */
+	public List<User> getAllParentListByClazzs(String [] clazzIds);
+	
+	/**
+	 * 根据年级Id获取对应的所有家长
+	 */
+	public List<User> getAllParentListByGradeId(Integer gradeId);
+
+	public List<User> getTypeByUserId(String userId);
+	/**
+	 * 修改用户时判断手机号是否存在
+	 * @param param
+	 * @return
+	 */
+	public boolean isExistUserByPhoneAndUserId(HashMap<String,Object> param);
+	
+	/**
+	 * 查询系统管理员的信息
+	 * @return
+	 */
+	public User getSysAdmin();
+	
+	/**
+	 * 更新userbase 中的palmUserName为手机号 和source为1智慧校园用户
+	 */
+	public void updateUserBase(HashMap<String, Object> paramMap);
+	
+	/**
+	 * 更新userdetail 中的code
+	 * 参数1 ： code
+	 * 参数2 ： userId
+	 */
+	public void updateUserDetail(HashMap<String, Object> paramMap);
+	
+	/**
+	 * 根据apikey查询亦信用户信息
+	 * @param apiKey
+	 * @return
+	 */
+	public User getHuxinUserByApiKey(String apiKey);
+	
+	/**
+	 * 根据phone获取user
+	 * @param phone
+	 * @return
+	 */
+	public List<User> getCASUserByPhone(String phone);
+	
+	/**
+	 * 根据name获取user
+	 * @param phone
+	 * @return
+	 */
+	public List<User> getCASUserByName(String name);
+	
+	/**
+	 * 根据personid获取福建资源云用户信息
+	 * @param phone
+	 * @return
+	 */
+	public UserInfoDetail getFJUserDetailByPersonid(String personid);
+	
+	public User getUserDetailByUserIdInPersonCenter(Integer userId);
+	
+	/**
+	 * 根据personid获取
+	 * @param personid
+	 * @return
+	 */
+	public UserAuthorization getUserAuthorizationByPersonidForFJ(String personid);
+	
+	/**
+	 * 根据userId获取
+	 * @param personid
+	 * @return
+	 */
+	public UserAuthorization getUserAuthorizationByUserId(String personid);
+	/**
+	 * 添加福建用户授权表
+	 * @param ua
+	 */
+	public void addUserAuthForFJ(UserAuthorization ua);
+	/**
+	 * 更新福建用户授权表
+	 * @param ua
+	 */
+	public void updateUserAuthForFJ(UserAuthorization ua);
+	/**
+	 * 获取所有未购买服务费或卡押金没支付的学生 
+	 * @param schoolId
+	 * @return
+	 */
+	public ArrayList<User> getNotPurchaseStudentList(String schoolId);
+	/**
+	 * 根据部门IdList获取对应的教师
+	 * @param departmentIdList
+	 * @return
+	 */
+	public List<User> getTeacherListByDepartmentIdList(List<Integer> departmentIdList);
+	
+	
+	//---------------------------------以下智慧校园3.0---------------------------------------------------
+	/**
+	 * 在【新用户添加】时检测工号或学号是否存在
+	 * @param code 学号或者工号
+	 * @param schoolId 学校Id
+	 * @return true:存在  false:不存在
+	 */
+	public boolean checkCodeIsExistInAddNewUser(String code,Long schoolId);
+	
+	/**
+	 * 在【用户修改】时检测工号或者学号是否存在
+	 * @param origCode
+	 * @param code
+	 * @param schoolId
+	 * @return true:存在  false:不存在
+	 */
+	public boolean checkCodeIsExistInModifyUser(String origCode,String code,Long schoolId);
+	
+	/**
+	 * 在【新用户添加】检测手机号是否存在
+	 * @param bindPhone
+	 * @return true:存在  false:不存在
+	 */
+	public boolean checkBindPhoneIsExist(String bindPhone);
+	
+	/**
+	 * 在【用户修改】检测手机号是否存在
+	 * @param origBindPhone
+	 * @param bindPhone
+	 * @return true:存在  false:不存在
+	 */
+	public boolean checkBindPhoneIsExistInModifyUser(String origBindPhone,String bindPhone);
+	
+	/**
+	 * 检查绑定手机号是否在系统中存在，如果存在，显示具体在系统中是什么信息
+	 * @param bindPhone
+	 * @param schoolId 当前所在学校的schoolId
+	 * @return  map中key=flag ,true:系统中存在  false:系统中不存在;
+	 * key=msg,value中记载和用户在系统中的信息
+	 * key=user,value中是user对象
+	 * 
+	 */
+	public Map<String, Object> getUserMapByBindPhone(String bindPhone,Long schoolId);
+	
+	/**
+	 * 检查绑定手机号是否在系统中存在，如果存在，显示具体在系统中是什么信息
+	 * @param bindPhone
+	 * @param schoolId 当前所在学校的schoolId
+	 * @return  map中key=flag ,true:系统中存在  false:系统中不存在;
+	 * key=msg,value中记载和用户在系统中的信息
+	 * key=user,value中是user对象
+	 * 
+	 */
+	public Map<String, Object> getUserMapByUserId(Integer userId,Long schoolId);
+	
+	/**
+	 * 根据bindPhone获取已存在用户信息
+	 * @param bindPhone
+	 * @return
+	 */
+	public User getUserByBindPhone(String bindPhone);
+	
+	/**
+	 * 根据userId查找出对应的schoolId
+	 * @param userId
+	 * @return
+	 */
+	public List<User> getUserSchoolByUserId(Integer userId);
+	
+	/**
+	 * 添加userbase
+	 * @param user
+	 * @return
+	 */
+	public Integer addUserBase(User userBase);
+	
+	/**
+	 * 实际删除用户
+	 * @param userId
+	 */
+	public void delUser(Integer userId);
+	
+	/**
+	 * 实际删除用户好友
+	 * @param userId
+	 */
+	public void delUserFriend(Integer userId);
+	
+	/**
+	 * 实际删除用户分发号码
+	 * @param userId
+	 */
+	public void delUserUserPhones(Integer userId);
+	
+	/**
+	 * 添加分发号码
+	 * @param userId
+	 * @param phone
+	 */
+	public void addUserPhones(Integer userId,String phone);
+	/**
+	 * 添加userDetail
+	 * @param user
+	 */
+	public void addUserDetail(User userDetail);
+	
+	/**
+	 * 添加用户和学校关系
+	 * @param userId
+	 * @param schoolId
+	 */
+	public void addUserAndSchoolLink(Integer userId, Long schoolId);
+	
+	/**
+	 * 查看人员和学校是否关联
+	 * @param userId
+	 * @param schoolId
+	 * @return true：有关系  false：没有关系
+	 */
+	public boolean isExistsInSchool(Integer userId,Long schoolId);
+	
+	
+	/**
+	 * 删除用户的旧角色及旧权限
+	 * @param userId
+	 * @param roleCode
+	 */
+	public void deleteUserRole(Integer userId,String roleCode);
+	
+	/**
+	 * 删除用户的旧角色及旧权限
+	 * @param userId
+	 * @param roleCode 
+	 */
+	public void deleteUserRolePermission(Integer userId,String roleCode);
+	
+	/**
+	 * 根据userId 和 schoolId 删除用户学校关系
+	 * @param userId
+	 * @param schoolId
+	 */
+	public void delUserAndSchoolLink(Integer userId,Long schoolId);
+	/**
+	 * 根据学生id，学校id 查询钱包余额大于传入钱数的家长
+	 * @param param
+	 * @return
+	 */
+	public List<User> getUserAccountMoreThanPrice(HashMap<String, Object> param);
+	
+	/**
+	 * 清空学生的学号、或者教师的工号
+	 * @param userId
+	 */
+	public void deleteUserCode(Integer userId);
+	
+	/**
+	 * 根据学校ID和家长ID获取小孩信息
+	 */
+	public List<User> getStudentListByParentIdAndSchoolId(Map<String, Object>  map);
+	/**
+	 * 获得手机端技术支持的人员的手机号
+	 * @author chenyong
+	 * @Time 2016年12月27日 下午6:34:09
+	 */
+	public List<User> getTechnicalSupportPhone(String bindPone);
+	
+	/**
+	 * 验证登录账号是否存在
+	 * @param userName
+	 * @return
+	 */
+	public boolean checkUserName(String userName);
+	
+	/**
+	 * 根据用户ID获取对应的部门领导人用户推送
+	 * @param userId
+	 * @return
+	 */
+	public List<User> getLeaderByUserIdForPush(Integer userId);
+	
+	/**
+	 *  根据用户ID获取对应的部门领导人包含校长管理员
+	 * @param userId
+	 * @return
+	 */
+	public List<User> getLeaderListByUserId(Integer userId);
+	
+	
+	public User getUserByUserIdForPush(Integer userId);
+	
+	/**
+	 * 获取登录用户是否有权限使用该功能,购买了服务费能够查看，没有购买服务费的查看是否开启限制
+	 * @param menuId 限制功能Id
+	 * @param user
+	 * @return
+	 */
+	public boolean getLoginUserHasPermission(String menuId,User user);
+	/**
+	 * 判断学生的是否有家长是教师
+	 * @author chenyong
+	 * @Time 2017年2月23日 下午1:39:14
+	 */
+	public List<User> getParentIsTeacher(List<Integer> list);
+	/**
+	 * 根据班级，学生姓名获得学生
+	 * @author chenyong
+	 * @Time 2017年3月13日 下午2:02:01
+	 */
+	public List<User> getSyidentByClazzIdAndName(Map<String,Object> map);
+	/**
+	 * 根据学生userId集合获得家长
+	 * @author chenyong
+	 * @Time 2017年3月13日 下午2:16:02
+	 */
+	public List<User> getParentByStudent(List<Integer> listuserId);
+}

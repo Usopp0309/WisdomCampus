@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Stay">
+	<typeAlias alias="stay" type="com.guotop.palmschool.check.entity.Stay"/>
+
+	<resultMap class="com.guotop.palmschool.check.entity.Stay" id="result-stay">
+		<result property="id" column="id"/>
+		<result property="code" column="code"/>
+		<result property="inTime" column="intime"/>	
+		<result property="outTime" column="outtime"/>
+		<result property="userId" column="userid"/>
+		<result property="hours" column="hours"/>
+		<result property="userName" column="userName"/>
+	</resultMap>
+	
+	<!-- 查找所有在校时长(权限：校长) 查看(全校老师)/(全校学生)的在校时长 -->
+	<select id="selectStayListAsHeadMaster" parameterClass="HashMap" resultMap="result-stay">
+		select distinct s.*, u.name as userName
+			from palm_stat s, palm_user u, palm_user_role ur
+			where s.userid = u.id
+				and u.id = ur.userId
+				<isNotEmpty property="type">
+					<!-- 教师 -->
+					<isEqual property="type" compareValue="1">
+						and ur.roleId in (3, 4, 5, 8)
+					</isEqual>
+					<!-- 学生 -->
+					<isEqual property="type" compareValue="2">
+						and ur.roleId = 7
+					</isEqual>
+				</isNotEmpty>
+				
+				<isEmpty property="type">
+					and ur.roleId in (3, 4, 5, 7, 8)
+				</isEmpty>
+				<isNotEmpty  property="queryContent">
+					AND s.code  LIKE CONCAT('%',#queryContent#,'%')
+					OR u.name LIKE CONCAT('%',#queryContent#,'%')
+				</isNotEmpty>
+				order by s.id desc
+	</select>
+	
+	<!-- 查找所有在校时长(权限：年级) 查看(全年级老师)/(全年级学生)的在校时长 -->
+	<select id="selectStayListAsGradeLeader" parameterClass="HashMap" resultMap="result-stay">
+		select distinct s.*, u.name as userName
+			from palm_stat s, palm_user u, palm_user_role ur
+			where s.userid = u.id
+				and u.id = ur.userId
+				<isNotEmpty property="type">
+					<!-- 教师 -->
+					<isEqual property="type" compareValue="1">
+						and ur.roleId in (4, 5)
+					</isEqual>
+					<!-- 学生 -->
+					<isEqual property="type" compareValue="2">
+						and ur.roleId = 7
+					</isEqual>
+				</isNotEmpty>
+				
+				<isEmpty property="type">
+					and ur.roleId in (4, 5, 7)
+				</isEmpty>
+				<isNotEmpty  property="queryContent">
+					AND s.code LIKE CONCAT('%',#queryContent#,'%')
+					OR u.name LIKE CONCAT('%',#queryContent#,'%')
+					GROUP BY u.id
+				</isNotEmpty>
+				and ur.gradeId = #gradeId#
+				order by s.id desc
+	</select>
+	
+	
+	<!-- 查找所有在校时长(权限：班主任) 查看(自己)/(全班学生)的在校时长 -->
+	<select id="selectStayListAsHeadTeacher" parameterClass="HashMap" resultMap="result-stay">
+		select s.*, u.name as userName
+			from palm_stat s, palm_user u, palm_user_role ur
+			where s.userid = u.id
+				and u.id = ur.userId
+				<isNotEmpty property="type">
+				<!-- 教师 -->
+				<isEqual property="type" compareValue="1">
+					and ur.roleId = 4
+				</isEqual>
+				<!-- 学生 -->
+				<isEqual property="type" compareValue="2">
+					and ur.roleId = 7
+				</isEqual>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="code">
+					s.code = #code#
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="outTime">
+					s.outTime = #outTime#
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="hours">
+					s.hours = #hours#
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="inTime">
+					s.inTime = #inTime#
+				</isNotEmpty>
+				<!-- 拥有者 -->
+				<isNotEmpty prepend="and" property="name">
+					u.name = #name#
+				</isNotEmpty>
+				
+				and ur.clazzId = #clazzId#
+				<!-- and u.schoolId = #schoolId# -->
+				order by s.id desc
+	</select>
+	
+	<!-- 查找所有在校时长(权限：教师) 查看(自己)的在校时长 -->
+	<select id="selectStayListAsTeacher" parameterClass="HashMap" resultMap="result-stay">
+		select s.*, u.name as userName
+			from palm_stat s, palm_user u, palm_user_role ur
+			where s.userid = u.id
+				and u.id = ur.userId
+				and ur.roleId =5
+				and u.id= #userId#
+				<!-- and u.schoolId = #schoolId# -->
+				order by s.id desc
+	</select>
+	
+	<!-- 查找所有在校时长(权限：学生) 查看(自己)的在校时长 -->
+	<select id="selectStayListAsStudent" parameterClass="HashMap" resultMap="result-stay">
+		select s.*, u.name as userName
+			from palm_stat s, palm_user u
+			where s.userid = u.id
+				<isNotEmpty  property="queryContent">
+					AND s.code  LIKE CONCAT('%',#queryContent#,'%')
+					OR u.name LIKE CONCAT('%',#queryContent#,'%')
+					GROUP BY u.id
+				</isNotEmpty>
+				and u.id = #userId#
+				order by s.id desc
+	</select>
+</sqlMap>

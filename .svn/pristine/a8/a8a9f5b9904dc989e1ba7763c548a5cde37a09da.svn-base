@@ -1,0 +1,168 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+
+<!DOCTYPE html>
+
+<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+
+<!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+
+<!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+
+<!-- BEGIN HEAD -->
+
+<head>
+
+<meta charset="utf-8" />
+
+<title>RichX智慧校园</title>
+
+<!-- <meta content="width=device-width, initial-scale=1.0" name="viewport" /> -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="expires" content="0">
+<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+<meta http-equiv="description" content="This is my page">
+
+<!-- BEGIN GLOBAL MANDATORY STYLES -->
+<link href="<%=basePath%>/media/css/bootstrap.min.css" rel="stylesheet"
+	type="text/css" />
+
+<link href="<%=basePath%>/media/css/bootstrap-responsive.min.css" rel="stylesheet"
+	type="text/css" />
+
+<link href="<%=basePath%>/media/css/font-awesome.min.css" rel="stylesheet"
+	type="text/css" />
+
+<link href="<%=basePath%>/media/css/style-metro.css" rel="stylesheet"
+	type="text/css" />
+
+<link href="<%=basePath%>/media/css/style.css" rel="stylesheet" type="text/css" />
+
+<link href="<%=basePath%>/media/css/style-responsive.css" rel="stylesheet"
+	type="text/css" />
+
+<link href="<%=basePath%>/media/css/default.css" rel="stylesheet" type="text/css"
+	id="style_color" />
+
+<link href="<%=basePath%>/media/css/uniform.default.css" rel="stylesheet"
+	type="text/css" />
+
+<link href="<%=basePath%>/media/css/jquery.autocomplete.css" rel="stylesheet"
+	type="text/css"></link>
+<link href="<%=basePath%>media/css/bootstrap-fileupload.css"rel="stylesheet" type="text/css" />	
+
+<link href="<%=basePath%>/media/css/skin_m.css" rel="stylesheet" type="text/css" />
+
+<!-- END GLOBAL MANDATORY STYLES -->
+
+<link rel="shortcut icon" href="<%=basePath%>/media/image/favicon.ico" />
+
+</head>
+
+<!-- END HEAD -->
+
+<!-- BEGIN BODY -->
+
+<body class="page-header-fixed">
+	<header class="header">
+		<div class="top">
+			<img src="<%=basePath%>assets/global/img/m_img/logo.png" style="display:block;float:left;height:35px;margin:2px 0 0 0"><span style="color:#fff;line-height:40px;font-size:16px;display:block;float:left;margin:0px 0 0 15px;">RichX 智慧校园</span>
+			<ul class="apply_addmenu_li">
+				<li style="float:left;width:20%"><a href="http://www.richx.cn/index.html" target="_blank"><span class="Response">关于</span>RICH</a></li>
+				<li style="float:left;width:20%"><a href="http://wpa.qq.com/msgrd?v=3&uin=6949265&site=qq&menu=yes" target="_blank">在线咨询</a></li>
+			</ul>
+		</div>
+	</header>
+	<section id="page_2" class="main" style="display: block;">
+		<img src="<%=basePath%>media/image/State_2.jpg">
+		<div class="send_box">
+			<div class="text_con">
+				<div class="Success_icon">
+					<img src="<%=basePath%>/media/image/Success_icon.png">
+				</div>
+				<div class="sussecc_text">
+					<h3>感谢注册！我们将尽快对您的信息进行审核，</h3>
+					<p>
+						我们将以邮件方式将审核结果发至您注册邮箱：<a href="" id="goemail"></a>
+					</p>
+					<p>请耐心等待&nbsp;&nbsp;&nbsp;<a href="<%=basePath%>apply/apply.do" ><strong>返回</strong></a></p>
+				</div>
+			</div>
+		</div>
+	</section>
+	<jsp:include page="/public_module/footer.jsp"></jsp:include>
+<p>      
+				
+	<!-- BEGIN JAVASCRIPTS(Load javascripts at bottom, this will reduce page load time) -->
+
+	<!-- BEGIN CORE PLUGINS -->
+	<script src="<%=basePath%>/media/js/jquery-2.1.1.min.js" type="text/javascript"></script>
+
+	<script src="<%=basePath%>/media/js/jquery-migrate-1.2.1.min.js"
+		type="text/javascript"></script>
+
+	<!-- IMPORTANT! Load jquery-ui-1.10.1.custom.min.js before bootstrap.min.js to fix bootstrap tooltip conflict with jquery ui tooltip -->
+
+	<script src="<%=basePath%>/media/js/jquery-ui-1.10.1.custom.min.js"
+		type="text/javascript"></script>
+
+	<script src="<%=basePath%>/media/js/bootstrap.min.js" type="text/javascript"></script>
+
+	<!--[if lt IE 9]>
+
+	<script src="media/js/excanvas.min.js"></script>
+
+	<script src="media/js/respond.min.js"></script>  
+
+	<![endif]-->
+
+	<script src="<%=basePath%>/media/js/jquery.slimscroll.min.js"
+		type="text/javascript"></script>
+
+	<script src="<%=basePath%>/media/js/jquery.blockui.min.js" type="text/javascript"></script>
+
+	<script src="<%=basePath%>/media/js/jquery.cookie.min.js" type="text/javascript"></script>
+
+	<script src="<%=basePath%>/media/js/jquery.uniform.min.js" type="text/javascript"></script>
+
+	<!-- END CORE PLUGINS -->
+
+	<!-- BEGIN PAGE LEVEL PLUGINS -->
+
+	<script type="text/javascript" src="<%=basePath%>/media/js/select2.min.js"></script>
+
+	<script type="text/javascript"
+		src="<%=basePath%>/media/js/jquery.dataTables.min.js"></script>
+
+	<script type="text/javascript" src="<%=basePath%>/media/js/DT_bootstrap.js"></script>
+
+	<!-- END PAGE LEVEL PLUGINS -->
+
+	<!-- BEGIN PAGE LEVEL SCRIPTS -->
+
+
+	<script src="<%=basePath%>/media/js/table-advanced.js"></script>
+
+	<script type="text/javascript"
+		src="<%=basePath%>/media/js/My97DatePicker/WdatePicker.js"></script>
+
+	<script type="text/javascript"
+		src="<%=basePath%>/media/js/jquery.autocomplete.min.js"></script>
+
+	<script type="text/javascript" src="<%=basePath%>/media/js/jquery.validate.min.js"></script>
+
+	<script type="text/javascript"
+		src="<%=basePath%>/media/js/My97DatePicker/WdatePicker.js"></script>
+	
+	<script src="<%=basePath%>media/js/bootstrap-fileupload.js" type="text/javascript"></script>	
+	<!-- <script src="../media/js/jquery.validate.js" type="text/javascript"></script> -->
+	<script src="<%=basePath%>/media/js/app.js"></script>
+</body>
+
+<!-- END BODY -->
+
+</html>

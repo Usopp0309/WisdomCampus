@@ -1,0 +1,448 @@
+package com.guotop.palmschool.controller;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.entity.LocationInfo;
+import com.guotop.palmschool.entity.PublicResult;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.entity.UserWatch;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.schoolbus.entity.OnSchoolBus;
+import com.guotop.palmschool.schoolbus.entity.PointInfo;
+import com.guotop.palmschool.schoolbus.service.SchoolBusScheduleService;
+import com.guotop.palmschool.service.InoutService;
+import com.guotop.palmschool.service.LocationInfoService;
+import com.guotop.palmschool.service.StudentService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.TimeUtil;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 定位控制类
+ * @author jfy
+ * @date 2016年1月26日
+ */
+@Controller
+@RequestMapping("/locationInfo")
+public class LocationInfoController
+{
+	@Resource
+	private LocationInfoService locationInfoService;
+	@Resource
+	private UserService userService;
+	@Resource
+	private StudentService studentService;
+	@Resource
+	private InoutService inoutService;
+	@Resource
+	private SchoolBusScheduleService schoolBusScheduleService;
+	@Resource
+	private CommonService commonService;
+	
+	PointInfo point;
+	
+	/**
+	 * 获得目前校车所在位置
+	 * @return
+	 * @throws ParseException 
+	 */
+	@RequestMapping(value="/getLocationInfoByCarId.do")
+	public void getLocationInfoByCarId(HttpServletRequest request, HttpServletResponse response, HttpSession session,ModelMap modelMap) throws ParseException
+	{
+		response.setCharacterEncoding("utf-8");
+		String carId = request.getParameter("carId");
+		PointInfo nowPoint = locationInfoService.getnowPoint(carId);
+		String json = GsonHelper.toJson(nowPoint);
+		try {
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	/**
+	 * 显示目前校车所在位置
+	 * @return
+	 * @throws ParseException 
+	 */
+	@RequestMapping(value="/showBusNowPointInfo.do")
+	public String showBusNowPointInfo(HttpServletRequest request, HttpServletResponse response, HttpSession session,ModelMap modelMap) throws ParseException
+	{
+		response.setCharacterEncoding("utf-8");
+		String createTime = request.getParameter("createTime");
+		String carId = request.getParameter("cardId");
+		String loginUserId = ((User)session.getAttribute("user")).getUserId().toString();
+		modelMap.put("loginUserId", loginUserId);
+		modelMap.put("carId", carId);
+		modelMap.put("createTime", createTime);
+		modelMap.put("endTime", endOfTodDay());
+		return "watchLocation/bus_location";
+	}
+	/**
+	 * 显示上下车坐标点信息
+	 * @return
+	 * @throws ParseException 
+	 */
+	@RequestMapping(value="/getPointByUserId.do")
+	public String getPointByUserId(HttpServletRequest request, HttpServletResponse response, HttpSession session,ModelMap modelMap) throws ParseException
+	{
+		response.setCharacterEncoding("utf-8");
+		User loginUser = (User)session.getAttribute("user");
+		String userId = request.getParameter("userId");
+		String createTime = request.getParameter("createTime");
+		String carId = request.getParameter("carId");
+		String endTime = request.getParameter("endTime");
+		String roleCode = request.getParameter("roleCode");
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("userId", userId);
+		paramMap.put("createTime", createTime);
+		paramMap.put("carId", carId);
+		paramMap.put("endTime", endTime);
+		//有权限的人员
+		List<Integer> clazzIds = commonService.getIdsByUserIdAndPermissionCode(loginUser.getUserId(), "schoolBusOnManager", 0);
+		paramMap.put("clazzIds", clazzIds);
+		if(null!=roleCode){
+			if(roleCode.equals("parent")){
+				paramMap.put("type", 1);
+			}else if(roleCode.equals("teacher")||roleCode.equals("classLeader")){
+				paramMap.put("type", 2);
+			}else{
+				paramMap.put("type", 3);
+			}
+		}
+		List<OnSchoolBus> list = locationInfoService.getPositionListByUserId(paramMap);
+		String json = GsonHelper.toJson(list);
+		try {
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	/**
+	 * 显示定位信息
+	 * @return
+	 * @throws ParseException 
+	 */
+	@RequestMapping(value="/showLocationInfo.do")
+	public String showLocationInfo(HttpServletRequest request, HttpServletResponse response, HttpSession session,ModelMap modelMap) throws ParseException
+	{
+		response.setCharacterEncoding("utf-8");
+		String userId = request.getParameter("userId");
+		String createTime = request.getParameter("createTime");
+		String positionId = request.getParameter("positionId");
+		String roleCode = request.getParameter("roleCode");
+		String isZoudu = request.getParameter("isZoudu");
+		User user = (User)session.getAttribute("user");
+		User userType = locationInfoService.getTypeByUserId(userId);
+		modelMap.put("userId", userId);
+		modelMap.put("carId", positionId);
+		modelMap.put("userRealId", user.getUserId());
+		modelMap.put("roleCode", roleCode);
+		modelMap.put("createTime", createTime);
+		modelMap.put("endTime", endOfTodDay());
+		modelMap.put("userType", userType.getType());
+		modelMap.put("isZoudu", isZoudu);
+		return "watchLocation/location";
+	}
+	/**
+	 * 手机端显示定位
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value="/showLocationInfo4App.do")
+	public String showLocation4App(HttpServletRequest request, HttpServletResponse response, HttpSession session,ModelMap modelMap)
+	{
+		response.setCharacterEncoding("utf-8");
+		String watchId = request.getParameter("watchId");
+		User login = (User)session.getAttribute("user");
+		User user = null;
+		if (login == null)
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+			user = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			session.setAttribute("user", user);
+		}else
+		{
+			user = login;
+		}
+		
+		if (user != null)
+		{
+			
+			HashMap<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("watchId", watchId);
+			List<LocationInfo> list = locationInfoService.getLocationInfoList(paramMap);
+			if (list != null && list.size() > 0)
+			{
+				modelMap.put("location", list.get(0));
+			}else
+			{
+				modelMap.put("location", new LocationInfo());
+			}
+			List<UserWatch> useList = locationInfoService.getUserWatchLinkList(login.getUserId());
+			modelMap.put("useList", useList);
+			return "app/watch/watch_detail_app";
+		}
+		return null;
+	}
+	/**
+	 * 获取使用者列表
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value="/getUserList.do")
+	public String getUserList(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("utf-8");
+		User login =(User)session.getAttribute("user");
+		List<UserWatch> list = locationInfoService.getUserWatchLinkList(login.getUserId());
+		modelMap.addAttribute("list", list);
+		return "app/watch/watch_list_app";
+	}
+	/**
+	 * 进入添加关联页面
+	 * @return
+	 */
+	@RequestMapping(value="/toAddUserWatchLink.do")
+	public String toAddUserWatchLink(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("utf-8");
+		User login =(User)session.getAttribute("user");
+		List<User> list = studentService.getStudentListByParentId(login.getUserId());
+		modelMap.addAttribute("list", list);
+		return "app/watch/watch_add_app";
+	}
+	/**
+	 * 添加关联页面
+	 * @return
+	 */
+	@RequestMapping(value="/doAddUserWatchLink.do")
+	public String doAddUserWatchLink(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("utf-8");
+		String watchId = request.getParameter("watchId");
+		String studentId = request.getParameter("studentId");
+		String name = request.getParameter("name");
+		User login = (User)session.getAttribute("user");
+		UserWatch userWatch = new UserWatch();
+		userWatch.setCreateTime(TimeUtil.getInstance().now());
+		userWatch.setName(name);
+		if (studentId != null && !"".equals(studentId))
+		{
+			userWatch.setStudentId(Integer.valueOf(studentId));
+		}
+		userWatch.setUserId(login.getUserId());
+		userWatch.setWatchId(watchId);
+		
+		locationInfoService.addUserWatchLink(userWatch);
+		
+		return getUserList(request,response,session,modelMap);
+		 
+	}
+	/**
+	 * 手机地图
+	 * @return
+	 */
+	@RequestMapping(value="/getLocationInfoForwardPhone.do")
+	public String getLocationInfoForwardPhone(HttpServletRequest request, HttpServletResponse response, HttpSession session,ModelMap modelMap){
+		response.setCharacterEncoding("utf-8");
+		String apiKey = request.getParameter("apiKey");
+		String userId = request.getParameter("userId");
+		String schoolId = request.getParameter("schoolId");
+		User user = null;
+		if(null!=apiKey&&!"".equals(apiKey)){
+			user = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			session.setAttribute("user", user);
+		}
+		String nowDate = request.getParameter("nowDate");
+		String position = request.getParameter("cardId");
+		String roleCode = "parent";
+		DBContextHolder.setDBType(schoolId);
+		User userType = locationInfoService.getTypeByUserId(userId);
+		modelMap.put("createTime", nowDate);
+		modelMap.put("userRealId", user.getUserId());
+		modelMap.put("carId", position);
+		modelMap.put("schoolId", schoolId);
+		modelMap.put("apiKey", apiKey);
+		modelMap.put("userId", userId);
+		modelMap.put("roleCode", roleCode);
+		try {
+			modelMap.put("endTime", endOfTodDay());
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		modelMap.put("userType", userType.getType());
+		modelMap.put("isZoudu", userType.getType()==1?"false":"true");
+		return "watchLocation/location";
+	}
+	
+	/**
+	 * 根据学生刷卡信息获取对应坐标信息,乘坐的校车列表 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 * @throws ParseException 
+	 */
+	@RequestMapping(value="/getLocationInfoByWatchId.do")
+	public String getLocationInfoByWatchId(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws ParseException
+	{
+		response.setCharacterEncoding("utf-8");
+		//开始时间,查找时间段内的刷卡记录
+		String createTime = request.getParameter("createTime");
+		//结束时间,查找时间段内的刷卡记录
+		String endTime = request.getParameter("endTime");
+		//刷卡者Id
+		String userId = request.getParameter("userId");
+		//卡号
+		String userCardId = request.getParameter("cardId");
+		//设备号
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("userId", userId);
+		paramMap.put("createTime", createTime);
+		paramMap.put("userCardId", userCardId);
+		paramMap.put("endTime", endTime);
+//		paramMap.put("position", position);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		point = new PointInfo();
+		point.setUserId(userId);
+		//查询时间段内用户打卡信息以及坐标点
+		List<OnSchoolBus> list = locationInfoService.getPositionListByUserId(paramMap);
+		//根据第一条打卡时间和最后一条打卡时间，计算出校车运行和结束时间,如果打卡信息列表长度大于1，表示有上下车，如果只有1则已上车
+		if(list.size()>1){
+			point.setCreateTime(sdf.parse(list.get(0).getCreateTime()));
+			point.setEndTime(sdf.parse(list.get(list.size()-1).getCreateTime()));
+			point.setCarId(list.get(list.size()-1).getPosition());
+		}
+		List<PointInfo> pointList = inoutService.findPointByDevide(point);
+		PublicResult pr = new PublicResult();
+		pr.setBusList(list);
+		pr.setPointList(pointList);
+		String json = GsonHelper.toJson(pr);
+		try
+		{
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		}catch(Exception ex)
+		{
+			ex.printStackTrace();
+		}
+		return null;
+	}
+	/**
+	 * 根据校车信息查询校车轨迹
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 * @throws ParseException 
+	 */
+	@RequestMapping(value="/getLocationInfoByPositionId.do")
+	public String getLocationInfoByPositionId(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws ParseException
+	{
+		response.setCharacterEncoding("utf-8");
+		//开始时间,查找时间段内的刷卡记录
+		String createTime = request.getParameter("createTime");
+		//结束时间,查找时间段内的刷卡记录
+		String endTime = request.getParameter("endTime");
+		//卡号
+		String userName = request.getParameter("userName");
+		//设备号
+		String position = request.getParameter("position");
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("createTime", createTime);
+		paramMap.put("userName", userName);
+		paramMap.put("endTime", endTime);
+		paramMap.put("position", position);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		//查询时间段内用户打卡信息以及坐标点
+		List<OnSchoolBus> list = locationInfoService.getPositionListByPositionId(paramMap);
+		//根据第一条打卡时间和最后一条打卡时间，计算出校车运行和结束时间,如果打卡信息列表长度大于1，表示有上下车，如果只有1则已上车
+		PointInfo point = new PointInfo();
+		point.setCreateTime(sdf.parse(createTime));
+		point.setEndTime(sdf.parse(endTime));
+		point.setCarId(position);
+		List<PointInfo> pointList = inoutService.findPointByDevide(point);
+		PublicResult pr = new PublicResult();
+		pr.setBusList(list);
+		pr.setPointList(pointList);
+		String json = GsonHelper.toJson(pr);
+		try
+		{
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		}catch(Exception ex)
+		{
+			ex.printStackTrace();
+		}
+		return null;
+	}
+	public PointInfo getPoint() {
+		return point;
+	}
+	public void setPoint(PointInfo point) {
+		this.point = point;
+	}
+	/**
+	   * 当天的开始时间
+	   * @return
+	 * @throws ParseException 
+	   */
+	  public static String startOfTodDay() throws ParseException {
+	    Calendar calendar = Calendar.getInstance();
+	    calendar.set(Calendar.HOUR_OF_DAY, 0);
+	    calendar.set(Calendar.MINUTE, 0);
+	    calendar.set(Calendar.SECOND, 0);
+	    calendar.set(Calendar.MILLISECOND, 0);
+	    Date date=calendar.getTime();
+	    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	    return sdf.format(date);
+	  }
+	  /**
+	   * 当天的结束时间
+	   * @return
+	 * @throws ParseException 
+	   */
+	  public static String endOfTodDay() throws ParseException {
+	    Calendar calendar = Calendar.getInstance();
+	    calendar.set(Calendar.HOUR_OF_DAY, 23);
+	    calendar.set(Calendar.MINUTE, 59);
+	    calendar.set(Calendar.SECOND, 59);
+	    calendar.set(Calendar.MILLISECOND, 999);
+	    Date date=calendar.getTime();
+	    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	    return sdf.format(date);
+	  }
+	  public static void main(String[] args) throws ParseException {
+		System.out.println(startOfTodDay());
+		System.out.println(endOfTodDay());
+	}
+}

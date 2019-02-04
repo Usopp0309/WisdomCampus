@@ -1,0 +1,341 @@
+package com.guotop.palmschool.shopping.controller;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.guotop.palmschool.controller.BaseController;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.shopping.entity.Goods;
+import com.guotop.palmschool.shopping.entity.GoodsDetail;
+import com.guotop.palmschool.shopping.entity.GoodsType;
+import com.guotop.palmschool.shopping.entity.Orders;
+import com.guotop.palmschool.shopping.service.OrdersService;
+import com.guotop.palmschool.shopping.service.ShoppingService;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 购物控制类
+ * 
+ * @author jfy
+ * @date 2016年1月8日
+ */
+@Controller
+@RequestMapping("/shopping")
+public class ShoppingController extends BaseController
+{
+	@Resource
+	private ShoppingService shoppingService;
+	@Resource
+	private OrdersService ordersService;
+	@Resource
+	private UserService userService;
+
+	/**
+	 * 进入购物首页
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/toShoppingList.do")
+	public String toShopping(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		List<GoodsType> typeList = shoppingService.getGoodsType();
+		for (GoodsType goodsType : typeList)
+		{
+			int typeId = goodsType.getId();
+			goodsType.setGoodsList(shoppingService.getGoodsListByGoodsType(typeId));
+		}
+		modelMap.addAttribute("typeList", typeList);
+		return "shopping/index";
+	}
+	/**
+	 * 手机版购物页面入口
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/toShoppingAppList.do")
+	public String toShoppingApp(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		
+		String apiKey = request.getParameter("apiKey");
+		// 这边是利用apikey 进行模拟登录
+		List<User> loginUserList = userService.getUserByApiKey(apiKey);
+		if (loginUserList != null && loginUserList.size() > 0)
+		{
+			/*
+			 * 存session
+			 */
+			session.setAttribute("user", loginUserList.get(0));
+			List<GoodsType> typeList = shoppingService.getGoodsType();
+			for (GoodsType goodsType : typeList)
+			{
+				int typeId = goodsType.getId();
+				goodsType.setGoodsList(shoppingService.getGoodsListByGoodsType(typeId));
+			}
+			modelMap.addAttribute("typeList", typeList);
+			return "shopping/index";
+		}
+		
+		return null;
+	}
+
+	/**
+	 * 进入购买页面
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/toShoppingBuy.do")
+	public String toShoppingBuy(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String goodsId = request.getParameter("goodsId");
+		if (goodsId != null)
+		{
+			Goods goods = shoppingService.getGoodsById(Integer.valueOf(goodsId));
+			List<GoodsDetail> goodDetailList = shoppingService.getGoodsDetailListByGoodsId(Integer.valueOf(goodsId));
+			goods.setList(goodDetailList);
+			modelMap.addAttribute("goods", goods);
+			return "shopping/buy";
+		} else
+		{
+			List<GoodsType> typeList = shoppingService.getGoodsType();
+			for (GoodsType goodsType : typeList)
+			{
+				int typeId = goodsType.getId();
+				goodsType.setGoodsList(shoppingService.getGoodsListByGoodsType(typeId));
+			}
+			modelMap.addAttribute("typeList", typeList);
+			return "shopping/index";
+		}
+
+	}
+
+	/**
+	 * 进入付款页面
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value = "/toShoppingPay.do")
+	public String toShoppingPay(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		User user = (User) session.getAttribute("user");
+		String detailId = request.getParameter("detailId");
+		String price = request.getParameter("price");
+		String saleNum = request.getParameter("saleNum");
+		String name = request.getParameter("name");
+		String phone = request.getParameter("phone");
+		String address = request.getParameter("address");
+		String remark = request.getParameter("remark");
+		float priceF = 0;
+		int saleNumI = 0;
+		if (!StringUtil.isEmpty(price))
+		{
+			priceF = Float.valueOf(price.trim().substring(1));
+		}
+		if (!StringUtil.isEmpty(saleNum))
+		{
+			saleNumI = Integer.valueOf(saleNum.trim());
+		}
+		String amount = String.valueOf(priceF * saleNumI);
+		Orders orders = new Orders();
+		orders.setAddress(address);
+		orders.setAmount(amount);
+		orders.setCounts(saleNumI);
+		orders.setReceiver(name);
+		orders.setAddress(address);
+		orders.setPhone(phone);
+		orders.setGoodsDetailId(Integer.valueOf(detailId.trim()));
+		orders.setUserId(user.getUserId());
+		orders.setCreateTime(formatter.format(new Date()));
+		orders.setRemark(remark);
+		orders.setIsVirtual(2);
+		int ordersId = ordersService.addOrders(orders);
+		modelMap.addAttribute("amount", amount);
+		modelMap.addAttribute("goodsName", request.getParameter("goodsName"));
+		modelMap.addAttribute("ordersId", ordersId);
+		return "shopping/pay";
+	}
+	/**
+	 * 进入订单列表页面
+	 * @return
+	 */
+	@RequestMapping(value="/getOrdersList.do")
+	public String getOrdersList(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String status = request.getParameter("status");
+		String condition = request.getParameter("condition");
+		if (status == null || status.equals(""))
+		{
+			status = "1";
+		}
+		HashMap<String, Object> params = new HashMap<String, Object>();
+		params.put("status", status);
+		params.put("condition", condition);
+		List<Orders> list = ordersService.getOrdersList(params);
+		modelMap.addAttribute("list", list);
+		modelMap.addAttribute("status", status);
+		modelMap.addAttribute("condition", condition);
+		return "system/shoppingOrders";
+	}
+	/**
+	 * 发货
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value="/sendOrders.do")
+	public String sendOrder(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		
+		response.setCharacterEncoding("utf-8");
+		String orderId = request.getParameter("orderId");
+		String goodsName = request.getParameter("goodsName");
+		String receiver = request.getParameter("receiver");
+		String phone = request.getParameter("phone");
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		try
+		{
+			if (!StringUtil.isEmpty(orderId))
+			{
+				Orders orders = new Orders();
+				orders.setId(Integer.valueOf(orderId));
+				orders.setStatus(3);
+				ordersService.updateOrders(orders);
+			}
+			//发送短信通知
+			String content = "亲爱的" + receiver + ",您好：您在仁齐购物平台购买的【" + goodsName + "】已经于" + TimeUtil.getInstance().now() + "发出，请注意查收！";
+			ordersService.sendSms(content,phone);
+			map.put("code", 0);
+			map.put("msg", "保存成功");
+		}catch(Exception e)
+		{
+			map.put("code", 1);
+			map.put("msg", "保存或发送短信失败");
+		}
+		String resultStr = GsonHelper.toJson(map);
+		try
+		{
+			response.getWriter().write(resultStr);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	/**
+	 * 进入个人订单页面
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value="/toSelfOrderList.do")
+	public String toSelfOrderList(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("utf-8");
+		User login = (User)session.getAttribute("user");
+		HashMap<String,Object> paramMap = new HashMap<String, Object>();
+		String status = request.getParameter("status");
+		String queryContent = request.getParameter("queryContent");
+		if (status == null || "".equals(status))
+		{
+			status = "0";
+		}
+		paramMap.put("status", status);
+		paramMap.put("queryContent", queryContent);
+		paramMap.put("userId", login.getUserId());
+		List<Orders> list = ordersService.getSelfOrdersList(paramMap);
+		modelMap.addAttribute("status", status);
+		modelMap.addAttribute("queryContent", queryContent);
+		modelMap.addAttribute("list", list);
+		
+		return "shopping/order";
+	}
+	/**
+	 * 个人订单支付
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	@RequestMapping(value="/toPay.do")
+	public String topay(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		modelMap.addAttribute("amount", request.getParameter("amount"));
+		modelMap.addAttribute("goodsName", request.getParameter("goodsName"));
+		modelMap.addAttribute("ordersId", request.getParameter("orderId"));
+		return "shopping/pay";
+	}
+	/**
+	 * 取消订单
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value="/cancelOrder.do")
+	public String cancelOrders(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("utf-8");
+		String orderId = request.getParameter("orderId");
+		int code = 0;
+		
+		if (orderId == null || "".equals(orderId))
+		{
+			code = -1;
+		}else
+		{
+			ordersService.deleteOrders(Integer.valueOf(orderId));
+			
+		}
+		String reCode = String.valueOf(code);
+		try
+		{
+			response.getWriter().write(reCode);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		return null;
+	}
+}

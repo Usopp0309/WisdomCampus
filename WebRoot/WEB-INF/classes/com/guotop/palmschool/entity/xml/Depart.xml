@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Depart">
+	<typeAlias alias="department" type="com.guotop.palmschool.entity.Department" />
+
+	<resultMap class="com.guotop.palmschool.entity.Department" id="result_department">
+		<result property="id" column="id" />
+		<result property="departmentName" column="departmentName" />
+		<result property="updateTime" column="updateTime" />
+		<result property="createTime" column="createTime" />
+		<result property="code" column="code" />
+		<result property="leaderId" column="leaderId" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.Department" id="result_department_manager">
+		<result property="id" column="id" />
+		<result property="departmentName" column="departmentName" />
+		<result property="updateTime" column="updateTime" />
+		<result property="createTime" column="createTime" />
+		<result property="code" column="code" />
+		<result property="leaderId" column="leaderId" />
+		<result property="leaderName" column="leaderName" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.Department" id="result_department-leadername">
+		<result property="id" column="id" />
+		<result property="code" column="code" />
+		<result property="departmentName" column="departmentName" />
+		<result property="updateTime" column="updateTime" />
+		<result property="createTime" column="createTime" />
+		<result property="leaderId" column="leaderId" />
+		<result property="leaderName" column="leaderName" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.Department" id="result_departmentdetil">
+		<result property="id" column="id" />
+		<result property="code" column="code" />
+		<result property="updateTime" column="updateTime" />
+		<result property="departmentName" column="departmentName" />
+		<result property="createTime" column="createTime" />
+		<result property="name" column="name" />
+		<result property="userId" column="userId" />
+		<result property="roleId" column="roleId" />
+		<result property="gradeId" column="gradeId" />
+		<result property="clazzId" column="clazzId" />
+		<result property="personUpdatetime" column="personUpdatetime" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.Department" id="result_departmentdetilForModify">
+		<result property="id" column="id" />
+		<result property="code" column="code" />
+		<result property="updateTime" column="updateTime" />
+		<result property="departmentName" column="departmentName" />
+		<result property="createTime" column="createTime" />
+		<result property="leaderId" column="leaderId" />
+		<result property="leaderName" column="leaderName" />
+		<result property="phone" column="phone" />
+		<result property="isAttendance" column="isAttendance" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.User" id="result_getUserIdListByDepartId">
+		<result property="userId" column="userId"/>
+		<result property="baiduChannelId" column="baiduChannelId"/>
+		<result property="deviceType" column="deviceType"/>	
+	</resultMap>
+	
+	<!-- 根据schoolId查找所有部门信息 部门管理页面使用-->
+	<select id="getDepartList" parameterClass="java.lang.String" resultMap="result_department_manager">
+		SELECT d.*, ud.realName leaderName FROM palm_department d left join platform.user_detail ud on d.leaderId = ud.userId order by code
+	</select>
+	<!-- 根据schoolId查找所有部门信息 部门管理页面使用【福建专用】-->
+	<select id="getDepartListFj" parameterClass="HashMap" resultMap="result_department_manager">
+		SELECT d.*, ud.realName leaderName FROM fjzyyptxx.palm_department d left join fjzyyptxx.user_detail ud on d.leaderId = ud.userId
+		where d.fjSchoolId=#fjSchoolId#
+		 order by code
+	</select>
+	
+	<!-- 根据schoolId查找所有部门信息  部门权限管理页面使用 -->
+	<select id="loadDepartListByQueryContent" parameterClass="HashMap" resultMap="result_department-leadername">
+		SELECT d.* , ud.realName AS leaderName
+			FROM palm_department d LEFT JOIN platform.user_detail ud 
+			ON d.leaderid = ud.userId
+		<isNotEmpty property="queryContent">
+			where 
+			(u.name like concat('%',#queryContent#,'%') 
+			or d.departmentName like concat('%',#queryContent#,'%') 
+			)
+		</isNotEmpty>
+			order by d.code
+	</select>	
+	
+	<!--  添加部门  -->
+	<insert id="addDepart" parameterClass="department">
+		insert into palm_department
+		(
+			code, 
+			departmentName, 
+			updateTime,
+			createTime,
+			isAttendance
+		)
+		values
+		(			
+			#code#,
+			#departmentName#, 
+			#updateTime#,
+			#createTime#,
+			#isAttendance#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+		
+	<!--  添加部门   for 福建-->
+	<insert id="addDepartForFJ" parameterClass="department">
+		insert into fjzyyptxx.palm_department
+		(
+			code, 
+			departmentName, 
+			updateTime,
+			createTime,
+			isAttendance,
+			fjSchoolId
+		)
+		values
+		(			
+			#code#,
+			#departmentName#, 
+			#updateTime#,
+			#createTime#,
+			#isAttendance#,
+			#fjSchoolId#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	<!-- 表单校验 -->
+	<select id="checkDepartmCode" parameterClass="String" resultClass="Integer">
+ 		select 1 from palm_department
+ 			where code = #code#
+	</select>
+	
+	<!-- 表单校验 -->
+	<select id="checkDepartmName" parameterClass="String" resultClass="Integer">
+ 		select 1 from palm_department
+ 			where departmentName = #name#
+	</select>
+	
+	<!-- 根据部门的id 查部门详情为修改 -->
+	<select id="selectDepartmentById" parameterClass="java.lang.Integer" resultMap="result_departmentdetilForModify">
+ 		select d.*, ud.realName AS leaderName , ub.phone
+			FROM palm_department d 
+			LEFT JOIN platform.user_detail ud  ON d.leaderid = ud.userId 
+			LEFT JOIN platform.userbase ub  ON ub.userId = ud.userId 
+ 			where d.id = #departId#
+	</select>
+	
+	
+	<select id="selectDepartPeopleById" parameterClass="java.lang.Integer" resultMap="result_departmentdetil">
+		SELECT d.* , us.name, us.id AS userId,ur.roleId AS roleId ,ur.gradeId AS gradeId , ur.clazzId AS clazzId ,us.updatetime AS personUpdatetime
+		FROM palm_department d , palm_user_role ur , palm_user us
+		WHERE us.id=ur.userId
+		AND   d.id = ur.departmentId 
+		AND	d.id=#id#
+	</select>	
+	
+	<!-- 修改部门 20151127 -->
+	<update id="modifyDepartmentById" parameterClass="HashMap">
+		update palm_department
+		set code = #code#,
+		departmentName = #departmentName#,
+		leaderId = #leaderId#,
+		updateTime = #updateTime#,
+		isAttendance = #isAttendance#
+		where id = #departmentId#	
+	</update>
+	
+	<!-- 删除部门 -->
+	<delete id="deleteDepartment"  parameterClass="Integer">
+	     delete from palm_department 
+	     	where id = #departmentId# 
+	</delete>
+	
+	
+	<!-- 根据用户Id和部门Id修改部门  20151126-->
+	<update id="modifyDepartmentByUserIdAndDepartId" parameterClass="HashMap">
+		update palm_user_department
+		set departmentId = #departmentId#
+		where userId = #userId#	
+		and departmentId = #departId#
+	</update>
+	
+	<!-- 根据部门名称查询部门 20151126 tao-->
+	<select id="getDepartmentByName" parameterClass="String" resultMap="result_department">
+ 		select * from palm_department
+ 			where departmentName = #name#
+	</select>
+	<!-- 根据部门名称查询部门 for 福建-->
+	<select id="getDepartmentByNameForFJ" parameterClass="HashMap" resultClass="department">
+ 		select * from fjzyyptxx.palm_department
+ 			where departmentName = #departmentName#
+ 			and fjSchoolId = #fjSchoolId#
+	</select>
+	
+	<!-- 表单校验 修改部门信息时查看部门编号是否存在 20151127 -->
+	<select id="checkModifyDepartmentByCode" parameterClass="HashMap" resultClass="Integer">
+ 		SELECT 1 FROM (SELECT * FROM palm_department d WHERE d.code!=#originalcode#) c
+ 			where c.code = #code#
+	</select>
+	
+	<!-- 表单校验 修改部门信息时查看部门名称是否存在  20151127 -->
+	<select id="checkModifyDepartmentByName" parameterClass="HashMap" resultClass="Integer">
+ 		SELECT 1 FROM (SELECT * FROM palm_department d WHERE d.departmentName!=#originalname#) c
+ 			where c.departmentName = #name#
+	</select>
+	<!-- 根据用户ID获取部门列表  20151130 -->
+	<select id="getDepartListByUserId" parameterClass="Integer" resultMap="result_department">
+ 		select d.* from palm_department d, palm_user_department ud where d.id=ud.departmentid and ud.userid=  #userId# order by d.code
+	</select>
+	
+	<!-- 根据leaderId获取部门列表  20151202 -->
+	<select id="getDepartmentListByLeaderId" parameterClass="Integer" resultMap="result_department_manager">
+ 		select d.*,ud.realName leaderName from palm_department d left join platform.user_detail ud on d.leaderId = ud.userId where d.leaderId = #leaderId#
+	</select>
+	<select id="getUserIdListByDepartId" resultMap="result_getUserIdListByDepartId" parameterClass="Integer">
+		select u.userId,u.baiduChannelId,u.deviceType from palm_user_department ud, platform.userbase u where u.userid = ud.userid and departmentId=#departmentId# group by ud.userid
+	</select>
+	<select id="checkIsDapartLeaderByUserId" resultClass="Integer" parameterClass="Integer">
+		select count(*) from palm_department where leaderId = #userId#
+	</select>
+</sqlMap>

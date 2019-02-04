@@ -1,0 +1,332 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>会议刷卡记录</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+</head>
+<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+    	<input class="themes" type="hidden" value="<%=ThemePath%>">
+        <!-- 公共顶部开始-->
+        <%@ include file="/public_module/public_header.jsp"%>
+        <!--公共顶部结束-->
+        <div class="clearfix"> </div>
+        <!-- 内容页开始 -->
+        <div class="page-container">
+            <!--主菜单开始-->
+            <%@include file="/public_module/public_menu.jsp"%>
+            <!--主菜单结束-->
+            <div class="page-content-wrapper">
+                <div class="page-content m_overflow_hidden m_page_content">
+                	<!-- 页面内容开始 -->
+                	<div class="col-md-12 col-sm-12 m_page_con">
+                    <div class="page-bar m_margin_0_0_0_0">
+                        <ul class="page-breadcrumb">
+                            <li><a href="">首页</a><i class="fa fa-circle"></i></li>
+                            <li><a href="">会议管理</a><i class="fa fa-circle"></i></li>
+                            <li><span>会议刷卡记录</span></li>
+                        </ul>
+                    </div>
+                    <h3 class="page-title">会议刷卡记录</h3>
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12">
+                        	<div class="m_margin_0_0_15_0">
+                        		<!-- 角色切换开始 -->
+                        		<ul class="nav nav-tabs" id="userTab">
+                                    <c:forEach items="${sessionScope.user.roleList}" var="roleList">
+										<c:if test="${roleList.roleCode eq 'admin' || roleList.roleCode eq 'chairman' || roleList.roleCode eq 'classLeader' || roleList.roleCode eq 'departManager' || roleList.roleCode eq 'president' || roleList.roleCode eq 'teacher' || roleList.roleCode eq 'employee'}">
+											<li class="roleLi">
+												<a data-toggle="tab" class="roleTab" attr1="${sessionScope.user.userId}" attr2="${roleList.roleCode}" >${sessionScope.user.realName}(${roleList.roleName})</a>
+											</li>
+										</c:if>
+									</c:forEach>
+                                </ul>
+                        		<!-- 角色切换结束 -->
+                            </div>
+                            <!-- 页面搜索开始 -->
+                            <div class="portlet light form-fit bordered search_box">
+                            	
+	                            <div class="row m_margin_10_auto">
+
+	                            	<div class="col-md-3 col-sm-3">
+	                            		<span id="tchStuTypeLabel" class="m_span">出席状态:</span>
+	                            		<select class="form-control m_select" id="status">
+											<option value="3" selected="selected">--全部--</option>
+											<option value="0">正常出勤</option>
+											<option value="1">迟到</option>
+										</select>
+	                            	</div>
+	                            	<div class="col-md-3 col-sm-3">
+	                            		<span class="m_span">开始时间:</span>
+	                            		<input type="text" size="16" placeholder="开始时间" name="startTime"  id="startTime"  class="m_input form-control"/>
+	                            	</div>
+	                            	<div class="col-md-3 col-sm-3">
+	                            		<span>结束时间:</span>
+										<input type="text" size="16" placeholder="结束时间" name="endTime" id="endTime"  class="m_input form-control"/>
+	                            	</div>
+	                            	<div class="col-md-3 col-sm-3">
+	                            		<span>搜索内容:</span>
+										<input type="text" placeholder="刷卡人、会议名称……" class="m_input form-control" id="queryContent"/>
+	                            	</div>
+	                            </div>
+	                            <div class="row m_margin_10_auto">
+	                            <div class="col-md-3 col-sm-3 m_float_right m_text_align_right">
+	                            <button type="button"  id="search" class="btn green">确定</button>
+	                            </div>
+	                            </div>
+                            </div>
+                           	<div class="portlet box green m_margin_15_auto_0">
+                                <div class="portlet-title">
+                                    <div class="caption">
+                                        <i class="fa fa-list"></i>会议刷卡记录</div>
+                                </div>
+                                <div class="portlet-body flip-scroll">
+                                    <table class="table table-bordered table-hover" id="meetingList">
+                                        <thead class="flip-content">
+                                            <tr>
+                                               <th>会议名称</th><th>卡号</th><th>刷卡人</th><th>出席状态</th><th>地点</th><th>刷卡时间</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbody">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                           <!-- 列表展现开始 -->
+                            <!-- 分页开始 -->
+                            <%@include file="/public_module/public_page.jsp" %>
+                            <!-- 分页结束 -->
+                        </div>
+                    </div>
+                    </div>
+                    <!--页面内容结束 -->
+                </div>
+            </div>
+            <!-- 亦信聊天开始 -->
+        	<%@ include file="/public_module/public_QQ.jsp" %>
+            <!-- 亦信聊天结束 -->
+        </div>
+        <!-- 内容页结束 -->
+        <!-- 底部开始 -->
+        <%@ include file="/public_module/public_footer.jsp" %>
+        <!-- 底部结束 -->
+    </body>
+        <!-- 公共js开始 -->
+        <%@ include file="/public_module/public_js.jsp" %>
+        <!-- 公共js结束 -->
+	<script>
+		jQuery(document).ready(function() {    
+			$('#startTime,#endTime').datetimepicker(/* {
+				format:'Y-m-d',
+				timepicker:false
+			} */);
+			//页面初始化时候的数据加载
+			var userId = $("ul li.active").find('a').attr("attr1");
+			var roleCode = $("ul li.active").find('a').attr("attr2");
+			//二级菜单显示
+			loadSubMenu("meetingManager");
+			//选取当前菜单位置
+			setActive("meetingManager","meetingInout");
+			//加载初始化数据   
+			loadMeetingInoutList(null, null,null,null,userId, roleCode, null);
+			//选择第一个tab
+			//点击tab页加载
+			$(".roleTab").click(function(){
+				//用户ID
+				var userId = $(this).attr("attr1");
+				
+				var roleCode = $(this).attr("attr2");
+				loadMeetingInoutList(null, null,null, null,userId, roleCode, null);
+
+				//加载师生选择select
+				//loadTchStuSelect(roleCode);
+				
+				//初始化select
+				$("#status").val('3');
+				
+			});
+
+			//选择师生类型加载
+			//$("#tchStuType").change(function(){
+				//公告类型
+				//var type = $(this).val();
+				//用户ID
+				//var userId = $("ul li.active").find('a').attr("attr1");
+				//var roleCode = $("ul li.active").find('a').attr("attr2");
+				//loadInoutList(type, userId, roleCode, null);
+			//});
+			
+			//查找数据
+			$("#search").click(function(){
+				//开始时间
+				var startTime = $("#startTime").val();
+				//结束时间
+				var endTime = $("#endTime").val();
+				//查询内容
+				var queryContent = $("#queryContent").val();
+
+				
+				//进出类型
+				var status = $("#status").val();
+				
+				
+				//用户ID
+				var userId = $("ul li.active").find('a').attr("attr1");
+				//角色ID
+				var roleCode = $("ul li.active").find('a').attr("attr2");
+				
+				loadMeetingInoutList(startTime, endTime,queryContent,status,userId, roleCode, null);
+			});
+			
+			$("#queryContent").keypress(function(event){
+				if(event.which == "13")    
+            	{
+					$("#search").click();
+					return false;
+            	}
+			});
+			
+			//导出数据
+			$("#export").click(function(){
+				//开始时间
+				var startTime = $("#startTime").val();
+				//结束时间
+				var endTime = $("#endTime").val();
+				//查询内容
+				var queryContent = encodeURI(encodeURI($("#queryContent").val())) ;
+				
+				//师生类型
+				var type = $("#tchStuType").val();
+				//进出类型
+				var inoutType = $("#inoutType").val();
+				
+				//用户ID
+				var userId = $("ul li.active").find('a').attr("attr1");
+				//角色ID
+				var roleCode = $("ul li.active").find('a').attr("attr2");
+				standardPost('<%=basePath%>inout/doExportExcel.do',{userId:userId,roleCode:roleCode,type:type,inoutType:inoutType,queryContent:queryContent,startTime:startTime,endTime:endTime});
+				});
+		});
+
+		//加载进出记录列表
+		function loadMeetingInoutList(startTime, endTime, queryContent, status,userId, roleCode, cPage)
+		{
+			var body = $("#body");
+			App.blockUI(body);
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>meetingInout/loadMeetingInoutList.do",
+				data:{
+						startTime : startTime,
+						endTime : endTime,
+						queryContent : queryContent, 
+						status : status,
+						userId : userId,
+						roleCode : roleCode,
+						cPage : cPage
+					},
+				success: function(data){
+					var page = eval("(" + data + ")");
+					$("#currentPage").html(page.currentPage);
+					$("#totalPage").html(page.totalPage);
+					var appendHtml = '';
+					$.each(page.list, function(n, value) {  
+						if (n%2 == 0)
+						{
+							appendHtml += '<tr style="background-color: #ededed">';
+						}
+						else
+						{
+							appendHtml += '<tr>';
+						}	
+           				
+           				//会议名称
+           				appendHtml += '<td width="20%">' + value.meetingName + '</td>';
+						//卡号
+           				appendHtml += '<td width="15%">' + value.code + '</td>';
+						//拥有着
+           				appendHtml += '<td width="15%">' + value.realName + '</td>';
+						//进出状态
+           				var status = parseInt(value.status);
+           				switch(status)
+           				{ 
+           					case 0 : 
+           						appendHtml += '<td width="15%">正常出勤</td>';
+           						break; 
+           					case 1 : 
+           						appendHtml += '<td width="15%">迟到</td>';
+           						break; 
+           					default : 
+           						appendHtml += '<td width="15%">其他</td>';
+           						break;
+           				}
+           				 
+           				
+						//地点
+           				appendHtml += '<td width="15%">' + value.positionName + '</td>';
+						//创建时间
+           				var time = value.createTime;
+						if (typeof(time)=="undefined"){
+							time = "";
+						}else{
+							time = time.substr(0, time.length-2)
+						}
+           				appendHtml += '<td width="20%">' + time + '</td>';
+           				appendHtml += '</tr>';
+          			}); 
+          			
+          			$("#tbody").html(appendHtml);
+          			//new TableSorter("meetingList",0,1,2,3,4,5);
+          			//解锁UI
+          			App.unblockUI(body);
+          			
+          			/* $(".search_box").css({"display":"none"}); */
+				},
+			});
+		}
+
+		//分页相关
+		function jumpPage(type)
+		{
+			var cPage = $("#currentPage").html();
+			var totalPage = $("#totalPage").html();
+
+			var cPageInt = parseInt(cPage);
+			var totalPageInt = parseInt(totalPage);
+						
+			var newCPageInt = returnCPageInt(type,cPageInt,totalPageInt);
+			if(newCPageInt < 0){
+				return;
+			}else{
+				cPageInt = newCPageInt;
+			}
+			
+				//开始时间
+				var startTime = $("#startTime").val();
+				//结束时间
+				var endTime = $("#endTime").val();
+				//查询内容
+				var queryContent = $("#queryContent").val();
+
+				//进出状态
+				var status = $("#status").val();
+				
+				//用户ID
+				var userId = $("ul li.active").find('a').attr("attr1");
+				//角色ID
+				var roleCode = $("ul li.active").find('a').attr("attr2");
+				
+				loadMeetingInoutList(startTime, endTime,queryContent, status, userId, roleCode, cPageInt)
+			
+			$("#currentPage").html(cPageInt);
+		}
+	</script>
+</html>

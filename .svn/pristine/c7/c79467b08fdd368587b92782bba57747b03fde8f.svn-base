@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="School">
+	<typeAlias alias="school" type="com.guotop.palmschool.entity.School" />
+	<typeAlias alias="schoolInfo" type="com.guotop.palmschool.entity.SchoolInfo" />
+	<typeAlias alias="userBoundSchool" type="com.guotop.palmschool.entity.UserBoundSchool" />
+
+	<resultMap class="com.guotop.palmschool.entity.School" id="result_school_detail">
+		<result property="schoolId" column="schoolId" />
+		<result property="schoolName" column="schoolName" />
+		<result property="introduction" column="introduction" />
+		<result property="createDate" column="createDate" />
+		<result property="schoolAreaId" column="schoolAreaId" />
+		<result property="schoolAddress" column="schoolAddress" />
+		<result property="schoolTelephone" column="schoolTelephone" />
+		<result property="schoolType" column="schoolType" />
+		<result property="schoolCategory" column="schoolCategory" />
+		<result property="headmasterMotto" column="headmasterMotto" />
+		<result property="totalNum" column="totalNum" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.School" id="result_school">
+		<result property="schoolId" column="schoolId" />
+		<result property="schoolName" column="schoolName" />
+		<result property="schoolCategory" column="schoolCategory" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.SchoolInfo"
+		id="result_school_info">
+		<result property="schoolId" column="schoolId" />
+		<result property="schoolName" column="schoolName" />
+		<result property="president" column="president" />
+		<result property="schoolBadge" column="schoolBadge" />
+		<result property="schoolAddress" column="schoolAddress" />
+		<result property="userCount" column="userCount" />
+		<result property="studentCount" column="studentCount" />
+		<result property="teacherCount" column="teacherCount" />
+		<result property="smsCount" column="smsCount" />
+		<result property="mobileSmsCount" column="mobileSmsCount" />
+		<result property="unicomSmsCount" column="unicomSmsCount" />
+		<result property="telecomSmsCount" column="telecomSmsCount" />
+		<result property="adminUserName" column="adminUserName" />
+		<result property="adminRealName" column="adminRealName" />
+	</resultMap>
+	<!-- syj 20151208 -->
+	<resultMap class="com.guotop.palmschool.entity.SchoolInfo"
+		id="result_school_countInfo">
+		<result property="smsCount" column="smsCount" />
+		<result property="mobileSmsCount" column="mobileSmsCount" />
+		<result property="unicomSmsCount" column="unicomSmsCount" />
+		<result property="telecomSmsCount" column="telecomSmsCount" />
+	</resultMap>
+	
+	<!-- 根据地区查找学校信息 -->
+	<select id="getSchoolListByAreaId" parameterClass="String"
+		resultMap="result_school">
+		select sl.schoolId, sl.schoolName,sd.schoolCategory from platform.school sl,
+		platform.school_detail sd
+		where sl.schoolId = sd.schoolId and
+		sd.schoolAreaId=#areaId#
+	</select>
+	<!-- 根据id查找学校信息 -->
+	<select id="getSchoolListById" parameterClass="Long"
+		resultClass="school">
+		select s.schoolId, s.schoolName,sd.schoolCategory from platform.school s,platform.school_detail sd where s.schoolid=sd.schoolid and
+		s.schoolid = #schoolId#
+	</select>
+	<!-- 根据区域ID查找该区最大学校编码 -->
+	<select id="getMaxSchoolIdByAreaId" parameterClass="String"
+		resultClass="Long">
+		select max(sd.schoolId) from platform.school_detail sd where
+		sd.schoolAreaId = #schoolAreaId#
+	</select>
+	<select id="getSchoolInfo" resultMap="result_school_info"
+		parameterClass="HashMap">
+		select s.schoolId,
+		s.schoolname,concat(platform.getAddressByAreaId(sd.schoolAreaId),IFNULL(sd.schoolAddress,'')) schoolAddress,
+		sd.president, sd.schoolBadge, sc.userCount, sc.teacherCount, sc.studentCount,
+		sc.smsCount, sc.mobileSmsCount,
+		sc.unicomSmsCount, sc.telecomSmsCount,
+		ud.realname adminRealname, IFNULL(ub.username, ub.palmUserName)
+		adminUserName
+		from platform.school s, platform.school_detail sd,
+		platform.school_countinfo sc, platform.user_school us,
+		platform.user_detail ud , platform.userbase ub
+		where
+		s.schoolId=sd.schoolId and s.schoolId =
+		sc.schoolId and
+		s.schoolId=us.schoolId and us.userid=ud.userid
+		<isNotEmpty prepend="and" property="condition">
+			s.schoolName like		concat('%',#condition#,'%')
+		</isNotEmpty>
+		<isNotNull property="province">
+			<isNotEmpty prepend="and" property="province">
+				sd.schoolAreaId like concat(#province#,'%')
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="city">
+			<isNotEmpty prepend="and" property="city">
+				sd.schoolAreaId like concat(#city#,'%')
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="country">
+			<isNotEmpty prepend="and" property="country">
+				sd.schoolAreaId =#country#
+			</isNotEmpty>
+		</isNotNull>
+		and us.userid=ub.userid and us.type=0 order by ud.createTime asc
+		<isNotNull property="startIndex">
+			<isNotEmpty property="startIndex">
+				limit #startIndex#, #length#
+			</isNotEmpty>
+		</isNotNull>
+
+	</select>
+	<!-- 添加学校基础信息 -->
+	<insert id="addSchool" parameterClass="school">
+		insert into platform.school
+		(
+		schoolId,
+		schoolName
+		)
+		values
+		(
+		#schoolId#,
+		#schoolName#
+		)
+	</insert>
+	<!-- 添加学校信息 -->
+	<insert id="addSchoolDetail" parameterClass="school">
+		insert into
+		platform.school_detail
+		(
+		schoolId,
+		schoolAreaId,
+		schoolType,
+		schoolCategory,
+		createDate,
+		totalNum
+		)
+		values
+		(
+		#schoolId#,
+		#schoolAreaId#,
+		#schoolType#,
+		#schoolCategory#,
+		#createDate#,
+		#totalNum#
+		)
+	</insert>
+
+	<!-- syj 20151208 -->
+	<select id="getSchoolCountInfoById" resultMap="result_school_countInfo"
+		parameterClass="Long">
+		SELECT sc.smsCount,
+		sc.mobileSmsCount,sc.unicomSmsCount, sc.telecomSmsCount
+		FROM
+		platform.school_countinfo sc
+		WHERE sc.schoolId = #schoolId#
+	</select>
+
+	<!-- 更新school_count_info -->
+	<update id="updateSchoolCountInfo" parameterClass="HashMap">
+		update
+		platform.school_countinfo
+		set
+		smsCount= #smsCount#,
+		unicomSmsCount = #unicomSmsCount#,
+		mobileSmsCount = #mobileSmsCount#,
+		telecomSmsCount = #telecomSmsCount#
+		where schoolId = #schoolId#
+	</update>
+	<!-- 根据学校ID获取学校信息 -->
+	<select id="getSchoolInfoBySchoolId" parameterClass="Long"
+		resultClass="school">
+		select s.schoolId,s.schoolName,sd.introduction,
+		sd.createDate,CONCAT(platform.getAddressByAreaId(sd.schoolAreaId),IFNULL(sd.schoolAddress,'')) schoolAddress,
+		platform.getAddressByAreaId(sd.schoolAreaId) areaAddress,
+		sd.schoolAreaId, sd.schoolTelephone,
+		sd.headmasterMotto,sd.schoolType,sd.schoolCategory,
+		sd.president,sd.schoolBadge,sd.headmasterMottoPhoto,sd.introductionImg 
+		from platform.school s,platform.school_detail sd
+		where s.schoolid = sd.schoolid and s.schoolid=#schoolId#
+	</select>
+	<!-- 更新school_count_info -->
+	<update id="updateSchoolDetailInfo" parameterClass="school">
+		update
+		platform.school_detail
+		set
+		schoolId = #schoolId#
+		<isNotNull property="createDate">
+		<isNotEmpty property="createDate" prepend=",">
+		createDate = #createDate#
+		</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="introduction" >
+		<isNotEmpty property="introduction" prepend=",">
+		introduction= #introduction#	
+		</isNotEmpty>
+		</isNotNull>	
+		<isNotNull property="schoolAddress">
+		<isNotEmpty property="schoolAddress" prepend=",">
+		schoolAddress =	#schoolAddress#
+		</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="schoolTelephone">
+		<isNotEmpty property="schoolTelephone" prepend=",">
+		schoolTelephone = #schoolTelephone#
+		</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="schoolCategory">
+		<isNotEmpty property="schoolCategory" prepend=",">
+		schoolCategory = #schoolCategory#
+		</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="headmasterMotto">
+		<isNotEmpty property="headmasterMotto" prepend=",">
+		headmasterMotto = #headmasterMotto#
+		</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="president">
+		<isNotEmpty property="president" prepend=",">
+		president = #president#
+		</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="schoolBadge">
+		<isNotEmpty property="schoolBadge" prepend=",">
+		schoolBadge = #schoolBadge#
+		</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="headmasterMottoPhoto">
+		<isNotEmpty property="headmasterMottoPhoto" prepend=",">
+		headmasterMottoPhoto = #headmasterMottoPhoto#
+		</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="introductionImg">
+		<isNotEmpty property="introductionImg" prepend=",">
+		introductionImg = #introductionImg# 
+		</isNotEmpty>
+		</isNotNull>
+		where schoolId = #schoolId#
+	</update>
+	<!-- 根据用户ID获取学校列表 -->
+	<select id="getSchoolsByUserId" parameterClass="Integer" resultMap="result_school">
+		select s.schoolId,s.schoolName,sd.schoolCategory from platform.school s,platform.school_detail sd, platform.user_school us 
+		where s.schoolid = us.schoolid
+		  and s.schoolid = sd.schoolId
+		  and us.userId = #userId#
+	</select>
+	
+	<!-- 根据用户ID获取学校列表 -->
+	<select id="getSchoolsByUserIdForFJ" parameterClass="Integer" resultMap="result_school">
+		select s.schoolId,s.schoolName,sd.schoolCategory from platform.school s,platform.school_detail sd, fjzyyptxx.user_school us 
+		where s.schoolid = us.schoolid
+		  and s.schoolid = sd.schoolId
+		  and us.userId = #userId#
+	</select>
+	
+	<!-- 根据代理商用户ID获取代理商代理的学校信息 20151216-->
+	<select id="getSchoolListByAgencyUserId" resultMap="result_school_info"
+		parameterClass="HashMap">
+		select s.schoolId,s.schoolname,concat(platform.getAddressByAreaId(sd.schoolAreaId),IFNULL(sd.schoolAddress,'')) schoolAddress,
+		sd.president, sd.schoolBadge, sc.userCount, sc.teacherCount, sc.studentCount,
+		sc.smsCount, sc.mobileSmsCount,
+		sc.unicomSmsCount, sc.telecomSmsCount,
+		ud.realname adminRealname, IFNULL(ub.username, ub.palmUserName)
+		adminUserName
+		from platform.school s, platform.school_detail sd,
+		platform.school_countinfo sc, 
+		platform.user_detail ud , platform.userbase ub, platform.agency_school a, platform.agencyinfo ai 
+		where
+		s.schoolId=sd.schoolId and s.schoolId =	sc.schoolId and
+		 ud.userid=ai.userid and ai.id = a.agencyid and s.schoolid=a.schoolid
+		<isNotEmpty prepend="and" property="condition">
+			s.schoolName like concat('%',#condition#,'%')
+		</isNotEmpty>
+		<isNotNull property="province">
+			<isNotEmpty prepend="and" property="province">
+				sd.schoolAreaId like concat(#province#,'%')
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="city">
+			<isNotEmpty prepend="and" property="city">
+				sd.schoolAreaId like concat(#city#,'%')
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="country">
+			<isNotEmpty prepend="and" property="country">
+				sd.schoolAreaId =#country#
+			</isNotEmpty>
+		</isNotNull>
+		and ud.userid=ub.userid  and ud.userid=#userId# order by ud.createTime desc
+		<isNotNull property="startIndex">
+			<isNotEmpty property="startIndex">
+				limit #startIndex#, #length#
+			</isNotEmpty>
+		</isNotNull>
+	</select>
+	<!-- 根据技术支持用户ID获取学校信息 20151216-->
+	<select id="getSchoolListBySupportUserId" resultMap="result_school_info"
+		parameterClass="HashMap">
+		select s.schoolId,
+		s.schoolname,concat(platform.getAddressByAreaId(sd.schoolAreaId),IFNULL(sd.schoolAddress,'')) schoolAddress,
+		sd.president, sd.schoolBadge, sc.userCount, sc.teacherCount, sc.studentCount,
+		sc.smsCount, sc.mobileSmsCount,
+		sc.unicomSmsCount, sc.telecomSmsCount,
+		ud.realname adminRealname, IFNULL(ub.username, ub.palmUserName)
+		adminUserName
+		from platform.school s, platform.school_detail sd,
+		platform.school_countinfo sc, platform.user_school us,
+		platform.user_detail ud , platform.userbase ub  
+		where
+		s.schoolId=sd.schoolId and s.schoolId =
+		sc.schoolId and
+		s.schoolId=us.schoolId and us.userid=ud.userid 
+		<isNotEmpty prepend="and" property="condition">
+			s.schoolName like concat('%',#condition#,'%')
+		</isNotEmpty>
+		<isNotNull property="province">
+			<isNotEmpty prepend="and" property="province">
+				sd.schoolAreaId like concat(#province#,'%')
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="city">
+			<isNotEmpty prepend="and" property="city">
+				sd.schoolAreaId like concat(#city#,'%')
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="country">
+			<isNotEmpty prepend="and" property="country">
+				sd.schoolAreaId =#country#
+			</isNotEmpty>
+		</isNotNull>
+		and us.userid=ub.userid  and ud.userid=#userId# 
+		<isNotNull property="startIndex">
+			<isNotEmpty property="startIndex">
+				limit #startIndex#, #length#
+			</isNotEmpty>
+		</isNotNull>
+	</select>
+	
+	
+	<!-- 用户与学校入学年份的关系 -->
+	<select id="getUserBoundSchool1" parameterClass="userBoundSchool" resultClass="userBoundSchool">
+		select * from platform.user_school_year where userId = #userId# and schoolId = #schoolId#
+	</select>
+	<insert id="addUserBoundSchool" parameterClass="userBoundSchool">
+		insert into platform.user_school_year
+		(
+		userId,
+		schoolId,
+		schoolCategory,
+		year
+		)
+		values
+		(
+		#userId#,
+		#schoolId#,
+		#schoolCategory#,
+		#year#
+		)
+	</insert>
+	<delete id="deleteUserSchoolByHuxin" parameterClass="userBoundSchool">
+		delete from platform.user_school_year where userId = #userId# and schoolId = #schoolId#
+	</delete>
+	<select id="getUserSchoolByApiKey" parameterClass="Integer" resultClass="userBoundSchool">
+		select sy.userId,sy.year,s.schoolId,s.schoolName,sd.introduction,sd.createDate,sd.schoolAddress, sd.schoolAreaId, sd.schoolTelephone,
+		sd.headmasterMotto,sd.schoolType,sd.schoolCategory,sd.president,sd.schoolBadge,sd.headmasterMottoPhoto,sd.introductionImg 
+		from platform.school s,platform.school_detail sd,platform.user_school_year sy
+		where s.schoolid = sd.schoolid and sy.schoolId = s.schoolId and sy.userId = #userId#
+	</select>
+	
+	<select id="getSchoolDetailBySchoolId" parameterClass="String" resultClass="schoolInfo">
+		SELECT s.schoolId,s.schoolname,CONCAT(platform.getAddressByAreaId(sd.schoolAreaId),IFNULL(sd.schoolAddress,'')) schoolAddress,
+			sd.president, sd.schoolBadge, 
+			(SELECT COUNT(*) FROM platform.user_school pus WHERE pus.schoolId = s.schoolId) userCount, 
+			(SELECT COUNT(*) FROM palm_user_role  WHERE roleCode NOT IN('student','parent'))teacherCount, 
+			(SELECT COUNT(*) FROM palm_user_role  WHERE roleCode = 'student') studentCount,
+			(SELECT COUNT(*) FROM palm_user_role  WHERE roleCode = 'parent') parentCount,
+			sc.smsCount, sc.mobileSmsCount,
+			sc.unicomSmsCount, sc.telecomSmsCount,ud.realname adminRealname, IFNULL(ub.palmUserName,ub.username) adminUserName
+		FROM platform.school s, platform.school_detail sd,platform.school_countinfo sc, platform.user_school us,platform.user_detail ud , platform.userbase ub
+		WHERE s.schoolId=sd.schoolId 
+		  AND s.schoolId = sc.schoolId 
+		  AND s.schoolId=us.schoolId 
+		  AND us.userid=ud.userid
+		  AND us.userid=ub.userid 
+		  AND us.type=0 
+		  AND s.schoolId = #schoolId#
+		  ORDER BY ud.createTime ASC
+		  LIMIT 1
+		
+	</select>
+	
+</sqlMap>

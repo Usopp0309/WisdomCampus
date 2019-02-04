@@ -1,0 +1,147 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>RichX智慧校园 - 技术支持</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+ 	<link href="<%=basePath%>assets/global/css/skin_m.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+	<%@ include file="/public_module/header.jsp"%>
+			<div class="manager_search_box">
+				<form action="<%=basePath %>school/toTechnicalSupport.do" id="searchForm" method="post">
+					<div class="search_main">
+						<button type="submit" class="fa fa-search search_submit"></button>
+						<input class="search_text" type="text" name="condition" placeholder="请输入学校名称..." value="${condition }"></input>
+						<input type="hidden" name="status" id="status" value="${status}">
+					</div>
+				</form>
+			</div>
+	 <div class="Fill_Card">
+		<div class="con">
+			<h3>技术支持</h3>
+			<div class="tabbable tabbable-custom">
+				<ul class="nav nav-tabs">
+					<c:if test="${status eq '0' }">
+						<li class="active"><a  href="javascript:changeSatus('0')">待绑定技术支持的学校</a></li>
+						<li style="border-right:none!important"><a  href="javascript:changeSatus('1')">已绑定技术支持的学校</a></li>
+					</c:if>
+					<c:if test="${status eq '1' }">
+						<li><a  href="javascript:changeSatus('0')">待绑定技术支持的学校</a></li>
+						<li style="border-right:none!important" class="active"><a  href="javascript:changeSatus('1')">已绑定技术支持的学校</a></li>
+					</c:if>
+					
+				</ul>
+				<p class="manager_title manager_title_bg ">
+					<span class="m_width_20">学校名称</span>
+					<span class="m_width_30">学校地址</span>
+					<span class="m_width_25">销售/代理商</span>
+					<span class="m_width_15">技术支持</span>
+					<span class="m_width_10">操作</span>
+				</p>
+				<div class="tab-content" style="padding: 0px;">
+					<c:if test="${status eq '0' }">
+						<div class="tab-pane active" id="tab_1_1">
+							<c:forEach items="${schoolList }" var="shcool">
+								<form action="<%=basePath%>school/doTechnicalSupport.do" class="form-horizontal" method="post">
+									<p class="manager_title manager_con_border_bottom ">
+										<span class="m_width_20">${shcool.schoolName }</span>
+										<span class="m_width_30">${shcool.schoolAddress }</span>
+										<span class="m_width_25">${shcool.agencyName }</span>
+										<span class="m_width_15">
+											<select class="form-control m_margin_8_0_0_0" data-placeholder="无" tabindex="1"  name="supportUserId" value="">
+												<option value="">无</option>
+												<c:forEach items="${shcool.supportUserList}" var="agency">
+													<option value="${agency.userId }" selected="selected">${agency.realName }</option>
+												</c:forEach>
+											</select>
+										</span>
+										<span class="m_width_10">
+											<button class="btn blue btn-sm" type="submit">确定</button> <input type="hidden" name="schoolId" value="${shcool.schoolId }" />
+										</span>
+									</p>
+								</form>
+							</c:forEach>
+						</div>
+					</c:if>
+					<c:if test="${status eq '1' }">
+						<div class="tab-pane active" id="tab_1_2">
+							<c:forEach items="${schoolList }" var="shcool">
+								<form action="<%=basePath%>school/doTechnicalSupport.do" method="post">
+									<p class="manager_title manager_con_border_bottom">
+										<span class="m_width_20">${shcool.schoolName }</span>
+										<span class="m_width_30">${shcool.schoolAddress }</span>
+										<span class="m_width_25">${shcool.agencyName }</span>
+										<span class="m_width_15">
+											<select class="form-control m_margin_8_0_0_0" data-placeholder="无" tabindex="1" name="supportUserId" value="${shcool.supportUserId}">
+												<option value="">无</option>
+												<c:forEach items="${shcool.supportUserList}" var="agency">
+														<c:if test="${shcool.supportUserId == agency.userId }"><option value="${agency.userId }"  selected>${agency.realName }</option></c:if>
+														<c:if test="${shcool.supportUserId != agency.userId }"><option value="${agency.userId }" >${agency.realName }</option></c:if>
+												</c:forEach>
+										</select>
+										</span> 
+										<span class="m_width_10">
+											<button class="btn blue btn-sm" type="submit">确定</button> 
+											<input type="hidden" name="schoolId" value="${shcool.schoolId }" />
+											<input type="hidden" name="orig_supportUserId" value="${shcool.supportUserId }" />
+										</span>
+									</p>
+								</form>
+							</c:forEach>
+						</div>
+					</c:if>
+	
+				</div>
+	
+			</div>
+		</div>
+	</div>
+	<%@ include file="/public_module/public_footer.jsp"%>
+	</body>
+	<%@ include file="/public_module/public_js.jsp"%>
+	
+	<script type="text/javascript">
+		
+		$(function() {
+			
+			//导航定位
+			$(".menu_li a").removeClass("hover");
+			$("#menu6").addClass("hover");
+			//点击状态改变
+			$(".accordion-toggle").on("click", function() {
+				if($(this).parent().parent().find(".accordion-body").hasClass("in")){
+					$(this).removeAttr("style");
+					$(this).find("span").removeAttr("style");
+					$(this).find("i").removeClass("icon-chevron-down");
+				}else{
+					$(".accordion").find(".accordion-toggle").removeAttr("style");
+					$(".accordion").find(".accordion-toggle").find("span").removeAttr("style");
+					$(".accordion").find("i").removeClass("icon-chevron-down");
+					$(this).css({"background-color":"#3aa4f1"}).find("span").css({"color":"#fff"});
+					$(this).find("i").addClass("icon-chevron-down");
+				};
+				
+			})
+			
+			
+			$(".authorization_con").on("click", function() {
+				$(this).find("button").addClass("blue");
+				$(this).siblings().find("button").removeClass("blue");
+			})
+		})
+		function changeSatus(obj){
+			$("#status").val(obj);
+			$("#searchForm").submit();
+		}
+	</script>
+</html>

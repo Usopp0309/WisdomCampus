@@ -1,0 +1,136 @@
+package com.guotop.palmschool.service.impl;
+
+import java.util.HashMap;
+import java.util.Set;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.service.CardService;
+import com.guotop.palmschool.service.DepartmentService;
+import com.guotop.palmschool.service.StudentService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.service.YinxinAndWisdomExchangeService;
+import com.guotop.palmschool.util.StringUtil;
+
+/**
+ * 亦信用户和智慧校园用户互换
+ * 
+ * @author shengyinjiang
+ *
+ */
+@Service("yinxinAndWisdomExchangeService")
+public class YinxinAndWisdomExchangeServiceImpl extends BaseService implements YinxinAndWisdomExchangeService
+{
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private StudentService studentService;
+
+	@Resource
+	private UserService userService;
+
+	@Resource
+	private DepartmentService departmentService;
+
+	@Resource
+	private CardService cardService;
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void yixinToWisdom(Integer userId, String realName, String code, String roleCode, Integer studentId, Integer departmentId, Integer clazzId, Set<String> cardCodeSet,
+			Long schoolId)
+	{
+		/*
+		 * 处理逻辑 普通亦信用户转为智慧校园用户 
+		 * 1.添加和学校的关系 
+		 * 2.添加在学校的角色和权限
+		 * 3.如果是教师,添加和部门的关系;如果是家长,添加和小孩的关系,如果是小孩添加和班级的关系 
+		 * 4.添加和卡号的关系
+		 * 5.更新userbase（更新source）和 user_detail（更新code和realName）
+		 */
+		// 步骤1
+		userService.addUserAndSchoolLink(userId, schoolId);// user_school表
+		// 步骤2
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("roleCode", roleCode);
+		paramMap.put("userId", userId);
+		commonService.addUserRole(paramMap);
+		// 步骤3
+		if ("parent".equals(roleCode))
+		{
+			studentService.addStudentAndParentLink(studentId, userId);
+		} else if ("student".equals(roleCode))
+		{
+			studentService.addUserAndClazzLink(userId, clazzId);
+		} else
+		{
+			paramMap.put("departmentId", departmentId);
+			departmentService.doAddTeacherToDepartment(paramMap);
+		}
+		// 步骤4
+		if (!CollectionUtils.isEmpty(cardCodeSet))
+		{
+			for (String cardCode : cardCodeSet)
+			{
+				if (!StringUtil.isEmpty(cardCode))
+				{
+					commonService.addUserAndCardLink(cardCode, userId);
+				}
+			}
+		}
+		// 步骤5
+		paramMap.put("source", "1");
+		userService.updateUserBase(paramMap);
+		paramMap.put("realName", realName);
+		paramMap.put("code", code);
+		userService.updateUserDetail(paramMap);
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void wisdomToYinxin(Integer userId, String roleCode, Long schoolId)
+	{
+		/*
+		 * 处理逻辑 智慧校园用户转为亦信用户 1.删除卡关系 和对应的卡号
+		 * 2.如果是教职工删除在学校的部门关系;如果是家长，删除和小孩的关系;如果是小孩删除和班级的关系 
+		 * 3.删除在学校的角色和权限
+		 * 4.删除用户和学校的关系 
+		 * 5.更新userbase
+		 */
+		// 步骤1
+		cardService.deleteCardByUserId(userId);
+		// 步骤2
+		if ("parent".equals(roleCode))
+		{
+			studentService.delStudentAndParentLinkByParentId(userId);
+		} else if ("student".equals(roleCode))
+		{
+			studentService.delStudentAndParentLinkByStudentId(userId);
+			studentService.deleteUserAndClazzLinkByUserId(userId);
+		} else
+		{
+			departmentService.delUserAndDepartLinkByUserId(userId);
+		}
+		// 步骤3
+		userService.deleteUserRole(userId, roleCode);
+		userService.deleteUserRolePermission(userId, roleCode);
+
+		// 步骤4
+		userService.delUserAndSchoolLink(userId, schoolId);
+		// 步骤5
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("userId", userId);
+		paramMap.put("source", "0");
+		userService.updateUserBase(paramMap);
+		
+		userService.deleteUserCode(userId);
+	}
+
+}

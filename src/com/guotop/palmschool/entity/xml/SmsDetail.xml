@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="SmsDetail">
+	<typeAlias alias="smsdetail" type="com.guotop.palmschool.entity.SmsDetail" />
+	
+	<resultMap class="com.guotop.palmschool.entity.SmsDetail" id="result-smsdetail">
+		<result property="id" column="id" />
+		<result property="content" column="content" />
+		<result property="senderId" column="senderId" />
+		<result property="senderName" column="senderName" />
+		<result property="receiverId" column="receiverId" />
+		<result property="phone" column="phone" />
+		<result property="receiverName" column="receiverName" />
+		<result property="seq" column="seq" />
+		<result property="report" column="report" />
+		<result property="status" column="status" />
+		<result property="smsId" column="smsId" />
+		<result property="reportTime" column="reportTime" />
+		<result property="createTime" column="createTime" />
+		<result property="type" column="type" />
+		<result property="sentTime" column="sentTime" />
+		<result property="isRealTime" column="isRealTime" />
+		
+	</resultMap>
+	
+	<!--新增短信内容 -->
+	<insert id="addSmsDetail" parameterClass="smsdetail">
+		insert into palm_sms_detail
+		(
+		content,
+		senderId,
+		senderName,
+		receiverId,
+		phone,
+		receiverName,
+		seq,
+		report,
+		status,
+		smsId,
+		reportTime,
+		createTime,
+		type,
+		sentTime
+		)
+		values
+		(
+		#content#,
+		#senderId#,
+		#senderName#,
+		#receiverId#,
+		#phone#,
+		#receiverName#,
+		#seq#,
+		#report#,
+		#status#,
+		#smsId#,
+		#reportTime#,
+		#createTime#,
+		#type#,
+		#sentTime#
+		)
+	</insert>
+
+	<!-- 根据ReceiverId 和  content 查出信息详情   update by shengyinjiang 20151206-->
+	<select id="loadSmsDetailByReceiverIdAndContent" parameterClass="java.util.HashMap" resultClass="Integer">
+	<![CDATA[	
+		SELECT COUNT(psd.id)
+			FROM palm_sms_detail psd
+			WHERE psd.phone = #phone#
+			AND psd.content = #content#
+			AND psd.status = #status#
+			AND psd.sentTime >= #time#
+	]]>
+	</select>
+	
+	<!-- 根据ReceiverId 和  content 查出信息详情   update by shengyinjiang 20151206-->
+	<select id="loadSmsDetailByReceiverIdAndContentInScoreSending" parameterClass="java.util.HashMap" resultClass="Integer">
+		SELECT COUNT(psd.id)
+			FROM palm_sms_detail psd
+			WHERE psd.receiverid = #receiverId#
+			AND psd.content = #content#
+			AND psd.status = #status#
+			AND psd.phone = #phone#
+	</select>
+	
+	<!-- 通过userId 找到该用户所有接收短信 分页  update by shengyinjiang 20151202-->
+	<select id="getSmsByUserId" parameterClass="HashMap" resultClass="smsdetail">
+		select * from palm_sms_detail
+		where 1 = 1
+		<isNotEmpty prepend="and" property="receiverIdList">
+			receiverId IN 
+            <iterate open="(" close=")" conjunction="," property="receiverIdList" > 
+                #receiverIdList[]# 
+            </iterate>
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="queryContent">
+			(content like concat('%',#queryContent#,'%') or sendername like concat('%',#queryContent#,'%'))
+		</isNotEmpty>
+		order by createtime DESC
+	</select>
+	<!-- 通过userId 找到该用户所有接收短信 分页【福建专用】-->
+	<select id="getSmsByUserIdFj" parameterClass="HashMap" resultClass="smsdetail">
+		select * from palm_sms_detail
+		where 1 = 1
+		<isNotEmpty prepend="and" property="receiverIdList">
+			receiverId IN 
+            <iterate open="(" close=")" conjunction="," property="receiverIdList" > 
+                #receiverIdList[]# 
+            </iterate>
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="queryContent">
+			(content like concat('%',#queryContent#,'%') or sendername like concat('%',#queryContent#,'%'))
+		</isNotEmpty>
+		order by createtime DESC
+	</select>
+	<!-- 通过userId 找到该用户在平台库上所有接收短信 分页  update by shengyinjiang 20160120-->
+	<select id="getSmsByUserIdFromPlatform" parameterClass="HashMap" resultClass="smsdetail">
+		select * from platform.friend_sms_detail
+		where 1 = 1
+		<isNotEmpty prepend="and" property="receiverIdList">
+			receiverId IN 
+            <iterate open="(" close=")" conjunction="," property="receiverIdList" > 
+                #receiverIdList[]# 
+            </iterate>
+		</isNotEmpty>
+		order by createtime DESC
+	</select>
+	
+	<!-- 加载短信详情  20151203-->
+	<select id="loadSmsDetail" parameterClass="Integer" resultMap="result-smsdetail">
+		SELECT sd.* , s.isRealTime FROM palm_sms_detail sd ,palm_sms s
+		WHERE sd.smsId = s.id
+		AND sd.smsId = #id#
+	</select>
+	
+	<!-- 加载平台库短信详情  20160120-->
+	<select id="loadSmsDetailFromPlatform" parameterClass="Integer" resultMap="result-smsdetail">
+		SELECT sd.* , s.isRealTime FROM platform.friend_sms_detail sd ,platform.friend_sms s
+		WHERE sd.smsId = s.id
+		AND sd.smsId = #id#
+	</select>
+	
+	<!-- 通过id 查询发送成绩详情  20151203-->
+	<select id="selectScoreSendingSmsDetail" parameterClass="HashMap" resultMap="result-smsdetail">		
+		SELECT sd.*, s.isRealTime FROM palm_sms_detail sd ,palm_sms s 
+		WHERE sd.smsId = s.id 
+		AND sd.smsId = #id#
+		<isNotEmpty prepend="and" property="queryContent">
+			(sd.content like concat('%',#queryContent#,'%') or sd.receiverName like concat('%',#queryContent#,'%'))
+		</isNotEmpty>
+	</select>
+</sqlMap>

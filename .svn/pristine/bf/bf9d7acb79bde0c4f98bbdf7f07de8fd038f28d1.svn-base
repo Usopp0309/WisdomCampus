@@ -1,0 +1,750 @@
+package com.guotop.palmschool.util;
+
+import java.security.MessageDigest;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Random;
+import java.util.UUID;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+public class StringUtil
+{
+	private static final long ONE_WEEK = 604800000L;
+
+	/**
+	 * 获取32位UUID
+	 * 
+	 * @return
+	 */
+	public static String getUUID()
+	{
+		String uuid = UUID.randomUUID().toString().replaceAll("-", "");
+		return uuid;
+	}
+
+	/**
+	 * 转为MD5加密字符串
+	 * 
+	 * @param s
+	 *            字符串
+	 * @return MD5
+	 */
+	public static String toMD5(String s)
+	{
+		if (s == null)
+		{
+			return null;
+		}
+		return toHex(toMD5(s.getBytes()));
+	}
+
+	/**
+	 * 转为MD5加密字节流
+	 * 
+	 * @param b
+	 *            字节流
+	 * @return MD5
+	 */
+	public static byte[] toMD5(byte[] b)
+	{
+		if (b == null)
+		{
+			return null;
+		}
+		MessageDigest md5;
+		try
+		{
+			md5 = MessageDigest.getInstance("MD5");
+		} catch (Exception e)
+		{
+			return b;
+		}
+		md5.update(b);
+		return md5.digest();
+	}
+
+	/**
+	 * 把byte数组转为16进制字符串
+	 * 
+	 * @param b
+	 *            byte数组
+	 * @return 16进制字符串
+	 */
+	public static String toHex(byte[] b)
+	{
+		String r = "";
+		if (b == null || b.length == 0)
+		{
+			return r;
+		}
+		try
+		{
+			for (int i = 0; i < b.length; i++)
+			{
+				r += Character.forDigit(b[i] >> 4 & 0xf, 16);
+				r += Character.forDigit(b[i] & 0xf, 16);
+			}
+		} catch (Exception e)
+		{
+		}
+		return r;
+	}
+
+	/**
+	 * 把16进制字符串转为byte[]
+	 * 
+	 * @param str
+	 *            16进制字符串
+	 * @return byte数组
+	 */
+	public static byte[] fromHex(String str)
+	{
+		byte[] r = new byte[0];
+
+		if (str == null)
+		{
+			return r;
+		}
+
+		try
+		{
+			String strHex = str;
+			int blen = strHex.length();
+			if (blen / 2 * 2 != blen)
+			{
+				strHex = "0" + strHex; // 把strHex长度配成偶数
+			}
+			r = new byte[(blen + 1) / 2];
+			for (int i = 0; i < r.length; i++)
+			{
+				r[i] = (new Integer(Integer.parseInt(strHex.substring(i * 2, i * 2 + 2), 16))).byteValue();
+			}
+		} catch (Exception e)
+		{
+			r = new byte[0]; // 当出错时表示传入的不是十六进制字符串，按Asc字符串处理转为byte[]
+		}
+		return r;
+	}
+
+	/**
+	 * 判断字符串是否为空
+	 * 
+	 * @param 参数字符串
+	 * @return true:字符串为空 false:字符串不为空
+	 */
+	public static boolean isEmpty(String s)
+	{
+		if (s == null)
+		{
+			return true;
+		}
+
+		if (s.trim().length() == 0)
+		{
+			return true;
+		}
+
+		return false;
+
+	}
+
+	/**
+	 * 判断字符串数组是否为空
+	 * 
+	 * @param vs
+	 *            参数字符串数组
+	 * @return true:字符串数组为空 false:字符串数组不为空
+	 */
+	public static boolean isEmpty(String[] vs)
+	{
+		if (vs == null)
+		{
+			return true;
+		}
+		if (vs.length == 0)
+		{
+			return true;
+		}
+		for (String v : vs)
+		{
+			if (!StringUtil.isEmpty(v))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * 转字符串为整型
+	 * 
+	 * @param str
+	 *            字符串
+	 * @return int
+	 */
+	public final static int toint(String str)
+	{
+
+		return toint(str, 0);
+	}
+
+	/**
+	 * 转字符串为整型
+	 * 
+	 * @param str
+	 *            字符串
+	 * @param def
+	 *            默认值
+	 * @return int
+	 */
+	public final static int toint(String str, int def)
+	{
+
+		try
+		{
+			return Integer.parseInt(str);
+		} catch (Exception e)
+		{
+			return def;
+		}
+	}
+
+	/**
+	 * 得到日期的格式化文本
+	 * 
+	 * @param d
+	 *            日期
+	 * @return 日期的格式化文本
+	 */
+	public static String toStr(Date d)
+	{
+
+		return toStr(d, "yyyy-MM-dd HH:mm:ss");
+	}
+
+	public static String toStr(Date d, String s)
+	{
+
+		if (d == null)
+			d = new Date();
+		return (new SimpleDateFormat(s)).format(d);
+	}
+
+	public static Date zeroClock()
+	{
+		return zeroClock(null);
+	}
+
+	public static Date zeroClock(Date time)
+	{
+		Calendar cal = Calendar.getInstance();
+
+		if (time != null)
+			cal.setTime(time);
+
+		cal.set(Calendar.HOUR_OF_DAY, 0); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+
+		return new Date(cal.getTimeInMillis()); // 零点整
+	}
+
+	public static Date nextDay(Date time)
+	{
+		Calendar cal = Calendar.getInstance();
+		if (time != null)
+			cal.setTime(time);
+		cal.add(Calendar.DATE, 1); // 第二天
+		return new Date(cal.getTimeInMillis());
+	}
+
+	public static Date yesterday()
+	{
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DATE, -1);
+		return new Date(cal.getTimeInMillis());
+	}
+
+	public static Date yesterday(Date time)
+	{
+		Calendar cal = Calendar.getInstance();
+		if (time != null)
+			cal.setTime(time);
+		cal.add(Calendar.DATE, -1);
+		return new Date(cal.getTimeInMillis());
+	}
+
+	public static Date firstDayOfMonth()
+	{
+		return firstDayOfMonth(null);
+	}
+
+	public static Date firstDayOfMonth(Date time)
+	{
+		Calendar cal = Calendar.getInstance();
+
+		if (time != null)
+			cal.setTime(time);
+
+		cal.set(Calendar.DAY_OF_MONTH, 1); // 1日
+		cal.set(Calendar.HOUR_OF_DAY, 0); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+
+		return new Date(cal.getTimeInMillis()); // 零点整
+	}
+
+	public static Date nextMonth(Date time)
+	{
+		Calendar cal = Calendar.getInstance();
+		if (time != null)
+			cal.setTime(time);
+		cal.add(Calendar.MONTH, 1); // 下个月
+		return new Date(cal.getTimeInMillis());
+	}
+
+	public static Date firstDayOfWeek()
+	{
+		return firstDayOfWeek(null);
+	}
+
+	public static Date firstDayOfWeek(Date time)
+	{
+		Calendar cal = Calendar.getInstance();
+
+		if (time != null)
+			cal.setTime(time);
+
+		int day = cal.get(Calendar.DAY_OF_WEEK); // 1:SUNDAY,2:MONDAY,...7:SATURDAY
+		if (day > 1)
+			cal.add(Calendar.DATE, (1 - day));
+
+		cal.set(Calendar.HOUR_OF_DAY, 0); // 时
+		cal.set(Calendar.MINUTE, 0); // 分
+		cal.set(Calendar.SECOND, 0); // 秒
+		cal.set(Calendar.MILLISECOND, 0); // 毫秒
+
+		return new Date(cal.getTimeInMillis()); // 零点整
+	}
+
+	public static Date nextWeek(Date time)
+	{
+		Calendar cal = Calendar.getInstance();
+		if (time != null)
+			cal.setTime(time);
+		cal.add(Calendar.DATE, 7); // 下周
+		return new Date(cal.getTimeInMillis());
+	}
+
+	private final static Log log = LogFactory.getLog(StringUtil.class);
+
+	/**
+	 * @param password
+	 *            明文密码
+	 * @param algorithm
+	 *            加密方式
+	 */
+	public static String encodePassword(String password, String algorithm)
+	{
+
+		byte[] unencodedPassword = password.getBytes();
+
+		MessageDigest md = null;
+
+		try
+		{
+			// first create an instance, given the provider
+			md = MessageDigest.getInstance(algorithm);
+		} catch (Exception e)
+		{
+			log.error("Exception: " + e);
+
+			return password;
+		}
+
+		md.reset();
+
+		// call the update method one or more times
+		// (useful when you don't know the size of your data, eg. stream)
+		md.update(unencodedPassword);
+
+		// now calculate the hash
+		byte[] encodedPassword = md.digest();
+
+		StringBuffer buf = new StringBuffer();
+
+		for (int i = 0; i < encodedPassword.length; i++)
+		{
+			if ((encodedPassword[i] & 0xff) < 0x10)
+			{
+				buf.append("0");
+			}
+
+			buf.append(Long.toString(encodedPassword[i] & 0xff, 16));
+		}
+
+		return buf.toString();
+	}
+
+	/**
+	 * 
+	 * 返回首字母
+	 * 
+	 * @param strChinese
+	 * 
+	 * @param bUpCase
+	 * 
+	 * @return
+	 */
+
+	public static String getPYIndexStr(String strChinese, boolean bUpCase)
+	{
+
+		try
+		{
+
+			StringBuffer buffer = new StringBuffer();
+
+			byte b[] = strChinese.getBytes("GBK");// 把中文转化成byte数组
+
+			for (int i = 0; i < b.length; i++)
+			{
+
+				if ((b[i] & 255) > 128)
+				{
+
+					int char1 = b[i++] & 255;
+
+					char1 <<= 8;// 左移运算符用“<<”表示，是将运算符左边的对象，向左移动运算符右边指定的位数，并且在低位补零。其实，向左移n位，就相当于乘上2的n次方
+
+					int chart = char1 + (b[i] & 255);
+
+					buffer.append(getPYIndexChar((char) chart, bUpCase));
+
+					continue;
+
+				}
+
+				char c = (char) b[i];
+
+				if (!Character.isJavaIdentifierPart(c))// 确定指定字符是否可以是 Java
+														// 标识符中首字符以外的部分。
+
+					c = 'A';
+
+				buffer.append(c);
+
+			}
+
+			return buffer.toString();
+
+		} catch (Exception e)
+		{
+
+			System.out.println((new StringBuilder()).append("\u53D6\u4E2D\u6587\u62FC\u97F3\u6709\u9519").append(e.getMessage()).toString());
+
+		}
+
+		return null;
+
+	}
+
+	/**
+	 * 
+	 * 得到首字母
+	 * 
+	 * @param strChinese
+	 * 
+	 * @param bUpCase
+	 * 
+	 * @return
+	 */
+
+	private static char getPYIndexChar(char strChinese, boolean bUpCase)
+	{
+
+		int charGBK = strChinese;
+
+		char result;
+
+		if (charGBK >= 45217 && charGBK <= 45252)
+
+			result = 'A';
+
+		else
+
+		if (charGBK >= 45253 && charGBK <= 45760)
+
+			result = 'B';
+
+		else
+
+		if (charGBK >= 45761 && charGBK <= 46317)
+
+			result = 'C';
+
+		else
+
+		if (charGBK >= 46318 && charGBK <= 46825)
+
+			result = 'D';
+
+		else
+
+		if (charGBK >= 46826 && charGBK <= 47009)
+
+			result = 'E';
+
+		else
+
+		if (charGBK >= 47010 && charGBK <= 47296)
+
+			result = 'F';
+
+		else
+
+		if (charGBK >= 47297 && charGBK <= 47613)
+
+			result = 'G';
+
+		else
+
+		if (charGBK >= 47614 && charGBK <= 48118)
+
+			result = 'H';
+
+		else
+
+		if (charGBK >= 48119 && charGBK <= 49061)
+
+			result = 'J';
+
+		else
+
+		if (charGBK >= 49062 && charGBK <= 49323)
+
+			result = 'K';
+
+		else
+
+		if (charGBK >= 49324 && charGBK <= 49895)
+
+			result = 'L';
+
+		else
+
+		if (charGBK >= 49896 && charGBK <= 50370)
+
+			result = 'M';
+
+		else
+
+		if (charGBK >= 50371 && charGBK <= 50613)
+
+			result = 'N';
+
+		else
+
+		if (charGBK >= 50614 && charGBK <= 50621)
+
+			result = 'O';
+
+		else
+
+		if (charGBK >= 50622 && charGBK <= 50905)
+
+			result = 'P';
+
+		else
+
+		if (charGBK >= 50906 && charGBK <= 51386)
+
+			result = 'Q';
+
+		else
+
+		if (charGBK >= 51387 && charGBK <= 51445)
+
+			result = 'R';
+
+		else
+
+		if (charGBK >= 51446 && charGBK <= 52217)
+
+			result = 'S';
+
+		else
+
+		if (charGBK >= 52218 && charGBK <= 52697)
+
+			result = 'T';
+
+		else
+
+		if (charGBK >= 52698 && charGBK <= 52979)
+
+			result = 'W';
+
+		else
+
+		if (charGBK >= 52980 && charGBK <= 53688)
+
+			result = 'X';
+
+		else
+
+		if (charGBK >= 53689 && charGBK <= 54480)
+
+			result = 'Y';
+
+		else
+
+		if (charGBK >= 54481 && charGBK <= 55289)
+
+			result = 'Z';
+
+		else
+
+			result = (char) (65 + (new Random()).nextInt(25));
+
+		if (!bUpCase)
+
+			result = Character.toLowerCase(result);
+
+		return result;
+
+	}
+
+	/**
+	 * 
+	 * 
+	 */
+	/**
+	 * 通过入学年份，计算出是几年级
+	 * 
+	 * @param createYear
+	 *            格式 yyyyMM
+	 * @param gradeName
+	 * @return
+	 * @throws ParseException
+	 */
+	public static String createYear2gradeName(String createYear) throws ParseException
+	{
+
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMM");
+		Date createYearDate = formatter.parse(createYear);
+		long delta = new Date().getTime() - createYearDate.getTime();
+
+		String resultString = null;
+		// 一年时间算作52周
+		if (delta > 52L * ONE_WEEK)
+		{
+			long years = delta / (52L * ONE_WEEK);
+			resultString = (years + 1L) + "年级";
+		} else
+		{
+			resultString = "1年级";
+		}
+		return resultString;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		// TODO Auto-generated method stub
+		return super.equals(obj);
+	}
+
+	public static int toint(Object obj)
+	{
+
+		if (obj == null)
+			return 0;
+		if (obj instanceof Integer)
+			return ((Integer) obj).intValue();
+		if (obj instanceof Long)
+			return ((Long) obj).intValue();
+
+		return toint(String.valueOf(obj));
+
+	}
+    /**
+     * 判断是否是福建用户
+      @author chenyong
+      @date 2016年11月4日 下午6:48:53
+     * @param fischoolId
+     * @return true:是 false ：不是
+     */
+	public static  boolean isFjequals(String fischoolId)
+	{
+		Properties pro = PropertiesUtil.getInstance().read("wisdomcampus.properties");
+		String fjzyycommonschoolid = pro.getProperty("fjzyycommonschoolid");
+		return fjzyycommonschoolid.equals(fischoolId);
+	}
+	
+	/**
+	 * 判断数组中是否包含字符串
+	 * 
+	 * @param 参数字符串
+	 * @return true:包含 false:不包含
+	 */
+	public static boolean arrayContainsString(String[] strArr,String str)
+	{
+		//数组转换成list
+		List<String> list=Arrays.asList(strArr);
+		if(list.contains(str)){
+			return true;
+		}else{
+			return false;
+		}
+
+	}
+	
+	/**
+	 * 随机生成几位数
+	 * @param row 位数,限定2-6位
+	 * @return
+	 */
+	public static String randomNum(int row){
+		String chars = "abcdefghijklmnopqrstuvwxyz";
+		char letter = chars.charAt((int)(Math.random()*26));
+		Random r = new Random();
+		String code = "123b";
+		if(row == 3){
+			code = (r.nextInt(89) + 10) +""+ letter;
+		}else if(row == 4){
+			code = (r.nextInt(899) + 100)+""+letter;
+		}else if(row == 5){
+			code = (r.nextInt(8999) + 1000)+""+letter;
+		}else if(row == 6){
+			code = (r.nextInt(89999) + 10000)+""+letter;
+		}
+		return code+"";
+	}
+	
+	public static void main(String[] args)
+	{
+		Map<String, String> map = new HashMap<String, String>();
+		for(int i =0 ;i<100;i++){
+			String randomString = randomNum(4);
+			if(map.containsKey(randomString)){
+				System.out.println("存在:"+randomString);
+			}else{
+				System.out.println("不存在:"+randomString);
+				map.put(randomString, randomString);
+			}
+			
+		}
+	}
+}

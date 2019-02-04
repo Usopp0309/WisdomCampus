@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Dish">
+  	<typeAlias alias="dish" type="com.guotop.palmschool.entity.Dish" />
+  	<typeAlias alias="dishRichx" type="com.richx.pojo.Dish" />
+  	
+  	<!-- 添加菜品 -->
+	<insert id="addDish" parameterClass="dish">
+		insert into palm_dish
+		(
+			recipeId,
+			dishType,
+			createTime, 
+			dishName, 
+			picName,
+			picPath,
+			praiseCount
+		)
+		values
+		(
+			#recipeId#,
+			#dishType#,
+			#createTime#, 
+			#dishName#, 
+			#picName#,
+			#picPath#,
+			#praiseCount#
+		)
+	</insert>
+	
+	<!-- 根据recipeID删除菜品信息 -->
+	<delete id="deleteDishByRecipeId" parameterClass="Integer">
+		delete from palm_dish
+		where recipeId = #recipeId#
+	</delete>
+	<!-- 根据ID删除菜品信息 -->
+	<delete id="deleteDishByDishId" parameterClass="Integer">
+		delete from palm_dish
+		where id = #dishId#
+	</delete>
+	
+	<!-- 修改菜品详情 -->
+	<update id="modifyDish" parameterClass="dish">
+		update palm_dish
+		set
+		dishType = #dishType#,
+		dishName = #dishName#,
+		picName = #picName#,
+		picPath = #picPath#,
+		praiseCount = #praiseCount#
+		where id = #id#
+	</update>
+	
+	<!--  20160314 -->
+	<select id="loadDishByDishId" parameterClass="Integer" resultClass="dish">
+		 SELECT d.* FROM palm_dish d
+			 WHERE d.id = #id#
+	</select>
+	
+	<!-- 加载菜品列表  20160311 -->
+	<select id="loadDishListByRecipeId" parameterClass="Integer" resultClass="dish">
+		 SELECT d.* FROM palm_dish d
+			 WHERE d.recipeId = #recipeId#
+			ORDER BY d.dishType
+	</select>
+	
+	<!-- 加载菜品列表  20160311(手机端) -->
+	<select id="loadDishListByRecipeIdRichx" parameterClass="Integer" resultClass="dishRichx">
+		 SELECT d.*,d.id dishId FROM palm_dish d
+			 WHERE d.recipeId = #recipeId#
+			ORDER BY d.dishType
+	</select>
+	
+	<!-- 加载菜品列表  20160311 -->
+	<select id="loadDishList" parameterClass="HashMap" resultClass="dish">
+		 SELECT d.* FROM palm_dish d
+			 WHERE 1 = 1
+			<!-- 查询短信内容 -->
+			<isNotEmpty prepend="and" property="queryContent">
+				(d.dishName like CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			ORDER BY d.createTime DESC
+			LIMIT #startIndex#, #length#
+	</select>
+	
+	<!-- 加载菜品列表总数  20160311 -->
+	<select id="loadDishCount" parameterClass="HashMap" resultClass="Integer">
+		   SELECT COUNT(*) FROM palm_dish d
+			    WHERE 1 = 1
+				<!-- 查询菜名内容 -->
+				<isNotEmpty prepend="and" property="queryContent">
+					(d.dishName like CONCAT('%',#queryContent#,'%'))
+				</isNotEmpty>
+	</select>
+	
+	
+	<!-- 获取所有的菜谱信息 -->
+	<select id="getAllDishList" resultClass="dish">
+<!-- 		   SELECT * FROM palm_dish where (dishName !=null or dishName != '') GROUP BY dishType , dishName,recipeId -->
+		   SELECT * FROM palm_dish d1 ,
+			(
+			SELECT MAX(d2.id) id FROM palm_dish d2 WHERE (dishName !=NULL OR dishName != '') GROUP BY dishType , dishName,recipeId
+			) tmp 
+			WHERE d1.id = tmp.id
+	</select>
+	
+</sqlMap>

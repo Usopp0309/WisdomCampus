@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="LocationInfo">
+	<typeAlias alias="locationInfo" type="com.guotop.palmschool.entity.LocationInfo" />
+	<typeAlias alias="userWatch" type="com.guotop.palmschool.entity.UserWatch" />
+	<typeAlias alias="user" type="com.guotop.palmschool.entity.User" />
+	<typeAlias alias="pointInfo" type="com.guotop.palmschool.schoolbus.entity.PointInfo" />
+	
+	<resultMap class="com.guotop.palmschool.entity.LocationInfo" id="result_localtionInfoList">
+		<result property="id" column="id" />
+		<result property="watchId" column="watchId" />
+		<result property="longitude" column="longitude" />
+		<result property="latitude" column="latitude" />
+		<result property="createTime" column="createTime" />
+		<result property="name" column="name" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.UserWatch" id="result_userWatchList">
+		<result property="id" column="id" />
+		<result property="watchId" column="watchId" />
+		<result property="name" column="name" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.schoolbus.entity.OnSchoolBus" id="user_point_result">
+		<result property="createTime" column="createTime" />
+		<result property="status" column="status" />
+		<result property="code" column="code" />
+		<result property="position" column="position" />
+		<result property="x" column="x" />
+		<result property="y" column="y" />
+		<result property="realName" column="realName" />
+		<result property="address" column="address" />
+	</resultMap>
+	<insert id="addLocationInfo" parameterClass="locationInfo">
+		insert into platform.locationInfo(id,watchId,longitude,longitudeFlag,latitude,latitudeFlag,createTime) values (#id#,#watchId#,#longitude#,#longitudeFlag#,#latitude#,#latitudeFlag#,#createTime#)
+	</insert>
+	<insert id="addUserWatchLink" parameterClass="userWatch">
+		insert into platform.user_watch(userId,watchId,createTime,userName,studentId) values(#userId#,#watchId#,#createTime#,#name#,#studentId#)
+		<selectKey resultClass="Integer" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	<select id="getUserWatchList" parameterClass="Integer" resultMap="result_userWatchList">
+		select id, watchId, userName name from platform.user_watch where userId=#userId# 
+	</select>
+	<select id="getLocationList" parameterClass="HashMap" resultMap="result_localtionInfoList">
+		select l.id, uw.watchId, uw.userName name, l.longitude, l.latitude, l.createTime from platform.user_watch uw, platform.locationInfo l  where userId=#userId# and uw.watchId = l.watchId 
+		<isNotNull property="watchId">
+			<isNotEmpty prepend="and" property="watchId">
+				l.watchId=#watchId#
+			</isNotEmpty>
+		</isNotNull>
+		
+		order by l.createTime desc limit 1 
+	</select>
+	<select id="getLocationInfoByWatchId" parameterClass="String" resultClass="locationInfo">
+		select longitude, latitude from platform.locationInfo where watchId=#watchId# order by createTime desc limit 1
+	</select>
+	<select id="getPositionListByUserId" parameterClass="HashMap" resultMap="user_point_result">
+		select t.createTime,t.status,t.code,t.position,o.x,o.y,t.realname,o.address  from (select i.createTime,i.status,i.code,i.position,d.realname,p.x,p.y 
+		from palm_schoolbus_inout i,pointinfo p ,platform.user_detail d 
+		where i.createTime <![CDATA[ >= ]]> #createTime# 
+		and i.createTime <![CDATA[ <= ]]> #endTime#  
+		and p.x is not null 
+		and (i.userId = #userId# or exists(select r.parent_userid from platform.student_parent r where (i.userId = r.parent_userid or i.userId = r.userId) and (r.userId = #userId# or r.parent_userid=#userId#)))
+		and i.position = p.carId and d.userId = i.userId group by i.createTime) t,pointinfo o 
+		where t.createTime <![CDATA[ <= ]]> o.createTime and t.position = o.carId group by t.createTime order by o.createTime asc 
+
+	</select>
+	<select id="getPositionListByPositionId" parameterClass="HashMap" resultMap="user_point_result">
+		select t.createTime,t.status,t.code,t.position,o.x,o.y,t.realname,o.address  from (select i.createTime,i.status,i.code,i.position,d.realname,p.x,p.y 
+		from palm_schoolbus_inout i,pointinfo p ,platform.user_detail d 
+		where i.createTime <![CDATA[ >= ]]> #createTime# 
+		and i.createTime <![CDATA[ <= ]]> #endTime#  
+		and p.x is not null 
+		and	i.position = #position#
+		and i.position = p.carId and d.userId = i.userId 
+		<isNotEmpty prepend="and" property="userName">
+		 d.realName like concat('%',#userName#,'%')  
+		</isNotEmpty>
+		group by i.createTime) t,pointinfo o 
+		where t.createTime <![CDATA[ <= ]]> o.createTime and t.position = o.carId group by t.createTime order by o.createTime asc 
+
+	</select>
+	
+	<!-- 获取所有家长的信息 -->
+	<select id="getTypeByUserId" parameterClass="String" resultClass="user">
+		SELECT ud.*
+		FROM platform.user_detail ud 
+		WHERE ud.userId = #userId#
+	</select>
+	<!-- 班主任查看该班学生校车记录 -->
+	<select id="getPositionListByClassLeaderId" parameterClass="HashMap" resultMap="user_point_result">
+		select t.createTime,t.status,t.code,t.position,o.x,o.y,t.realname,t.address  from (select i.createTime,i.status,i.code,i.position,d.realname,p.x,p.y,p.address 
+		from palm_schoolbus_inout i,pointinfo p ,platform.user_detail d 
+		where i.createTime <![CDATA[ >= ]]> #createTime# 
+		and i.createTime <![CDATA[ <= ]]> #endTime#  
+		and p.x is not null 
+		and exists(select sp.userId,sp.parent_userId from (select c.userId from palm_student_clazz c where exists
+				(select pc.* from palm_clazz pc,palm_grade g where g.id = pc.gradeId and g.state = '0' and pc.leaderId = #userId# and c.clazzId = pc.id)) cp
+		<isEqual property="type" compareValue="1">
+		,platform.student_parent sp 
+		</isEqual>
+		<isEqual property="type" compareValue="2">
+		,(select pud.userId,psd.parent_userId from platform.user_detail pud left join platform.student_parent psd on pud.userId = psd.userId where psd.parent_userId is not null and realName like concat('%',#userName#,'%')) sp 
+		</isEqual>
+		where cp.userId = sp.userId and (i.userId = sp.userId or i.userId = sp.parent_userId))
+		and i.position = p.carId
+		<isNotEmpty prepend="and" property="position">
+			l.position=#position#
+		</isNotEmpty>
+		and d.userId = i.userId group by i.createTime) t,pointinfo o 
+		where t.createTime <![CDATA[ <= ]]> o.createTime and t.position = o.carId group by t.createTime order by o.createTime asc 
+	</select>
+	<!-- 班主任查看该班学生校车列表 -->
+	<select id="getBusListByClassLeaderId" parameterClass="HashMap" resultMap="user_point_result">
+		select t.createTime,t.status,t.code,t.position,o.x,o.y,t.realname,t.address  from (select i.createTime,i.status,i.code,i.position,d.realname,p.x,p.y,p.address 
+		from palm_schoolbus_inout i,pointinfo p ,platform.user_detail d 
+		where i.createTime <![CDATA[ >= ]]> #createTime# 
+		and i.createTime <![CDATA[ <= ]]> #endTime#  
+		and p.x is not null 
+		and exists(select sp.userId,sp.parent_userId from (select c.userId from palm_student_clazz c where exists(select pc.* from palm_clazz pc,palm_grade g where g.id=pc.gradeId and g.state='0' and pc.leaderId = #userId# and c.clazzId = pc.id)) cp
+		<isEqual property="type" compareValue="1">
+		,platform.student_parent sp 
+		</isEqual>
+		<isEqual property="type" compareValue="2">
+		,(select pud.userId,psd.parent_userId from platform.user_detail pud left join platform.student_parent psd on pud.userId = psd.userId where psd.parent_userId is not null and realName like concat('%',#userName#,'%')) sp 
+		</isEqual>
+		where cp.userId = sp.userId and (i.userId = sp.userId or i.userId = sp.parent_userId))
+		and i.position = p.carId 
+		<isNotEmpty prepend="and" property="position">
+			l.position=#position#
+		</isNotEmpty>
+		and d.userId = i.userId group by i.createTime) t,pointinfo o 
+		where t.createTime <![CDATA[ <= ]]> o.createTime and t.position = o.carId group by t.position order by o.createTime asc 
+	</select>
+	<!-- 班主任查看该班学生校车列表 -->
+	<select id="getNowPoint" parameterClass="String" resultClass="pointInfo">
+		select * from pointinfo where carId = #carId# ORDER BY CREATETIME desc LIMIT 0,1
+	</select>
+	<!-- 根据校车查询对应的校车最后一个坐标点，可以根据学生姓名，校车，地址查询 -->
+	<select id="getPointByCarId" parameterClass="HashMap" resultClass="pointInfo">
+		select * from pointinfo where carId = #carId# and createTime <![CDATA[ <= ]]> #endTime# and createTime <![CDATA[ >= ]]> #createTime# ORDER BY CREATETIME desc LIMIT 0,1
+	</select>
+</sqlMap>

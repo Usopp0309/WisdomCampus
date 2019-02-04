@@ -1,0 +1,83 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>设置在线评价模板</title>
+    <link rel="stylesheet" href="../css/fill.css"/>
+    <link rel="stylesheet" href="../css/select.css"/>
+    <link rel="stylesheet" href="../css/subjective.css"/>
+    <link rel="stylesheet" href="../css/createTestpaper.css"/>
+    
+    <script type="text/javascript" src="../../library/jquery/jquery-1.9.1.js"></script>
+    <script src="../../assets/global/plugins/album/scripts/jquery-2.1.1.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="../../library/UEditor/ueditor.config.js"></script>
+    <script type="text/javascript" src="../../library/UEditor/ueditor.all.min.js"></script>
+    <script type="text/javascript" src="../../library/json2.js"></script>
+    <script type="text/javascript" src="../lib.js"></script>
+    <script type="text/javascript" src="view/fill.js"></script>
+    <script type="text/javascript" src="view/select.js"></script>
+    <script type="text/javascript" src="view/subjective.js"></script>
+    <link rel="stylesheet" href="../../res/styles/frame.css"/>
+    
+<style type="text/css">
+#header {  width: auto; height:128px;margin:0 auto; background: url('../../res/styles/header/right3.jpg') #0a0815 no-repeat; background-position:bottom center;}
+#header .logo {width: 353px; height: 66px;margin:35px 0 0 0}
+#header .logo a { display: block; width: 353px; height:66px; background: url('../../res/styles/header/normal.png') no-repeat;}
+#header .logo a span { display: none; }
+/* #header .logo a:hover { background:url('header/left1.jpg') repeat-x; display: block;width: 336px;height: 99px} */
+#header .hello { float:right;color: #ff0; text-align: rigth;  width: 1024px; height:71px; line-height: 22px;}
+#header .hello a { color: #ff0; }
+#header .hello a:hover { color: white; }
+a { color: #666; text-decoration: none; }
+a:hover { color: #3281e6; }
+#footer { border-top: 4px solid #077F9A; padding-top: 15px; _width:expression((document.documentElement.clientWidth||document.body.clientWidth)<980?"980px":""); min-width: auto; height: 100px; /*background: #f5f5f5;*/ background: url('../../res/styles/front/background_stripes.gif');}
+#footer div { text-align: center; margin: 0 auto; width: 980px; height: 20px; }
+</style>
+</head>
+<body>
+<div id="header">
+<div class="logo"><a href="../../loadmenu.html"><span>平安校园</span></a></div>
+<!-- <div class="hello"></div> -->
+</div>
+	<div class="paperDetail">
+	    <div class="paperTitle">
+	        <h3 class="paperName"><input id="paperName" type="text" value="数学期中测试卷"></h3>
+	        <h5 class="paperLimitRemark">
+	        </h5>
+	        <span id="studentNumber"></span></u></h3>
+	    </div>
+	    
+	    <div class="folders">
+            <ul class="folderModel" style="display: none;">
+                <li class="folderTitle">
+                </li>
+                <div class="folderContent">
+                </div>
+                <div class="folderOperate">
+
+                </div>
+            </ul>
+	    </div>
+		
+	    <div class="paperOperate">
+	    
+	        <select id="folderType">
+	            <option value="select">评论选项</option>
+	            <option value="fill">师生建议/感想</option>
+	        </select>
+	        
+	        <button onclick="paper.createFolder()">添加一个评论题</button>
+            <button onclick="paper.removeFolder()">删除一个评论题</button>
+	    </div>
+	    
+        <div>
+            <button onclick="paper.submit()">提交</button>
+        </div>
+	</div>
+
+    <script type="text/javascript" src="createTestpaper.js"></script>
+<div id="footer"><div class="copyright" style="color: #666666;font-family: SimSun;font-size: 12px;">
+客服电话：400-8652-888（全国） 客服邮箱：service@guotop.com<br><br>
+
+Copyright &copy; 2009-2014 国朗公司 版权所有 All Rights Reserved</div></div>
+</body>
+</html>

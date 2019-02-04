@@ -1,0 +1,79 @@
+package com.guotop.palmschool.entity;
+
+import com.google.gson.annotations.Expose;
+
+/**
+ * 短信套餐适用年级实体类
+ * 
+ */
+public class OrderMessageGrade 
+{
+	/**
+	 * ID
+	 */
+	private Integer id;
+	
+	/**
+	 * 套餐id
+	 */
+	private Integer orderId;
+
+	/**
+	 * 年级id 
+	 */
+	private Integer gradeId;
+	
+	
+	/**
+	 * 创建时间
+	 */
+	private String createTime;
+
+
+	public Integer getId()
+	{
+		return id;
+	}
+
+
+	public void setId(Integer id)
+	{
+		this.id = id;
+	}
+
+
+	public Integer getOrderId()
+	{
+		return orderId;
+	}
+
+
+	public void setOrderId(Integer orderId)
+	{
+		this.orderId = orderId;
+	}
+
+
+	public Integer getGradeId()
+	{
+		return gradeId;
+	}
+
+
+	public void setGradeId(Integer gradeId)
+	{
+		this.gradeId = gradeId;
+	}
+
+
+	public String getCreateTime()
+	{
+		return createTime;
+	}
+
+
+	public void setCreateTime(String createTime)
+	{
+		this.createTime = createTime;
+	}
+}

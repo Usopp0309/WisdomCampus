@@ -1,0 +1,40 @@
+package com.guotop.palmschool.bluetooth.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.guotop.palmschool.bluetooth.entity.BluetoothData;
+import com.guotop.palmschool.util.Pages;
+
+public interface BluetoothDataService {
+	/**
+	 * 批量添加学生使用手环的数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月21日 下午4:58:02
+	 */
+	public void insertBathBluetoothData(List<BluetoothData> BluetoothDatas);
+
+	/**
+	 * 添加学生使用手环的数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月21日 下午5:03:39
+	 */
+	public void insertBluetoothData(BluetoothData BluetoothData);
+
+	/**
+	 * 分页获得学生使用手环的数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月21日 下午5:07:27
+	 */
+	public Pages<BluetoothData> getPageBluetoothData(int page, int pageSize, Map<String, Object> paramMap);
+	/**
+	 * 获得指定学生的蓝牙手环数据
+	 * @author chenyong
+	 * @Time 2017年5月2日 下午1:40:02
+	 */
+	public List<BluetoothData>getStuDataByDate(Map<String,Object> map);
+	
+}

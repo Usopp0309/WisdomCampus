@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="UserRole">
+	<typeAlias alias="userRole" type="com.guotop.palmschool.entity.UserRole"/>
+	
+	<resultMap class="com.guotop.palmschool.entity.UserRole" id="result_userRole">
+		<result property="id" column="id"/>
+		<result property="userId" column="userId"/>	
+		<result property="roleCode" column="roleCode"/>
+	</resultMap>	
+	
+	<!-- 根据userId和roleId查找UserRole 20151127 -->
+	<select id="getUserRoleByUserIdAndRoleCode" parameterClass="java.util.HashMap" resultClass="userRole">
+		SELECT * FROM palm_user_role where userId=#userId# and roleCode = #roleCode#
+	</select>
+	
+	<!-- 根据userId和roleId查找UserRole 20151211 -->
+	<select id="getUserRoleByUserId" parameterClass="Integer" resultClass="userRole">
+		SELECT * FROM palm_user_role where userId=#userId#
+	</select>
+	
+		<!-- 添加用户角色关系 20151129 -->
+	<insert id="addUserRole" parameterClass="HashMap">
+		insert into palm_user_role
+		(
+			userId,
+			roleCode
+		)
+		values
+		(
+			#userId#,
+			#roleCode#
+			
+		)
+	</insert>
+	<!-- 根据条件删除userrole表中记录 20151202 -->
+	<delete id="deleteUserRoleByCondition" parameterClass="HashMap">
+		delete from palm_user_role where userId=#userId# 
+		<isNotEmpty prepend="and" property="roleCode">
+			roleCode=#roleCode#
+		</isNotEmpty> 
+	</delete>
+	
+</sqlMap>

@@ -1,0 +1,77 @@
+#editmms { border: 1px solid #ccc; width: 100%; }
+#editmms .con { padding: 0 15px 2px; height: 415px; }
+
+#editmms .con #c1 { }
+#editmms .con #c1 .title { height: 29px; }
+#editmms .con #c1 .title .label { }
+#editmms .con #c1 .title input { width: 600px; }
+#editmms .con #c1 .types { padding-bottom: 10px; }
+#editmms .con #c1 .school { padding-right: 80px; }
+
+#editmms .con #c1 .pic { clear: both; padding-top: 13px; height: 127px; border-top: 1px solid #aca899; border-bottom: 1px solid #aca899; }
+#editmms .con #c1 .pic .no { width: 47px; float: left; }
+#editmms .con #c1 .pic .img { width: 112px; height: 112px; float: left; border: 1px solid #7f9db9; }
+#editmms .con #c1 .pic .info { float: left; width: 400px; padding-left: 14px; }
+#editmms .con #c1 .pic .info div { padding-top: 5px; height: 17px; white-space: nowrap; overflow: hidden; }
+#editmms .con #c1 .pic .opt { text-align: right; }
+#editmms .con #c1 .pic .opt .btn { float: right; }
+#editmms .con #c1 .pic .opt .btn div { }
+#editmms .con #c1 .pic .opt .btn a { border: 1px solid white; text-decoration: none; display: block; float: left; padding: 3px 2px 0 20px; height: 15px; }
+#editmms .con #c1 .pic .opt .btn #addpic a { background: url('mms/btn-add.gif') 2px 0px no-repeat; }
+#editmms .con #c1 .pic .opt .btn #delpic a { background: url('mms/btn-del.gif') 3px 1px no-repeat; }
+#editmms .con #c1 .pic .opt .btn a:hover { border: 1px solid #79a2bf; }
+#editmms .con #c1 .pic .opt .tme { padding-top: 55px; clear: right; }
+#editmms .con #c1 .pic .opt .tme input { width: 26px; margin-right: 2px; text-align: center; }
+
+#editmms .con #c1 .mid { padding-top: 9px; height: 26px; border-bottom: 1px solid #aca899; }
+#editmms .con #c1 .mid .info { float: left; padding-top: 4px; }
+#editmms .con #c1 .mid .info span { float: left; display: block; overflow: hidden; white-space: nowrap; }
+#editmms .con #c1 .mid .info .label { padding-right: 5px; }
+#editmms .con #c1 .mid .info #mname { width: 124px; margin-right: 10px; }
+#editmms .con #c1 .mid .info #msize,
+#editmms .con #c1 .mid .info #mtype { width: 124px; margin-right: 10px; }
+#editmms .con #c1 .mid .opt { text-align: right; }
+#editmms .con #c1 .mid .opt .btn { float: right; }
+#editmms .con #c1 .mid .opt .btn div { }
+#editmms .con #c1 .mid .opt .btn a { border: 1px solid white; text-decoration: none; display: block; float: left; padding: 3px 2px 0 20px; height: 15px; white-space: nowrap; }
+#editmms .con #c1 .mid .opt .btn #addmid a { background: url('mms/btn-add.gif') 2px 0px no-repeat; }
+#editmms .con #c1 .mid .opt .btn #delmid a.del { background: url('mms/btn-del.gif') 3px 1px no-repeat; }
+#editmms .con #c1 .mid .opt .btn a:hover { border: 1px solid #79a2bf; }
+
+#editmms .con #c1 .text .msg { padding-top: 7px; height: 17px; }
+#editmms .con #c1 .text .msg .label { padding-right: 11px; }
+#editmms .con #c1 .text .msg .message { }
+#editmms .con #c1 .text .msg .message #tnum { color: blue; }
+#editmms .con #c1 .text .msg .message #tnum.overflow { color: red; }
+#editmms .con #c1 .text #tcon { width: 100%; height: 133px; }
+#editmms .con #c1 .text #tcon.overflow { color: red; }
+
+#editmms .frame { background: #ddecfe; border-top: 1px solid #79a2bf; padding: 0 10px 9px; }
+#editmms .frame .btn { float: right; padding-top: 4px; }
+#editmms .frame .title { padding-top: 9px; height: 17px; }
+#editmms .frame .title .info { }
+#editmms .frame .fcon { border: 1px solid #79a2bf; padding: 1px 0 0 1px; background: white; overflow: hidden; min-height: 73px; }
+#editmms .frame .fcon .fi { width: 53px; border: 1px solid #79a2bf; float: left; margin: 0 1px 1px 0; *margin: 0 1px 0 0; }
+#editmms .frame a { border: 1px solid #ddecfe; text-decoration: none; display: block; float: left; padding: 3px 2px 0 20px; height: 15px; }
+#editmms .frame a.add { background: url('mms/btn-add.gif') 2px 0px no-repeat; margin-right: 10px; }
+#editmms .frame a.del { background: url('mms/btn-del.gif') 3px 1px no-repeat; }
+#editmms .frame a:hover { border: 1px solid #79a2bf; }
+#editmms .frame .ffi { background: #ddecfe; border-top: 1px solid white; border-right: 1px solid #bed2e0; border-bottom: 1px solid #bed2e0; border-left: 1px solid white; height: 65px; padding-top: 3px; cursor: default; }
+#editmms .frame .curr { background: #ff9; }
+#editmms .frame .fno { position: absolute; border: 1px solid #79a2bf; font-size: 8px; font-family: Arial; width: 10px; height: 10px; text-align: center; background: #ddecfe; margin-left: 3px; *margin-left: 0; }
+#editmms .frame .fimg { border: 1px solid #79a2bf; height: 41px; width: 41px; margin: 0 auto; background: white; padding: 1px; }
+#editmms .frame .fmid { position: absolute; width: 10px; height: 14px; background: url('mms/mid.gif') no-repeat; margin: -15px 0 0 36px; display: none; }
+#editmms .frame .ftxt { white-space: nowrap; padding: 4px 0 0 2px; width: 48px; overflow: hidden; color: #999; }
+#editmms .thumb { border-top: 0; padding-top: 9px; }
+
+#mmsuploaddiv,
+#miduploaddiv { position: absolute; }
+#mmsuploaddiv input,
+#miduploaddiv input { height: 20px; filter: alpha(opacity=0); -moz-opacity: 0; opacity: 0; cursor: pointer; }
+#mmsuploaddiv input { width: 71px; }
+#miduploaddiv input { width: 109px; }
+
+#editmms #kmsg { float: right; padding-top: 4px; }
+#editmms #kmsg span#kused,
+#editmms #kmsg span#kless { color: blue; }
+#editmms #kover { color: red; }

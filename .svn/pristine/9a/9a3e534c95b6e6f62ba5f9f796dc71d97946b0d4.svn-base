@@ -1,0 +1,22 @@
+function refresh(){
+	
+
+	$.post("/WisdomCapus/syllabusContorller!selecSyllabus",function(rv){
+		 var itemsd = eval(rv);
+//		 alert(itemsd.length);
+		 for(var i =0;i<itemsd.length;i++){
+//			 alert(itemsd[i].length+"---"+itemsd[i][5]);
+			 if(itemsd[i].length==6){
+
+				 document.getElementById("week"+itemsd[i][3]+""+itemsd[i][4]).innerHTML=itemsd[i][0];
+				 document.getElementById("weekTea"+itemsd[i][3]+""+itemsd[i][4]).innerHTML=itemsd[i][2];
+				 document.getElementById("weekClazz"+itemsd[i][3]+""+itemsd[i][4]).innerHTML="("+itemsd[i][5]+")";
+			 }else{
+				 document.getElementById("week"+itemsd[i][3]+""+itemsd[i][4]).innerHTML=itemsd[i][0];
+				 document.getElementById("weekTea"+itemsd[i][3]+""+itemsd[i][4]).innerHTML=itemsd[i][2];
+			 }
+		 }
+	})
+
+}
+window.refresh();

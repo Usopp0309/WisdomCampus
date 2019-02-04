@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="OrderMessage">
+	<typeAlias alias="orderMessage" type="com.guotop.palmschool.entity.OrderMessage" />
+	<typeAlias alias="orderMessageUser" type="com.guotop.palmschool.entity.OrderMessageUser" />
+	<typeAlias alias="orderMessageSchool" type="com.guotop.palmschool.entity.OrderMessageSchool" />
+	<typeAlias alias="orderUserMessageDetail" type="com.guotop.palmschool.entity.OrderUserMessageDetail" />
+	<typeAlias alias="user" type="com.guotop.palmschool.entity.User" />
+
+	<!-- 获取该学校的面向个人短彩信套餐 -->
+	<select id="getProduct"  resultClass="orderMessage">
+		select id productId,name,price,startTime,endTime,type,status,createTime,updateTime from palm_order_message 
+		where isVirtual = '1'
+		and rangeObject = '1'
+	</select>
+	
+	<!-- 获取该学校的短彩信套餐List -->
+	<select id="getMessageListByStatus" parameterClass="HashMap" resultClass="orderMessage">
+		select id productId,name,price,startTime,endTime,type,status from palm_order_message where status = #status# and isVirtual = '1'
+		<isNotEmpty property="rangeObject">
+			and rangeObject = #rangeObject# 
+		</isNotEmpty>
+	</select>
+	
+	<!-- 根据id查找对应的套餐 -->
+	<select id="getMessageById" parameterClass="Integer" resultClass="orderMessage">
+		select id productId,name,price,startTime,endTime,type,status,rangeObject from palm_order_message where id = #id# 
+	</select>
+	
+	<!-- 根据用户Id获取对应的电话号码 -->
+	<select id="getUserPhoneByUserId"  parameterClass="Integer"  resultClass="String">
+		select phone from platform.userbase where userId = #userId#
+	</select>
+	
+	<!-- 根据商品名称查询对应的短信套餐 -->
+	<select id="getOrderMessageByName"  parameterClass="String"  resultClass="orderMessage">
+		select id productId,name,price,startTime,endTime,type,status from palm_order_message where name = #goodsName# and isVirtual = '1'
+	</select>
+	
+	<insert id="saveOrderMessageUser" parameterClass="orderMessageUser">
+		insert into palm_order_message_user
+		 (name,realName,userId,startTime,endTime,type,count,createTime,orderId,status,messageId,replaceUserId,replaceRealName,familyId)
+		values
+		 (#name#,#realName#,#userId#,#startTime#,#endTime#,#type#,#count#,#createTime#,#orderId#,#status#,#messageId#,#replaceUserId#,#replaceRealName#,#familyId#)
+		
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select
+			LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<insert id="saveOrderMessageSchool" parameterClass="orderMessageSchool">
+		insert into palm_order_message_school
+		 (name,schoolId,userId,startTime,endTime,type,count,remainCount,createTime,orderId,status,messageId)
+		values
+		 (#name#,#schoolId#,#userId#,#startTime#,#endTime#,#type#,#count#,#remainCount#,#createTime#,#orderId#,#status#,#messageId#)
+		
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select
+			LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 根据userId 和 状态查询用户是否有短信套餐 -->
+	<select id="getOrderMessageUserByUserId"  parameterClass="HashMap"  resultClass="orderMessageUser">
+		select * from palm_order_message_user where userId = #userId# and status = #status# limit 1
+	</select>
+	
+	<!-- 修改学校的短信套餐用户信息表的中的状态为可用状态 -->
+	<update id="updateOrderMessageUserByOrederId" parameterClass="Integer">
+		update palm_order_message_user set status = 0 where orderId = #orderId#
+	</update>
+	<update id="updateOrderMessageSchoolByOrederId" parameterClass="Integer">
+		update palm_order_message_school set status = 0 where orderId = #orderId#
+	</update>	
+	
+	<!-- 修改学校的短信套餐用户信息表的中的剩余条数 -->
+	<update id="updateOrederMessageUserCount" parameterClass="HashMap">
+		update palm_order_message_user set count = #count# where familyId = #familyId#
+	</update>
+	
+	
+	<insert id="addOrderUserMessageDetail" parameterClass="orderUserMessageDetail">
+		insert into palm_order_message_user_detail
+		 (userId,type,count,orgCount,nowCount,messageId,messUserId)
+		values
+		 (#userId#,#type#,#count#,#orgCount#,#nowCount#,#messageId#,#messUserId#)
+		
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select
+			LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	
+	<!-- 根据班主任userId 查找其所带班级的所有学生和家长 -->
+	<select id="getStudentListForClassLeader" parameterClass="HashMap" resultClass="user">
+		SELECT temp.*,om.type 
+		FROM (SELECT ud.userId,ud.realName,sp.parent_userId parentId,platform.getRealName(sp.parent_userId) parentname ,c.clazzName ,sc.clazzId 
+			  FROM platform.user_detail ud,palm_student_clazz sc,platform.student_parent sp,palm_clazz c
+				WHERE ud.userId = sc.userId 
+				  AND ud.userId = sp.userId 
+				  AND c.id = sc.clazzId 
+				  AND sc.clazzId IN (
+				                     SELECT c.id FROM palm_clazz c WHERE c.leaderId = #userId#
+				                     union 
+				                     select c.id 
+				                     from palm_user_permission up,palm_clazz c ,palm_grade g  
+									 where c.id= up.optClazzId 
+									 AND c.gradeId = g.id 
+									 AND g.state = '0' AND up.userId=#userId# 
+									 AND up.permissionCode=#permissionCode# 
+									 AND up.optClazzId is not null
+				                     )
+			  ) temp LEFT JOIN palm_order_message_user om ON  ((om.userId = temp.parentId OR om.userId = temp.userId ) AND om.status = 0)
+ 			where 1=1 
+ 			<isNotEmpty property="content">
+ 				and (temp.realName LIKE CONCAT('%',#content#,'%') or temp.parentname LIKE CONCAT('%',#content#,'%'))
+ 			</isNotEmpty>
+ 			GROUP BY temp.userId
+	</select>
+	
+	<!-- 根据家长userId 查找其所孩子所在班级的所有学生和家长 -->
+	<select id="getStudentListForParent" parameterClass="HashMap" resultClass="user">
+		SELECT temp.*,om.type
+				 FROM (SELECT ud.userId,ud.realName,sp.parent_userId parentId,platform.getRealName(sp.parent_userId) parentName,c.clazzName ,sc.clazzId 
+				 FROM platform.user_detail ud,palm_student_clazz sc,platform.student_parent sp,palm_clazz c
+						WHERE ud.userId = sc.userId 
+						  AND ud.userId = sp.userId 
+						  AND c.id = sc.clazzId 
+						  AND sc.clazzId IN (SELECT c.clazzId FROM palm_student_clazz c WHERE c.userId IN (SELECT s.userId FROM platform.student_parent s WHERE s.parent_userId = #userId#))
+	  				  ) temp
+	  			LEFT JOIN palm_order_message_user om ON  ((om.userId = temp.parentId OR om.userId = temp.userId ) AND om.status = 0)
+	  			where 1=1 
+	  			<isNotEmpty property="content">
+		  			and (temp.realName LIKE CONCAT('%',#content#,'%') or temp.parentname LIKE CONCAT('%',#content#,'%'))
+	  			</isNotEmpty>
+	  			GROUP BY temp.userId
+	</select>
+	<!-- 获得 短信套餐表数量-->
+	<select id="getPalmOrderMessageCount" resultClass="java.lang.Integer"> 
+		select count(*) from palm_order_message where isVirtual = '1'
+	</select>
+	<select id="getOrderMessgeYesOrNo" resultClass="java.lang.Integer">
+		select count(*) as yesCount from palm_order_message_user u WHERE `status`=0 
+	    AND EXISTS(SELECT r.`id` FROM palm_user_role r  WHERE roleCode = 'student' AND r.userId=u.userId )
+	</select>
+	
+	<!-- 获取该学校的所有短彩信套餐 （分页）-->
+	<select id="getAllMessage"  resultClass="orderMessage">
+		select * from palm_order_message
+		where 1=1
+			<isNotEmpty property="queryContent">
+				and name LIKE CONCAT('%',#queryContent#,'%')
+			</isNotEmpty>
+			<isNotEmpty property="type">
+				and type = #type#
+			</isNotEmpty>
+			<isNotEmpty property="status">
+				and status = #status#
+			</isNotEmpty>
+	</select>
+	
+	<!-- 根据id删除短信套餐 -->
+	<delete id="deleteMessageById" parameterClass="Integer">
+		delete from palm_order_message WHERE isVirtual = '1'
+	</delete>
+	
+	<!-- 增加短信套餐 -->
+	<insert id="addOrderMessage" parameterClass="orderMessage">
+		insert into palm_order_message
+		 (name,price,startTime,endTime,type,status,createTime,isVirtual,rangeObject)
+		values
+		 (#name#,#price#,#startTime#,#endTime#,#type#,#status#,#createTime#,'1',#rangeObject#)
+	</insert>
+	
+	<!-- 根据id修改短信套餐 -->
+	<update id="modifyMessageById" parameterClass="orderMessage">
+		update palm_order_message 
+		 set status = #status#,
+		 	 name = #name#,
+		 	 price = #price#,
+		 	 type = #type#,
+		 	 startTime = #startTime#,
+		 	 endTime = #endTime#,
+		 	 updateTime = #updateTime#,
+		 	 rangeObject = #rangeObject#
+		 where id = #id#
+	</update>
+	
+	<!-- 更新虚拟套餐状态 -->
+	<update id="updateVirtualMessage" parameterClass="String">
+		update palm_order_message 
+		 set status = #status#
+		 where isVirtual = '0'
+	</update>
+	
+	<!-- 获取虚拟套餐状态 -->
+	<select id="getVirtualMessageStatus" resultClass="String">
+		SELECT status FROM palm_order_message where isVirtual = '0' limit 1
+	</select>
+		
+	<select id="getMessageUserDetailByOrderId" parameterClass="Integer" resultClass="user">
+		SELECT ud.realName,ub.* FROM platform.user_detail ud,platform.userbase ub
+		WHERE ub.userId = ud.userId and ub.userId in (select userId from palm_order_message_user where orderId = #orderId#)
+	</select>
+	
+	<!-- 获取学校套餐余量 -->
+	<select id="getRemainCountBySchoolIdForSchoolRange" parameterClass="String" resultClass="Integer">
+		SELECT sum(IFNULL(remainCount,0)) AS remainCount FROM palm_order_message_school
+		WHERE schoolId = #schoolId#
+		and status = 0
+		and type = 1
+	</select>	
+	
+	<select id="getOrderMessageSchoolBySchoolId" parameterClass="String" resultClass="orderMessageSchool">
+		SELECT *  FROM palm_order_message_school
+		WHERE schoolId = #schoolId#
+		and status = 0
+		and type = 1
+	</select>
+	
+	<update id="updateOrderMessageSchoolById" parameterClass="HashMap">
+		update palm_order_message_school 
+		 set remainCount = #remainCount#
+		 where status = 0
+		 and id = #id#
+	</update>
+	
+</sqlMap>

@@ -1,0 +1,1036 @@
+package com.guotop.palmschool.rest.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.entity.Menu;
+import com.guotop.palmschool.entity.Permission;
+import com.guotop.palmschool.entity.School;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.service.MenuService;
+import com.guotop.palmschool.service.SchoolService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.StringUtil;
+import com.richx.pojo.PermissionAttendance;
+import com.richx.pojo.PermissionDormitoryManager;
+import com.richx.pojo.PermissionMeetingManager;
+import com.richx.pojo.PermissionMorningCheckManager;
+import com.richx.pojo.PermissionOnlineLeave;
+import com.richx.pojo.PermissionSafeSchool;
+import com.richx.pojo.PermissionSchoolBusManager;
+import com.richx.pojo.PermissionScoreSendManager;
+import com.richx.pojo.RichHttpResponse;
+import com.richx.pojo.WisdomCampusMenu;
+
+import dev.gson.GsonHelper;
+
+/**
+ * @author Administrator 手机端页面菜单显示控制类
+ */
+@RequestMapping("/jspPermission")
+@Controller
+public class JspPermissionController
+{
+	
+	private Logger log = LoggerFactory.getLogger(JspPermissionController.class);
+	@Resource
+	private UserService userService;
+
+	@Resource
+	private MenuService menuService;
+	
+	@Resource
+	private SchoolService schoolService;
+
+	/**
+	 * 获取所有能看到的一级目录
+	 * TODO 接口已经废弃
+	 */
+	@RequestMapping(value = "/getFirstMenu.do")
+	public String getFirstMenu(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		RichHttpResponse<List<WisdomCampusMenu>> richHttpResponse = new RichHttpResponse<List<WisdomCampusMenu>>();
+		response.setHeader("Content-type", "application/json;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+
+				// 获取所有一级菜单
+				List<Menu> menuList = menuService.getAllMenuInfo(schoolId, 0);
+				List<WisdomCampusMenu> wisdomCampusMenuList = new ArrayList<WisdomCampusMenu>();
+				List<Permission> permissionList = loginUser.getPermissionList();
+				Map<String, Object> permissionMap = new HashMap<String, Object>();
+				if (permissionList != null)
+				{
+					// list->map
+					for (Permission permission : permissionList)
+					{
+						permissionMap.put(permission.getPermissionCode(), permission);
+					}
+
+					if (permissionMap.containsKey("admin"))
+					{
+						// 管理员权限的情况下，所有的菜单能查看
+						for (Menu menu : menuList)
+						{
+							if (menu.getId().equals("schoolManager") || menu.getId().equals("systemManage") || menu.getId().equals("messageManage")
+									|| menu.getId().equals("growthArchives") || menu.getId().equals("informationPlatform") 
+									|| menu.getId().equals("xyYktManager") || menu.getId().equals("evaluationManager") 
+									|| menu.getId().equals("siguUpManager") || menu.getId().equals("liveCameraManager") 
+									|| menu.getId().equals("morningCheckSys") || menu.getId().equals("cloudAchievement"))
+							{
+								continue;
+							} else
+							{
+								WisdomCampusMenu wisdomCampusMenu = new WisdomCampusMenu();
+								wisdomCampusMenu.menuId = menu.getId();
+								wisdomCampusMenu.menuType = menu.getOrders();
+								wisdomCampusMenu.menuName = menu.getName();
+								wisdomCampusMenu.menuUrl = menu.getUrl();
+								wisdomCampusMenu.menuIcon = menu.getIcon();
+								wisdomCampusMenuList.add(wisdomCampusMenu);
+							}
+						}
+					} else
+					{
+						// 没有管理员权限情况下，查询他能看到的菜单，
+						// 由于一级菜单没有权限,需要通过二级的菜单的个数来判断他是否可以查看到一级菜单
+						// 二级菜单个数为0的情况下不能查看一级菜单，大于0的情况下，能够查看到一级菜单
+						// 管理员权限的情况下，所有的菜单能查看
+						for (Menu menu : menuList)
+						{
+							if (menu.getId().equals("schoolManager") || menu.getId().equals("systemManage") || menu.getId().equals("messageManage")
+									|| menu.getId().equals("growthArchives") || menu.getId().equals("informationPlatform") 
+									|| menu.getId().equals("xyYktManager") || menu.getId().equals("evaluationManager")
+									|| menu.getId().equals("siguUpManager") || menu.getId().equals("liveCameraManager") 
+									|| menu.getId().equals("morningCheckSys") || menu.getId().equals("cloudAchievement"))
+							{
+								continue;
+							} else
+							{
+								WisdomCampusMenu wisdomCampusMenu = new WisdomCampusMenu();
+								wisdomCampusMenu.menuId = menu.getId();
+								wisdomCampusMenu.menuType = menu.getOrders();
+								wisdomCampusMenu.menuName = menu.getName();
+								wisdomCampusMenu.menuUrl = menu.getUrl();
+								wisdomCampusMenu.menuIcon = menu.getIcon();
+								List<Menu> subMenuList = menu.getSubMenuList();
+								for (Menu subMenu : subMenuList)
+								{
+									String subMenuPermissionCode = subMenu.getPermissionCode();
+									if (StringUtil.isEmpty(subMenuPermissionCode) || permissionMap.containsKey(subMenuPermissionCode))
+									{
+										wisdomCampusMenuList.add(wisdomCampusMenu);
+										break;
+									}
+								}
+							}
+						}
+					}
+				}
+
+				richHttpResponse.ResponseCode = 0;
+				richHttpResponse.ResponseResult = "获取成功";
+				richHttpResponse.ResponseObject = wisdomCampusMenuList;
+			} else
+			{
+				richHttpResponse.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+			}
+			String json = GsonHelper.toJson(richHttpResponse);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 平安校园
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/safeSchool.do")
+	public String safeSchool(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		RichHttpResponse<PermissionSafeSchool> richHttpResponse = new RichHttpResponse<PermissionSafeSchool>();
+		response.setHeader("Content-type", "application/json;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+				PermissionSafeSchool safeSchool = new PermissionSafeSchool();
+				safeSchool.Inout = true;
+				safeSchool.Abnormal = false;
+				safeSchool.Stay = false;
+				safeSchool.CheckCount = false;
+
+				List<Permission> permissionList = loginUser.getPermissionList();
+				for (Permission permission : permissionList)
+				{
+					if ("inoutManager".equals(permission.getPermissionCode()) || "admin".equals(permission.getPermissionCode()))
+					{
+						safeSchool.Inout = true;
+						break;
+					}
+
+				}
+				richHttpResponse.ResponseCode = 0;
+				richHttpResponse.ResponseResult = "获取成功";
+				richHttpResponse.ResponseObject = safeSchool;
+			} else
+			{
+				richHttpResponse.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+			}
+			String json = GsonHelper.toJson(richHttpResponse);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 在线请假
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/onlineLeave.do")
+	public String onlineLeave(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		RichHttpResponse<PermissionOnlineLeave> richHttpResponse = new RichHttpResponse<PermissionOnlineLeave>();
+		response.setHeader("Content-type", "application/json;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+
+				PermissionOnlineLeave onlineLeave = new PermissionOnlineLeave();
+				onlineLeave.Apply = true;
+				onlineLeave.Examine = false;
+
+				List<Permission> permissionList = loginUser.getPermissionList();
+				for (Permission permission : permissionList)
+				{
+					if ("leaveAuditManager".equals(permission.getPermissionCode()) || "admin".equals(permission.getPermissionCode()))
+					{
+						onlineLeave.Examine = true;
+						break;
+					}
+				}
+				richHttpResponse.ResponseCode = 0;
+				richHttpResponse.ResponseResult = "获取成功";
+				richHttpResponse.ResponseObject = onlineLeave;
+			} else
+			{
+				richHttpResponse.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+			}
+			String json = GsonHelper.toJson(richHttpResponse);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 师生考勤
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/attendance.do")
+	public String attendance(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		RichHttpResponse<PermissionAttendance> richHttpResponse = new RichHttpResponse<PermissionAttendance>();
+		response.setHeader("Content-type", "application/json;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+
+				PermissionAttendance attendance = new PermissionAttendance();
+				attendance.TeacherCheckList = false;
+				attendance.StudentCheckList = false;
+				// attendance.AttendanceReport = false;
+				// attendance.AttendanceRecord = false;
+
+				List<Permission> permissionList = loginUser.getPermissionList();
+				for (Permission permission : permissionList)
+				{
+					// TODO 师生考勤中所有页面都是教师考勤，需要调整 20160301
+					String permissionCode = permission.getPermissionCode();
+					if ("admin".equals(permissionCode))
+					{
+						attendance.TeacherCheckList = true;
+						attendance.StudentCheckList = true;
+						// attendance.TeacherCheckList = true;
+						// attendance.TeacherCheckList = true;
+						break;
+					}
+
+					if ("teacherAttendanceManager".equals(permissionCode))
+					{
+						attendance.TeacherCheckList = true;
+						continue;
+					}
+					if ("studentAttendanceManager".equals(permissionCode))
+					{
+						attendance.StudentCheckList = true;
+						continue;
+					}
+					// if ("attendanceStatisticsManager".equals(permissionCode))
+					// {
+					// attendance.TeacherCheckList = true;
+					// continue;
+					// }
+					// if ("attendanceRecordManager".equals(permissionCode))
+					// {
+					// attendance.TeacherCheckList = true;
+					// continue;
+					// }
+				}
+				richHttpResponse.ResponseCode = 0;
+				richHttpResponse.ResponseResult = "获取成功";
+				richHttpResponse.ResponseObject = attendance;
+			} else
+			{
+				richHttpResponse.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+			}
+			String json = GsonHelper.toJson(richHttpResponse);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 会议管理
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/meetingManager.do")
+	public String meetingManager(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		RichHttpResponse<PermissionMeetingManager> richHttpResponse = new RichHttpResponse<PermissionMeetingManager>();
+		response.setHeader("Content-type", "application/json;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+
+				PermissionMeetingManager meetingManager = new PermissionMeetingManager();
+				meetingManager.MeetingInout = false;
+				meetingManager.MeetingRecord = false;
+				meetingManager.MeetingArrangement = false;
+
+				List<Permission> permissionList = loginUser.getPermissionList();
+				for (Permission permission : permissionList)
+				{
+					String permissionCode = permission.getPermissionCode();
+					if ("admin".equals(permissionCode))
+					{
+						meetingManager.MeetingInout = true;
+						meetingManager.MeetingRecord = true;
+						meetingManager.MeetingArrangement = true;
+						break;
+					}
+
+					if ("meetingInoutManager".equals(permissionCode))
+					{
+						meetingManager.MeetingInout = true;
+						continue;
+					}
+					if ("meetingRecordManager".equals(permissionCode))
+					{
+						meetingManager.MeetingRecord = true;
+						continue;
+					}
+					if ("meetingArrangementManager".equals(permissionCode))
+					{
+						meetingManager.MeetingArrangement = true;
+						continue;
+					}
+				}
+				richHttpResponse.ResponseCode = 0;
+				richHttpResponse.ResponseResult = "获取成功";
+				richHttpResponse.ResponseObject = meetingManager;
+			} else
+			{
+				richHttpResponse.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+			}
+			String json = GsonHelper.toJson(richHttpResponse);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 宿舍管理
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/dormitoryManager.do")
+	public String dormitoryManager(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		RichHttpResponse<PermissionDormitoryManager> richHttpResponse = new RichHttpResponse<PermissionDormitoryManager>();
+		response.setHeader("Content-type", "application/json;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+
+				PermissionDormitoryManager dormitoryManager = new PermissionDormitoryManager();
+				dormitoryManager.DormitoryInout = false;
+				dormitoryManager.DormitoryInoutAbnormal = false;
+
+				List<Permission> permissionList = loginUser.getPermissionList();
+				for (Permission permission : permissionList)
+				{
+					String permissionCode = permission.getPermissionCode();
+					if ("admin".equals(permissionCode))
+					{
+						dormitoryManager.DormitoryInout = true;
+						dormitoryManager.DormitoryInoutAbnormal = true;
+						break;
+					}
+
+					if ("dormitoryInoutManager".equals(permissionCode))
+					{
+						dormitoryManager.DormitoryInout = true;
+						continue;
+					}
+					if ("dormitoryAbnormalManager".equals(permissionCode))
+					{
+						dormitoryManager.DormitoryInoutAbnormal = true;
+						continue;
+					}
+
+				}
+				richHttpResponse.ResponseCode = 0;
+				richHttpResponse.ResponseResult = "获取成功";
+				richHttpResponse.ResponseObject = dormitoryManager;
+			} else
+			{
+				richHttpResponse.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+			}
+			String json = GsonHelper.toJson(richHttpResponse);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 校车管理
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/schoolBusManager.do")
+	public String schoolBusManager(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		RichHttpResponse<PermissionSchoolBusManager> richHttpResponse = new RichHttpResponse<PermissionSchoolBusManager>();
+		response.setHeader("Content-type", "application/json;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+				PermissionSchoolBusManager schoolBusManager = new PermissionSchoolBusManager();
+				schoolBusManager.SchoolBusInout = false;
+				schoolBusManager.SchoolBusReport = false;
+				schoolBusManager.SchoolBusSms = false;
+				schoolBusManager.SchoolBusScheduleSetting = false;
+
+				List<Permission> permissionList = loginUser.getPermissionList();
+				for (Permission permission : permissionList)
+				{
+					String permissionCode = permission.getPermissionCode();
+					if ("admin".equals(permissionCode))
+					{
+						schoolBusManager.SchoolBusInout = true;
+						schoolBusManager.SchoolBusReport = true;
+						schoolBusManager.SchoolBusSms = true;
+						schoolBusManager.SchoolBusScheduleSetting = true;
+						break;
+					}
+
+					if ("schoolBusOnManager".equals(permissionCode))
+					{
+						schoolBusManager.SchoolBusInout = true;
+						continue;
+					}
+					if ("schoolBusReportManager".equals(permissionCode))
+					{
+						schoolBusManager.SchoolBusReport = true;
+						continue;
+					}
+					if ("schoolBusSmsManager".equals(permissionCode))
+					{
+						schoolBusManager.SchoolBusSms = true;
+						continue;
+					}
+					if ("schoolBusScheduleManager".equals(permissionCode))
+					{
+						schoolBusManager.SchoolBusScheduleSetting = true;
+						continue;
+					}
+
+				}
+				richHttpResponse.ResponseCode = 0;
+				richHttpResponse.ResponseResult = "获取成功";
+				richHttpResponse.ResponseObject = schoolBusManager;
+			} else
+			{
+				richHttpResponse.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+			}
+			String json = GsonHelper.toJson(richHttpResponse);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 成绩发送
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/scoreSending.do")
+	public String scoreSending(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		RichHttpResponse<PermissionScoreSendManager> richHttpResponse = new RichHttpResponse<PermissionScoreSendManager>();
+		response.setHeader("Content-type", "application/json;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+				PermissionScoreSendManager scoreSend = new PermissionScoreSendManager();
+				scoreSend.ScoreSend = false;
+
+				List<Permission> permissionList = loginUser.getPermissionList();
+				for (Permission permission : permissionList)
+				{
+					String permissionCode = permission.getPermissionCode();
+					if ("admin".equals(permissionCode))
+					{
+						scoreSend.ScoreSend = true;
+						break;
+					}
+
+					if ("sendScoreManager".equals(permissionCode))
+					{
+						scoreSend.ScoreSend = true;
+						break;
+					}
+				}
+				richHttpResponse.ResponseCode = 0;
+				richHttpResponse.ResponseResult = "获取成功";
+				richHttpResponse.ResponseObject = scoreSend;
+			} else
+			{
+				richHttpResponse.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+			}
+			String json = GsonHelper.toJson(richHttpResponse);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 晨检查询
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/morningCheck.do")
+	public String morningCheck(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		RichHttpResponse<PermissionMorningCheckManager> richHttpResponse = new RichHttpResponse<PermissionMorningCheckManager>();
+		response.setHeader("Content-type", "application/json;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+				PermissionMorningCheckManager morningCheck = new PermissionMorningCheckManager();
+				morningCheck.MorningCheck = false;
+
+				List<Permission> permissionList = loginUser.getPermissionList();
+				for (Permission permission : permissionList)
+				{
+					String permissionCode = permission.getPermissionCode();
+					if ("admin".equals(permissionCode))
+					{
+						morningCheck.MorningCheck = true;
+						break;
+					}
+
+					if ("morningCheck".equals(permissionCode))
+					{
+						morningCheck.MorningCheck = true;
+						break;
+					}
+				}
+				richHttpResponse.ResponseCode = 0;
+				richHttpResponse.ResponseResult = "获取成功";
+				richHttpResponse.ResponseObject = morningCheck;
+			} else
+			{
+				richHttpResponse.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+			}
+			String json = GsonHelper.toJson(richHttpResponse);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 获取所有能看到的目录
+	 */
+	@RequestMapping(value = "/getAllMenu.do")
+	public String getAllMenu(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		RichHttpResponse<List<WisdomCampusMenu>> richHttpResponse = new RichHttpResponse<List<WisdomCampusMenu>>();
+		response.setHeader("Content-type", "application/json;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+			// 这边是利用apikey 进行模拟登录
+			log.info("JSPPermission:"+apiKey+","+schoolId);
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+				School school = schoolService.getSchoolInfoBySchoolId(Long.valueOf(schoolId));
+				session.setAttribute("user", loginUser);
+				DBContextHolder.setDBType(loginUser.getSchoolId());
+
+				// 获取所有一级菜单
+				List<Menu> menuList = menuService.getAllMenuInfo(schoolId, 0);
+				List<WisdomCampusMenu> wisdomCampusMenuList = new ArrayList<WisdomCampusMenu>();
+				List<Permission> permissionList = loginUser.getPermissionList();
+				Map<String, Object> permissionMap = new HashMap<String, Object>();
+				if (permissionList != null)
+				{
+					// list->map
+					for (Permission permission : permissionList)
+					{
+						permissionMap.put(permission.getPermissionCode(), permission);
+					}
+
+					if (permissionMap.containsKey("admin"))
+					{
+						// 管理员权限的情况下，所有的菜单能查看
+						for (Menu menu : menuList)
+						{
+							if (menu.getId().equals("schoolManager") || menu.getId().equals("systemManage") || menu.getId().equals("growthArchives") 
+									|| menu.getId().equals("informationPlatform") || menu.getId().equals("xyYktManager") || menu.getId().equals("evaluationManager")
+									|| menu.getId().equals("siguUpManager") || menu.getId().equals("liveCameraManager") || menu.getId().equals("morningCheckSys") 
+									|| menu.getId().equals("cloudAchievement") || menu.getId().equals("sysMessage") || menu.getId().equals("attendanceReport")
+									|| menu.getId().equals("attendanceFill") || menu.getId().equals("messageManage") || menu.getId().equals("assetManagement"))
+							{
+								if(menu.getId().equals("systemManage")){
+									WisdomCampusMenu wisdomCampusMenu = new WisdomCampusMenu();
+									wisdomCampusMenu.menuId = menu.getId();
+									wisdomCampusMenu.menuType = menu.getOrders();
+//									wisdomCampusMenu.menuName = menu.getName();
+									wisdomCampusMenu.menuName = "在线补办卡";
+									wisdomCampusMenu.menuUrl = menu.getUrl();
+									wisdomCampusMenu.menuIcon = menu.getIcon();
+									
+									List<WisdomCampusMenu> subCampusMenuList = new ArrayList<WisdomCampusMenu>();
+									WisdomCampusMenu subM = new WisdomCampusMenu();
+									subM.menuId = "addCardApply";
+									subM.menuType = 1;
+									subM.menuName = "在线补办卡";
+									subCampusMenuList.add(subM);
+									wisdomCampusMenu.subMenuList = subCampusMenuList;
+									wisdomCampusMenuList.add(wisdomCampusMenu);
+								}else if(menu.getId().equals("assetManagement")){
+									//每个人都能看到资产管理和安全隐患报修
+									WisdomCampusMenu wisdomCampusMenu = new WisdomCampusMenu();
+									wisdomCampusMenu.menuId = menu.getId();
+									wisdomCampusMenu.menuType = menu.getOrders();
+//									wisdomCampusMenu.menuName = menu.getName();
+									wisdomCampusMenu.menuName = "资产报修与隐患排查";
+									wisdomCampusMenu.menuUrl = menu.getUrl();
+									wisdomCampusMenu.menuIcon = menu.getIcon();
+									
+									List<WisdomCampusMenu> subCampusMenuList = new ArrayList<WisdomCampusMenu>();
+									WisdomCampusMenu subM1 = new WisdomCampusMenu();
+									subM1.menuId = "assetRepair";
+									subM1.menuType = 1;
+									subM1.menuName = "资产报修";
+									subCampusMenuList.add(subM1);
+									WisdomCampusMenu subM2 = new WisdomCampusMenu();
+									subM2.menuId = "securityDanger";
+									subM2.menuType = 2;
+									subM2.menuName = "安全隐患排查";
+									subCampusMenuList.add(subM2);
+									wisdomCampusMenu.subMenuList = subCampusMenuList;
+									wisdomCampusMenuList.add(wisdomCampusMenu);
+									
+								}else{
+									continue;	
+								}
+							} else
+							{
+								WisdomCampusMenu wisdomCampusMenu = new WisdomCampusMenu();
+								wisdomCampusMenu.menuId = menu.getId();
+								wisdomCampusMenu.menuType = menu.getOrders();
+								wisdomCampusMenu.menuName = menu.getName();
+								wisdomCampusMenu.menuUrl = menu.getUrl();
+								wisdomCampusMenu.menuIcon = menu.getIcon();
+
+								List<Menu> subMenuList = menu.getSubMenuList();
+
+								List<WisdomCampusMenu> subCampusMenuList = new ArrayList<WisdomCampusMenu>();
+								
+								for (Menu subMenu : subMenuList)
+								{
+									if (subMenu.getId().equals("schoolNewsLook"))
+									{
+										WisdomCampusMenu subM1 = new WisdomCampusMenu();
+										subM1.menuId = "campusNews";
+										subM1.menuType = 1;
+										// 0 幼儿园 1义务教务阶段 2高中
+										if(school.getSchoolCategory().equals("0"))
+										{
+											subM1.menuName = "园所新闻";
+										}
+										else
+										{
+											subM1.menuName = "校园新闻";
+										}
+										subCampusMenuList.add(subM1);
+
+										WisdomCampusMenu subM2 = new WisdomCampusMenu();
+										subM2.menuId = "activityNotice";
+										subM2.menuType = 2;
+										subM2.menuName = "活动通知";
+										subCampusMenuList.add(subM2);
+
+										WisdomCampusMenu subM3 = new WisdomCampusMenu();
+										subM3.menuId = "precontractApply";
+										subM3.menuType = 3;
+										subM3.menuName = "预约报名";
+										subCampusMenuList.add(subM3);
+
+										WisdomCampusMenu subM4 = new WisdomCampusMenu();
+										subM4.menuId = "parentClass";
+										subM4.menuType = 4;
+										subM4.menuName = "家长课堂";
+										subCampusMenuList.add(subM4);
+										
+										WisdomCampusMenu subM5 = new WisdomCampusMenu();
+										subM5.menuId = "classActivity";
+										subM5.menuType = 5;
+										subM5.menuName = "班级每日活动";
+										subCampusMenuList.add(subM5);
+									} else
+									{
+										WisdomCampusMenu subM = new WisdomCampusMenu();
+										subM.menuId = subMenu.getId();
+										subM.menuType = subMenu.getOrders();
+										subM.menuName = subMenu.getName();
+										subM.menuUrl = subMenu.getUrl();
+										subM.menuIcon = subMenu.getIcon();
+										subCampusMenuList.add(subM);
+									}
+								}
+								wisdomCampusMenu.subMenuList = subCampusMenuList;
+								wisdomCampusMenuList.add(wisdomCampusMenu);
+							}
+						}
+					} else
+					{
+						// 没有管理员权限情况下，查询他能看到的菜单，
+						// 由于一级菜单没有权限,需要通过二级的菜单的个数来判断他是否可以查看到一级菜单
+						// 二级菜单个数为0的情况下不能查看一级菜单，大于0的情况下，能够查看到一级菜单
+						// 管理员权限的情况下，所有的菜单能查看
+						for (Menu menu : menuList)
+						{
+							if (menu.getId().equals("schoolManager") || menu.getId().equals("systemManage") || menu.getId().equals("growthArchives") 
+									|| menu.getId().equals("informationPlatform") || menu.getId().equals("xyYktManager") || menu.getId().equals("evaluationManager")
+									|| menu.getId().equals("siguUpManager") || menu.getId().equals("liveCameraManager") || menu.getId().equals("morningCheckSys") 
+									|| menu.getId().equals("cloudAchievement") || menu.getId().equals("sysMessage") || menu.getId().equals("attendanceReport")
+									|| menu.getId().equals("attendanceFill") || menu.getId().equals("messageManage")|| menu.getId().equals("assetManagement"))
+							{
+								if(menu.getId().equals("systemManage")){
+									WisdomCampusMenu wisdomCampusMenu = new WisdomCampusMenu();
+									wisdomCampusMenu.menuId = menu.getId();
+									wisdomCampusMenu.menuType = menu.getOrders();
+//									wisdomCampusMenu.menuName = menu.getName();
+									wisdomCampusMenu.menuName = "在线补办卡";
+									wisdomCampusMenu.menuUrl = menu.getUrl();
+									wisdomCampusMenu.menuIcon = menu.getIcon();
+									
+									List<WisdomCampusMenu> subCampusMenuList = new ArrayList<WisdomCampusMenu>();
+									WisdomCampusMenu subM = new WisdomCampusMenu();
+									subM.menuId = "addCardApply";
+									subM.menuType = 1;
+									subM.menuName = "在线补办卡";
+									subCampusMenuList.add(subM);
+									wisdomCampusMenu.subMenuList = subCampusMenuList;
+									wisdomCampusMenuList.add(wisdomCampusMenu);
+								}else if(menu.getId().equals("assetManagement")){
+									//每个人都能看到资产管理和安全隐患报修
+									WisdomCampusMenu wisdomCampusMenu = new WisdomCampusMenu();
+									wisdomCampusMenu.menuId = menu.getId();
+									wisdomCampusMenu.menuType = menu.getOrders();
+//									wisdomCampusMenu.menuName = menu.getName();
+									wisdomCampusMenu.menuName = "资产报修与隐患排查";
+									wisdomCampusMenu.menuUrl = menu.getUrl();
+									wisdomCampusMenu.menuIcon = menu.getIcon();
+									
+									List<WisdomCampusMenu> subCampusMenuList = new ArrayList<WisdomCampusMenu>();
+									WisdomCampusMenu subM1 = new WisdomCampusMenu();
+									subM1.menuId = "assetRepair";
+									subM1.menuType = 1;
+									subM1.menuName = "资产报修";
+									subCampusMenuList.add(subM1);
+									WisdomCampusMenu subM2 = new WisdomCampusMenu();
+									subM2.menuId = "securityDanger";
+									subM2.menuType = 2;
+									subM2.menuName = "安全隐患排查";
+									subCampusMenuList.add(subM2);
+									wisdomCampusMenu.subMenuList = subCampusMenuList;
+									wisdomCampusMenuList.add(wisdomCampusMenu);
+								}else{
+									continue;	
+								}
+							} else
+							{
+								WisdomCampusMenu wisdomCampusMenu = new WisdomCampusMenu();
+								wisdomCampusMenu.menuId = menu.getId();
+								wisdomCampusMenu.menuType = menu.getOrders();
+								wisdomCampusMenu.menuName = menu.getName();
+								wisdomCampusMenu.menuUrl = menu.getUrl();
+								wisdomCampusMenu.menuIcon = menu.getIcon();
+								
+								List<WisdomCampusMenu> subCampusMenuList = new ArrayList<WisdomCampusMenu>();
+								
+								List<Menu> subMenuList = menu.getSubMenuList();
+								boolean flag = false;
+								for (Menu subMenu : subMenuList)
+								{
+									String subMenuPermissionCode = subMenu.getPermissionCode();
+									if (StringUtil.isEmpty(subMenuPermissionCode) || permissionMap.containsKey(subMenuPermissionCode))
+									{
+										flag = true;
+
+										if (subMenu.getId().equals("schoolNewsLook"))
+										{
+											WisdomCampusMenu subM1 = new WisdomCampusMenu();
+											subM1.menuId = "campusNews";
+											subM1.menuType = 1;
+											// 0 幼儿园 1义务教务阶段 2高中
+											if(school.getSchoolCategory().equals("0"))
+											{
+												subM1.menuName = "园所新闻";
+											}
+											else
+											{
+												subM1.menuName = "校园新闻";
+											}
+											subCampusMenuList.add(subM1);
+
+											WisdomCampusMenu subM2 = new WisdomCampusMenu();
+											subM2.menuId = "activityNotice";
+											subM2.menuType = 2;
+											subM2.menuName = "活动通知";
+											subCampusMenuList.add(subM2);
+
+											WisdomCampusMenu subM3 = new WisdomCampusMenu();
+											subM3.menuId = "precontractApply";
+											subM3.menuType = 3;
+											subM3.menuName = "预约报名";
+											subCampusMenuList.add(subM3);
+
+											WisdomCampusMenu subM4 = new WisdomCampusMenu();
+											subM4.menuId = "parentClass";
+											subM4.menuType = 4;
+											subM4.menuName = "家长课堂";
+											subCampusMenuList.add(subM4);
+											
+											WisdomCampusMenu subM5 = new WisdomCampusMenu();
+											subM5.menuId = "classActivity";
+											subM5.menuType = 5;
+											subM5.menuName = "班级每日活动";
+											subCampusMenuList.add(subM5);
+										} else
+										{
+											WisdomCampusMenu subM1 = new WisdomCampusMenu();
+											subM1.menuId = subMenu.getId();
+											subM1.menuType = subMenu.getOrders();
+											subM1.menuName = subMenu.getName();
+											subM1.menuUrl = subMenu.getUrl();
+											subM1.menuIcon = subMenu.getIcon();
+											subCampusMenuList.add(subM1);
+										}
+									}
+								}
+								if(flag)
+								{
+									wisdomCampusMenu.subMenuList = subCampusMenuList;
+									wisdomCampusMenuList.add(wisdomCampusMenu);
+								}
+							}
+						}
+					}
+				}
+
+				richHttpResponse.ResponseCode = 0;
+				richHttpResponse.ResponseResult = "获取成功";
+				richHttpResponse.ResponseObject = wisdomCampusMenuList;
+			} else
+			{
+				richHttpResponse.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+			}
+			String json = GsonHelper.toJson(richHttpResponse);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+}

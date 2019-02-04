@@ -1,0 +1,26 @@
+package com.guotop.palmschool.bluetooth.quartz;
+
+public class QuarztVo {
+	private String key;
+	/**
+	 * 执行次数
+	 */
+	private long count;
+
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
+	}
+
+	public long getCount() {
+		return count;
+	}
+
+	public void setCount(long count) {
+		this.count = count;
+	}
+
+}

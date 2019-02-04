@@ -1,0 +1,13 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=GBK">
+        <meta name="viewport" content="width=device-width,user-scalable=no"/>
+        <title>很抱歉，试卷出错了！</title>
+    </head>
+    <body>
+        <div>
+            <font color="red" size="5">很抱歉，试卷出错了！请联系老师或系统管理员！</font>
+        </div>
+    </body>
+</html>

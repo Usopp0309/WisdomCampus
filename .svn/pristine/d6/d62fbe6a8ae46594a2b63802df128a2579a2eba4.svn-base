@@ -1,0 +1,181 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<base href="<%=basePath%>">
+
+<title>RichX智慧校园 -财务报表</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="expires" content="0">
+<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+<meta http-equiv="description" content="This is my page">
+
+
+<link href="<%=basePath%>media/css/bootstrap.min.css" rel="stylesheet"
+	type="text/css" />
+
+<link href="<%=basePath%>media/css/bootstrap-responsive.min.css"
+	rel="stylesheet" type="text/css" />
+
+<link href="<%=basePath%>media/css/font-awesome.min.css"
+	rel="stylesheet" type="text/css" />
+
+<link href="<%=basePath%>media/css/style-metro.css" rel="stylesheet"
+	type="text/css" />
+
+<link href="<%=basePath%>media/css/style.css" rel="stylesheet"
+	type="text/css" />
+
+<link href="<%=basePath%>media/css/style-responsive.css"
+	rel="stylesheet" type="text/css" />
+
+<link href="<%=basePath%>media/css/default.css" rel="stylesheet"
+	type="text/css" id="style_color" />
+
+<link href="<%=basePath%>media/css/uniform.default.css" rel="stylesheet"
+	type="text/css" />
+
+<!-- END GLOBAL MANDATORY STYLES -->
+
+<!-- BEGIN PAGE LEVEL STYLES -->
+
+<link rel="stylesheet" type="text/css"
+	href="<%=basePath%>media/css/select2_metro.css" />
+
+<link href="<%=basePath%>media/css/skin_m.css" rel="stylesheet"
+	type="text/css" />
+<script src="<%=basePath%>media/js/jquery-1.10.1.min.js" type="text/javascript"></script>
+
+</head>
+
+<body id="body">
+<jsp:include page="/public_module/header.jsp"></jsp:include>
+	 <div class="Fill_Card">
+		<div class="header">
+			<div class="pablic_search_box Fill_Card_search_box" onkeypress="KeyP()" >
+					<button type="button" class="fa fa-search search_submit" onclick="getList()"></button>
+					<input class="search_text" type="text" name="condition" id="condition"
+						placeholder="请输入学校名或代理商名" value=""></input>
+				</div>
+		</div>
+		<div class="con">
+			<h3>财务报表  <span style="float:right; font-size:18px;">总金额:<em style="color:#ea5514;font-size:22px;font-style: normal;padding:0px 10px;font-weight: bold;" id="totalAmount">0</em>元</span></h3>
+			<div class="tabbable tabbable-custom">
+				<p class="Fill_Card_title num4" style="background-color:#f2f2f2">
+					<span>学校</span>
+					<span>代理商</span>
+					<span>金额</span>
+					<span>操作</span>
+				</p>
+				<div class="tab-content" style="padding: 0px;">
+					<div id="content">     
+						  
+					</div>
+				</div>
+	
+			</div>
+		</div>
+		<form id="detailForm" method="post" action="<%=basePath%>financialStatements/toFinancialStatementsDetail.do">
+			<input type="hidden" name="schoolId" id="schoolId">
+		</form>
+	</div>
+	<jsp:include page="../system/footer.jsp"></jsp:include>
+	
+	<script src="<%=basePath%>media/js/jquery-1.10.1.min.js" type="text/javascript"></script>
+	<script type="text/javascript" src="<%=basePath%>media/js_m/public_js.js"></script>
+	<script src="<%=basePath%>media/js/jquery-migrate-1.2.1.min.js"
+		type="text/javascript"></script>
+
+	<!-- IMPORTANT! Load jquery-ui-1.10.1.custom.min.js before bootstrap.min.js to fix bootstrap tooltip conflict with jquery ui tooltip -->
+
+	<script src="<%=basePath%>media/js/jquery-ui-1.10.1.custom.min.js"
+		type="text/javascript"></script>
+
+	<script src="<%=basePath%>media/js/bootstrap.min.js"
+		type="text/javascript"></script>
+
+	<!--[if lt IE 9]>
+
+	<script src="<%=basePath%>media/js/excanvas.min.js"></script>
+
+	<script src="<%=basePath%>media/js/respond.min.js"></script>  
+
+	<![endif]-->
+
+	<script src="<%=basePath%>media/js/jquery.slimscroll.min.js"
+		type="text/javascript"></script>
+
+	<script src="<%=basePath%>media/js/jquery.blockui.min.js"
+		type="text/javascript"></script>
+
+	<script src="<%=basePath%>media/js/jquery.cookie.min.js"
+		type="text/javascript"></script>
+
+	<script src="<%=basePath%>media/js/jquery.uniform.min.js"
+		type="text/javascript"></script>
+
+	<!-- END CORE PLUGINS -->
+
+	<!-- BEGIN PAGE LEVEL PLUGINS -->
+
+	<script type="text/javascript"
+		src="<%=basePath%>media/js/select2.min.js"></script>
+
+	<!-- END PAGE LEVEL PLUGINS -->
+
+	<!-- BEGIN PAGE LEVEL SCRIPTS -->
+
+
+	<script src="<%=basePath%>media/js/form-samples.js"></script>
+	<script src="<%=basePath%>media/js_m/public_js.js"></script>
+	<script src="<%=basePath%>media/js/app.js"></script>
+	<script>
+		$(function(){
+			getList();
+			
+		});
+		function getList(){
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>financialStatements/getFinancialStatementsList.do",
+				data:{
+					condition : $("#condition").val()
+					},
+				success: function(data){
+					var reData = $.parseJSON(data);
+					$("#totalAmount").text(reData.totalAmount);
+					var appendHtml = "";
+					$.each(reData.list, function(n,value){
+						appendHtml += '<p class="authorization_con finance_border_bottom">';
+						appendHtml += '<span>' + value.schoolName + '</span>';
+						appendHtml += '<span>' + value.agencyName + '</span>';
+						appendHtml += '<span>' + value.amount + '</span>';
+						appendHtml += '<span>';
+						appendHtml += '<a href="javascript:showDetail(' + value.schoolId + ')">详情</a>';
+						appendHtml += '</span>';
+						appendHtml += '</p>';    
+						
+					});
+					$("#content").html(appendHtml);
+				}
+			});
+		}
+		function KeyP(){
+			 if (event.keyCode == 13 ){
+	              getList();   
+	          }
+		}
+		//查看详情
+		function showDetail(schoolId, schoolName){
+			$("#schoolId").val(schoolId);
+			$("#detailForm").submit();
+		}
+	</script>
+
+
+</body>
+</html>

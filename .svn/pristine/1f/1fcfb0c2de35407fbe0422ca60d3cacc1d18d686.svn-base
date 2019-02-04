@@ -1,0 +1,567 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<head>
+        <meta charset="utf-8" />
+        <title>修改权限页面</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta content="width=device-width, initial-scale=1" name="viewport" />
+         <!--公共css开始-->
+		<%@ include file="/public_module/public_css_new.jsp"%>
+	 	<!--公共css结束--> 
+        </head>
+    <body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed">
+    	<input class="themes" type="hidden" value="<%=basePath%>">
+        <!-- 公共顶部开始-->
+        <%@ include file="/public_module/public_header.jsp"%>    
+        <!--公共顶部结束-->
+        <div class="clearfix"> </div>
+        <!-- 内容页开始 -->
+        <div class="page-container">
+            <!--主菜单开始-->
+            <%@include file="/public_module/public_menu.jsp"%>
+            <!--主菜单结束-->
+            <!-- END SIDEBAR -->
+            <!-- BEGIN CONTENT -->
+            <div class="page-content-wrapper">
+                <!-- BEGIN CONTENT BODY -->
+                <div class="page-content m_overflow_hidden m_page_content">
+                	<div class="col-md-12 col-sm-12 m_page_con">
+                    <div class="page-bar m_margin_0_0_0_0">
+                        <ul class="page-breadcrumb">
+                            <li><a href="">首页</a><i class="fa fa-circle"></i></li>
+                            <li><a href="">系统管理</a><i class="fa fa-circle"></i></li>
+                            <li><span>修改权限</span></li>
+                        </ul>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="portlet light portlet-fit portlet-form bordered m_margin_15_auto_0" id="form_wizard_1">
+                                <div class="portlet-title">
+                                    <div class="caption">
+                                        <i class=" icon-layers font-green"></i>
+                                        <span class="caption-subject font-green sbold uppercase">个人信息</span>
+                                    </div>
+                                </div>
+                                <div class="portlet-body">
+                                    <!-- BEGIN FORM-->
+                                    <form action="#" class="form-horizontal">
+                                        <div class="form-body">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">对象</label>
+                                                <div class="col-md-9 col-lg-4">
+                                                    <input type="text" name="realName" id="realName" readonly class="form-control" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3" for="inputError">工号</label>
+                                                <div class="col-md-9 col-lg-4">
+                                                    <input type="text" name="code" id="code" readonly class="form-control" />
+                                                </div>
+                                            </div>
+                                            <h3 class="form-section">权限分配</h3>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">设置权限</label>
+                                                <div class="col-md-9 col-lg-8">
+                                                    <div class="controls" id="menuControls"></div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">权限设置范围</label>
+                                                <div class="col-md-9 col-lg-8">
+                                                    <div class="personnels" style="display:block">
+														<dl>
+															<dd onclick="groupClick(this,'depart')" style="text-indent: 0px" class="checked">部门（作用于老师）</dd>
+															<dd style="text-indent: 0px" onclick="groupClick(this,'clazz')">班级（作用于学生）</dd>
+														</dl>  
+													</div>
+													<div id="departGroup" class="personnels" style="display:block">
+														<p><i class="all checkbox departAndClazzCheckboxSelectAll" onclick="departAndClazzCheckboxSelectAll(this)"></i>全选(<b class="model" style="color:#f00"></b>操作中...)</p>
+														<dl id="departmentList" style="height:265px;">
+														</dl>
+													</div>
+													<div id="clazzGroup" class="personnels" >
+														<p><i class="all checkbox departAndClazzCheckboxSelectAll" onclick="departAndClazzCheckboxSelectAll(this)"></i>全选(<b class="model" style="color:#f00"></b>操作中...)</p>
+														<dl id="clazzList">
+														</dl>
+													</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-actions">
+                                            <div class="row">
+                                                <div class="col-md-offset-3 col-md-9">
+	                                                <button type="button" onclick="save()" class="btn green">保存</button>
+													<button type="button" class="btn" id="cancel">返回</button>
+                                                	<input type="hidden" value="${teacherId}" name="teacherId" id="teacherId" /> 
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                    <!-- END FORM-->
+                                </div>
+                            </div>
+                                </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 亦信聊天开始 -->
+        	<%@ include file="/public_module/public_QQ.jsp" %>
+            <!-- 亦信聊天结束 -->
+        </div>
+        <!-- 内容页结束 -->
+        <!-- 底部开始 -->
+        <%@ include file="/public_module/public_footer.jsp" %>
+        <!-- 底部结束 -->
+    </body>
+        <!-- 公共js开始 -->
+        <%@ include file="/public_module/public_js.jsp" %>
+        <!-- 公共js结束 -->
+	<script type="text/javascript" src="<%=basePath%>assets/global/plugins/layer/layer.js"></script>
+	<script>
+		//Map map = new HashMap();
+		//创建一个map集合用户保存权限列表，key=二级菜单权限值 value=对应的操作的对象
+		var permissionMap = {};
+		
+		jQuery(document).ready(function(){  
+			loadSubMenu("systemManage"); 
+			//选取当前菜单位置
+			setActive("systemManage","permissionManage"); 
+			//加载基础数据
+			loadTeacherDetailForModify();
+			//加载菜单权限
+			getAllMenuAndPermissionByUserId();
+			//加载登录用户能看到的所有部门
+			getDepartmentList();
+			//加载登录用户所看到的所有班级
+			getClazzList();
+
+		});
+		
+		//加载教师详细信息
+		function loadTeacherDetailForModify()
+		{
+			var teacherId = $("#teacherId").val();
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>permission/getTeacherByIdForModifyPermission.do",
+				data:{
+					teacherId : teacherId
+				},
+				success: function(data)
+				{
+					var teacher = eval("(" + data + ")");
+					$("#code").val(teacher.code);
+					$("#realName").val(teacher.realName);
+				},
+			});
+		}
+
+		function getAllMenuAndPermissionByUserId(){
+			var teacherId = $("#teacherId").val();
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>permission/getAllMenuAndPermissionByTeacherId.do",
+				data:{
+					teacherId : teacherId
+				},
+				success: function(data)
+				{
+					var menuList = eval("(" + data + ")");
+					var appendHtml = '';
+					var subMenuAppendHtml = '';
+					var buttonAppendHtml = '';
+					appendHtml+='<div class="Permission" style="display:block">';
+					appendHtml+='<dl>';
+					$.each(menuList, function(n, menu) {
+						if(n == 0){
+							appendHtml+='<dd class="checked" id="menu'+menu.id+'" onclick="menuClick(\''+menu.id+'\')">'+menu.name+'</dd>';
+						}else{
+							appendHtml+='<dd id="menu'+menu.id+'" onclick="menuClick(\''+menu.id+'\')">'+menu.name+'</dd>';
+						}
+
+						//start 循环二级菜单
+						if(n == 0){
+							subMenuAppendHtml+='<div class="Permission subMenu" id="subMenu'+menu.id+'" style="display:block">';
+						}else{
+							subMenuAppendHtml+='<div class="Permission subMenu" id="subMenu'+menu.id+'">';
+						}
+						subMenuAppendHtml+='<dl>';
+						
+						var subMenuList = menu.subMenuList;
+						$.each(subMenuList, function(y, subMenu) {
+							var subPermissionList = subMenu.subPermissionList;
+							if(subPermissionList.length > 0){
+								if(subMenu.hasPermission){
+									subMenuAppendHtml+='<dd class="subMenuDD" attr="'+subMenu.permissionCode+'"><i onclick="checkBoxClick(this,\''+subMenu.permissionCode+'\',true)" class="checkbox fa fa-check" attr="'+subMenu.permissionCode+'"></i><span onclick="subMenuClick(\''+subMenu.permissionCode+'\',this)">'+subMenu.name+'</span><em class="next_menu fa fa-chevron-right"></em></dd>';
+								}else{
+									subMenuAppendHtml+='<dd class="subMenuDD" attr="'+subMenu.permissionCode+'"><i onclick="checkBoxClick(this,\''+subMenu.permissionCode+'\',true)" class="checkbox" attr="'+subMenu.permissionCode+'"></i><span onclick="subMenuClick(\''+subMenu.permissionCode+'\',this)">'+subMenu.name+'</span><em class="next_menu fa fa-chevron-right"></em></dd>';
+								}
+							}else{
+								if(subMenu.hasPermission){
+									subMenuAppendHtml+='<dd class="subMenuDD" attr="'+subMenu.permissionCode+'"><i onclick="checkBoxClick(this,\''+subMenu.permissionCode+'\',true)" class="checkbox fa fa-check" attr="'+subMenu.permissionCode+'"></i><span onclick="subMenuClick(\''+subMenu.permissionCode+'\',this)">'+subMenu.name+'</span></dd>';
+								}else{
+									subMenuAppendHtml+='<dd class="subMenuDD" attr="'+subMenu.permissionCode+'"><i onclick="checkBoxClick(this,\''+subMenu.permissionCode+'\',true)" class="checkbox" attr="'+subMenu.permissionCode+'"></i><span onclick="subMenuClick(\''+subMenu.permissionCode+'\',this)">'+subMenu.name+'</span></dd>';
+								}
+							}
+							
+							if(subPermissionList.length > 0){
+								if(n == 0){
+									buttonAppendHtml+='<div class="Permission subPermission" id="subMenuPermission'+subMenu.permissionCode+'" style="display:block">';
+								}else{
+									buttonAppendHtml+='<div class="Permission subPermission" id="subMenuPermission'+subMenu.permissionCode+'">';
+								}
+								buttonAppendHtml+='<dl>';
+								$.each(subPermissionList, function(z, subPermission) {
+									if(subPermission.hasPermission){
+										buttonAppendHtml+='	<dd><i onclick="checkBoxClick(this,null,false)" class="checkbox '+menu.id+' fa fa-check '+subMenu.permissionCode+'" attr="'+subPermission.permissionCode+'"></i><span>'+subPermission.permissionName+'</span></dd>';
+									}else{
+										buttonAppendHtml+='	<dd><i onclick="checkBoxClick(this,null,false)" class="checkbox '+menu.id+' '+subMenu.permissionCode+'" attr="'+subPermission.permissionCode+'"></i><span>'+subPermission.permissionName+'</span></dd>';
+									}
+								});
+								buttonAppendHtml+='</dl>';
+								buttonAppendHtml+='</div>';
+							}
+							
+						});
+						subMenuAppendHtml+='</dl>';
+						subMenuAppendHtml+='</div>';
+						//end 循环二级菜单
+					});
+					appendHtml+='</dl>';
+					appendHtml+='</div>';
+					
+					
+					$("#menuControls").html(appendHtml);
+					$("#menuControls").append(subMenuAppendHtml);
+					$("#menuControls").append(buttonAppendHtml);
+				},
+			});
+		}
+		function menuClick(id){
+			//点击一级菜单相对应二级菜单显示
+			$("#menu"+id).addClass("checked").siblings().removeClass("checked");
+			$(".subMenu").removeAttr("style");
+			$("#subMenu"+id).css({"display":"block"});
+			//删除子权限页面显示
+			$(".subPermission").removeAttr("style");
+		}
+		//二级菜单点击
+		function subMenuClick(subMenuPermissionCode,object){
+			//点击二级菜单，子权限页面显示,其余子权限菜单隐藏
+			$(".subPermission").removeAttr("style");
+			$("#subMenuPermission"+subMenuPermissionCode).css({"display":"block"});
+
+			//同时将所有的二级菜单选中状态全部删除
+			$(".subMenuDD").removeClass("checked");
+			$(object).parent().addClass("checked");
+
+			//给class="model"赋值
+			var subMenuName = $(object).text();
+			$(".model").text(subMenuName);
+			//删除操作对象全选
+			$(".departAndClazzCheckboxSelectAll").removeClass("fa fa-check");
+			
+			//同时加载出对应的作用范围(部门或班级),并且保存到权限map集合中
+			$(".clazzCheckBox").removeClass("fa fa-check");
+			$(".departCheckBox").removeClass("fa fa-check");
+			
+			getDepartORClazzBySubMenuPermissionCode(subMenuPermissionCode);
+			
+			
+		}
+		
+		//部门和班级点击事件
+		function groupClick(object,group){
+			$(object).addClass("checked").siblings().removeClass("checked");
+			if(group == 'depart'){
+				$("#clazzGroup").removeAttr("style");
+				$("#departGroup").css({"display":"block"});
+			}else{
+				$("#departGroup").removeAttr("style");
+				$("#clazzGroup").css({"display":"block"});
+			}
+		}
+		
+		//全选
+		function selectAllByMenuId(object,menuId){
+			if($(object).hasClass("fa fa-check")){
+				$(object).removeClass("fa fa-check");
+				$(object).parent().parent().find("i").removeClass("fa fa-check");
+				//同时删除子菜单的下的所有选择
+				$("."+menuId).removeClass("fa fa-check");
+			}else{
+				$(object).addClass("fa fa-check");
+				$(object).parent().parent().find("i").addClass("fa fa-check");
+
+				//同时添加子菜单的下的所有选择
+				$("."+menuId).addClass("fa fa-check");
+			}
+		}
+		//二级菜单checkBox点击事件
+		function checkBoxClick(object,subMenuPermissionCode,isSubMenu){
+			if(isSubMenu){
+				if($(object).hasClass("fa fa-check")){
+					//删除子权限菜单下所有
+					$("."+subMenuPermissionCode).removeClass("fa fa-check");
+					$(object).removeClass("fa fa-check");
+				}else{
+					//子菜单下所有权限选中
+					$("."+subMenuPermissionCode).addClass("fa fa-check");
+					$(object).addClass("fa fa-check");
+				}
+				var span = $(object).next();
+				subMenuClick(subMenuPermissionCode,span);
+			}else{
+				if($(object).hasClass("fa fa-check")){
+					$(object).removeClass("fa fa-check");
+				}else{
+					$(object).addClass("fa fa-check");
+				}
+			}
+			
+		}
+
+		//加载登录用户能看到的所有部门
+		function getDepartmentList(){
+			$.ajax({
+				type: "POST",
+				url: "<%=basePath%>permission/getDepartmentListForSetPermission.do",
+			 	processData:true,
+			 	success: function(data){
+			 		var departmentList = eval("(" + data + ")");
+					var appendHtml = '';
+					$.each(departmentList, function(n, value) {
+						appendHtml += '<dd onclick="departAndClazzDDClick(this)"><i class="checkbox departCheckBox" id="D'+value.id+'"></i><span>'+value.departmentName+'</span></dd>';
+           			}); 
+					$("#departmentList").html(appendHtml);
+			 	}
+			});
+		}
+		//加载登录用户能看到的所有班级
+		function getClazzList(){
+			$.ajax({
+				type: "POST",
+				url: "<%=basePath%>permission/getClazzListForSetPermission.do",
+			 	processData:true,
+			 	success: function(data){
+			 		var clazzList = eval("(" + data + ")");
+					var appendHtml = '';
+					$.each(clazzList, function(n, value) {
+						appendHtml += '<dd onclick="departAndClazzDDClick(this)"><i class="checkbox clazzCheckBox" id="C'+value.id+'"></i><span>'+value.clazzName+'</span></dd>';
+           			}); 
+					$("#clazzList").html(appendHtml);
+			 	}
+			});
+		}
+
+		//根据二级菜单的的权限值和userId到user_permission表中查询出【被操作用户】已经拥有的操作班级或操作部门
+		function getDepartORClazzBySubMenuPermissionCode(subMenuPermissionCode){
+			var teacherId = $("#teacherId").val();
+			var departsAndClazzs = permissionMap[subMenuPermissionCode];
+			var isAjax = false;
+			if(typeof(departsAndClazzs) == "undefined" || departsAndClazzs == "undefined" || departsAndClazzs == null){
+				departsAndClazzs = new Array();
+				isAjax = true;
+			}
+			if(isAjax){
+				$.ajax({
+					type: "POST",
+					url: "<%=basePath%>permission/loadClazzIdAndDepartIdByPermissionCodeAndUserId.do",
+				 	data:{
+				 		teacherId : teacherId,
+				 		permissionCode : subMenuPermissionCode
+					},
+				 	success: function(data){
+				 		var list = eval("(" + data + ")");
+						$.each(list, function(n, value) {
+							var departId = value.optDepartId;
+	                        if (typeof(departId) == "undefined" || departId == "undefined" || departId == null || departId == "")
+	                        {
+	                        }else
+	                        {
+	                        	departId = "D"+departId;
+	                        	$("#"+departId).addClass("fa fa-check");
+	                        	if(!hasPermissionCodeInArray(departId,departsAndClazzs)){
+	                        		departsAndClazzs.push(departId);
+	                            }
+		                    }
+	                        var clazzId = value.optClazzId;
+	                        if (typeof(clazzId) == "undefined" || clazzId == "undefined" || clazzId == null || clazzId == "")
+	                        {
+	                        }else
+	                        {
+	                        	clazzId = "C"+clazzId;
+	                        	$("#"+clazzId).addClass("fa fa-check");
+	                        	if(!hasPermissionCodeInArray(clazzId,departsAndClazzs)){
+	                        		departsAndClazzs.push(clazzId);
+	                            }
+	                        }
+	           			}); 
+	        			permissionMap[subMenuPermissionCode] = departsAndClazzs;
+				 	}
+				});
+			}else{
+				//循环数组中的值
+				for(var e in departsAndClazzs){
+					var id = departsAndClazzs[e];
+					$("#"+id).addClass("fa fa-check");
+				}
+			}
+		}
+
+		//部门或者班级选择的点击时间
+		function departAndClazzDDClick(object){
+			//获取子菜单中含有class="checked"的<dd></dd>
+			if($(".model").text() == null || $(".model").text() == ""){
+				layer.msg("请勾选需要操作的模块!");
+				return;
+			}
+			
+			var isSubMenuSelectAndCheckBoxChecked = false; 
+			if($(".subMenu").find(".checked").find("i").hasClass("fa fa-check")){
+				isSubMenuSelectAndCheckBoxChecked = true;
+			}else{
+				var subMenuName = $(".subMenu").find(".checked").find("span").text();
+				layer.msg("请勾选【"+subMenuName+"】模块!");
+				return;
+			}
+
+			if(isSubMenuSelectAndCheckBoxChecked){
+				if($(object).hasClass("checked")){
+					$("#departmentList").find("dd").removeClass("checked");
+					$("#clazzList").find("dd").removeClass("checked");
+					$(object).find("i").removeClass("fa fa-check");
+				}else{
+					$("#departmentList").find("dd").removeClass("checked");
+					$("#clazzList").find("dd").removeClass("checked");
+					$(object).addClass("checked");
+					$(object).find("i").addClass("fa fa-check");
+				}
+
+				var subMenuPermissionCode = $(".subMenu").find(".checked").attr("attr");
+				var departsAndClazzs = permissionMap[subMenuPermissionCode];
+				var id=$(object).find("i").attr("id");
+				if($(object).find("i").hasClass("fa fa-check")){
+					//从map添加对应的值
+					if(!hasPermissionCodeInArray(id,departsAndClazzs)){
+                		departsAndClazzs.push(id);
+                    }
+				}else{
+					//从map删除对应的值
+					departsAndClazzs.splice($.inArray(id,departsAndClazzs),1);
+				}
+			}
+		}
+
+		//选择操作对象的时候的点击事件
+		function departAndClazzCheckboxSelectAll(object){
+			//全选之前先判断有没有操作模块
+			//获取子菜单中含有class="checked"的<dd></dd>
+			if($(".model").text() == null || $(".model").text() == ""){
+				layer.msg("请勾选需要操作的模块!");
+				return;
+			}
+			
+			var isSubMenuSelectAndCheckBoxChecked = false; 
+			if($(".subMenu").find(".checked").find("i").hasClass("fa fa-check")){
+				isSubMenuSelectAndCheckBoxChecked = true;
+			}else{
+				var subMenuName = $(".subMenu").find(".checked").find("span").text();
+				layer.msg("请勾选【"+subMenuName+"】模块!");
+				return;
+			}
+			if(isSubMenuSelectAndCheckBoxChecked){
+				var subMenuPermissionCode = $(".subMenu").find(".checked").attr("attr");
+				var departsAndClazzs = permissionMap[subMenuPermissionCode];
+				var iDoms = $(object).parent().parent().find(".checkbox");
+				if($(object).hasClass("fa fa-check")){
+					$(object).parent().parent().find(".checkbox").removeClass("fa fa-check");
+					for(var i=0;i<iDoms.length;i++){
+						var id = $(iDoms[i]).attr("id");
+						//从map删除对应的值
+						departsAndClazzs.splice($.inArray(id,departsAndClazzs),1);
+					}
+				}else{
+					$(object).parent().parent().find(".checkbox").addClass("fa fa-check");
+					for(var i=0;i<iDoms.length;i++){
+						var id = $(iDoms[i]).attr("id");
+						//从map添加对应的值
+						if(!hasPermissionCodeInArray(id,departsAndClazzs)){
+	                		departsAndClazzs.push(id);
+	                    }
+					}
+				}
+			}
+		}
+
+		//提交保存
+		function save(){
+			var teacherId = $("#teacherId").val();
+			var l_=layer.confirm('确认提交修改后的权限？', {
+				  btn: ['确定','取消'] //按钮
+				},function(){
+					//1.获取所有选择的二级菜单和二级菜单子权限
+					//2.将permissionMap转成json
+					//获取所有选中的二级菜单
+					var subMenuCheckedArray = $(".controls .subMenu").find(".fa-check");
+					var subMenuMap = {}; 
+					for(var i=0;i<subMenuCheckedArray.length;i++){
+						var subMenuPermissionCode = $(subMenuCheckedArray[i]).attr("attr");
+						var subPermissionArray = $(".controls .subPermission ."+subMenuPermissionCode);
+						var subPermissionCodeCheckedArray = new Array();
+						for(var j=0;j<subPermissionArray.length;j++){
+							if($(subPermissionArray[j]).hasClass("fa-check")){
+								subPermissionCodeCheckedArray.push($(subPermissionArray[j]).attr("attr"));
+							}
+						}
+						subMenuMap[subMenuPermissionCode] = subPermissionCodeCheckedArray;
+					}
+					
+					$.ajax({
+						type: "POST",
+						url: "<%=basePath%>permission/addPermissionCodesByUserId.do",
+					 	data:{
+					 		teacherId : teacherId,
+					 		permissionMap : JSON.stringify(permissionMap),
+					 		subMenuPermissionMap : JSON.stringify(subMenuMap)
+						},
+					 	success: function(data){
+					 		var flag = eval("(" + data + ")");
+					 		layer.close(l_);
+					 		if(flag){
+					 			alert("修改成功！");
+					 			location.reload();
+					 		}else{
+								alert("修改失败，请稍后重试！");
+						 	}
+					 	}
+					});
+				},function(){
+				  layer.close(l_);
+				});
+		}
+
+		function cancel(){
+			window.location.href='javascript:history.go(-1);';
+		}
+
+		
+		//判断数组中是否已经包含,已经包含返回true，没有包含返回false;
+		function hasPermissionCodeInArray(id,array)
+		{
+			var flag = false;
+			for(var e in array){
+				if(array[e] == id){
+					flag = true;
+					return flag;
+				}
+			}
+			return flag;
+		}
+	
+	</script>
+
+</body>
+</html>

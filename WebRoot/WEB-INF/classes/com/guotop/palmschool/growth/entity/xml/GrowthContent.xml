@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="GrowthContent">
+	<typeAlias alias="growthContent" type="com.guotop.palmschool.growth.entity.GrowthContent" />
+
+	<resultMap class="com.guotop.palmschool.growth.entity.GrowthContent" id="result_contentList">
+		<result property="id" column="id" />
+		<result property="growthId" column="growthId" />
+		<result property="firstImgPath" column="firstImgPath" />
+		<result property="secondImgPath" column="secondImgPath" />
+		<result property="thirdImgPath" column="thirdImgPath" />
+		<result property="createTime" column="createTime" />
+		<result property="createrId" column="createrId" />
+		<result property="type" column="type" />
+		<result property="content" column="content" />
+		<result property="updateTime" column="updateTime" />
+	</resultMap>
+	<select id="getContentByGrowthIdAndType" resultMap="result_contentList" parameterClass="HashMap">
+		select * from palm_growthcontent where growthId=#growthId# and type=#type#
+	</select>
+	<insert id="addContent" parameterClass="growthContent">
+		insert into palm_growthcontent(
+		growthId,
+		firstImgPath,
+		secondImgPath,
+		thirdImgPath,
+		createTime,
+		createrId,
+		type,
+		content,
+		updateTime
+		)values
+		(
+		#growthId#,
+		#firstImgPath#,
+		#secondImgPath#,
+		#thirdImgPath#,
+		now(),
+		#createrId#,
+		#type#,
+		#content#,
+		#updateTime#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	<update id="updateContent" parameterClass="growthContent">
+		update palm_growthcontent set updateTime=#updateTime#
+		<isNotEmpty prepend="," property="firstImgPath">
+		firstImgPath=#firstImgPath#
+		</isNotEmpty>
+			<isNotEmpty prepend="," property="secondImgPath">
+		secondImgPath=#secondImgPath#
+		</isNotEmpty>
+			<isNotEmpty prepend="," property="thirdImgPath">
+		thirdImgPath=#thirdImgPath#
+		</isNotEmpty>
+			<isNotEmpty prepend="," property="content">
+		content=#content#
+		</isNotEmpty>
+		where id=#id#
+	</update>
+	<delete id="deleteContent" parameterClass="Integer">
+		delete from palm_growthcontent where id=#contentId#
+	</delete>
+	<select id="getContentByContentId" resultMap="result_contentList" parameterClass="Integer">
+		select * from palm_growthcontent where id=#contentId#
+	</select>
+</sqlMap>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="TaskSubject">
+	<typeAlias alias="taskSubject" type="com.guotop.palmschool.taskAssistant.entity.TaskSubject"/>
+	
+	<!--根据Id查询科目-->	
+	<select id="getSubjectsById" parameterClass="Integer" resultClass="taskSubject">
+		select * from palm_task_subject where taskSubjectId = #taskSubjectId#
+	</select>
+	
+	<!--查询科目-->	
+	<select id="getSubjects"  resultClass="taskSubject">
+		select * from palm_task_subject 
+	</select>
+
+</sqlMap>

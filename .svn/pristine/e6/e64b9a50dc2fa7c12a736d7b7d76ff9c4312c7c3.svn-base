@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="YintowisdomLog">
+	<typeAlias alias="yintowisdomLog"
+		type="com.guotop.palmschool.entity.YintowisdomLog" />
+	<!-- 添加一卡通记录 20161203 -->
+	<insert id="addYintowisdomLog" parameterClass="yintowisdomLog">
+		insert into
+		platform.yintowisdom_log
+		(
+		`y_user_id`,
+		`w_user_id`,
+		`remark`,
+		`create_user_id`,
+		`create_time`,
+		 `type`
+		)
+		values
+		(
+		#yUserId#,
+		#wUserId#,
+		#remark#,
+		#createUserId#,
+		NOW(),
+		#type#
+		)
+	</insert>
+</sqlMap>

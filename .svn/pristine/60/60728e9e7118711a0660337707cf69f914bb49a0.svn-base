@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="SecurityDanger">
+	<typeAlias alias="securityDanger"
+		type="com.guotop.palmschool.securitydanger.entity.SecurityDanger" />
+	<!-- 分页获得数据 -->
+	<select id="getPages" resultClass="securityDanger"
+		parameterClass="HashMap">
+		select s.*,u.bindPhone as phone,d.realName as userName  from 
+		palm_security_danger s, platform.userbase u,platform.user_detail d
+		 where u.userId=d.userId and s.createUserId=u.userId
+		 <isNotEmpty property="userId">
+		 and (EXISTS(select id from palm_security_danger_detail dd where dd.receive=#userId# and dd.parentId=s.id) or (s.createUserId=#userId#))
+		 </isNotEmpty>
+		<isNotEmpty property="type">
+			and s.type=#type#
+		</isNotEmpty>
+		order by createTime DESC
+		<isNotEmpty property="startIndex">
+			LIMIT #startIndex#, #length#
+		</isNotEmpty>
+	</select>
+	<!-- 分页数 -->
+	<select id="getCount" resultClass="Integer" parameterClass="HashMap">
+		select count(*)  from 
+		palm_security_danger s, platform.userbase u,platform.user_detail d
+		 where u.userId=d.userId and s.createUserId=u.userId
+		 <isNotEmpty property="userId">
+		 and (EXISTS(select id from palm_security_danger_detail dd where dd.receive=#userId# and dd.parentId=s.id) or(s.createUserId=#userId#))
+		 </isNotEmpty>
+		<isNotEmpty property="type">
+			and s.type=#type#
+		</isNotEmpty>
+	</select>
+	<!-- 根据主键获得数据 -->
+	<select id="getByKey" resultClass="securityDanger"
+		parameterClass="Integer">
+		select s.*,u.bindPhone as phone,d.realName as userName  from 
+		palm_security_danger s, platform.userbase u,platform.user_detail d
+		 where u.userId=d.userId and s.createUserId=u.userId and s.id=#id#
+	</select>
+	<insert id="addSecurityDanger" parameterClass="securityDanger">
+		insert into
+		palm_security_danger(type,`desc`,createUserId,createTime)
+		values
+		(#type#,#desc#,#createUserId#,NOW())
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select
+			LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+
+</sqlMap>
+	

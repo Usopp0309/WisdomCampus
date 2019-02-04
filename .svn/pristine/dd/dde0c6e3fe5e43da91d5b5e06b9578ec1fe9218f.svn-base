@@ -1,0 +1,327 @@
+package com.guotop.palmschool.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.common.entity.ResultInfo;
+import com.guotop.palmschool.entity.Grade;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.service.GradeService;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 年级管理业务类实现类
+ * 
+ * @author
+ * 
+ */
+@Service("gradeService")
+public class GradeServiceImpl extends BaseService implements GradeService
+{
+
+	/**
+	 * 根据年级名称查找到年级bean
+	 * 
+	 * @param gradeId
+	 *            年级ID
+	 * @return 查找到的年级bean
+	 */
+	public Grade selectGradeByName(String gradeName)
+	{
+		return (Grade) getBaseDao().selectObjectByObject("Grade.selectGradeByName", gradeName);
+	}
+
+	/**
+	 * 加载所有的教师信息, 用于选择年级主任
+	 * 
+	 * @return 所有教师信息
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> selectAllTeacherList()
+	{
+		return getBaseDao().selectListBySql("Grade.selectAllTeacherList");
+	}
+
+	/**
+	 * 表单检验相关---begin
+	 */
+	/**
+	 * 检查年级代码是否存在
+	 * 
+	 * @param code
+	 *            年级代码
+	 * @return 返回结果
+	 */
+	public ResultInfo checkGradeByCode(String code)
+	{
+		Integer result = (Integer) getBaseDao().selectObjectByObject("Grade.checkGradeByCode", code);
+		ResultInfo resultInfo = new ResultInfo();
+		if (ResultInfo.RESULT_EXISTS.equals(result))
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_SUCCESS);
+		} else
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_ERROR);
+		}
+		return resultInfo;
+	}
+
+	/**
+	 * 检查年级名是否存在
+	 * 
+	 * @param name
+	 *            年级名
+	 * @return 返回结果
+	 */
+	public ResultInfo checkGradeByName(String name)
+	{
+		Integer result = (Integer) getBaseDao().selectObjectByObject("Grade.checkGradeByName", name);
+		ResultInfo resultInfo = new ResultInfo();
+		if (ResultInfo.RESULT_EXISTS.equals(result))
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_SUCCESS);
+		} else
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_ERROR);
+		}
+		return resultInfo;
+	}
+
+
+	/**
+	 * 查询条件查询年级记录 /分页查询
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @return 年级记录/分页 update by shengyinjiang 20151127
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages getGradeList(int pageSize, int page, Map<String, Object> paramMap, User user)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<Grade> list = new ArrayList<Grade>();
+
+		allRow = this.getBaseDao().getAllRowCountByCondition("Grade.getGradeList", paramMap);
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		currentPage = Pages.countCurrentPage(page);
+		list = this.getBaseDao().queryForPageByCondition("Grade.getGradeList", paramMap, offset, length);
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+
+		//如果总页数为0，当前页也应该为0
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+	
+	/**
+	 * 查询条件查询年级记录 
+	 * @return 年级记录
+	 *  update by shengyinjiang 20151129
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Grade> getGradeList() {
+		return getBaseDao().selectListBySql("Grade.getGradeList");
+	}
+	
+	/**
+	 * 根据年级ID查找到年级bean
+	 * 
+	 * @param gradeId
+	 *            年级ID
+	 * @return 查找到的年级bean
+	 * 
+	 * update by shengyinjiang 20151127
+	 */
+	public Grade getGradeById(Integer gradeId)
+	{
+		return (Grade) getBaseDao().selectObjectByObject("Grade.getGradeById", gradeId);
+	}
+	
+	/**
+	 * 年级修改
+	 * 
+	 * update by shengyinjiang 20151127
+	 **/
+	public void modifyGradeById(Map<String, Object> paramMap)
+	{
+		getBaseDao().updateObject("Grade.modifyGradeById", paramMap);
+	}
+	
+	/**
+	 * 新增年级
+	 * 
+	 * @param grade
+	 *            待新增的年级
+	 * update by shengyinjiang 20151127
+	 * update by wangwei 20160722
+	 */
+	public Integer addGrade(Grade grade)
+	{
+		Integer id = getBaseDao().addObject("Grade.addGrade", grade);
+		return id;
+	}
+	
+	/**
+	 * 添加年级(福建资源云)
+	 * 
+	 */
+	public Integer addGradeForFJ(Grade grade){
+		Integer id = getBaseDao().addObject("Grade.addGradeForFJ", grade);
+		return id;
+	}
+	
+	/**
+	 * 表单校验 入学年份是否存在
+	 * 
+	 *  update by shengyinjiang 20151127
+	 */
+	public ResultInfo checkGradeCreateYearInModify(Map<String, Object> paramMap){
+		
+		Integer result = (Integer) getBaseDao().selectObjectByObject("Grade.checkGradeCreateYearInModify", paramMap);
+		ResultInfo resultInfo = new ResultInfo();
+		if (ResultInfo.RESULT_EXISTS.equals(result))
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_SUCCESS);
+		} else
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_ERROR);
+		}
+		return resultInfo;
+	}
+	
+	/**
+	 * 表单校验 年级是否存在
+	 * 
+	 *  update by shengyinjiang 20151127
+	 */
+	public ResultInfo checkGradeCreateYearInAdd(Map<String, Object> paramMap){
+		
+		Integer result = (Integer) getBaseDao().selectObjectByObject("Grade.checkGradeCreateYearInAdd", paramMap);
+		ResultInfo resultInfo = new ResultInfo();
+		if (ResultInfo.RESULT_EXISTS.equals(result))
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_SUCCESS);
+		} else
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_ERROR);
+		}
+		return resultInfo;
+	}
+	
+	/**
+	 * 表单校验 入学年份是否存在  FOR 福建资源云
+	 * 
+	 *  update by shengyinjiang 20161029
+	 */
+	public Integer getGradeIdCreateYearInAddForFJ(Map<String, Object> paramMap){
+		Integer gradeId = (Integer) getBaseDao().selectObjectByObject("Grade.getGradeIdCreateYearInAddForFJ", paramMap);
+		if(null == gradeId){
+			gradeId = 0;
+		}
+		return gradeId;
+	}
+	/**
+	 * 根据年级名获取年级ID
+	 * update by jfy 2015-11-30
+	 */
+	@Override
+	public String getGradeIdByGradeNameAndType(HashMap<String, Object> gradeMap)
+	{
+		
+		return (String)getBaseDao().selectObjectByObject("Grade.getGradeIdByGradeName", gradeMap);
+	}
+
+	@Override
+	public String getGradeByUserId(int userId)
+	{
+		
+		return (String)this.getBaseDao().selectObjectByObject("Grade.getGradeByUserId", userId);
+	}
+
+	/**
+	 * 根据角色查询对应的年级
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Grade> getGradeListByUserIdAndRoleCode(Integer userId, String roleCode)
+	{
+		List<Grade> list = new ArrayList<Grade>();
+		if (roleCode.equals("admin") || roleCode.equals("president") || roleCode.equals("chairman"))
+		{
+			list = getBaseDao().selectListBySql("Grade.getGradeList");
+
+		} else if (roleCode.equals("classLeader"))
+		{
+			list = getBaseDao().selectList("Grade.getGradeListByUserIdAsClassLeader", userId);
+
+		} else if (roleCode.equals("parent"))
+		{
+			list = getBaseDao().selectList("Grade.getGradeListByUserIdAsParent", userId);
+		} else if (roleCode.equals("student"))
+		{
+			list = getBaseDao().selectList("Grade.getGradeListByUserIdAsStudent", userId);
+		} else
+		{
+			list = getBaseDao().selectList("Grade.getGradeListByUserIdAsTeacher", userId);
+		}
+
+		return list;
+	}
+	/**
+	 * 查询条件查询年级记录 /分页查询【福建专用】
+	 * 
+	 * @param paramMap
+	 *            条件
+	 * @return 年级记录/分页 update by shengyinjiang 20151127
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public Pages getGradeListFJj(int pageSize, int page, Map<String, Object> paramMap, User user)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<Grade> list = new ArrayList<Grade>();
+
+		allRow = this.getBaseDao().getAllRowCountByCondition("Grade.getGradeListFj", paramMap);
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		currentPage = Pages.countCurrentPage(page);
+		list = this.getBaseDao().queryForPageByCondition("Grade.getGradeListFj", paramMap, offset, length);
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+
+		//如果总页数为0，当前页也应该为0
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+}

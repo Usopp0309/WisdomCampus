@@ -1,0 +1,151 @@
+@charset "utf-8";
+/* 出行状态样式 正常出行为黑色，其他都为灰色*/
+.normal{color:#000;}
+.unnormal{color:#666;}
+
+/* 提交，发送，通知维护，确定，查看，搜索， */
+.design_btn{
+	background:#39b54a;
+	color:#fff;
+	border-radius:5px;
+	width:60px;
+	
+}
+.design_btn:hover{
+	background:#309e3a;
+	color:#fff;
+}
+
+
+/* 返回 */
+.back_btn{
+	background:#ccc;
+	color:#fff;
+	border-radius:5px;
+	width:60px;
+}
+.back_btn:hover{
+	background:#a09f9f;
+	color:#fff;
+	
+}
+/* 编辑按钮*/
+.edit_btn{
+	background:#8cc63f;
+	color:#fff;
+	border-radius:5px;
+	width:55px;
+	height:25px;
+	line-height:15px;
+	
+}
+.edit_btn:hover{
+	background:#76a32f;
+	color:#fff;
+}
+/* 推送信息 按钮*/
+.push_btn{
+	background:#39b54a;
+	color:#fff;
+	border-radius:5px;
+	width:70px;
+	height:25px;
+	line-height:15px;
+}
+.push_btn:hover{
+	background:#238e2d;
+	color:#fff;
+	
+}
+
+
+/* 删除按钮 */
+.delete_btn{
+	background:#d9544f;
+	color:#fff;
+	border-radius:5px;
+	width:55px;
+	height:25px;
+	line-height:15px;
+	
+}
+.delete_btn:hover{
+	background:#af3131;
+	color:#fff;
+	
+}
+
+
+/* 详情按钮 */
+.detail_btn{
+	background:#916cb7;
+	color:#fff;
+	border-radius:5px;
+	width:55px;
+	height:25px;
+	line-height:15px;
+	
+}
+.detail_btn:hover{
+	background:#74549e;
+	color:#fff;
+	
+}
+
+/* 推送 按钮*/
+.push1_btn{
+	background:#39b54a;
+	color:#fff;
+	border-radius:5px;
+	width:55px;
+	height:25px;
+	line-height:15px;
+}
+.push1_btn:hover{
+	background:#238e2d;
+	color:#fff;
+	
+}
+/* 修改按钮*/
+.update_btn{
+	background:#5bc0de;
+	color:#fff;
+	border-radius:5px;
+	width:55px;
+	height:25px;
+	line-height:15px;
+}
+.update_btn:hover{
+	background:#429db2;
+	color:#fff;
+	
+}
+/* 二维码 按钮*/
+.erweima_btn{
+	background:#b3b3b3;
+	color:#fff;
+	border-radius:5px;
+	width:55px;
+	height:25px;
+	line-height:15px;
+}
+.erweima_btn:hover{
+	background:#968d8d;
+	color:#fff;
+	
+}
+
+/* 地图显示 按钮*/
+.map_btn{
+	background:#e73d4a;
+	color:#fff;
+	border-radius:5px;
+	width:70px;
+	height:25px;
+	line-height:15px;
+}
+.map_btn:hover{
+	background:#e73d4a;
+	color:#fff;
+	
+}

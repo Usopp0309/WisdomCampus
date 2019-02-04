@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="SchoolCountInfo">
+	<typeAlias alias="schoolCountInfo" type="com.guotop.palmschool.scheduler.entity.SchoolCountInfo" />
+
+	<resultMap class="com.guotop.palmschool.scheduler.entity.SchoolCountInfo" id="result_countInfo">
+		<result property="schoolId" column="schoolId" />
+		<result property="userCount" column="userCount" />
+		<result property="teacherCount" column="teacherCount" />
+		<result property="studentCount" column="studentCount" />
+		<result property="smsCount" column="smsCount" />
+		<result property="mobileSmsCount" column="mobileSmsCount" />
+		<result property="unicomSmsCount" column="unicomSmsCount" />
+		<result property="telecomSmsCount" column="telecomSmsCount" />
+	</resultMap>
+	
+	<!-- 查找统计信息-->
+	<select id="getAllCountInfo" resultMap="result_countInfo">
+		select * from platform.school_countInfo
+	</select>
+	
+	<select id="getCountInfoBySchoolId" parameterClass="Long" resultClass="schoolCountInfo">
+		select * from platform.school_countInfo where schoolId=#schoolId#
+	</select>	
+	
+	<select id="getSchoolDataSorceList" resultClass="schoolCountInfo">
+		select schoolId from platform.school_datasource
+	</select>
+	
+	<!-- 获取用户总数 -->
+	<select id="getUserCountBySchoolId" parameterClass="Long" resultClass="Integer">
+		select COUNT(tmp.parentId) count  from (
+			SELECT sc.userId parentId FROM palm_student_clazz sc ,palm_clazz c,palm_grade g WHERE sc.clazzId = c.id AND c.gradeId = g.id AND g.state = 0
+			UNION 
+			SELECT DISTINCT ud.userId parentId FROM palm_user_department ud 
+			UNION 
+			SELECT sp.parent_userId parentId FROM platform.student_parent sp
+			WHERE sp.userId IN (SELECT sc.userId FROM  platform.`userbase` ub ,palm_student_clazz sc ,palm_clazz c,palm_grade g WHERE  ub.`userId` = sc.`userId` AND sc.clazzId = c.id AND c.gradeId = g.id AND g.state = 0)
+		)tmp 
+	</select>
+	<!-- 获取学生总数 -->
+	<select id="getStudentCountBySchoolId"  resultClass="Integer">
+		SELECT COUNT(sc.userId) count 
+		FROM platform.`userbase` ub ,palm_student_clazz sc ,palm_clazz c,palm_grade g 
+		WHERE ub.`userId` = sc.`userId`
+		AND sc.clazzId = c.id 
+		AND c.gradeId = g.id 
+		AND g.state = 0
+	</select>
+	<!-- 获取老师总数 -->
+	<select id="getTeacherCountBySchoolId" resultClass="Integer">
+		SELECT COUNT(DISTINCT ud.userId) count FROM palm_user_department ud 
+	</select>
+	<!-- 增加统计信息 20151207-->
+	<insert id="addInitCountInfo" parameterClass="schoolCountInfo">
+		INSERT INTO platform.school_countInfo
+		(
+			schoolId
+		)
+		VALUES
+		(
+			#schoolId#
+		)
+	</insert>
+	<!-- 增加备份的统计信息 20170328 -->
+	<insert id="addCountInfoBK" parameterClass="schoolCountInfo">
+		INSERT INTO platform.school_countinfo_bk
+		(
+			schoolId,
+			userCount,
+			teacherCount,
+			studentCount,
+			smsCount,
+			mobileSmsCount,
+			unicomSmsCount,
+			telecomSmsCount,
+			createTime,
+			updateTime
+		)
+		VALUES
+		(
+			#schoolId#,
+			#userCount#,
+			#teacherCount#,
+			#studentCount#,
+			#smsCount#,
+			#mobileSmsCount#,
+			#unicomSmsCount#,
+			#telecomSmsCount#,
+			now(),
+			now()
+		)
+	</insert>
+	
+	<!-- 更新统计信息 -->
+	<update id="updateCountInfoBySchoolId" parameterClass="schoolCountInfo">
+		update platform.school_countInfo set userCount=#userCount#
+			<isNotEmpty prepend="," property="teacherCount">
+				teacherCount=#teacherCount#
+			</isNotEmpty> 
+			<isNotEmpty prepend="," property="studentCount">
+				studentCount=#studentCount#
+			</isNotEmpty> 
+			where schoolId=#schoolId#
+	</update>
+	
+	<!-- 根据学校Id获取服务费总额 -->
+	<select id="getServiceTotalAmount" parameterClass="HashMap" resultClass="Double">
+		SELECT IFNULL(SUM(IFNULL(om.servicePrice,0)),0) FROM palm_order_message_user omu,palm_order_message om,platform.orders o 
+		WHERE omu.orderId = o.id AND o.status=1 AND omu.messageId=om.id
+		<isNotEmpty prepend="and" property="startTime">
+			omu.createtime <![CDATA[ >= ]]> #startTime# 
+	    </isNotEmpty>
+		<isNotEmpty prepend="and" property="endTime">
+			omu.createtime <![CDATA[ <= ]]> #endTime# 
+	    </isNotEmpty>
+	</select>
+	
+	<!-- 根据学校Id获取智慧校园卡总数-->
+	<select id="getCardNumber" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(id) count FROM palm_card 
+	</select>
+	
+	<!-- 根据学校Id获取智慧校园卡押金总额 -->
+	<select id="getCardTotalDepositAmount" parameterClass="HashMap" resultClass="Double">
+		SELECT IFNULL(SUM(IFNULL(om.cardPrice,0)),0) FROM palm_order_message_user omu,palm_order_message om,platform.orders o 
+		WHERE omu.orderId = o.id AND o.status=1 AND omu.messageId=om.id
+		<isNotEmpty prepend="and" property="startTime">
+			omu.createtime <![CDATA[ >= ]]> #startTime# 
+	    </isNotEmpty>
+		<isNotEmpty prepend="and" property="endTime">
+			omu.createtime <![CDATA[ <= ]]> #endTime# 
+	    </isNotEmpty>
+	</select>
+</sqlMap>

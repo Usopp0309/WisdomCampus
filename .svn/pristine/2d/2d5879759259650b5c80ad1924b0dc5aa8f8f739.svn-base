@@ -1,0 +1,29 @@
+/* °´Å¥Í¼±ê*/
+.wwActionToolBar .add a,
+.wwActionToolBar .create a { background-image: url('button/icon/add.gif'); }
+.wwActionToolBar .del a,
+.wwActionToolBar .delete a { background-image: url('button/icon/del.gif'); }
+.wwActionToolBar .mod a,
+.wwActionToolBar .modify a { background-image: url('button/icon/modify.gif'); }
+.wwActionToolBar .send a { background-image: url('button/icon/send.gif'); }
+.wwActionToolBar .reply a { background-image: url('button/icon/reply.gif'); }
+.wwActionToolBar .detail a { background-image: url('button/icon/detail.gif'); }
+.wwActionToolBar .trash a { background-image: url('button/icon/trash.gif'); }
+.wwActionToolBar .restore a { background-image: url('button/icon/restore.gif'); }
+.wwActionToolBar .clear a { background-image: url('button/icon/clear.gif'); }
+.wwActionToolBar .back a { background-image: url('button/icon/back.gif'); }
+.wwActionToolBar .group a { background-image: url('button/icon/group.gif'); }
+.wwActionToolBar .view a { background-image: url('button/icon/view.gif'); }
+.wwActionToolBar .adu a { background-image: url('button/icon/aduit.gif'); }
+.wwActionToolBar .pur a { background-image: url('button/icon/key.gif'); }
+.wwActionToolBar .pay a { background-image: url('button/icon/pay.gif'); }
+.wwActionToolBar .regu a { background-image: url('button/icon/regu.gif'); }
+.wwActionToolBar .user a { background-image: url('button/icon/user.gif'); }
+.wwActionToolBar .exp a { background-image: url('button/icon/exp.gif'); }
+.wwActionToolBar .imp a { background-image: url('button/icon/imp.gif'); }
+.wwActionToolBar .save a { background-image: url('button/icon/save.gif'); }
+.wwActionToolBar .pie a { background-image: url('button/icon/pie.gif'); }
+.wwActionToolBar .talk a { background-image: url('button/icon/discuss.gif'); }
+.wwActionToolBar .unread a { background-image: url('button/icon/unread.gif'); }
+.wwActionToolBar .readed a { background-image: url('button/icon/readed.gif'); }
+.wwActionToolBar .file a { background: url('button/icon/file.gif') 16px 3px no-repeat; } .wwActionToolBar .file a:hover { background-position: 15px 2px; }

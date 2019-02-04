@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Grade">
+	<typeAlias alias="grade" type="com.guotop.palmschool.entity.Grade" />
+
+	<resultMap class="com.guotop.palmschool.entity.Grade" id="result_grade">
+		<result property="id" column="id" />
+		<result property="leaderId" column="leaderId" />
+		<result property="updateTime" column="updateTime" />
+		<result property="createTime" column="createTime" />
+		<result property="createYear" column="createyear" />
+		<result property="type" column="type" />
+		<result property="state" column="state" />
+		<result property="name" column="name" />
+	</resultMap>
+
+
+	
+	
+	<!-- 查询所有状态为0的年级列表 update by shengyinjiang 20151127-->
+	<select id="getGradeList" parameterClass="java.util.HashMap" resultMap="result_grade">				
+		SELECT g.id,g.leaderId,g.updateTime,g.createTime,g.createYear,g.type,g.state,getGradeName(g.id) name FROM palm_grade g 
+ 				WHERE g.state = '0'
+ 				<isNotEmpty property="queryContent">
+				AND (g.createYear LIKE CONCAT('%',#queryContent#,'%') or getGradeName(g.id) LIKE CONCAT('%',#queryContent#,'%'))
+				</isNotEmpty>
+				ORDER BY g.type ASC,g.createYear DESC
+	</select>	
+	<!-- 查询所有状态为0的年级列表 【福建专用】-->
+	<select id="getGradeListFj" parameterClass="java.util.HashMap" resultMap="result_grade">				
+		SELECT g.id,g.leaderId,g.updateTime,g.createTime,g.createYear,g.type,g.state,getGradeName(g.id) name FROM fjzyyptxx.palm_grade g 
+ 				WHERE g.state = '0'
+ 				<isNotEmpty property="queryContent">
+				AND (g.createYear LIKE CONCAT('%',#queryContent#,'%') or g.name  LIKE CONCAT('%',#queryContent#,'%'))
+				</isNotEmpty>
+				and g.fjSchoolId=#fjSchoolId# 
+				ORDER BY g.type ASC,g.createYear DESC
+	</select>	
+	 <!-- 根据年级Id查找所有年级信息  update by shengyinjiang 20151127-->
+	<select id="getGradeById" parameterClass="Integer" resultMap="result_grade">
+		select g.*  from palm_grade g
+			where g.id = #gradeId#
+	</select>
+	
+	<!-- 修改年级  update by shengyinjiang 20151127-->
+	<update id="modifyGradeById" parameterClass="HashMap">
+		update palm_grade
+		set leaderId = #leaderId#,
+			updateTime = #updateTime#,
+			type = #type#,
+			createYear = #createYear#,
+			state = #state#
+			where id = #gradeId#
+	</update>
+	
+		<!-- 添加年级 update by shengyinjiang 20151127-->
+	<insert id="addGrade" parameterClass="grade">
+		insert into palm_grade
+		(
+			leaderId,
+			updateTime,
+			createTime,
+			createYear,
+			type,
+			name,
+			state
+		)
+		values
+		(
+			#leaderId#,
+			#updateTime#,
+			#createTime#,
+			#createYear#,
+			#type#,
+			#name#,
+			#state#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+
+	<!-- 添加年级 add by shengyinjiang 20161029-->
+	<insert id="addGradeForFJ" parameterClass="grade">
+		insert into fjzyyptxx.palm_grade
+		(
+			leaderId,
+			updateTime,
+			createTime,
+			createYear,
+			type,
+			name,
+			state,
+			fjSchoolId
+		)
+		values
+		(
+			#leaderId#,
+			#updateTime#,
+			#createTime#,
+			#createYear#,
+			#type#,
+			#name#,
+			#state#,
+			#fjSchoolId#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>	
+	
+	
+	<!-- 表单校验 修改年级信息时入学年份是否存在 update by shengyinjiang 20151127 -->
+	<select id="checkGradeCreateYearInModify" parameterClass="HashMap" resultClass="Integer">
+ 		SELECT 1 FROM (SELECT * FROM palm_grade g WHERE g.createYear != #originalCreateYear#) d
+ 				where d.createYear = #createYear#
+ 				and d.type = #type# and d.state = '0'
+ 	</select>
+ 	
+ 	<!-- 表单校验 修改年级信息时入学年份是否存在 update by shengyinjiang 20151127 -->
+	<select id="checkGradeCreateYearInAdd" parameterClass="HashMap" resultClass="Integer">
+ 		SELECT 1 FROM palm_grade g 
+ 				where g.createYear = #createYear#
+ 				and g.type = #type# and g.state = '0' limit 1
+ 	</select>
+
+ 	<!-- 根据入学年份和类型判断年级是否存在  add by shengyinjiang 20161029 -->
+	<select id="getGradeIdCreateYearInAddForFJ" parameterClass="HashMap" resultClass="Integer">
+ 		SELECT g.id FROM fjzyyptxx.palm_grade g 
+ 				where g.createYear = #createYear#
+ 				and g.type = #type# 
+ 				and g.fjSchoolId = #fjSchoolId#
+ 				and g.state = '0' 
+ 				limit 1
+ 	</select>
+ 	
+	<!-- 根据年级名称获取年级ID update by jfy 20151130 -->
+	<select id="getGradeByGradeName" parameterClass="HashMap" resultClass="grade">
+ 		SELECT g.* FROM palm_grade g where g.state=0 and g.name=#gradeName# and g.type=#type#
+ 	</select>
+ 	
+ 	<!-- 根据年级名称获取年级ID update by syj 20151211 -->
+	<select id="getGradeByClazzId" parameterClass="Integer" resultClass="Integer">
+ 		SELECT  id  FROM palm_grade g where g.state=0 and g.name=#gradeName# and g.type=#type#
+ 	</select>
+ 	
+ 	
+<!--  班级相册使用begin  -->
+
+	<!-- 根据userId查询其所带班级对应的年级（班主任） -->
+	<select id="getGradeListByUserIdAsClassLeader" parameterClass="Integer" resultMap="result_grade">				
+		SELECT g.* FROM palm_grade g  
+ 				WHERE g.state = '0'
+ 				AND g.id IN
+ 				( SELECT c.gradeId FROM palm_clazz c WHERE c.leaderId = #userId#  
+ 				  UNION
+ 				  SELECT c.gradeId FROM palm_subjectandteacherlink s, palm_clazz c WHERE s.teacherId = #userId# AND c.id=s.clazzId 
+ 				)
+				ORDER BY g.id ASC
+	</select>
+	
+	<!-- 根据userId查询其所带班级对应的年级（家长） -->
+	<select id="getGradeListByUserIdAsParent" parameterClass="Integer" resultMap="result_grade">				
+		SELECT g.* FROM palm_grade g  
+ 				WHERE g.state = '0'
+ 				AND g.id IN
+ 				( 
+ 				  SELECT c.gradeId FROM palm_clazz c WHERE c.id IN 
+ 				    ( SELECT sc.clazzId FROM palm_student_clazz sc WHERE sc.userId IN  
+ 				        (SELECT sp.userId FROM platform.student_parent sp  WHERE sp.parent_userId = #userId#)
+ 				    )
+ 				)
+				ORDER BY g.id ASC
+	</select>
+	
+	<!-- 根据userId查询其所带班级对应的年级（学生） -->
+	<select id="getGradeListByUserIdAsStudent" parameterClass="Integer" resultMap="result_grade">				
+		SELECT g.* FROM palm_grade g  
+ 				WHERE g.state = '0'
+ 				AND g.id IN
+ 				( 
+ 				  SELECT c.gradeId FROM palm_clazz c WHERE c.id IN 
+ 				    ( SELECT sc.clazzId FROM palm_student_clazz sc WHERE sc.userId = #userId#)
+ 				)
+				ORDER BY g.id ASC
+	</select>
+	
+	<!-- 根据userId查询其所带班级对应的年级（教师） -->
+	<select id="getGradeListByUserIdAsTeacher" parameterClass="Integer" resultMap="result_grade">				
+		SELECT g.* FROM palm_grade g  
+ 				WHERE g.state = '0'
+ 				AND g.id IN
+ 				( 
+ 				  SELECT c.gradeId FROM palm_subjectandteacherlink s, palm_clazz c WHERE s.teacherId = #userId# AND c.id=s.clazzId 
+ 				)
+				ORDER BY g.id ASC
+	</select>
+	<select id="getGradeByUserId" parameterClass="Integer" resultClass="String">
+		select name from palm_grade g,platform.userBase u,palm_student_clazz sc,palm_clazz c where g.state = '0' and u.userId = sc.userId and sc.clazzId =c.id and c.gradeId =g.id and u.userId=#userId#
+	</select>
+</sqlMap>

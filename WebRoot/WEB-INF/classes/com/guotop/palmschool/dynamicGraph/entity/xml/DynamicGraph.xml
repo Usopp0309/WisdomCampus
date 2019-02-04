@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="DynamicGraph">
+	<typeAlias alias="dynamicGraph" type="com.guotop.palmschool.dynamicGraph.entity.DynamicGraph" />
+
+	<resultMap class="com.guotop.palmschool.dynamicGraph.entity.DynamicGraph" id="result_graph">
+	</resultMap>
+	
+
+	<!--添加APP首页动态图-->
+	<insert id="addDynamicGraph" parameterClass="dynamicGraph">
+		insert into palm_dynamic_graph
+		(
+		path,
+		type,
+		<isNotNull property="title">
+			title,
+		</isNotNull>
+		<isNotNull property="url">
+			url,
+		</isNotNull>
+		<isNotNull property="desc">
+			desc,
+		</isNotNull>
+		count,
+		status,
+		userId,
+		realName,
+		createTime
+		)
+		values
+		(
+		#path#,
+		#type#,
+		<isNotNull property="title">
+			#title#,
+		</isNotNull>
+		<isNotNull property="url">
+			#url#,
+		</isNotNull>
+		<isNotNull property="desc">
+			#desc#,
+		</isNotNull>
+		#count#,
+		#status#,
+		#userId#,
+		#realName#,
+		#createTime#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="graphId">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	<update id="modifyStatus" parameterClass="HashMap">
+		update palm_dynamic_graph set status = #status# where graphId = #graphId#
+	</update>
+	
+	<update id="updateDynamicGraph" parameterClass="Integer">
+		update palm_dynamic_graph set status = 2  where type = #type# and status = 1
+	</update>
+	
+	<update id="updateByGraphId" parameterClass="dynamicGraph">
+		update palm_dynamic_graph set title = #title#,url = #url# where graphId = #graphId#
+	</update>
+	
+	<!-- 加载所有的动态图 -->
+	<select id="getAllGraphList" resultClass="dynamicGraph">
+		select * from palm_dynamic_graph order by createTime desc
+	</select>
+	
+	<!-- 根据状态加载所有的动态图 -->
+	<select id="getGraphListByStatus" resultClass="dynamicGraph">
+		select * from palm_dynamic_graph where status = #status# order by type asc
+	</select>
+	
+	<!-- 根据id加载的动态图 -->
+	<select id="getDynamicGraphById" resultClass="dynamicGraph">
+		select * from palm_dynamic_graph where graphId = #graphId#
+	</select>
+	
+	<!-- 根据id删除动态图 -->
+	<delete id="deleteGraphById" parameterClass="Integer">
+		delete from palm_dynamic_graph where graphId = #graphId#
+	</delete>
+	
+
+</sqlMap>

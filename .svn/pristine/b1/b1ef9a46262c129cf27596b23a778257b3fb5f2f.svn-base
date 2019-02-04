@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Patrol">
+	<typeAlias alias="patrol" type="com.guotop.palmschool.patrol.entity.Patrol" />
+	<typeAlias alias="patrolInout" type="com.guotop.palmschool.patrol.entity.PatrolInout" />
+	<typeAlias alias="patrolPlace" type="com.guotop.palmschool.patrol.entity.PatrolPlace" />
+	
+	<resultMap class="com.guotop.palmschool.patrol.entity.Patrol" id="result-patrol-list" groupBy="userId,startDate,placeId">
+		<result property="id" column="id" />
+		<result property="userId" column="userId" />
+		<result property="code" column="code" />
+		<result property="realName" column="realName" />
+		<result property="phone" column="phone" />
+		<result property="departmentId" column="departmentId" />
+		<result property="departmentName" column="departmentName" />
+		<result property="startDate" column="startDate" />
+		<result property="startTime" column="startTime" />
+		<result property="endDate" column="endDate" />
+		<result property="endTime" column="endTime" />
+		<result property="placeId" column="placeId" />
+		<result property="placeName" column="placeName" />
+		<result property="createTime" column="createTime" />
+		<result property="updateTime" column="updateTime" />
+		<result property="timeList"  resultMap="Patrol.time-list" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.patrol.entity.PatrolTime" id="time-list">
+		<result property="startTime" column="startTime" />
+		<result property="endTime" column="endTime" />
+	</resultMap>
+	<!-- 添加校园巡查设置 -->
+	<insert id="addPatrol" parameterClass="patrol">
+		insert into palm_patrol
+		(
+			userId, 
+			code, 
+			realName, 
+			phone,
+			departmentId,
+			departmentName,
+			startDate,
+			startTime,
+			endDate,
+			endTime,
+			placeId,
+			createTime
+		)
+		values
+		(
+			#userId#, 
+			#code#, 
+			#realName#, 
+			#phone#,
+			#departmentId#,
+			#departmentName#,
+			#startDate#,
+			#startTime#,
+			#endDate#,
+			#endTime#,
+			#placeId#,
+			now()
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+
+	<!-- 批量添加校园巡查设置 -->
+	<insert id="batchAddPatrol" parameterClass="java.util.List">
+		insert into palm_patrol
+		(
+			userId, 
+			code, 
+			realName, 
+			phone,
+			departmentId,
+			departmentName,
+			startDate,
+			startTime,
+			endDate,
+			endTime,
+			placeId,
+			createTime
+		)
+		values
+	    <iterate conjunction=",">  
+	        (
+	        #patrolList[].userId#,
+	        #patrolList[].code#,
+			#patrolList[].realName#, 
+			#patrolList[].phone#, 
+			#patrolList[].departmentId#, 
+			#patrolList[].departmentName#,
+			#patrolList[].startDate#,
+			#patrolList[].startTime#,
+			#patrolList[].endDate#,
+			#patrolList[].endTime#,
+			#patrolList[].placeId#,
+			now()
+	        )
+	    </iterate> 
+	</insert> 
+	
+	<!-- 添加校园巡查记录 -->
+	<insert id="addPatrolInout" parameterClass="patrolInout">
+		insert into palm_patrol_inout
+		(
+			userId, 
+			status,
+			placeName,
+			placeId,
+			position,
+			inoutDate,
+			inoutTime,
+			createTime
+		)
+		values
+		(
+			#userId#, 
+			#status#,
+			#placeName#,
+			#placeId#,
+			#position#,
+			#inoutDate#,
+			#inoutTime#,
+			now()
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 更新巡查设置 -->
+	<update id="updatePatrol" parameterClass="patrol">
+		update palm_patrol
+		set userId = #userId#,
+		code = #code#,
+		realName = #realName#,
+		phone = #phone#,
+		departmentName = #departmentName#,
+		startDate = #startDate#,
+		startTime = #startTime#,
+		endDate = #endDate#,
+		endTime = #endTime#,
+		placeId = #placeId#,
+		updateTime = now()
+		WHERE id = #id#
+	</update>
+	
+	<!-- 根据主键找到巡查巡更信息设置 -->
+	<select id="getPatrolById" parameterClass="Integer" resultClass="patrol">
+		select * from palm_patrol where id = #id#
+	</select>
+	
+	<!-- 根据时间获取巡更信息以及打卡记录列表 -->
+	<select id="getPatrolListByCreateDateAndRealName" parameterClass="HashMap" resultMap="result-patrol-list">
+		select pa.*,pp.name AS placeName from palm_patrol pa left join palm_patrol_place pp on pa.placeId = pp.id
+		where 1=1
+		<isNotEmpty prepend="and" property="createDate">
+			(pa.startDate = #createDate# or pa.endDate = #createDate#)
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="queryContent">
+			(pa.realName LIKE CONCAT('%',#queryContent#,'%') or pa.departmentName LIKE CONCAT('%',#queryContent#,'%'))
+		</isNotEmpty>
+		order by pa.startTime ASC
+		<isNotEmpty property="startIndex">
+			LIMIT #startIndex#, #length#
+		</isNotEmpty>
+	</select>
+	
+	<select id="getInoutList" parameterClass="HashMap" resultClass="patrolInout">
+		select * from palm_patrol_inout
+		where 1=1
+		and inoutDate = #createDate#
+		and userId = #userId#
+		and placeId = #placeId#
+		order by inoutTime ASC
+	</select>
+	
+	<!-- 清空当前天往后的所有设置 -->
+	<delete id="clearPatrol" parameterClass="String" >
+		delete from palm_patrol where startDate >= #currentDate# 
+	</delete>
+	
+	<!-- 获取巡查地点 -->
+	<select id="getPatrolPlaceList" parameterClass="HashMap" resultClass="patrolPlace">
+		select * from palm_patrol_place
+		<isNotEmpty property="startIndex">
+			LIMIT #startIndex#, #length#
+		</isNotEmpty>
+	</select>
+	
+	<!-- 添加巡查地点 -->
+	<insert id="addPatrolPlace" parameterClass="patrolPlace">
+		insert into palm_patrol_place
+		(
+			code, 
+			name, 
+			position,
+			createTime,
+			updateTime
+		)
+		values
+		(
+			#code#, 
+			#name#, 
+			#position#,
+			now(),
+			now()
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 根据主键找到巡查巡更信息设置 -->
+	<select id="getPatrolPlaceById" parameterClass="Integer" resultClass="patrolPlace">
+		select * from palm_patrol_place where id = #id#
+	</select>
+	
+	<!-- 更新巡查地点 -->
+	<update id="updatePatrolPlace" parameterClass="patrolPlace">
+		update palm_patrol_place
+		set updateTime = now()
+		<isNotEmpty property="code">
+			,code = #code#
+		</isNotEmpty>
+		<isNotEmpty property="name">
+			,name = #name#
+		</isNotEmpty>
+		<isNotEmpty property="position">
+			,position = #position#
+		</isNotEmpty>
+		WHERE id = #id#
+	</update>
+	
+	<!-- 删除巡更地点 -->
+	<delete id="deletePatrolPlace" parameterClass="Integer" >
+		delete from palm_patrol_place where id = #id# 
+	</delete>
+</sqlMap>

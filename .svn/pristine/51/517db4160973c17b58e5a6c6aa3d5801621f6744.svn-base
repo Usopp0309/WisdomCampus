@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Import">
+	<typeAlias alias="import" type="com.guotop.palmschool.system.entity.Import"/>
+	<typeAlias alias="importDetail" type="com.guotop.palmschool.system.entity.ImportDetail"/>
+	
+	<!-- 查找所有导入记录 -->
+	<select id="getImportList" resultClass="import">
+		select *
+			from palm_import
+			order by id desc
+	</select>
+	
+	<!-- 查找本人发送成绩记录 -->
+	<select id="getImportListByUserId" parameterClass="HashMap" resultClass="import">
+			select * from palm_import
+			where importUserId=#userId#
+			order by id desc
+	</select>	
+	
+	<!-- 新增导入记录 -->
+	<insert id="addImport" parameterClass="import">
+		insert into palm_import
+		(
+			filename, 
+			type, 
+			total, 
+			success,
+			error,
+			updateTime,
+			createTime,
+			importUserId
+		)
+		values
+		(
+			#filename#, 
+			#type#, 
+			#total#, 
+			#success#,
+			#error#,
+			#updateTime#,
+			#createTime#,
+			#importUserId#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+
+</sqlMap>

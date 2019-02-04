@@ -1,0 +1,184 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>RichX智慧校园 - 订单列表</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+ 	<link href="<%=basePath%>assets/global/css/skin_m.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body id="body">
+	<%@ include file="/public_module/header.jsp"%>
+			<div class="manager_search_box">
+				<form action="<%=basePath %>shopping/getOrdersList.do" id="searchForm" method="post">
+					<div class="search_main">
+						<button type="submit" class="fa fa-search search_submit"></button>
+						<input class="search_text" type="text" name="condition" placeholder="请输入手机号、姓名、商品名..." value="${condition }"></input>
+						<input type="hidden" name="status" id="status" value="${status}">
+					</div>
+				</form>
+			</div>
+	 <div class="richxManager">
+			<h3 class="margin_top_15">购物订单</h3>
+			<ul class="mtabs margin_top_15">
+				<c:if test="${status eq '1'}">
+					<li class="active"><a href="javascript:changeStatus(1)">代发货订单</a></li>
+					<li class=""><a href="javascript:changeStatus(3)">已发货订单</a></li>
+				</c:if>
+				<c:if test="${status ne '1'}">
+					<li ><a href="javascript:changeStatus(1)">代发货订单</a></li>
+					<li class="active"><a href="javascript:changeStatus(3)">已发货订单</a></li>
+				</c:if>
+			</ul>
+			<h4 class="margin_top_15">购物列表</h4>
+			<div class="con">
+			<div class="tab-content">
+				<table class="table table-bordered table-hover">
+				<thead>
+					<tr>
+						<th class="m_width_30">商品名</th>
+						<th class="m_width_10">数量</th>
+						<th class="m_width_10">收件人</th>
+						<th class="m_width_10">收件电话</th>
+						<th class="m_width_30">收件地址</th>
+						<th class="m_width_10"> 操作</th>
+					</tr>
+				</thead>
+					<c:if test="${status eq '1'}">
+						<tbody>
+					       <c:forEach items="${list }" var="orders">
+								<tr>
+									<td class="m_width_30">${orders.goodsName }</td>
+									<td class="m_width_10">${orders.counts }</td>
+									<td class="m_width_10">${orders.receiver }</td>
+									<td class="m_width_10">${orders.phone }</td>
+									<td class="m_width_30">${orders.address }</td>
+									<td class="m_width_10">
+										<a href="javascript:showModal(${orders.id },'${orders.goodsName }','${orders.receiver }','${orders.phone }')" >确定</a>
+									</td>
+				       			</tr>
+					       </c:forEach>
+		       			</tbody>
+			        </c:if>
+					<c:if test="${status eq '3'}">
+						 <c:forEach items="${list }" var="order">
+							<tbody>
+							<tr>
+								<td class="m_width_30">${order.goodsName }</td>
+								<td class="m_width_10">${order.counts }</td>
+								<td class="m_width_10">${order.receiver }</td>
+								<td class="m_width_10">${order.phone }</td>
+								<td class="m_width_30">${order.address }</td>
+								<td class="m_width_10">已发货</td>
+							</tr>
+						</c:forEach>
+					</tbody>
+					</c:if>
+				</table>	
+			</div>
+		</div>
+		<%@include file="/public_module/public_page.jsp" %>
+	</div>
+	<div class="modal fade" id="static" tabindex="-1" role="dialog" aria-hidden="true">
+		 <div class="modal-dialog modal-md">
+        				<div class="modal-content">
+        					<div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                    <h4 class="modal-title">信息提示</h4>
+                </div>
+                <div class="modal-body">
+                	<div class="alert alert-danger text_align">
+                                   	<strong>确定发货后，买家将收到短信提醒，是否确定发货</strong>
+                                   </div>
+					<input type="hidden" id="goodsName" name="goodsName"/>
+					<input type="hidden" id="receiver" name="receiver">
+					<input type="hidden" id="phone" name="phone">
+					<input type="hidden" id="orderId" name="orderId">
+				</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn green" data-dismiss="modal" onclick="send()">确定</button>
+                    <button type="button" class="btn" data-dismiss="modal">取消</button>
+                </div>
+        				</div>
+        			</div>
+	</div>
+	<%@ include file="/public_module/public_footer.jsp" %>
+	</body>
+	<%@ include file="/public_module/public_js.jsp" %>
+	<script type="text/javascript">
+		$(function() {
+			$(".mtabs li").eq(0).css({"border-right":"none"})
+			//导航定位
+			$(".menu_li a").removeClass("hover");
+			$("#menu7").addClass("hover");
+			//点击状态改变
+			$(".accordion-toggle").on("click", function() {
+				if($(this).parent().parent().find(".accordion-body").hasClass("in")){
+					$(this).removeAttr("style");
+					$(this).find("span").removeAttr("style");
+					$(this).find("i").removeClass("icon-chevron-down");
+				}else{
+					$(".accordion").find(".accordion-toggle").removeAttr("style");
+					$(".accordion").find(".accordion-toggle").find("span").removeAttr("style");
+					$(".accordion").find("i").removeClass("icon-chevron-down");
+					$(this).css({"background-color":"#3aa4f1"}).find("span").css({"color":"#fff"});
+					$(this).find("i").addClass("icon-chevron-down");
+				};
+				
+			})
+			
+			
+			$(".authorization_con").on("click", function() {
+				$(this).find("button").addClass("blue");
+				$(this).siblings().find("button").removeClass("blue");
+			})
+		})
+		function changeStatus(obj){
+			$("#status").val(obj);
+			$("#searchForm").submit();
+			
+		}
+		function showModal(orderId,goodsName,receiver,phone){
+			$("#orderId").val(orderId);
+			$("#goodsName").val(goodsName);
+			$("#receiver").val(receiver);
+			$("#phone").val(phone);
+			$('#static').modal('show');
+		}
+		function send(orderId){
+			var body = $("#body");
+			App.blockUI(body);
+			
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>shopping/sendOrders.do",
+				data:{
+						orderId : $("#orderId").val(),
+						goodsName : $("#goodsName").val(),
+						receiver : $("#receiver").val(),
+						phone : $("#phone").val()
+				},
+				success: function(data){
+					var data = $.parseJSON(data);
+					if (data.code == 0){
+						window.location.reload();
+					}else{
+						alert(data.msg);
+						$('#static').modal('hide');
+					}
+          			//解锁UI
+          			App.unblockUI(body);
+          			/* $(".search_box").css({"display":"none"}); */
+				},
+			});
+		}
+	</script>
+</html>

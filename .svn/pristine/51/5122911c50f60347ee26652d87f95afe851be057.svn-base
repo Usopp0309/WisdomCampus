@@ -1,0 +1,289 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>RichX智慧校园 - 补卡申请</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+ 	<link href="<%=basePath%>assets/global/css/skin_m.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<%@include file="/public_module/header.jsp" %>
+	<div class="manager_search_box">
+		<div class="search_main">
+			<button type="button" class="fa fa-search search_submit" id="search" ></button>
+			<input class="search_text" type="text" name="condition" id="condition" placeholder="请输入学校名称..." value=""></input> 
+			<input type="hidden" name="status" id="status" value=""/> 
+		</div>
+	</div>
+	<div class="richxManager">
+		<h3 class="margin_top_15"><a class="type type_select" style="padding-right: 20px;" href="<%=basePath%>cardApply/toCardApplyAuditList.do">学校补办卡</a> <a href="<%=basePath%>cardApply/toCardApplyPerson.do" class="type" style="padding-left:20px;border-left:2px solid #e4e4e4">个人补办卡</a></h3>
+		<ul class="mtabs margin_top_15" id="show_tab">
+			
+		</ul>
+		<h4 class="margin_top_15">补办卡列表</h4>
+		<div class="con">
+			<div class="tab-content">
+				<div class="tab-pane active" id="tab_1_1">
+					<table class="table table-bordered table-hover">
+						<thead>
+							<tr>
+								<th class="m_width_20">申请人</th>
+								<th class="m_width_25">补办卡类型</th>
+								<th class="m_width_10">申请数量</th>
+								<th class="m_width_20">申请学校</th>
+								<th class="m_width_15">联系电话</th>
+								<th class="m_width_10">操作</th>
+							</tr>
+						</thead>
+						<tbody id="tbody">
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		<%@include file="/public_module/public_page.jsp" %>
+	</div>
+	<%@include file="/public_module/public_footer.jsp" %>
+</body>
+	<%@include file="/public_module/public_js.jsp" %>
+	
+	<script type="text/javascript">
+		$(function() {
+			//导航定位
+			$(".menu_li a").removeClass("hover");
+			$("#menu1").addClass("hover");
+			$(".mtabs li").eq(0).css({"border-right":"none"});
+			$(".mtabs li").eq(1).css({"border-right":"none"});
+		
+			loadCardApplyAuditList(0, null, null);
+			$("#search").on("click", function(){
+				var status = $("#status").val();
+				var condition = $("#condition").val();
+				loadCardApplyAuditList(status, condition, null);
+			})
+			
+			//点击状态改变
+			$(".accordion-toggle").on("click", function() {
+				if($(this).parent().parent().find(".accordion-body").hasClass("in")){
+					$(this).removeAttr("style");
+					$(this).find("span").removeAttr("style");
+					$(this).find("i").removeClass("icon-chevron-down");
+				}else{
+					$(".accordion").find(".accordion-toggle").removeAttr("style");
+					$(".accordion").find(".accordion-toggle").find("span").removeAttr("style");
+					$(".accordion").find("i").removeClass("icon-chevron-down");
+					$(this).css({"background-color":"#3aa4f1","display":"block"}).find("span").css({"color":"#fff"});
+					$(this).find("i").addClass("icon-chevron-down");
+				};
+			})
+		});
+		
+		function loadCardApplyAuditList(status, condition, cPage)
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>cardApply/loadCardApplyAuditList.do",
+				data:{
+						status : status,
+						condition : condition,
+						page : cPage
+					},
+				success: function(data){
+					var page = eval("(" + data + ")");
+					$("#currentPage").html(page.currentPage);
+					$("#totalPage").html(page.totalPage);
+					$("#status").val(status);
+					var appendHtml = '';
+					var appendUlHtml = '';
+					
+					if(status == 0)
+					{
+						appendUlHtml += '<li class="active"><a href="javascript:" onclick="changeShow(0)">待审批</a></li>';
+						appendUlHtml += '<li><a href="javascript:" onclick="changeShow(1)">已审批</a></li>';
+						appendUlHtml += '<li><a href="javascript:" onclick="changeShow(2)">未通过</a></li>';
+					}
+					else if(status == 1)
+					{
+						appendUlHtml += '<li><a href="javascript:" onclick="changeShow(0)">待审批</a></li>';
+						appendUlHtml += '<li class="active"><a href="javascript:" onclick="changeShow(1)">已审批</a></li>';
+						appendUlHtml += '<li><a href="javascript:" onclick="changeShow(2)">未通过</a></li>';
+					}
+					else
+					{
+						appendUlHtml += '<li><a href="javascript:" onclick="changeShow(0)">待审批</a></li>';
+						appendUlHtml += '<li><a href="javascript:" onclick="changeShow(1)">已审批</a></li>';
+						appendUlHtml += '<li class="active"><a href="javascript:" onclick="changeShow(2)">未通过</a></li>';
+					}
+					$("#show_tab").html(appendUlHtml);
+					$.each(page.list, function(n, value) {  
+						appendHtml += '<tr>';
+           				appendHtml += '<td>'+value.applyName+'</td>';
+           				appendHtml += '<td>'+value.cardtype+'</td>';
+           				appendHtml += '<td>'+value.sumNumber+'张</td>';
+           				appendHtml += '<td>'+value.schoolName+'</td>';
+           				var phone = value.phone;
+						if(phone == undefined)
+						{
+							phone = "";
+						}
+           				appendHtml += '<td>'+phone+'</td>';
+           				appendHtml += '<td><a class="detal">查看详情</a></td>';
+           				appendHtml += '</tr>';
+           				appendHtml += '<tr class="persionner_info">';
+           				appendHtml += '<td colspan="6" class="m_padding_0">';
+           				appendHtml += '<div style="border:1px solid #1490f4">';
+           				appendHtml += '<table class="table table-bordered">';
+           				appendHtml += '<tr>';
+           				appendHtml += '<td class="active">申请人</td> <td>'+value.applyName+'</td>';
+           				appendHtml += '<td class="active">学校</td> <td>'+value.schoolName+'</td>';
+           				appendHtml += '<td class="active">申请卡类型</td> <td>'+value.cardtype+'</td>';
+           				appendHtml += '</tr>';
+           				appendHtml += '<tr>';
+           				appendHtml += '<td class="active">申请卡数</td> <td>'+value.sumNumber+'张</td>';
+           				appendHtml += '<td class="active">申请时间</td> <td>'+value.applyTime+'</td>';
+           				appendHtml += '<td class="active">申请理由</td> <td>'+value.remark+'</td>';
+           				appendHtml += '</tr>';
+           				appendHtml += '<tr>';
+           				appendHtml += '<td class="active">下载</td>';
+           				appendHtml += '<td>';
+           				if(value.attachPath != null && value.attachPath != "" && value.attachPath != undefined)
+       					{
+           					appendHtml += '<a href="<%=Cons.IMGBASEPATH%>'+value.attachPath+'">点击下载办卡清单</a>';
+       					}
+           				appendHtml += '</td>';
+           				appendHtml += '<td class="active"></td><td></td><td class="active"></td><td></td>';
+           				appendHtml += '</tr>';
+           				if(status == 0)
+       					{
+           					appendHtml += '<tr>';
+               				appendHtml += '<td class="text_align" colspan="6">';
+               				appendHtml += '<c:if test="${sessionScope.user.username eq \'sysadmin\'}">'
+               				appendHtml += '<button class="btn green btn-sm" onclick="pass('+value.id+', this)">通过</button>';
+               				appendHtml += '<button class="btn btn-sm" onclick="refuse('+value.id+', this)">拒绝</button>';
+               				appendHtml += '</td>';
+               				appendHtml += '</c:if>'
+               				appendHtml += '</tr>';
+       					}
+           				appendHtml += '<tr>';
+           				appendHtml += '<td class="text_align" colspan="6">';
+           				if(value.userNames != null && value.userNames.length > 0)
+       					{
+           					appendHtml += '<ul class="Fill_Card_list">';
+               				$.each(value.userNames, function(n, user) {
+               					appendHtml += '<li title="'+user+'">'+user+'</li>';
+               				})  
+               				appendHtml += '</ul>';
+       					}
+           				appendHtml += '</td>';
+           				appendHtml += '</tr>';
+           				appendHtml += '</table>';
+           				appendHtml += '</div>';
+           				appendHtml += '</td>';
+           				appendHtml += '</tr>';
+          			}); 
+          			$("#tbody").html(appendHtml);
+          			
+          		    //显示详情
+          			$(".detal").on("click",function(){
+          				if($(this).hasClass("open")){
+          					$(this).parent().parent().next(".persionner_info").hide();
+          					$(this).removeClass("open")
+          				}else{
+          					$(this).addClass("open")
+          					$(".persionner_info").removeAttr("style");
+          					$(this).parent().parent().next(".persionner_info").show();
+          				}
+          			})
+				},
+			});
+		}
+		
+		//分页相关
+		function jumpPage(type)
+		{
+			var cPage = $("#currentPage").html();
+			var totalPage = $("#totalPage").html();
+
+			var cPageInt = parseInt(cPage);
+			var totalPageInt = parseInt(totalPage);
+						
+			var newCPageInt = returnCPageInt(type,cPageInt,totalPageInt);
+			if(newCPageInt < 0){
+				return;
+			}else{
+				cPageInt = newCPageInt;
+			}	
+			var status = $("#status").val();
+			var condition = $("#condition").val();
+			loadCardApplyAuditList(status, condition, cPageInt);
+		    $("#currentPage").html(cPageInt);
+		}
+		
+		//通过
+		function pass(id, obj){
+			$(obj).attr("disabled", "disabled");
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>cardApply/modifyStatus.do",
+				data:{
+					id : id,
+					status : 1
+				},
+				success: function(data) 
+				{
+				    var data = $.parseJSON(data);
+				    if (data.status != 0){
+				    	layer.msg("提交出错");
+				    }else{
+				    	layer.msg("提交成功");
+				    	window.location.reload();
+				    }
+				   
+				},
+				complete: function(){
+					$(obj).removeAttr("disabled");
+				}
+			});
+		}
+		//拒绝
+		function refuse(id, obj){
+			$(obj).attr("disabled", "disabled");
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>cardApply/modifyStatus.do",
+				data:{
+					id : id,
+					status : 2
+				},
+				success: function(data) 
+				{
+				    var data = $.parseJSON(data);
+				    if (data.status != 0){
+				    	layer.msg("提交出错");
+				    }else{
+				    	layer.msg("提交成功");
+				    	window.location.reload();
+				    }
+				},
+				complete: function(){
+					$(obj).removeAttr("disabled");
+				}
+			});
+		}
+		function changeShow(obj){
+			$("#status").val(obj);
+			$("#condition").val("");
+			loadCardApplyAuditList(obj, null, null);
+			
+		}
+		
+	</script>
+</html>

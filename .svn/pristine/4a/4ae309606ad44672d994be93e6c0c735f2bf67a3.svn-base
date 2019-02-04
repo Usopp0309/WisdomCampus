@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Groups">
+	<typeAlias alias="groups" type="com.guotop.palmschool.entity.Groups"/>
+	<insert id="addGroups" parameterClass="groups">
+		insert into platform.groups
+		(
+			groupCode, 
+			groupName, 
+			publicMessage, 
+			headImg,
+			groupMessage, 
+			type,
+			modifiable, 
+			createtime, 
+			activetime, 
+			authentication,
+			deClazzId,
+			schoolId,
+			createId,
+			groupMemberCount,
+			groupAdminMemberCount,
+			yuntxGroupId
+		)
+		values
+		(
+			#groupCode#, 
+			#groupName#, 
+			#publicMessage#, 
+			#headImg#,
+			#groupMessage#, 
+			#type#,
+			#modifiable#, 
+			#createtime#, 
+			#activetime#, 
+			#authentication#,
+			#deClazzId#,
+			#schoolId#,
+			#createId#,
+			#groupMemberCount#,
+			#groupAdminMemberCount#,
+			#yuntxGroupId#
+		)
+		
+		<selectKey resultClass="int" type="post" keyProperty="groupId">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 根据学校id查找该学校的所有智慧校园创建的部门群组 20160104 -->
+	<select id="getGroupsBySchoolIdAndDepartmentId" parameterClass="HashMap" resultClass="Integer">
+		SELECT 1 FROM platform.groups g
+		WHERE g.type = 1
+		AND g.schoolId = #schoolId#
+		AND g.deClazzId = #departmentId#
+	</select>
+	<!-- 根据学校id查找该学校的所有智慧校园创建的班级群组 20160107 -->
+	<select id="getGroupsBySchoolIdAndClazzId" parameterClass="HashMap" resultClass="Integer">
+		SELECT 1 FROM platform.groups g
+		WHERE g.type = 2
+		AND g.schoolId = #schoolId#
+		AND g.deClazzId = #clazzId#
+	</select>
+	<select id="getLastlyGroups" resultClass="groups">
+		SELECT g.* FROM platform.groups g ORDER BY g.groupId DESC LIMIT 1
+	</select>
+	
+</sqlMap>

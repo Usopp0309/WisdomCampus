@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Curriculum">
+
+	<typeAlias alias="curriculum" type="com.guotop.palmschool.curriculum.entity.Curriculum"/>
+	<typeAlias alias="curriculumTime" type="com.guotop.palmschool.curriculum.entity.CurriculumTime"/>
+	<typeAlias alias="curriculumSemester" type="com.guotop.palmschool.curriculum.entity.CurriculumSemester"/>
+	<typeAlias alias="week" type="com.guotop.palmschool.curriculum.entity.Week"/>
+	<typeAlias alias="studentClazz" type="com.guotop.palmschool.entity.StudentClazz"/>
+	<typeAlias alias="user" type="com.guotop.palmschool.entity.User"/>
+	<typeAlias alias="place" type="com.guotop.palmschool.entity.Place"/>
+	<typeAlias alias="examSubjectInfo" type="com.guotop.palmschool.curriculum.entity.ExamSubjectInformation"/>
+	<typeAlias alias="subjectAndTeacherLink" type="com.guotop.palmschool.curriculum.entity.SubjectAndTeacherLink"/>
+	
+
+	<resultMap class="com.guotop.palmschool.curriculum.entity.Curriculum" id="result-curriculum">
+		<result property="id" column="id" />
+		
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.curriculum.entity.Curriculum" id="result-curriculum_growth">
+		<result property="clazzId" column="clazzId" />
+		<result property="beginTime" column="beginTime" />
+		<result property="endTime" column="endTime" />
+		<result property="subjectName" column="subjectName" />
+		<result property="weekId" column="weekId" />
+	</resultMap>
+	
+	<!-- 查询所有的星期-->
+	<select id="getWeekList" resultClass="week">
+		select * from palm_week 
+	</select>
+	
+	<!-- 根据日期查询对应的学期-->
+	<select id="getCurriculumServiceByDate" parameterClass="String" resultClass="curriculumSemester">
+		select * from palm_curriculum_semester where beginDate <![CDATA[ <=  ]]> #date#   and endDate <![CDATA[ >=  ]]> #date# limit 1
+	</select>
+	
+	<!-- 根据日期查询对应的学期-->
+	<select id="getCurriculumServiceByDateTwo" parameterClass="String" resultClass="curriculumSemester">
+		select * from palm_curriculum_semester where beginDate <![CDATA[ >=  ]]> #date# limit 1
+	</select>
+	<!-- 根据日期,班级，周几获得课程表-->
+	<select id="getCurriculumController" parameterClass="HashMap" resultMap="result-curriculum_growth">
+		select * from  (
+		select C.CLAZZID,t.beginTime,t.endTime,c.subjectName,c.weekId    
+		from palm_curriculum c,palm_curriculum_time t 
+		where exists(select * from (select * from palm_curriculum_semester  where beginDate <![CDATA[ <=  ]]> date_format(#createTime#,'%Y-%m-%d') and endDate >= date_format(#createTime#,'%Y-%m-%d') limit 0,1) s  
+		where s.id = t.semesterId and c.semesterId = s.id) 
+		and t.id = c.timeId and exists(select sc.clazzId  from palm_student_clazz sc ,platform.user_detail ud  where ud.userid = sc.userId and ud.userId= #userId#  and c.clazzId = sc.clazzId) 
+		AND C.SUBJECTNAME IS NOT NULL 
+		) m where weekId = #weekId# 
+	</select>
+	
+	
+	
+	<!-- 根据日期查询对应的学期-->
+	<select id="getCurriculumServiceByStartDateAndEndDate" parameterClass="HashMap" resultClass="curriculumSemester">
+		select * from palm_curriculum_semester 
+		   where 1=1
+			<isNotEmpty property="startDate">
+			   <isEmpty prepend="and" property="endDate"> 
+					#startDate# >= beginDate and endDate >= #startDate#
+			   </isEmpty>
+			   <isNotEmpty prepend="and" property="endDate">
+			        ( ( #startDate# >= beginDate and endDate >= #startDate# ) or ( #endDate# >= beginDate and endDate >= #endDate# ))
+			   </isNotEmpty>
+		    </isNotEmpty>
+		    
+		    <isEmpty property="startDate">
+			   <isNotEmpty prepend="and" property="endDate">
+					#endDate# >= beginDate and endDate >= #endDate#
+			   </isNotEmpty>
+		    </isEmpty>
+		    
+		    limit 1
+	</select>
+	
+	<!-- 根据semesterId查询对应的时间段 -->
+	<select id="getCurriculumTimeBySemesterId" parameterClass="Integer" resultClass="curriculumTime">
+		select id,DATE_FORMAT(beginTime,"%H:%i") beginTime,DATE_FORMAT(endTime,"%H:%i") endTime,semesterId,num 
+		   from palm_curriculum_time where semesterId = #semesterId#
+	</select>
+	
+	<!-- 根据semesterId查询对应的时间段 (上午)-->
+	<select id="getCurriculumTimeMorningBySemesterId" parameterClass="Integer" resultClass="curriculumTime">
+		select id,DATE_FORMAT(beginTime,"%H:%i") beginTime,DATE_FORMAT(endTime,"%H:%i") endTime,semesterId,num
+		 from palm_curriculum_time where semesterId = #semesterId# and num = 1
+	</select>
+	
+	<!-- 根据semesterId查询对应的时间段 (下午)-->
+	<select id="getCurriculumTimeAfternoonBySemesterId" parameterClass="Integer" resultClass="curriculumTime">
+		select id,DATE_FORMAT(beginTime,"%H:%i") beginTime,DATE_FORMAT(endTime,"%H:%i") endTime,semesterId,num
+		 from palm_curriculum_time where semesterId = #semesterId# and num = 2
+	</select>
+	
+	<!-- 根据semesterId查询对应的时间段 (晚上)-->
+	<select id="getCurriculumTimeNightBySemesterId" parameterClass="Integer" resultClass="curriculumTime">
+		select id,DATE_FORMAT(beginTime,"%H:%i") beginTime,DATE_FORMAT(endTime,"%H:%i") endTime,semesterId,num
+		 from palm_curriculum_time where semesterId = #semesterId# and num = 3
+	</select>
+	
+	<!-- 根据timeId和clazzId查询对应的科目 -->
+	<select id="getCurriculumByTimeIdAndClazzId" parameterClass="HashMap" resultClass="curriculum">
+	
+		SELECT c.*,'' subjectsUserName, '' classroomName FROM palm_curriculum c
+	      WHERE 1=1
+	        AND c.subjectsUser IS NULL
+	        AND c.classroomId IS NULL
+	        AND c.timeId =#timeId#
+	        AND c.clazzId = #clazzId#
+		
+		UNION 
+		
+	    SELECT c.*,'' subjectsUserName, '' classroomName FROM palm_curriculum c
+	      WHERE 1=1
+	        AND c.classroomId NOT IN (SELECT id FROM palm_place)
+	        AND c.classroomId IS NOT NULL
+	        AND c.timeId =#timeId#
+	        AND c.clazzId = #clazzId#
+	              
+		UNION 
+		
+	    SELECT c.*,ud.realName subjectsUserName,pc.name classroomName FROM palm_curriculum c,palm_place pc,platform.user_detail ud 
+	      WHERE c.subjectsUser = ud.userId
+	        AND c.classroomId = pc.id 
+	        AND c.timeId =#timeId#
+	        AND c.clazzId = #clazzId#
+	     
+		UNION
+		
+		SELECT c.*,'' subjectsUserName, pc.name classroomName FROM palm_curriculum c,palm_place pc
+	      WHERE c.classroomId = pc.id 
+	        AND c.subjectsUser IS NULL
+	        AND c.timeId =#timeId#
+	        AND c.clazzId = #clazzId# 
+		      
+		UNION 
+		
+		SELECT c.*,ud.realName subjectsUserName,'' classroomName FROM palm_curriculum c,platform.user_detail ud 
+	      WHERE c.subjectsUser = ud.userId
+	        AND c.classroomId IS NULL
+	        AND c.timeId =#timeId#
+	        AND c.clazzId = #clazzId#
+	        
+	    ORDER BY weekId ASC
+	</select>
+	
+	<!-- 根据timeId和subjectsUser查询对应的科目 -->
+	<select id="getCurriculumByTimeIdAsTeacher" parameterClass="HashMap" resultClass="curriculum">
+	
+		SELECT c.*,ud.realName subjectsUserName,pc.name classroomName FROM palm_curriculum c,palm_place pc,platform.user_detail ud 
+	      WHERE c.subjectsUser = ud.userId
+	        AND c.classroomId = pc.id 
+	         AND c.timeId = #timeId#
+	         AND c.weekId = #weekId# 
+	         AND c.subjectsUser = #subjectsUser#
+	
+		UNION
+		
+		SELECT c.*,'' subjectsUserName, '' classroomName FROM palm_curriculum c
+	      WHERE 1=1
+	        AND c.classroomId NOT IN (SELECT id FROM palm_place)
+	        AND c.classroomId IS NOT NULL
+	        AND c.timeId =#timeId#
+	        AND c.weekId = #weekId# 
+	        AND c.subjectsUser = #subjectsUser#
+	        
+		UNION
+		
+		SELECT c.*,'' subjectsUserName, pc.name classroomName FROM palm_curriculum c,palm_place pc
+		  WHERE c.classroomId = pc.id 
+		    AND c.subjectsUser IS NULL
+		    AND c.timeId = #timeId# 
+		    AND c.weekId = #weekId#
+		    AND c.subjectsUser = #subjectsUser#
+		      
+		UNION 
+		
+		SELECT c.*,ud.realName subjectsUserName,'' classroomName FROM palm_curriculum c,platform.user_detail ud 
+		  WHERE c.subjectsUser = ud.userId
+		    AND c.classroomId IS NULL
+		    AND c.timeId = #timeId#
+		    AND c.weekId = #weekId# 
+		    AND c.subjectsUser = #subjectsUser# 
+		    
+	</select>
+	
+	<!-- 根据timeId和clazzId查询对应的科目 -->
+	<select id="getCurriculumByTimeIdForEdit" parameterClass="HashMap" resultClass="curriculum">
+	
+		SELECT c.*,'' subjectsUserName, '' classroomName FROM palm_curriculum c
+	      WHERE 1=1
+	        AND c.subjectsUser IS NULL
+	        AND c.classroomId IS NULL
+	        AND c.timeId =#timeId#
+	        AND c.clazzId = #clazzId#
+		      
+		UNION 
+		
+	    SELECT c.*,ud.realName subjectsUserName,pc.name classroomName FROM palm_curriculum c,palm_place pc,platform.user_detail ud 
+	      WHERE c.subjectsUser = ud.userId
+	        AND c.classroomId = pc.id 
+	        AND c.timeId =#timeId#
+	        AND c.clazzId = #clazzId#
+	     
+		UNION
+		
+		SELECT c.*,'' subjectsUserName, pc.name classroomName FROM palm_curriculum c,palm_place pc
+	      WHERE c.classroomId = pc.id 
+	        AND c.subjectsUser IS NULL
+	        AND c.timeId =#timeId#
+	        AND c.clazzId = #clazzId# 
+		      
+		UNION 
+		
+		SELECT c.*,ud.realName subjectsUserName,'' classroomName FROM palm_curriculum c,platform.user_detail ud 
+	      WHERE c.subjectsUser = ud.userId
+	        AND c.classroomId IS NULL
+	        AND c.timeId =#timeId#
+	        AND c.clazzId = #clazzId#
+	        
+	    ORDER BY weekId ASC
+	</select>
+	
+	<!-- 根据userid查询学生的Id -->
+	<select id="getStudentClazzId" parameterClass="Integer" resultClass="studentClazz">
+		select * from palm_student_clazz where userId = #userId#
+	</select>
+	
+	<!-- 添加学期 -->
+	<insert id="saveCurriculumSemester" parameterClass="curriculumSemester">
+		insert into palm_curriculum_semester
+		(
+			beginDate,
+			endDate,
+			clazzId,
+			usable,
+			updateTime,
+			createTime
+		)
+		values
+		(
+			#beginDate#,
+			#endDate#,
+			#clazzId#,
+			#usable#,
+			#updateTime#,
+			#createTime#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 添加时间 -->
+	<insert id="saveCurriculumTime" parameterClass="curriculumTime">
+		insert into palm_curriculum_time
+		(
+			beginTime,
+			endTime,
+			semesterId,
+			num,
+			updateTime,
+			createTime
+		)
+		values
+		(
+			#beginTime#,
+			#endTime#,
+			#semesterId#,
+			#num#,
+			#updateTime#,
+			#createTime#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 修改学期 -->
+	<update id="modifyCurriculumSemester" parameterClass="curriculumSemester">
+	    update palm_curriculum_semester
+		 set
+			beginDate = #beginDate#,
+			endDate = #endDate#,
+			updateTime = #updateTime#
+		where id = #id#
+	</update>
+	
+	<!-- 修改时间 -->
+	<update id="modifyCurriculumTime" parameterClass="curriculumTime">
+	   update palm_curriculum_time
+		set 
+			beginTime = #beginTime#,
+			endTime = #endTime#,
+			updateTime = #updateTime#
+		where id = #id#
+	</update>
+	
+	
+	<!-- 添加科目 -->
+	<insert id="saveCurriculum" parameterClass="curriculum">
+		insert into palm_curriculum
+		(
+			type,
+			clazzId,
+			subjectName,
+			userId,
+			semesterId,
+			subjectsUser,
+			timeId,
+			weekId,
+			classroomId,
+			updateTime,
+			createTime
+		)
+		values
+		(
+			#type#,
+			#clazzId#,
+			#subjectName#,
+			#userId#,
+			#semesterId#,
+			#subjectsUser#,
+			#timeId#,
+			#weekId#,
+			#classroomId#,
+			#updateTime#,
+			#createTime#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 考试添加科目 （成绩分析系统有关）-->
+	<insert id="saveExamSubjectInfo" parameterClass="examSubjectInfo">
+		insert into palm_examSubjectInfo
+		(
+			subjectName
+		)
+		values
+		(
+			#subjectName#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	
+	<!-- 增加科目老师关系 （成绩分析系统有关） -->
+	<insert id="saveSubjectAndTeacherLink" parameterClass="HashMap">
+		insert into palm_subjectAndTeacherLink
+		(
+			subjectId,
+			clazzId,
+			teacherId,
+			createTime
+		)
+		values
+		(
+			#subjectId#,
+			#clazzId#,
+			#teacherId#,
+			#createTime#
+		)
+	</insert>
+	
+	
+	<!-- 修改科目 -->
+	<update id="updateCurriculum" parameterClass="curriculum">
+	    update palm_curriculum
+		 set
+			subjectName = #subjectName#,
+			subjectsUser = #subjectsUser#,
+			classroomId = #classroomId#,
+			updateTime = #updateTime#
+		where id = #id#
+	</update>
+	
+		<!-- 校验学期日期是否存在-->
+	<select id="checkSemesterCurriculum" parameterClass="HashMap" resultClass="Integer">
+ 		select count(*) from  palm_curriculum_semester 
+ 			where 1=1  and( ( endDate>= #startDay#  and #startDay# >= beginDate) or (endDate >= #endDay#  and #endDay# >= beginDate ) or (beginDate >= #startDay#  and #endDay# >= endDate )) 
+	</select>
+	
+		<!-- 校验学期日期是否存在-->
+	<select id="checkCurriculum" parameterClass="HashMap" resultClass="Integer">
+ 		select count(*) from  palm_curriculum
+ 			where semesterId = #semesterId# and clazzId = #clazzId#
+	</select>
+	
+		<!-- 获取教室List （用于班主任编辑课程表）-->
+	<select id="getclassroomNameList" parameterClass="HashMap" resultClass="place">
+ 		select * from  palm_place where type = 5 
+ 			<isNotEmpty prepend="and" property="name">
+				name LIKE CONCAT('%',#name#,'%')
+		    </isNotEmpty>
+	</select>
+	
+		<!-- 获取代课教师List （用于班主任编辑课程表）-->
+	<select id="getSubjectTeacherList" parameterClass="HashMap" resultClass="user">
+ 		select ud.realName,ud.userId from  platform.user_detail ud , palm_user_role ur
+ 			where ud.userId = ur.userId and ur.roleCode in ('classLeader','departManager','president','teacher')
+ 			<isNotEmpty prepend="and" property="name">
+				ud.realName LIKE CONCAT('%',#name#,'%')
+		    </isNotEmpty>
+	</select>
+	
+		<!-- 根据 semesterId，clazzId，timeId，weekId（用于班主任编辑课程表）-->
+	<select id="getCurriculumByIds" parameterClass="HashMap" resultClass="curriculum">
+ 		select * from palm_curriculum where semesterId=#semesterId# and clazzId=#clazzId# and timeId=#timeId# and weekId=#weekId#
+	</select>
+	
+	
+		<!--  校验任课教师在此时间是否有代课-->
+	<select id="checkTeacher" parameterClass="HashMap" resultClass="Integer">
+ 		select count(*) from  palm_curriculum
+ 			where semesterId = #semesterId# and timeId = #timeId# and weekId=#weekId# and subjectsUser=#teacherId#
+	</select>
+	
+		<!-- 校验该教室在此时间是否被占用-->
+	<select id="checkClassroom" parameterClass="HashMap" resultClass="Integer">
+ 		select count(*) from  palm_curriculum
+ 			where semesterId = #semesterId# and timeId = #timeId# and weekId=#weekId# and classroomId=#classroomId#
+	</select>
+	
+		<!-- 根据subjectName查询考试科目 -->
+	<select id="getExamSubjectInformationBySubjectName" parameterClass="String" resultClass="examSubjectInfo">
+ 		select * from palm_examSubjectInfo where subjectName = #subjectName# 
+	</select>
+	
+	<!-- 查询考试科目和教师的关系是否存在 -->
+	<select id="getSubjectAndTeacherLink" parameterClass="HashMap" resultClass="subjectAndTeacherLink">
+ 		select * from palm_subjectAndTeacherLink where subjectId = #subjectId# and clazzId=#clazzId# and teacherId=#teacherId#
+	</select>
+	
+	
+	
+</sqlMap>

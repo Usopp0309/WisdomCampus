@@ -1,0 +1,217 @@
+package com.guotop.palmschool.system.entity;
+
+import java.util.List;
+
+/**
+ * 补办卡申请实体类
+ * @author sheng
+ */
+public class CardApplyAudit 
+{
+	/**
+	 * ID
+	 */
+	private Integer id;
+
+	/**
+	 * 申请时间
+	 */
+	private String applyTime;
+
+	/**
+	 * 审核状态
+	 */
+	private Integer auditstatus;
+
+	/**
+	 * 类型
+	 */
+	private String cardtype;
+
+	/**
+	 * 备注
+	 */
+	private String remark;
+
+	/**
+	 * 学校id
+	 */
+	private Long schoolId;
+
+	/**
+	 * 申请人id
+	 */
+	private Integer applyUserId;
+
+	/**
+	 * 附件地址
+	 */
+	private String attachPath;
+	
+	/**
+	 * 申请人手机号
+	 */
+	private String phone;
+	
+	/**
+	 * 申请总数
+	 */
+	private String sumNumber;
+	/**
+	 * 申请人姓名
+	 */
+	private String applyName;
+	/**
+	 * 学校名称
+	 */
+	private String schoolName;
+	/**
+	 * 待补卡用户 多个以,分隔
+	 */
+	private String memberUserId;
+	/**
+	 * 待补卡人员名称清单
+	 */
+	private List<String> userNames;
+
+	public Integer getId()
+	{
+		return id;
+	}
+
+	public void setId(Integer id)
+	{
+		this.id = id;
+	}
+
+	public String getApplyTime()
+	{
+		return applyTime;
+	}
+
+	public void setApplyTime(String applyTime)
+	{
+		this.applyTime = applyTime;
+	}
+
+	public Integer getAuditstatus()
+	{
+		return auditstatus;
+	}
+
+	public void setAuditstatus(Integer auditstatus)
+	{
+		this.auditstatus = auditstatus;
+	}
+
+	public String getCardtype()
+	{
+		return cardtype;
+	}
+
+	public void setCardtype(String cardtype)
+	{
+		this.cardtype = cardtype;
+	}
+
+	public String getRemark()
+	{
+		return remark;
+	}
+
+	public void setRemark(String remark)
+	{
+		this.remark = remark;
+	}
+
+	public Long getSchoolId()
+	{
+		return schoolId;
+	}
+
+	public void setSchoolId(Long schoolId)
+	{
+		this.schoolId = schoolId;
+	}
+
+	public Integer getApplyUserId()
+	{
+		return applyUserId;
+	}
+
+	public void setApplyUserId(Integer applyUserId)
+	{
+		this.applyUserId = applyUserId;
+	}
+
+	public String getAttachPath()
+	{
+		return attachPath;
+	}
+
+	public void setAttachPath(String attachPath)
+	{
+		this.attachPath = attachPath;
+	}
+
+	public String getPhone()
+	{
+		return phone;
+	}
+
+	public void setPhone(String phone)
+	{
+		this.phone = phone;
+	}
+
+	public String getSumNumber()
+	{
+		return sumNumber;
+	}
+
+	public void setSumNumber(String sumNumber)
+	{
+		this.sumNumber = sumNumber;
+	}
+
+	public String getApplyName()
+	{
+		return applyName;
+	}
+
+	public void setApplyName(String applyName)
+	{
+		this.applyName = applyName;
+	}
+
+	public String getSchoolName()
+	{
+		return schoolName;
+	}
+
+	public void setSchoolName(String schoolName)
+	{
+		this.schoolName = schoolName;
+	}
+
+	public String getMemberUserId()
+	{
+		return memberUserId;
+	}
+
+	public void setMemberUserId(String memberUserId)
+	{
+		this.memberUserId = memberUserId;
+	}
+
+	public List<String> getUserNames()
+	{
+		return userNames;
+	}
+
+	public void setUserNames(List<String> userNames)
+	{
+		this.userNames = userNames;
+	}
+	
+}

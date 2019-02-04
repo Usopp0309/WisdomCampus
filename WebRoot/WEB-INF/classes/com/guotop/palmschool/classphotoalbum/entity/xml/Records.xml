@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Records">
+	<typeAlias alias="records" type="com.guotop.palmschool.classphotoalbum.entity.UploadRecords" />
+
+	<!--添加上传记录-->
+	<insert id="addRecords" parameterClass="records">
+		insert into palm_upload_records
+		(
+		recordsDesc,
+		albumId,
+		uploadUserId,
+		uploadUserName,
+		recordsType,
+		createTime
+		)
+		values
+		(
+		#recordsDesc#,
+		#albumId#,
+		#uploadUserId#,
+		#uploadUserName#,
+		#recordsType#,
+		#createTime#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="recordsId">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert> 
+	
+	<!-- 查找该班级下所有上传记录的次数-->
+	<select id="getUploadRecordsCountByClazzId" parameterClass="java.util.HashMap" resultClass="Integer">
+		SELECT 
+		  COUNT(ur.recordsId) 
+		FROM
+		  palm_upload_records ur,
+		  palm_class_photo_album cpa 
+		WHERE ur.albumId = cpa.albumId 
+		AND cpa.clazzId = #clazzId#
+	</select>
+	
+	<!-- 查找该班级下所有上传记录，分页-->
+	<select id="getUploadRecordsListByClazzId" parameterClass="java.util.HashMap" resultClass="records">
+		SELECT ur.*, cpa.albumName,ud.headImg FROM palm_upload_records ur, palm_class_photo_album cpa,platform.user_detail ud 
+		WHERE ur.albumId = cpa.albumId 
+		  AND ur.uploadUserId = ud.userId
+		  AND cpa.clazzId = #clazzId#
+		 ORDER BY ur.createTime DESC
+	     <isNotEmpty property="startIndex">
+			LIMIT #startIndex#, #length#
+		 </isNotEmpty>
+	</select>
+	
+	<!-- 【手机端】获取上传记录列表 -->
+	<select id="getUploadRecordsListByClazzIdInYINXIN" parameterClass="java.util.HashMap" resultClass="records">
+		SELECT ur.*, cpa.albumName ,ud.headImg FROM palm_upload_records ur, palm_class_photo_album cpa ,platform.user_detail ud
+		WHERE ur.albumId = cpa.albumId
+		  AND ur.uploadUserId = ud.userId
+		  AND cpa.clazzId = #clazzId#
+		  <isNotEmpty property="startRecordsId">
+			AND ur.recordsId <![CDATA[<]]> #startRecordsId#
+		  </isNotEmpty>
+		  ORDER BY ur.createTime DESC
+		  LIMIT #count#
+	</select>
+	
+	<!-- 根据albumId删除上传记录和评论 -->
+	<delete id="deleteUploadRecordsByAlbumId" parameterClass="Integer">
+	    delete r,u from palm_upload_records u  left join palm_records_comment r on r.recordsId = u.recordsId where u.albumId =#albumId#
+	</delete>
+	
+	<!-- 根据recordsId删除上传记录和评论 -->
+	<delete id="deleteRecordsByRecordsId" parameterClass="Integer">
+	    delete r,u from palm_upload_records u  left join palm_records_comment r on r.recordsId = u.recordsId where u.recordsId =#recordsId#
+	</delete>
+	
+</sqlMap>

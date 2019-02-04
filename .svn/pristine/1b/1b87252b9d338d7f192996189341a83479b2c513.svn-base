@@ -1,0 +1,199 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>资产导入</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+ 	<link href="<%=basePath %>assets/global/plugins/bootstrap-fileinput/bootstrap-fileinput.css" rel="stylesheet" type="text/css">
+</head>
+	<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+		<input class="themes" type="hidden" value="<%=ThemePath%>">
+	    <!-- 公共顶部开始-->
+	    <%@ include file="/public_module/public_header.jsp"%>    
+	    <!--公共顶部结束-->
+	    <div class="clearfix"> </div>
+	    <!-- 内容页开始 -->
+	    <div class="page-container">
+	        <!--主菜单开始-->
+	        <%@include file="/public_module/public_menu.jsp"%>
+	        <!--主菜单结束-->
+	        <div class="page-content-wrapper">
+	            <div class="page-content m_overflow_hidden m_page_content">
+	            	
+	            	<!-- 页面内容开始 -->
+	            	<div class="col-md-12 col-sm-12 m_page_con">
+	                <div class="page-bar m_margin_0_0_0_0">
+	                    <ul class="page-breadcrumb">
+	                        <li><a href="<%=basePath%>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+	                        <li><a href="<%=basePath%>asset/toAssetInfoList.do">资产管理</a><i class="fa fa-circle"></i></li>
+	                        <li><span>资产导入</span></li>
+	                    </ul>
+	                </div>
+	                <h3 class="page-title">资产导入</h3>
+	                <div class="row">
+	                    <div class="col-md-12 col-sm-12">
+	                    	<div class="row">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="portlet box green m_margin_15_auto_0">
+                                <div class="portlet-title">
+	                                <div class="caption"><i class="fa fa-list"></i>资产导入</div>
+	                            </div>
+                                <div class="portlet-body">
+                                    <form action="<%=basePath%>assetImport/onUploadAsset.do" id="upload" class="form-horizontal" method="post" enctype="multipart/form-data">
+                                        <div class="form-body">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-2">选择文件：</label>
+                                                <div class="col-md-10">
+                                                	<div class="fileinput fileinput-new m_display_inline m_float_left m_margin_buttom_0" data-provides="fileinput">
+                                                        <div class="input-group input-large">
+                                                            <div class="form-control uneditable-input input-fixed input-medium" data-trigger="fileinput">
+                                                                <i class="fa fa-file fileinput-exists"></i>&nbsp;
+                                                                <span class="fileinput-filename"> </span>
+                                                            </div>
+                                                            <span class="input-group-addon btn default btn-file">
+                                                                <span class="fileinput-new">选择文件</span>
+                                                                <span class="fileinput-exists">换一个</span>
+                                                                <input name="inputFile" type="file"> </span>
+                                                            <a href="javascript:;" class="input-group-addon btn red fileinput-exists" data-dismiss="fileinput">移除</a>
+                                                        </div>
+                                                    </div>
+                                                    <span class="m_display_inline m_float_left m_margin_left_15"><a href="<%=basePath%>templet/资产导入.xls" class="btn red">模板下载</a></span>
+                                                    <span class="m_display_inline m_float_left m_margin_left_15">
+                                                    	<input onclick="submitAssetImport()" class="btn green" value="确定" type="button">
+                                                    	<button type="button" class="btn default" onclick="history.go(-1);" id="cancel">返回</button>
+														<input value="1" name="userId" type="hidden">
+														
+                                                    </span>
+                                                    <span class="m_display_inline m_float_left m_margin_left_15" style="padding-top:5px;" id="codeHelp">${errorMsg}</span>
+                                                </div>
+                                            </div>
+                                	</div>
+                                </form>
+                            </div>
+                         </div>
+                        </div>
+                    </div>
+	                        <!-- 页面搜索开始 -->
+	                       	<div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption">
+	                                    <i class="fa fa-list"></i>资产列表</div>
+	                            </div>
+	                            <div class="portlet-body flip-scroll">
+	                                <table class="table table-bordered table-hover">
+	                                    <thead class="flip-content">
+	                                        <tr>
+	                                            <th class="m_width_20">导入文件名称</th>
+	                                            <th class="m_width_20 hidden-md hidden-sm">总条数</th>
+	                                            <th class="m_width_20">导入结果</th>
+	                                            <th class="m_width_20">导入时间</th>
+	                                            <th class="m_width_20 hidden-md hidden-sm">导入人员</th>
+	                                        </tr>
+	                                    </thead>
+	                                    <tbody id="tbody">
+	                                    	
+	                                    </tbody>
+	                                </table>
+	                            </div>
+	                        </div>
+	                       <!-- 列表展现开始 -->
+	                        <!-- 分页开始 -->
+	                        <%@include file="/public_module/public_page.jsp" %>
+	                        <!-- 分页结束 -->
+	                    </div>
+	                </div>
+	                </div>
+	                <!--页面内容结束 -->
+	            </div>
+	        </div>
+	        <!-- 亦信聊天开始 -->
+	    	<%@ include file="/public_module/public_QQ.jsp" %>
+	        <!-- 亦信聊天结束 -->
+	    </div>
+	    <!-- 内容页结束 -->
+	    <!-- 底部开始 -->
+	    <%@ include file="/public_module/public_footer.jsp" %>
+	    <!-- 底部结束 -->
+	</body>
+    <!-- 公共js开始 -->
+    <%@ include file="/public_module/public_js.jsp" %>
+    <!-- 公共js结束 -->
+    <script src="<%=basePath %>assets/global/plugins/bootstrap-fileinput/bootstrap-fileinput.js" type="text/javascript"></script>
+    <script type="text/javascript">
+ 	$(function(){
+   	    //选取当前菜单位置
+   		setActive("assetManagement","assetInfoList"); 
+		loadImportList(null);
+   	})
+   	
+   	function submitAssetImport(){
+		var fileinputFilename=$.trim($(".fileinput-filename").text());
+		if(fileinputFilename!=""){
+			fileinputFilename=fileinputFilename.toLowerCase(); 
+			if(fileinputFilename.indexOf(".xls")>-1 || fileinputFilename.indexOf(".xlsx")>-1){
+				layer.msg('正在导入数据,请稍候。。。',{icon: 16,time:0,shade:0.3});
+				$("#upload").submit();
+			}else{
+				 layer.alert("文件格式不对,目前支持:xls,xlsx为后缀名的excel",{icon:5});		
+			}
+		 }else{
+			 layer.msg("请选择文件",{icon:5,time:2000});
+		 }
+	}
+ 	
+   	function loadImportList(cPage)
+	{
+		$.ajax({
+			type: "post",
+			url: "<%=basePath%>asset/getImportList.do",
+			data:{
+				page : cPage,
+				pageSize : 20
+			},
+			success: function(data){
+				var page = eval("(" + data + ")");
+				$("#currentPage").html(page.currentPage);
+				$("#totalPage").html(page.totalPage);
+				var appendHtml = '';
+				$.each(page.list, function(n, value) {  
+					appendHtml += '<tr>';
+       				appendHtml += '<td>'+value.fileName+'</td>';
+       				appendHtml += '<td class="hidden-md hidden-sm">'+value.total+'</td>';
+       				appendHtml += '<td>导入成功:'+value.success+'条,导入失败:'+value.error+'条</td>';
+       				appendHtml += '<td>'+value.createTime+'</td>';
+       				appendHtml += '<td class="hidden-md hidden-sm">'+value.realName+'</td>';
+       				appendHtml += '</tr>';
+      			}); 
+      			$("#tbody").html(appendHtml);
+			},
+		});
+	}
+ 	
+ 	//分页相关
+	function jumpPage(type)
+	{
+		var cPage = $("#currentPage").html();
+		var totalPage = $("#totalPage").html();
+
+		var cPageInt = parseInt(cPage);
+		var totalPageInt = parseInt(totalPage);
+					
+		var newCPageInt = returnCPageInt(type,cPageInt,totalPageInt);
+		if(newCPageInt < 0){
+			return;
+		}else{
+			cPageInt = newCPageInt;
+		}	
+		loadImportList(cPageInt);
+	    $("#currentPage").html(cPageInt);
+	}
+   </script>
+</html>

@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Asset">
+	<typeAlias alias="asset" type="com.guotop.palmschool.asset.entity.Asset" />
+	<typeAlias alias="assetImport" type="com.guotop.palmschool.asset.entity.AssetImport" />
+	<typeAlias alias="assetRepair" type="com.guotop.palmschool.asset.entity.AssetRepair" />
+	<typeAlias alias="assetRepairImg" type="com.guotop.palmschool.asset.entity.AssetRepairImg" />
+	<typeAlias alias="assetServiceman" type="com.guotop.palmschool.asset.entity.AssetServiceman" />
+
+
+	<!-- 获取资产列表（分页） -->
+	<select id="getAssetList" parameterClass="HashMap" resultClass="asset">
+		select * from palm_asset 
+			where 1=1
+			 <isNotEmpty property="code">
+				and code LIKE CONCAT('%',#code#,'%')
+			</isNotEmpty>
+			 <isNotEmpty property="name">
+				and name LIKE CONCAT('%',#name#,'%')
+			</isNotEmpty>
+			 <isNotEmpty property="type">
+				and type = #type#
+			</isNotEmpty>
+			order by code asc
+			<isNotEmpty property="startIndex">
+				limit #startIndex#, #length#
+			</isNotEmpty>
+	</select>
+	<!-- 获取资产总条数 -->
+	<select id="getAssetListCount" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from palm_asset 
+			where 1=1
+			 <isNotEmpty property="code">
+				and code LIKE CONCAT('%',#code#,'%')
+			</isNotEmpty>
+			 <isNotEmpty property="name">
+				and name LIKE CONCAT('%',#name#,'%')
+			</isNotEmpty>
+			 <isNotEmpty property="type">
+				and type = #type#
+			</isNotEmpty>
+			order by code asc
+	</select>
+
+	<!-- 添加资产 -->
+	<insert id="addAsset" parameterClass="asset">
+		insert into palm_asset
+		(
+			code,
+			name,
+			type,
+			manufacturer,
+			respPersonId,
+			respPerson,
+			spec,
+			model,
+			units,
+			count,
+			price,
+			site,
+			buyDate,
+			qualityDate,
+			totalPrice,
+			remark,
+			updateTime,
+			createTime
+		)
+		values
+		(
+			#code#,
+			#name#,
+			#type#,
+			#manufacturer#,
+			#respPersonId#,
+			#respPerson#,
+			#spec#,
+			#model#,
+			#units#,
+			#count#,
+			#price#,
+			#site#,
+			#buyDate#,
+			#qualityDate#,
+			#totalPrice#,
+			#remark#,
+			#updateTime#,
+			#createTime#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	<!-- 修改资产 -->
+	<update id="modifyAsset" parameterClass="asset">
+		update palm_asset set 
+			updateTime = #updateTime#
+			<isNotEmpty property="code">
+				,code = #code#
+			</isNotEmpty>
+			<isNotEmpty property="name">
+				,name = #name#
+			</isNotEmpty>
+			<isNotEmpty property="type">
+				,type = #type#
+			</isNotEmpty>
+			<isNotEmpty property="manufacturer">
+				,manufacturer = #manufacturer#
+			</isNotEmpty>
+			<isNotEmpty property="respPersonId">
+				,respPersonId = #respPersonId#
+			</isNotEmpty>
+			<isNotEmpty property="respPerson">
+				,respPerson = #respPerson#
+			</isNotEmpty>
+			<isNotEmpty property="spec">
+				,spec = #spec#
+			</isNotEmpty>
+			<isNotEmpty property="model">
+				,model = #model#
+			</isNotEmpty>
+			<isNotEmpty property="units">
+				,units = #units#
+			</isNotEmpty>
+			<isNotEmpty property="count">
+				,count = #count#
+			</isNotEmpty>
+			<isNotEmpty property="price">
+				,price = #price#
+			</isNotEmpty>
+			<isNotEmpty property="site">
+				,site = #site#
+			</isNotEmpty>
+			<isNotEmpty property="buyDate">
+				,buyDate = #buyDate#
+			</isNotEmpty>
+			<isNotEmpty property="qualityDate">
+				,qualityDate = #qualityDate#
+			</isNotEmpty>
+			<isNotEmpty property="totalPrice">
+				,totalPrice = #totalPrice#
+			</isNotEmpty>
+			<isNotEmpty property="remark">
+				,remark = #remark#
+			</isNotEmpty>
+			where id = #id#
+	</update>
+
+	<!-- 添加维修人员 -->
+	<insert id="addAssetServiceman" parameterClass="assetServiceman">
+		insert into palm_asset_serviceman
+		(
+			servicemanId,
+			serviceman,
+			type,
+			phone,
+			code,
+			leaderIdOne,
+			leaderOne,
+			leaderIdTwo,
+			leaderTwo,
+			createTime
+		)
+		values
+		(
+			#servicemanId#,
+			#serviceman#,
+			#type#,
+			#phone#,
+			#code#,
+			#leaderIdOne#,
+			#leaderOne#,
+			#leaderIdTwo#,
+			#leaderTwo#,
+			#createTime#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	<!-- 添加资产导入信息 -->
+	<insert id="addAssetImport" parameterClass="assetImport">
+		insert into palm_asset_import
+		(
+			fileName,
+			userId,
+			realName,
+			total,
+			success,
+			error,
+			createTime
+		)
+		values
+		(
+			#fileName#,
+			#userId#,
+			#realName#,
+			#total#,
+			#success#,
+			#error#,
+			#createTime#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	<!-- 添加资产保修 -->
+	<insert id="addAssetRepair" parameterClass="assetRepair">
+		insert into palm_asset_repair
+		(
+			assetId,
+			userId,
+			realName,
+			phone,
+			type,
+			servicemanId,
+			price,
+			status,
+			remark,
+			createTime
+		)
+		values
+		(
+			#assetId#,
+			#userId#,
+			#realName#,
+			#phone#,
+			#type#,
+			#servicemanId#,
+			#price#,
+			#status#,
+			#remark#,
+			#createTime#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	<!-- 添加资产保修图片 -->
+	<insert id="addAssetRepairImg" parameterClass="assetRepairImg">
+		insert into palm_asset_repair_img
+		(
+			repairId,
+			path,
+			name,
+			createTime
+		)
+		values
+		(
+			#repairId#,
+			#path#,
+			#name#,
+			#createTime#
+		)
+	</insert>
+	
+	<!-- 根据ID获取详情 -->
+	<select id="getAssetDetailById" parameterClass="Integer" resultClass="asset">
+		select * from palm_asset where id = #id#
+	</select>
+	
+	<!-- 根据type获取资产列表 -->
+	<select id="getAllAssetListByType" parameterClass="Integer" resultClass="asset">
+		select * from palm_asset where type = #type#
+	</select>
+	
+	<!-- 根据ID删除资产信息 -->
+	<delete id="deleteAssetById" parameterClass="Integer">
+		delete from palm_asset where id = #id#
+	</delete>
+	
+	<!-- 根据资产ID删除资产信息 -->
+	<delete id="deleteAssetRepairByAssetId" parameterClass="Integer">
+		delete from palm_asset_repair where assetId = #assetId#
+	</delete>
+	
+	<!-- 校验编码是否重复  oldcode为空新增时校验 不为空时时修改时校验-->
+	<select id="checkCode" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from palm_asset 
+		 where code = #code# 
+		   <isNotEmpty property="oldcode">
+			  and code != #oldcode#
+		   </isNotEmpty>
+	</select>
+	
+	<!-- 获取资产导入信息（分页） -->
+	<select id="getImportList" parameterClass="HashMap" resultClass="assetImport">
+		select * from palm_asset_import order by createTime desc
+		<isNotEmpty property="startIndex">
+				limit #startIndex#, #length#
+		</isNotEmpty>
+	</select>
+	<!-- 获取资产导入信息总数 -->
+	<select id="getImportListCount" resultClass="Integer">
+		select count(*) from palm_asset_import order by createTime desc
+	</select>
+	<!-- 根据用户ID查询是否为维修人员 -->
+	<select id="isServiceman" parameterClass="Integer" resultClass="Integer">
+		select count(*) from palm_asset_serviceman where servicemanId = #userId#
+	</select>
+	
+	<!-- 获取维修人员列表（分页） -->
+	<select id="getServicemanList" parameterClass="HashMap" resultClass="assetServiceman">
+		select * from palm_asset_serviceman 
+			where 1=1
+			 <isNotEmpty property="code">
+				and code LIKE CONCAT('%',#code#,'%')
+			</isNotEmpty>
+			 <isNotEmpty property="type">
+				and type = #type#
+			</isNotEmpty>
+			order by type asc
+			<isNotEmpty property="startIndex">
+				limit #startIndex#, #length#
+			</isNotEmpty>
+	</select>
+	<!-- 获取维修人员总条数 -->
+	<select id="getServicemanListCount" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from palm_asset_serviceman 
+			where 1=1
+			<isNotEmpty property="code">
+				and code LIKE CONCAT('%',#code#,'%')
+			</isNotEmpty>
+			 <isNotEmpty property="type">
+				and type = #type#
+			</isNotEmpty>
+			order by type asc
+	</select>
+	
+	<!-- 根据type获取对应的维修人员 -->
+	<select id="getAllServicemanListByType" parameterClass="Integer" resultClass="assetServiceman">
+		select DISTINCT servicemanId,serviceman from palm_asset_serviceman where type = #type#
+	</select>
+	<!-- 根据servicemanId获取对应的维修人员 -->
+	<select id="getServicemanByServicemanId" parameterClass="Integer" resultClass="assetServiceman">
+		select * from palm_asset_serviceman where servicemanId = #servicemanId#
+	</select>
+	
+	<!-- 领带人获取维修列表 -->
+	<select id="getAssetRepairListForLeader" parameterClass="HashMap" resultClass="assetRepair">
+		select ar.*, platform.getRealName(ar.servicemanId) serviceman, a.name assetName
+		 from palm_asset_repair ar, palm_asset a 
+		   where ar.assetId = a.id 
+		     and (
+		     		ar.userId = #userId# or ar.servicemanId =  #userId# or 
+		     		(ar.servicemanId in (select servicemanId from palm_asset_serviceman where leaderIdOne = #userId# or leaderIdTwo = #userId# ) )
+		         )
+		    <isNotEmpty property="status">
+				and ar.status LIKE CONCAT('%',#status#,'%')
+			</isNotEmpty>
+			 <isNotEmpty property="type">
+				and ar.type = #type#
+			</isNotEmpty>
+			order by ar.createTime desc
+			<isNotEmpty property="startIndex">
+				limit #startIndex#, #length#
+			</isNotEmpty>
+	</select>
+	<!-- 领带人获取维修总数 -->
+	<select id="getAssetRepairListForLeaderCount" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from palm_asset_repair ar, palm_asset a 
+		   where ar.assetId = a.id 
+		     and (
+		     		ar.userId = #userId# or ar.servicemanId =  #userId# or 
+		     		(ar.servicemanId in (select servicemanId from palm_asset_serviceman where leaderIdOne = #userId# or leaderIdTwo = #userId# ) )
+		         )
+		    <isNotEmpty property="status">
+				and ar.status LIKE CONCAT('%',#status#,'%')
+			</isNotEmpty>
+			 <isNotEmpty property="type">
+				and ar.type = #type#
+			</isNotEmpty>
+			order by ar.createTime desc
+	</select>
+	<!-- 维修人获取维修列表 -->
+	<select id="getAssetRepairListForServiceman" parameterClass="HashMap" resultClass="assetRepair">
+		select ar.*, platform.getRealName(ar.servicemanId) serviceman, a.name assetName
+		 from palm_asset_repair ar, palm_asset a 
+		   where ar.assetId = a.id 
+		     and ( ar.userId = #userId# or ar.servicemanId =  #userId#)
+		    <isNotEmpty property="status">
+				and ar.status LIKE CONCAT('%',#status#,'%')
+			</isNotEmpty>
+			 <isNotEmpty property="type">
+				and ar.type = #type#
+			</isNotEmpty>
+			order by ar.createTime desc
+			<isNotEmpty property="startIndex">
+				limit #startIndex#, #length#
+			</isNotEmpty>
+	</select>
+	<!-- 维修人获取维修总数 -->
+	<select id="getAssetRepairListForServicemanCount" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from palm_asset_repair ar, palm_asset a 
+		   where ar.assetId = a.id 
+		     and ( ar.userId = #userId# or ar.servicemanId =  #userId#)
+		    <isNotEmpty property="status">
+				and ar.status LIKE CONCAT('%',#status#,'%')
+			</isNotEmpty>
+			 <isNotEmpty property="type">
+				and ar.type = #type#
+			</isNotEmpty>
+			order by ar.createTime desc
+	</select>
+	<!-- 普通报修人获取维修列表 -->
+	<select id="getAssetRepairListForRepair" parameterClass="HashMap" resultClass="assetRepair">
+		select ar.*, platform.getRealName(ar.servicemanId) serviceman, a.name assetName
+		 from palm_asset_repair ar, palm_asset a 
+		   where ar.assetId = a.id 
+		     and ar.userId = #userId#
+		    <isNotEmpty property="status">
+				and ar.status LIKE CONCAT('%',#status#,'%')
+			</isNotEmpty>
+			 <isNotEmpty property="type">
+				and ar.type = #type#
+			</isNotEmpty>
+			order by ar.createTime desc
+			<isNotEmpty property="startIndex">
+				limit #startIndex#, #length#
+			</isNotEmpty>
+	</select>
+	<!-- 普通报修人获取维修总数 -->
+	<select id="getAssetRepairListForRepairCount" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from palm_asset_repair ar, palm_asset a 
+		   where ar.assetId = a.id 
+		     and ar.userId = #userId#
+		    <isNotEmpty property="status">
+				and ar.status LIKE CONCAT('%',#status#,'%')
+			</isNotEmpty>
+			 <isNotEmpty property="type">
+				and ar.type = #type#
+			</isNotEmpty>
+			order by ar.createTime desc
+	</select>
+	<!-- 根据ID获取维修详情 -->
+	<select id="getAssetRepairDetailById" parameterClass="Integer" resultClass="assetRepair">
+		select ar.*, ar.status, platform.getRealName(ar.servicemanId) serviceman, a.name assetName,
+		CASE ar.status WHEN 0 THEN '待审核' WHEN 1 THEN '审核不通过' WHEN 2 THEN '待维修' WHEN 3 THEN '已领取工单' WHEN 4 THEN '已拒绝工单' ELSE '维修完成' END AS statusName,
+        CASE ar.type WHEN 0 THEN '水电设施' WHEN 1 THEN '房屋建筑物' WHEN 2 THEN '办公设备' WHEN 3 THEN '网络信息' WHEN 4 THEN '仪器设备' WHEN 5 THEN '运输设备' WHEN 6 THEN '体育用品'  ELSE '其他' END AS typeName
+		from palm_asset_repair ar, palm_asset a 
+		   where ar.assetId = a.id 
+		     and ar.id = #id#
+	</select>
+	<!-- 根据维修ID获取对应的维修图片 -->
+	<select id="getAssetRepairImgListByRepairId" parameterClass="Integer" resultClass="assetRepairImg">
+		select * from palm_asset_repair_img where repairId = #id#
+	</select>
+	
+	<!-- 修改资产维修 -->
+	<update id="updateAsserRepair" parameterClass="assetRepair">
+		update palm_asset_repair set 
+			updateTime = #updateTime#
+			<isNotEmpty property="repairPrice">
+				,repairPrice = #repairPrice#
+			</isNotEmpty>
+			<isNotEmpty property="status">
+				,status = #status#
+			</isNotEmpty>
+			<isNotEmpty property="auditRemark">
+				,auditRemark = #auditRemark#
+			</isNotEmpty>
+			<isNotEmpty property="estimatedTime">
+				,estimatedTime = #estimatedTime#
+			</isNotEmpty>
+			<isNotEmpty property="finishTime">
+				,finishTime = #finishTime#
+			</isNotEmpty>
+			where id = #id#
+	</update>
+	
+</sqlMap>

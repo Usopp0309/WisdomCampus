@@ -1,0 +1,99 @@
+package com.guotop.palmschool.entity;
+
+/**
+ * 短信套餐适用年级实体类
+ * 
+ */
+public class OrderMessageGrade
+{
+	/**
+	 * ID
+	 */
+	private Integer id;
+
+	/**
+	 * 套餐id
+	 */
+	private Integer orderMessageId;
+
+	/**
+	 * 年级id
+	 */
+	private Integer gradeId;
+
+	/**
+	 * 年级为选中 0否 其他是
+	 */
+	private Integer isSelected;
+
+	/**
+	 * 年级名称
+	 */
+	private String gradeName;
+
+	/**
+	 * 创建时间
+	 */
+	private String createTime;
+
+	public Integer getId()
+	{
+		return id;
+	}
+
+	public void setId(Integer id)
+	{
+		this.id = id;
+	}
+
+	public Integer getOrderMessageId()
+	{
+		return orderMessageId;
+	}
+
+	public void setOrderMessageId(Integer orderMessageId)
+	{
+		this.orderMessageId = orderMessageId;
+	}
+
+	public Integer getGradeId()
+	{
+		return gradeId;
+	}
+
+	public void setGradeId(Integer gradeId)
+	{
+		this.gradeId = gradeId;
+	}
+
+	public String getCreateTime()
+	{
+		return createTime;
+	}
+
+	public void setCreateTime(String createTime)
+	{
+		this.createTime = createTime;
+	}
+
+	public String getGradeName()
+	{
+		return gradeName;
+	}
+
+	public void setGradeName(String gradeName)
+	{
+		this.gradeName = gradeName;
+	}
+
+	public Integer getIsSelected()
+	{
+		return isSelected;
+	}
+
+	public void setIsSelected(Integer isSelected)
+	{
+		this.isSelected = isSelected;
+	}
+
+}

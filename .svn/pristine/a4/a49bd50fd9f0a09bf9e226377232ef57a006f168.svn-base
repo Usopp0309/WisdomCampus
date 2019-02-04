@@ -1,0 +1,446 @@
+package com.guotop.palmschool.curriculum.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.common.entity.ResultInfo;
+import com.guotop.palmschool.curriculum.entity.Classroom;
+import com.guotop.palmschool.curriculum.entity.Curriculum;
+import com.guotop.palmschool.curriculum.entity.CurriculumSemester;
+import com.guotop.palmschool.curriculum.entity.CurriculumTime;
+import com.guotop.palmschool.curriculum.entity.ExamSubjectInformation;
+import com.guotop.palmschool.curriculum.entity.SubjectAndTeacherLink;
+import com.guotop.palmschool.curriculum.entity.Week;
+import com.guotop.palmschool.curriculum.service.CurriculumService;
+import com.guotop.palmschool.entity.StudentClazz;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.util.TimeUtil;
+
+/**
+ * 电子课程表业务类实现类
+ */
+@Service("curriculumService")
+public class CurriculumServiceImpl extends BaseService implements CurriculumService
+{
+	/**
+	 * 查询星期list
+	 * 
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Week> getWeekList()
+	{
+		return (List<Week>) getBaseDao().selectListBySql("Curriculum.getWeekList");
+	}
+
+	/**
+	 * 根据日期查询对应的学期
+	 * 
+	 * @return
+	 */
+	public CurriculumSemester getCurriculumServiceByDate(String date, String startDate, String endDate)
+	{
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("date", date);
+		paramMap.put("startDate", startDate);
+		paramMap.put("endDate", endDate);
+
+		CurriculumSemester curriculumSemester = new CurriculumSemester();
+
+		if ((startDate == null && endDate == null) || (startDate.equals("") && endDate.equals("")))
+		{
+			curriculumSemester = (CurriculumSemester) getBaseDao().selectObjectByObject("Curriculum.getCurriculumServiceByDate", date);
+			if (curriculumSemester == null)
+			{
+				curriculumSemester = (CurriculumSemester) getBaseDao().selectObjectByObject("Curriculum.getCurriculumServiceByDateTwo", date);
+			}
+			return curriculumSemester;
+
+		} else if (startDate.equals("") && endDate.equals(""))
+		{
+			curriculumSemester = (CurriculumSemester) getBaseDao().selectObjectByObject("Curriculum.getCurriculumServiceByDate", date);
+			if (curriculumSemester == null)
+			{
+				curriculumSemester = (CurriculumSemester) getBaseDao().selectObjectByObject("Curriculum.getCurriculumServiceByDateTwo", date);
+			}
+			return curriculumSemester;
+		} else
+		{
+
+			return (CurriculumSemester) getBaseDao().selectObjectByObject("Curriculum.getCurriculumServiceByStartDateAndEndDate", paramMap);
+		}
+
+	}
+
+	/**
+	 * 根据semesterId查询对应的时间段
+	 * 
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<CurriculumTime> getCurriculumTimeBySemesterId(Integer semesterId)
+	{
+		return (List<CurriculumTime>) getBaseDao().selectList("Curriculum.getCurriculumTimeBySemesterId", semesterId);
+	}
+
+	/**
+	 * 根据semesterId查询对应的时间段（上午）
+	 * 
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<CurriculumTime> getCurriculumTimeMorningBySemesterId(Integer semesterId)
+	{
+		return (List<CurriculumTime>) getBaseDao().selectList("Curriculum.getCurriculumTimeMorningBySemesterId", semesterId);
+	}
+
+	/**
+	 * 根据semesterId查询对应的时间段（下午）
+	 * 
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<CurriculumTime> getCurriculumTimeAfternoonBySemesterId(Integer semesterId)
+	{
+		return (List<CurriculumTime>) getBaseDao().selectList("Curriculum.getCurriculumTimeAfternoonBySemesterId", semesterId);
+	}
+
+	/**
+	 * 根据semesterId查询对应的时间段（晚上）
+	 * 
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<CurriculumTime> getCurriculumTimeNightBySemesterId(Integer semesterId)
+	{
+		return (List<CurriculumTime>) getBaseDao().selectList("Curriculum.getCurriculumTimeNightBySemesterId", semesterId);
+	}
+
+	/**
+	 * 根据timeId查询对应科目
+	 * 
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Curriculum> getCurriculumByTimeId(Integer timeId, String roleCode, User user, Integer clazzId)
+	{
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+
+		if (roleCode != null && (roleCode.equals("admin") || roleCode.equals("president")))
+		{
+			paramMap.put("clazzId", clazzId);
+			paramMap.put("timeId", timeId);
+			return (List<Curriculum>) getBaseDao().selectListByObject("Curriculum.getCurriculumByTimeIdAndClazzId", paramMap);
+
+		} else if (roleCode != null && (roleCode.equals("teacher") || roleCode.equals("departManager")))
+		{
+			paramMap.put("subjectsUser", user.getUserId());
+			paramMap.put("timeId", timeId);
+			List<Curriculum> list = new ArrayList<Curriculum>();
+			for (int i = 1; i < 8; i++)
+			{
+				paramMap.put("weekId", i);
+				Curriculum cur = (Curriculum) getBaseDao().selectObjectByObject("Curriculum.getCurriculumByTimeIdAsTeacher", paramMap);
+				if (cur == null)
+				{
+					Curriculum curr = new Curriculum();
+					curr.setClazzId(clazzId);
+					curr.setSubjectName("");
+					curr.setSubjectsUserName("");
+					curr.setTimeId(timeId);
+					curr.setWeekId(i);
+					curr.setClassroomName("");
+					list.add(curr);
+				} else
+				{
+					list.add(cur);
+				}
+			}
+
+			return list;
+
+		} else if (roleCode != null && roleCode.equals("student"))
+		{
+			StudentClazz studentClazz = (StudentClazz) getBaseDao().selectObject("Curriculum.getStudentClazzId", user.getUserId());
+			paramMap.put("clazzId", studentClazz.getClazzId());
+			paramMap.put("timeId", timeId);
+			return (List<Curriculum>) getBaseDao().selectListByObject("Curriculum.getCurriculumByTimeIdAndClazzId", paramMap);
+		}
+
+		else if (roleCode != null && roleCode.equals("parent"))
+		{
+			paramMap.put("clazzId", clazzId);
+			paramMap.put("timeId", timeId);
+			return (List<Curriculum>) getBaseDao().selectListByObject("Curriculum.getCurriculumByTimeIdAndClazzId", paramMap);
+		} else if (roleCode != null && roleCode.equals("classLeader"))
+		{
+			paramMap.put("clazzId", clazzId);
+			paramMap.put("timeId", timeId);
+			return (List<Curriculum>) getBaseDao().selectListByObject("Curriculum.getCurriculumByTimeIdAndClazzId", paramMap);
+		}
+		return null;
+	}
+
+	/**
+	 * 根据timeId查询对应科目(用于编辑)
+	 * 
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Curriculum> getCurriculumByTimeIdForEdit(Integer timeId, Integer clazzId)
+	{
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("clazzId", clazzId);
+		paramMap.put("timeId", timeId);
+		return (List<Curriculum>) getBaseDao().selectListByObject("Curriculum.getCurriculumByTimeIdForEdit", paramMap);
+	}
+
+	/**
+	 * 添加学期
+	 */
+	public Integer saveCurriculumSemester(CurriculumSemester semester)
+	{
+		return (Integer) getBaseDao().addObject("Curriculum.saveCurriculumSemester", semester);
+	}
+
+	/**
+	 * 添加时间
+	 */
+	public Integer saveCurriculumTime(CurriculumTime curriculumTime)
+	{
+		return (Integer) getBaseDao().addObject("Curriculum.saveCurriculumTime", curriculumTime);
+	}
+
+	/**
+	 * 修改学期
+	 */
+	public void modifyCurriculumSemester(CurriculumSemester semester)
+	{
+		getBaseDao().updateObject("Curriculum.modifyCurriculumSemester", semester);
+	}
+
+	/**
+	 * 修改时间
+	 */
+	public void modifyCurriculumTime(CurriculumTime curriculumTime)
+	{
+		getBaseDao().updateObject("Curriculum.modifyCurriculumTime", curriculumTime);
+	}
+
+	/**
+	 * 添加科目
+	 */
+	public void saveCurriculum(Curriculum curriculum)
+	{
+		getBaseDao().addObject("Curriculum.saveCurriculum", curriculum);
+	}
+
+	/**
+	 * 添加考试科目信息表 科目老师关系表 与成绩分析系统有关系
+	 */
+	public void saveExamSubjectInfo(String subjectName, Integer teacherId, Integer clazzId)
+	{
+		ExamSubjectInformation examSubjectInformation = (ExamSubjectInformation) getBaseDao().selectObjectByObject("Curriculum.getExamSubjectInformationBySubjectName", subjectName);
+		Integer subjectId = null;
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("teacherId", teacherId);
+		paramMap.put("clazzId", clazzId);
+		paramMap.put("createTime", TimeUtil.getInstance().now());
+		if (examSubjectInformation == null)
+		{
+			examSubjectInformation = new ExamSubjectInformation();
+			examSubjectInformation.setSubjectName(subjectName);
+			subjectId = getBaseDao().addObject("Curriculum.saveExamSubjectInfo", examSubjectInformation);
+			if (teacherId != 0)
+			{
+				paramMap.put("subjectId", subjectId);
+				SubjectAndTeacherLink subjectAndTeacherLink = (SubjectAndTeacherLink) getBaseDao().selectObjectByObject("Curriculum.getSubjectAndTeacherLink", paramMap);
+				
+				if (subjectAndTeacherLink == null)
+				{
+					getBaseDao().addObject("Curriculum.saveSubjectAndTeacherLink", paramMap);
+				}
+			}
+
+		} else
+		{
+			if (teacherId != 0)
+			{
+				subjectId = examSubjectInformation.getId();
+				paramMap.put("subjectId", subjectId);
+				SubjectAndTeacherLink subjectAndTeacherLink = (SubjectAndTeacherLink) getBaseDao().selectObjectByObject("Curriculum.getSubjectAndTeacherLink", paramMap);
+				if (subjectAndTeacherLink == null)
+				{
+					getBaseDao().addObject("Curriculum.saveSubjectAndTeacherLink", paramMap);
+				}
+			}
+		}
+	}
+
+	/**
+	 * 修改科目
+	 */
+	public void updateCurriculum(Curriculum curriculum)
+	{
+		getBaseDao().updateObject("Curriculum.updateCurriculum", curriculum);
+	}
+
+	/**
+	 * 校验学期日期是否存在
+	 */
+	public ResultInfo checkSemesterCurriculum(Map<String, Object> paramMap)
+	{
+		Integer result = 0;
+
+		try
+		{
+			result = (Integer) getBaseDao().selectObjectByObject("Curriculum.checkSemesterCurriculum", paramMap);
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			result = 0;
+		}
+		ResultInfo resultInfo = new ResultInfo();
+		if (result > 0)
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_SUCCESS);
+		} else
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_ERROR);
+		}
+		return resultInfo;
+	}
+
+	/**
+	 * 导入课程表时校验课程表是否存在
+	 */
+	public ResultInfo checkCurriculum(Map<String, Object> paramMap)
+	{
+		Integer result = 0;
+
+		try
+		{
+			result = (Integer) getBaseDao().selectObjectByObject("Curriculum.checkCurriculum", paramMap);
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			result = 0;
+		}
+		ResultInfo resultInfo = new ResultInfo();
+		if (result > 0)
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_SUCCESS);
+		} else
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_ERROR);
+		}
+		return resultInfo;
+	}
+
+	/**
+	 * 获取代课教师List （用于班主任编辑课程表）
+	 */
+	@SuppressWarnings("unchecked")
+	public List<User> getSubjectTeacherList(String name)
+	{
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("name", name);
+		return (List<User>) getBaseDao().selectListByObject("Curriculum.getSubjectTeacherList", paramMap);
+	}
+
+	/**
+	 * 获取教室List （用于班主任编辑课程表）
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Classroom> getclassroomNameList(String name)
+	{
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("name", name);
+		return (List<Classroom>) getBaseDao().selectListByObject("Curriculum.getclassroomNameList", paramMap);
+	}
+
+	/**
+	 * 根据 semesterId，clazzId，timeId，weekId（用于班主任编辑课程表）
+	 */
+	public Curriculum getCurriculumByIds(Map<String, Object> paramMap)
+	{
+		return (Curriculum) getBaseDao().selectObjectByObject("Curriculum.getCurriculumByIds", paramMap);
+	}
+
+	/**
+	 * 校验任课教师在此时间是否有代课
+	 */
+	public ResultInfo checkTeacher(Map<String, Object> paramMap)
+	{
+		Integer result = 0;
+
+		try
+		{
+			result = (Integer) getBaseDao().selectObjectByObject("Curriculum.checkTeacher", paramMap);
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			result = 0;
+		}
+
+		ResultInfo resultInfo = new ResultInfo();
+
+		if (result > 0)
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_SUCCESS);
+		} else
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_ERROR);
+		}
+		return resultInfo;
+	}
+
+	/**
+	 * 校验该教室在此时间是否被占用
+	 */
+	public ResultInfo checkClassroom(Map<String, Object> paramMap)
+	{
+		Integer result = 0;
+
+		try
+		{
+			result = (Integer) getBaseDao().selectObjectByObject("Curriculum.checkClassroom", paramMap);
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			result = 0;
+		}
+		ResultInfo resultInfo = new ResultInfo();
+		if (result > 0)
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_SUCCESS);
+		} else
+		{
+			resultInfo.setResultCode(ResultInfo.RESULT_ERROR);
+		}
+		return resultInfo;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<CurriculumTime> getCurriculumController(Curriculum c) {
+		List<CurriculumTime> result=null;
+		Map<String, Object> hm = new HashMap<String, Object>();
+		hm.put("userId", c.getUserId());
+		hm.put("weekId", c.getWeekId());
+		hm.put("createTime", c.getCreateTime());
+		try
+		{
+			result =(List<CurriculumTime>)getBaseDao().selectListByObject("Curriculum.getCurriculumController", hm);
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return result;
+	}
+}

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="StudentEvaluationDetail">
+
+	<typeAlias alias="evaluateModel" type="com.guotop.palmschool.evaluation.entity.EvaluateModel"/>
+	<typeAlias alias="teacherEvaluatePhraseModel" type="com.guotop.palmschool.evaluation.entity.TeacherEvaluatePhraseModel"/>
+	<typeAlias alias="teacherEvaluateFormModel" type="com.guotop.palmschool.evaluation.entity.TeacherEvaluateFormModel"/>
+	
+	<resultMap class="com.guotop.palmschool.evaluation.entity.TeacherEvaluateFormModel" id="evaluate_form">
+		<result property="id" column="id"/>
+		<result property="realName" column="realName"/>	
+		<result property="name" column="name"/>
+		<result property="semester" column="semester"/>
+		<result property="type" column="type"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.evaluation.entity.TeacherEvaluateFormModel" id="not_evaluate_form">
+		<result property="id" column="id"/>
+		<result property="realName" column="realName"/>	
+		<result property="name" column="name"/>
+		<result property="semester" column="semester"/>
+		<result property="type" column="type"/>
+		<result property="userId" column="userId"/>
+		<result property="gradeId" column="gradeId"/>
+		<result property="clazzId" column="clazzId"/>
+	</resultMap>
+	
+	<!--  根据clazzId查找已评价过的学生 -->
+	<select id="getStudentEvaluateFormById" parameterClass="Integer" resultMap="evaluate_form">
+		SELECT f.id,u.realName,f.type,t.name ,t.semester 
+		  FROM palm_teacher_evaluate_form AS f,platform.user_detail AS u,teachingexercisesfolder t
+            WHERE f.userId=u.userId AND t.id=f.type AND f.sid = 2 AND f.clazzId= #clazzId#
+	</select>
+	
+	
+	<!-- 根据clazzId查找对应的评价 -->
+	<select id="getEvaluationClazzModelById" parameterClass="HashMap" resultClass="evaluationClazzModel">
+		SELECT ec.*,t.name,t.semester FROM palm_evaluate_clazz_model ec, palm_evaluation_time et ,teachingexercisesfolder t 
+			WHERE ec.evaluatetimeId = et.id 
+		      AND t.id = ec.teachingfolderId
+		      AND ec.userType = 2
+			  AND (et.clazzId = #clazzId# OR et.gradeId = #gradeId# OR (et.clazzId=0 AND et.gradeId=0))
+	</select>
+	
+	<select id="getStudentEvaluateForm" parameterClass="HashMap" resultClass="teacherEvaluateFormModel">
+			SELECT DISTINCT c.userId,ud.realName FROM palm_student_clazz c,platform.user_detail AS ud
+			  WHERE c.userId = ud.userId 
+			   AND c.clazzId = #clazzId#
+			   AND NOT EXISTS
+				(
+				   SELECT f.userId FROM palm_teacher_evaluate_form AS f 
+					WHERE f.userId = c.userId
+					AND f.type  = #folderId#
+					AND f.clazzId = #clazzId#
+				)
+	</select>
+	
+	<select id="getStudentNotInTwo"  parameterClass="Integer" resultMap="evaluate_form">
+		SELECT f.id,u.realName,f.type,t.name,t.semester,c.gradeId,sc.clazzId,u.userId 
+			FROM palm_teacher_evaluate_form AS f,platform.user_detail AS u,teachingexercisesfolder t,palm_clazz c ,palm_grade g,palm_student_clazz sc
+			 WHERE f.userId!=u.userId 
+			 	AND t.id!=f.type 
+			 	AND t.parentId=0 
+			 	AND u.userId = sc.userId 
+			 	AND sc.clazzId=c.id 
+			 	AND g.id = c.gradeId
+				AND g.state = '0'
+			 	AND c.gradeId= #id# 
+	</select>
+	
+</sqlMap>

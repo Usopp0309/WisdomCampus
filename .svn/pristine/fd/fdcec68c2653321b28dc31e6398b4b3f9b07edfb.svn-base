@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Apply">
+	<typeAlias alias="apply" type="com.guotop.palmschool.apply.entity.Apply" />
+
+	<resultMap class="com.guotop.palmschool.apply.entity.Apply"
+		id="result-apply">
+		<result property="id" column="id" />
+		<result property="schoolId" column="schoolId" />
+		<result property="proposer" column="proposer" />
+		<result property="applyTime" column="applyTime" />
+		<result property="phone" column="phone" />
+		<result property="email" column="email" />
+		<result property="duties" column="duties" />
+		<result property="schoolName" column="schoolName" />
+		<result property="schoolAddress" column="schoolAddress" />
+		<result property="totalNum" column="totalNum" />
+		<result property="schoolType" column="schoolType" />
+		<result property="createDate" column="createDate" />
+		<result property="schoolMaster" column="schoolMaster" />
+		<result property="schoolMasterPhone" column="schoolMasterPhone" />
+		<result property="attachment" column="attachment" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.apply.entity.Apply"
+		id="result-applyInfo">
+		<result property="id" column="id" />
+		<result property="schoolId" column="schoolId" />
+		<result property="proposer" column="proposer" />
+		<result property="applyTime" column="applyTime" />
+		<result property="phone" column="phone" />
+		<result property="status" column="status" />
+		<result property="auditorId" column="auditorId" />
+		<result property="verificationTime" column="verificationTime" />
+		<result property="resultDescription" column="resultDescription" />
+		<result property="remark" column="remark" />
+		<result property="email" column="email" />
+		<result property="schoolMaster" column="schoolMaster" />
+		<result property="schoolMasterPhone" column="schoolMasterPhone" />
+		<result property="attachment" column="attachment" />
+	</resultMap>
+	<!-- 添加学校申请注册信息 -->
+	<insert id="addApply" parameterClass="apply">
+		insert into platform.apply
+		(
+		schoolId,
+		proposer,
+		applyTime,
+		status,
+		phone,
+		duties,
+		email,
+		schoolMaster,
+		schoolMasterPhone,
+		attachment
+		)
+		values
+		(
+		#schoolId#,
+		#proposer#,
+		#applyTime#,
+		#status#,
+		#phone#,
+		#duties#,
+		#email#,
+		#schoolMaster#,
+		#schoolMasterPhone#,
+		#attachment#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	<!-- 查找所有记录 -->
+	<select id="getSchoolApplyAuditList" parameterClass="HashMap" resultClass="com.guotop.palmschool.apply.entity.Apply"> 
+		select
+		a.id,a.schoolId,a.schoolMaster,a.schoolMasterPhone,a.attachment, a.proposer, DATE_FORMAT(a.applyTime,'%Y-%m-%d %H:%i:%s') applyTime, a.phone,a.email,a.duties,
+		s.schoolname, DATE_FORMAT(sd.createDate, '%Y-%m-%d') createDate,
+		concat(platform.getAddressByAreaId(sd.schoolAreaId), IFNULL(sd.schoolAddress,''))
+		schoolAddress , sd.totalNum,case sd.schoolType when 0 then '公办' when 1
+		then '私立' when 2 then '其它' end as schoolType from platform.apply a, platform.school s,
+		platform.school_detail sd where a.schoolid=s.schoolid and a.schoolid = sd.schoolid 
+		<isNotEmpty prepend="and" property="condition">
+			s.schoolName like concat('%',#condition#, '%') 
+		</isNotEmpty>
+		order by a.id DESC
+	</select>
+	<!-- 查找所有记录 -->
+	<select id="getSchoolApplyAuditPassList" resultMap="result-apply"  resultClass="com.guotop.palmschool.apply.entity.Apply">
+		select
+		a.id,a.schoolId,a.schoolMaster,a.schoolMasterPhone,a.attachment, a.proposer, DATE_FORMAT(a.applyTime,'%Y-%m-%d %H:%i:%s') applyTime, a.phone,a.email,a.duties,
+		s.schoolname, DATE_FORMAT(sd.createDate, '%Y-%m-%d') createDate,
+		concat(platform.getAddressByAreaId(sd.schoolAreaId),IFNULL(sd.schoolAddress,''))
+		schoolAddress , sd.totalNum,case sd.schoolType when 0 then '公办' when 1
+		then '私立' when 2 then '其它' end as schoolType from platform.apply_history a, platform.school s,
+		platform.school_detail sd where a.schoolid=s.schoolid and a.schoolid =
+		sd.schoolid and status=#status#
+		<isNotEmpty prepend="and" property="firstId">
+			#firstId# > a.id 
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="condition">
+			s.schoolName like concat('%',#condition#, '%')
+		</isNotEmpty>
+		
+		order by a.id desc limit 0,10
+	</select>
+	<!-- 根据ID查找记录 -->
+	<select id="getSchoolApplyAuditById" parameterClass="Integer"
+		resultClass="apply">
+		select * from platform.apply a where a.id=#id#
+	</select>
+	<!-- 统计待审核数据量 -->
+	<select id="getCountOfApply" resultClass="Integer">
+		select count(*) from
+		platform.apply
+	</select>
+	<!-- 根据用户ID删除申请信息 -->
+	<delete id="deleteApply" parameterClass="Integer">
+		delete from platform.apply
+		where id = #id#
+	</delete>
+	<!-- 迁移学校申请注册信息至历史表 -->
+	<insert id="addApplyHis" parameterClass="apply">
+		insert into
+		platform.apply_history
+		(
+		schoolId,
+		proposer,
+		applyTime,
+		status,
+		auditorId,
+		verificationTime,
+		resultDescription,
+		remark,
+		phone,
+		email,
+		schoolMaster,
+		schoolMasterPhone,
+		attachment
+		)
+		values
+		(
+		#schoolId#,
+		#proposer#,
+		#applyTime#,
+		#status#,
+		#auditorId#,
+		#verificationTime#,
+		#resultDescription#,
+		#remark#,
+		#phone#,
+		#email#,
+		#schoolMaster#,
+		#schoolMasterPhone#,
+		#attachment#
+		)
+<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+</sqlMap>

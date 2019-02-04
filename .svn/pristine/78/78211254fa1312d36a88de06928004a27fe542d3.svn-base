@@ -1,0 +1,415 @@
+package com.guotop.palmschool.controller;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import net.sf.json.JSONObject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.curriculum.service.CurriculumService;
+import com.guotop.palmschool.entity.Department;
+import com.guotop.palmschool.entity.Menu;
+import com.guotop.palmschool.entity.Permission;
+import com.guotop.palmschool.entity.Role;
+import com.guotop.palmschool.entity.School;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.rest.entity.UserAuthorization;
+import com.guotop.palmschool.service.AnnouncementService;
+import com.guotop.palmschool.service.ClazzService;
+import com.guotop.palmschool.service.DepartmentService;
+import com.guotop.palmschool.service.MenuService;
+import com.guotop.palmschool.service.PermissionService;
+import com.guotop.palmschool.service.RoleService;
+import com.guotop.palmschool.service.ScheduleService;
+import com.guotop.palmschool.service.SchoolService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.service.UserServiceForFJ;
+import com.guotop.palmschool.todayActivity.service.TodayActivityService;
+import com.guotop.palmschool.util.JSONObjectParse;
+import com.guotop.palmschool.util.PropertiesUtil;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+import com.guotop.palmschool.util.XmlUtil;
+import com.whty.aam.client.util.HttpUtil;
+
+/**
+ * 福建资源云平台免登陆调转到智慧校园
+ * 
+ * @author shengyinjiang
+ * 
+ */
+@RequestMapping("/userCas")
+@Controller
+public class UserCASController extends BaseController
+{
+	private Logger logger = LoggerFactory.getLogger(UserCASController.class);
+	@Resource
+	private UserService userService;
+	@Resource
+	private CommonService commonService;
+	@Resource
+	private SchoolService schoolService;
+	@Resource
+	private PermissionService permissionService;
+	@Resource
+	private RoleService roleService;
+	@Resource
+	private DepartmentService departmentService;
+	@Resource
+	private AnnouncementService announcementService;
+	@Resource
+	private CurriculumService curriculumService;
+	@Resource
+	private ScheduleService scheduleService;
+	@Resource
+	private TodayActivityService todayActivityService;
+	@Resource
+	private UserServiceForFJ userServiceForFJ;
+	@Resource
+	private ClazzService clazzService;
+	@Resource
+	private MenuService menuService;
+
+	/**
+	 * 执行登陆（从福建资源云平台跳转过来调用的接口）
+	 * 
+	 * @throws MalformedURLException
+	 * 
+	 * @throws IOException
+	 */
+	@RequestMapping(value = "/doLogin.do")
+	public String doLogin(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		Properties pro = PropertiesUtil.getInstance().read("wisdomcampus.properties");
+		String fjzyycommonschoolid = pro.getProperty("fjzyycommonschoolid");
+		/*
+		 * 从福建资源云平台登陆之后进入智慧校园,只使用数据库“fjzyyptxx”,以免影响福建省其他用户
+		 * 1.先去请求福建资源云平台返回用户信息，并且解析到UserAuthorization实体类中
+		 * 2.根据personid去fjzyyptxx.user_authorization表中判断是否已经认证 
+		 * 2.1 已认证
+		 * 更新福建用户在fjzyyptxx.user_authorization表的信息
+		 * 2.2 未认证 
+		 * 2.2.1  注册用户信息到智慧校园平台(userbase,user_detail,user_school,....) 
+		 * 2.2.2  保存数据到fjzyyptxx.user_authorization表中
+		 */
+		String ticket = request.getParameter("ticket");
+		String platformcode = request.getParameter("platformcode");
+
+		String fjzyyCommonSchoolId = fjzyycommonschoolid;
+		DBContextHolder.setDBType(fjzyyCommonSchoolId);
+		// 获取sessionId
+		try
+		{
+			String usessionid = null;
+			String respXML = HttpUtil.doGet("http://www.fjedu.cn:20014/aamif/ticketValidate?ticket=" + ticket);
+			if (respXML.indexOf("authenticationSuccess") > 0)
+			{
+				// ticket验证成功
+				usessionid = XmlUtil.readStringXml(respXML);
+			} else if (respXML.indexOf("authenticationFailure") > 0)
+			{
+				// ticket验证失败
+				return "../login";
+			}
+			// 获取token
+			String token = commonService.getAccesstoken(Cons.FJEDU_APPID, Cons.FJEDU_APPKEY);
+
+			String resp = HttpUtil.doGet("http://www.fjedu.cn:20001/aam/rest/user/getuserinfo/" + usessionid + "?token=" + token);
+			if (StringUtil.isEmpty(resp))
+			{
+				return "../login";
+			}
+			JSONObject obj = (JSONObject) JSONObject.fromObject(resp);
+			String resultCode = (String) obj.get("result");
+			if (!"000000".equalsIgnoreCase(resultCode))
+			{
+				return "../login";
+			}
+			Integer userId = virtualImportUserForFJ(obj, token, fjzyyCommonSchoolId);
+			if (userId == 0 || null == userId)
+			{
+				return "../login";
+			}
+			List<User> tempUserList = userService.getUserByUserIdForFJ(userId);
+			if (CollectionUtils.isEmpty(tempUserList))
+			{
+				return "../login";
+			}
+			User tempUser = tempUserList.get(0);
+			tempUser.setSchoolId(fjzyyCommonSchoolId);
+			session.setAttribute("user", tempUser);
+			session.setAttribute("ticket", ticket);
+			return enterMain(request, session, modelMap);
+		} catch (Exception e)
+		{
+			logger.error("doLogin.do福建资源云平台,获取当前登录用户信息失败:" + e);
+		}
+		return "../login";
+	}
+
+	/**
+	 * 执行登陆(直接使用福建账号登录我们的智慧校园系统)
+	 * 
+	 * @throws MalformedURLException
+	 * 
+	 * @throws IOException
+	 */
+	@RequestMapping(value = "/doLoginByFJAccount.do")
+	public String doLoginByFJAccount(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		Properties pro = PropertiesUtil.getInstance().read("wisdomcampus.properties");
+		String fjzyycommonschoolid = pro.getProperty("fjzyycommonschoolid");
+		String username = request.getParameter("username");
+		String password = request.getParameter("password");
+		String fjzyyCommonSchoolId = fjzyycommonschoolid;
+		DBContextHolder.setDBType(fjzyyCommonSchoolId);
+		try
+		{
+			String token = commonService.getAccesstoken(Cons.FJEDU_APPID, Cons.FJEDU_APPKEY);
+			String fjResp = commonService.doFJlogin(token, username, StringUtil.toMD5(password), "0");
+			if (StringUtil.isEmpty(fjResp))
+			{
+				return "../login";
+			}
+			JSONObject obj = (JSONObject) JSONObject.fromObject(fjResp);
+			String resultCode = (String) obj.get("result");
+			if (!"000000".equalsIgnoreCase(resultCode))
+			{
+				return "../login";
+			}
+
+			Integer userId = virtualImportUserForFJ(obj, token, fjzyyCommonSchoolId);
+			if (userId == 0 || null == userId)
+			{
+				return "../login";
+			}
+			List<User> tempUserList = userService.getUserByUserIdForFJ(userId);
+			if (CollectionUtils.isEmpty(tempUserList))
+			{
+				return "../login";
+			}
+			User tempUser = tempUserList.get(0);
+			tempUser.setSchoolId(fjzyyCommonSchoolId);
+			session.setAttribute("user", tempUser);
+
+			return enterMain(request, session, modelMap);
+		} catch (Exception e)
+		{
+			logger.error("doLoginByFJAccount.do福建资源云平台,获取当前登录用户信息失败:" + e);
+		}
+		return "../login";
+	}
+
+	/**
+	 * 注册自己，并且模拟导入和自己相关的人员
+	 * 
+	 * @param obj
+	 * @param token
+	 * @param fjzyyCommonSchoolId
+	 * @return
+	 */
+	public Integer virtualImportUserForFJ(JSONObject obj, String token, String fjzyyCommonSchoolId)
+	{
+		DBContextHolder.setDBType(fjzyyCommonSchoolId);
+		UserAuthorization ua_fj = JSONObjectParse.parseFJUserInforesp(obj);
+		UserAuthorization ua_db = userService.getUserAuthorizationByPersonidForFJ(ua_fj.getPersonid());
+		Integer userId = null;
+		if (null != ua_db)
+		{
+			// 智慧校园已认证
+			// 更新福建用户在fjzyyptxx.user_authorization表的信息
+			userId = ua_db.getUserId();
+			ua_fj.setUserId(userId);
+			userService.updateUserAuthForFJ(ua_fj);
+		} else
+		{
+			// 智慧校园未认证
+			// 1.注册用户信息到智慧校园平台(userbase,user_detail,user_school,....)
+			// 2.保存数据到fjzyyptxx.user_authorization表中
+			Map<String, Object> resultMap = userServiceForFJ.virtualImportUserForFJ(ua_fj, token, fjzyyCommonSchoolId);
+			userId = (Integer) resultMap.get("userId");
+			if (userId == 0 || null == userId)
+			{
+				userId = 0;
+			} else
+			{
+				final Set<String> fjClazzIdSetFinal = (Set<String>) resultMap.get("fjClazzIdSet");
+				final Map<String, String> fjClazzMapFinal = (Map<String, String>) resultMap.get("fjClazzMap");
+				final String tokenFinal = token;
+				final String fjzyyCommonSchoolIdFinal = fjzyyCommonSchoolId;
+				// classid获取班级的班主任信息和班级内其他成员
+				new Thread(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						DBContextHolder.setDBType(fjzyyCommonSchoolIdFinal);
+						for (String fjClazzId : fjClazzIdSetFinal)
+						{
+							try
+							{
+								// 循环福建班级列表
+								// 根据fjClazzId 获取班级成员(包括任课教师,学生)
+								List<UserAuthorization> memberDetailList = userServiceForFJ.getClassMemberDetailFromFJ(fjClazzId, "0", "100", tokenFinal);
+								for (UserAuthorization ua : memberDetailList)
+								{
+									try
+									{
+										userServiceForFJ.virtualImportUserForFJ(ua, tokenFinal, fjzyyCommonSchoolIdFinal);
+									} catch (Exception e)
+									{
+										logger.error("thread1:" + e.getMessage());
+										continue;
+									}
+								}
+
+								// 更新班级的leaderId班主任
+								Integer clazzId = clazzService.getClazzIdByFjClazzId(fjClazzId, fjClazzMapFinal.get(fjClazzId));
+								if (null != clazzId && 0 != clazzId)
+								{
+									// 去福建资源云获取班级班主任的personid
+									UserAuthorization classLeader_fj = userServiceForFJ.getClassInfoFromFJ(fjClazzId, tokenFinal);
+									// 然后从user_auth表中获取userId
+									UserAuthorization classLeader_db = userService.getUserAuthorizationByPersonidForFJ(classLeader_fj.getPersonid());
+									if (null != classLeader_db)
+									{
+										HashMap<String, Object> paramMap = new HashMap<String, Object>();
+										paramMap.put("clazzId", clazzId);
+										paramMap.put("leaderId", classLeader_db.getUserId());
+										paramMap.put("updatetime", TimeUtil.getInstance().now());
+										// 1.修改班级班主任
+										clazzService.modifyClazzById(paramMap);
+									}
+								}
+							} catch (Exception e)
+							{
+								logger.error("thread2:" + e.getMessage());
+								continue;
+							}
+						}
+					}
+				}).start();
+			}
+		}
+		return userId;
+	}
+
+	/**
+	 * 进入智慧校园首页方法 福建资源云平台的用户直接进入智慧校园，不需要到智慧校园首页
+	 * 
+	 * @param request
+	 * @param session
+	 * @param modelMap
+	 * @return
+	 */
+	public String enterMain(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		try
+		{
+			User loginUser = (User) session.getAttribute("user");
+			String schoolId = request.getParameter("schoolId");
+			if (!StringUtil.isEmpty(schoolId))
+			{
+				loginUser.setSchoolId(schoolId);
+			}
+			DBContextHolder.setDBType(loginUser.getSchoolId());
+			if (userService.isManagerBySchoolIdAndUserIdForFJ(Long.valueOf(loginUser.getSchoolId()), loginUser.getUserId()))// 学校管理员
+			{
+				List<Role> roleList = new ArrayList<Role>();
+				List<Permission> permissionList = new ArrayList<Permission>();
+				Role role = new Role();
+				role.setRoleCode("admin");
+				role.setRoleName("管理员");
+				roleList.add(role);
+				loginUser.setRoleList(roleList);
+
+				Permission permission = new Permission();
+				permission.setPermissionCode("admin");
+				permission.setPermissionName("管理员");
+				permissionList.add(permission);
+				loginUser.setPermissionList(permissionList);
+			} else
+			{
+				List<Role> roleList = roleService.getRoleList(loginUser.getUserId());
+				List<Permission> permissionList = permissionService.getPermissionList(loginUser.getUserId());
+				String clazzId = userService.getClazzIdByUserId(loginUser.getUserId());
+				List<Department> departList = departmentService.getDepartListByUserId(loginUser.getUserId());
+				loginUser.setRoleList(roleList);
+				loginUser.setPermissionList(permissionList);
+				loginUser.setDepartmentList(departList);
+				if (null != clazzId)
+				{
+					loginUser.setClazzId(Integer.valueOf(clazzId));
+				}
+			}
+			session.setAttribute("user", loginUser);
+
+			if (loginUser.getType() == 2 || loginUser.getType() == 3)
+			{
+				List<Role> roleList = new ArrayList<Role>();
+				Role role = new Role();
+				role.setRoleCode("admin");
+				role.setRoleName("管理员");
+				roleList.add(role);
+				loginUser.setRoleList(roleList);
+				List<Permission> permissionList = new ArrayList<Permission>();
+				Permission permission = new Permission();
+				permission.setPermissionCode("admin");
+				permission.setPermissionName("管理员");
+				permissionList.add(permission);
+				loginUser.setPermissionList(permissionList);
+			}
+			String id = request.getParameter("id");
+			if (!StringUtil.isEmpty(id))
+			{
+				modelMap.addAttribute("menuId", id);
+			}
+
+			List<Menu> menuList = new ArrayList<Menu>();
+			if (!StringUtil.isEmpty(loginUser.getSchoolId()))
+			{
+				if (loginUser.getUserId() == 1)
+				{
+					menuList = menuService.getAllMenuInfoSysadmin(loginUser.getSchoolId(), null);
+				} else
+				{
+					menuList = menuService.getAllMenuInfo(loginUser.getSchoolId(), 0);
+				}
+			} else
+			{
+				logger.error("menuList1_菜单错误信息登录人：" + loginUser.getUserId() + "," + loginUser.getRealName());
+			}
+			logger.info("menuList2_菜单信息登录人：" + loginUser.getUserId() + "," + loginUser.getRealName());
+
+			List<School> schoolList = schoolService.getSchoolsByUserIdForFJ(loginUser.getUserId());
+
+			modelMap.addAttribute("menuList", menuList);
+			modelMap.addAttribute("schoolList", schoolList);
+			return "home/main";
+		} catch (Exception e)
+		{
+			logger.error("");
+			return "../login";
+		}
+
+	}
+}

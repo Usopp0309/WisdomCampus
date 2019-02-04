@@ -1,0 +1,368 @@
+package com.guotop.palmschool.system.controller;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.gson.Gson;
+import com.guotop.palmschool.apply.entity.Apply;
+import com.guotop.palmschool.apply.service.ApplyService;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.controller.BaseController;
+import com.guotop.palmschool.entity.School;
+import com.guotop.palmschool.entity.SchoolInfo;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.scheduler.entity.SchoolCountInfo;
+import com.guotop.palmschool.service.MailService;
+import com.guotop.palmschool.service.SchoolService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.system.thread.InitSchoolDataBaseThread;
+import com.guotop.palmschool.util.StringUtil;
+
+/**
+ * 在线学校申请审核控制类
+ * 
+ * @author jfy
+ */
+@RequestMapping("/schoolApply")
+@Controller
+public class SchoolApplyAuditController extends BaseController
+{
+	private final String DEFAULT_PASSWORD = "111111";
+	@Resource
+	private ApplyService applyService;
+	@Resource
+	private SchoolService schoolService;
+	@Resource
+	private UserService userService;
+	@Resource
+	private MailService mailService;
+	@Resource
+	private CommonService commonService;
+
+	/**
+	 * 进入在线审核申请页面
+	 */
+	@RequestMapping(value = "/toSchoolApplyList.do")
+	public String toSchoolApplyAuditList(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String condition = request.getParameter("condition");
+		List<Apply> list = applyService.getSchoolApplyAuditList(condition);
+		modelMap.addAttribute("applyList", list);
+		modelMap.addAttribute("type", "0");
+		modelMap.addAttribute("condition", condition);
+		return "system/school_Authentication";
+	}
+
+	/**
+	 * 进入审批通过页面
+	 */
+	@RequestMapping(value = "/toSchoolApplyPassList.do")
+	public String toSchoolApplyAuditPassList(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String lastId = request.getParameter("lastId");
+		String condition = request.getParameter("condition");
+		Integer lastIdInt = 0;
+		if (lastId == null || lastId.equals(""))
+		{
+			lastIdInt = 0;
+		} else
+		{
+			lastIdInt = Integer.valueOf(lastId);
+		}
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("firstId", lastIdInt);
+		map.put("status", 1);
+		map.put("condition", condition);
+		List<Apply> list = applyService.getApplyHisList(map);
+		modelMap.addAttribute("applyPassList", list);
+		modelMap.addAttribute("type", "1");
+		modelMap.addAttribute("condition", condition);
+		if (list.size() > 0)
+		{
+			modelMap.addAttribute("lastId", list.get(list.size() - 1).getId());
+		} else
+		{
+			modelMap.addAttribute("lastId", lastId);
+		}
+		modelMap.addAttribute("rowNum", list.size());
+		return "system/school_Authentication";
+	}
+
+	/**
+	 * 加载更多审批通过内容
+	 */
+	@RequestMapping(value = "/moreSchoolApplyPassList.do")
+	public String moreSchoolApplyAuditPassList(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("utf-8");
+		String lastId = request.getParameter("lastId");
+		String condition = request.getParameter("condition");
+		Integer lastIdInt = 0;
+		if (lastId == null || lastId.equals(""))
+		{
+			lastIdInt = 0;
+		} else
+		{
+			lastIdInt = Integer.valueOf(lastId);
+		}
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("firstId", lastIdInt);
+		map.put("status", 1);
+		map.put("condition", condition);
+		try
+		{
+			List<Apply> list = applyService.getApplyHisList(map);
+
+			map.clear();
+			map.put("list", list);
+			if (list.size() > 0)
+			{
+				map.put("lastId", list.get(list.size() - 1).getId());
+			}
+			map.put("status", 0);
+		} catch (Exception e)
+		{
+			map.put("status", 1);
+		}
+		/**
+		 * flush到页面
+		 */
+		Gson gson = new Gson();
+		String json = gson.toJson(map);
+		try
+		{
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 进入审批不通过页面
+	 */
+	@RequestMapping(value = "/toSchoolApplyNotPassList.do")
+	public String toSchoolApplyAuditNotPassList(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		String lastId = request.getParameter("notPassLastId");
+		String condition = request.getParameter("condition");
+		Integer lastIdInt = 0;
+		if (lastId == null || lastId.equals(""))
+		{
+			lastIdInt = 0;
+		} else
+		{
+			lastIdInt = Integer.valueOf(lastId);
+		}
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("firstId", lastIdInt);
+		map.put("status", 2);
+		map.put("condition", condition);
+		List<Apply> list = applyService.getApplyHisList(map);
+		modelMap.addAttribute("applyNotPassList", list);
+		modelMap.addAttribute("type", "2");
+		modelMap.addAttribute("condition", condition);
+		if (list.size() > 0)
+		{
+			modelMap.addAttribute("notPassLastId", list.get(list.size() - 1).getId());
+		}
+		return "system/school_Authentication";
+	}
+
+	/**
+	 * 加载更多审批通过内容
+	 */
+	@RequestMapping(value = "/moreSchoolApplyNotPassList.do")
+	public String moreSchoolApplyAuditNotPassList(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("utf-8");
+		String lastId = request.getParameter("notPassLastId");
+		String condition = request.getParameter("condition");
+		Integer lastIdInt = 0;
+		if (lastId == null || lastId.equals(""))
+		{
+			lastIdInt = 0;
+		} else
+		{
+			lastIdInt = Integer.valueOf(lastId);
+		}
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("firstId", lastIdInt);
+		map.put("status", 0);
+		map.put("condition", condition);
+		try
+		{
+			List<Apply> list = applyService.getApplyHisList(map);
+
+			map.clear();
+			map.put("list", list);
+			if (list.size() > 0)
+			{
+				map.put("notPassLastId", list.get(list.size() - 1).getId());
+			}
+			map.put("status", 0);
+		} catch (Exception e)
+		{
+			map.put("status", 1);
+		}
+		/**
+		 * flush到页面
+		 */
+		Gson gson = new Gson();
+		String json = gson.toJson(map);
+		try
+		{
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 审核
+	 */
+	@RequestMapping(value = "/doAudit.do")
+	public String doAudit(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+
+		response.setCharacterEncoding("UTF-8");
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		SimpleDateFormat nameFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		String userName = null;
+		StringBuilder message = new StringBuilder();
+		try
+		{
+			String status = request.getParameter("status");
+			String id = request.getParameter("id");
+			String reason = request.getParameter("reason");
+			String email = request.getParameter("email");
+			Apply apply = new Apply();
+			try
+			{
+				// 获取申请信息
+				apply = applyService.selectApplyById(Integer.valueOf(id));
+			} catch (Exception e)
+			{
+
+			}
+			message.append("亲爱的" + apply.getProposer() + "，您好：");
+			// 审核通过，线程执行创库脚本，同时创建用户
+			if ("0".equals(status))
+			{
+				apply.setStatus("1");
+				userName = nameFormat.format(new Date());
+				Long schoolId = apply.getSchoolId();
+				// 判断该学校是否已经存在记录
+
+				School school = schoolService.selectSchoolById(schoolId);
+				SchoolInfo schoolInfo = schoolService.getSchoolCountInfoById(schoolId);
+				if (schoolInfo == null)
+				{
+					// 新增线程创建学校对应数据库及学校与数据源关系
+					new InitSchoolDataBaseThread(schoolId, school.getSchoolName(), school.getSchoolCategory());
+					// 创建管理员账户
+					User user = new User();
+					user.setSchoolId(String.valueOf(schoolId));
+					user.setCreateTime(formatter.format(new Date()));
+					user.setUsername(userName);
+					user.setPassword(StringUtil.toMD5(DEFAULT_PASSWORD));
+					user.setType(1);
+					userService.addUser(user);
+					commonService.registerOpenFire(user.getUuserId());
+					// 添加一条统计信息记录
+					SchoolCountInfo schoolCountInfo = new SchoolCountInfo();
+					schoolCountInfo.setSchoolId(schoolId);
+					schoolService.addSchoolCountInfo(schoolCountInfo);
+					map.put("userName", userName);
+					map.put("passWord", DEFAULT_PASSWORD);
+
+					message.append("    恭喜您在仁齐智慧校园的认证通过审核，您的默认用户名为：" + userName + ",默认密码为：" + DEFAULT_PASSWORD);
+					message.append("，请您尽快登陆系统修改密码，谢谢！");
+				} else
+				{
+					apply.setStatus("2");
+					apply.setResultDescription("该学校已使用智慧校园系统");
+					message.append("该学校已使用智慧校园系统，不能重复注册，谢谢！");
+				}
+			} else
+			{
+				apply.setStatus("2");
+				apply.setResultDescription(reason);
+
+				message.append("    非常遗憾，您在仁齐智慧校园的认证未通过审核!");
+				message.append("未通过原因：" + reason + ",谢谢您对我公司的认可，若有疑问请联系客服人员。");
+			}
+			User loginUser = (User) session.getAttribute("user");
+			apply.setAuditorId(String.valueOf(loginUser.getUserId()));
+			apply.setVerificationTime(formatter.format(new Date()));
+			// 申请表数据迁移至历史表
+			removeInfoToHis(apply);
+
+			map.put("status", 0);
+			map.put("msg", "提交成功！");
+			if(!StringUtil.isEmpty(email)){
+				mailService.sendMail(email, "仁齐智慧校园认证结果", message.toString());
+			}
+		} catch (Exception e)
+		{
+			map.put("status", 1);
+			map.put("msg", "提交失败！");
+		}
+		/**
+		 * flush到页面
+		 */
+		Gson gson = new Gson();
+		String json = gson.toJson(map);
+		try
+		{
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 迁移数据
+	 * 
+	 * @param apply
+	 * @return
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	private boolean removeInfoToHis(Apply apply)
+	{
+		// 删除申请记录表中信息
+		applyService.deleteApplyInfo(apply.getId());
+		// 插入历史表
+		applyService.insertApplyHis(apply);
+
+		return true;
+	}
+}

@@ -1,0 +1,267 @@
+package com.guotop.palmschool.bluetooth.controller;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.guotop.palmschool.bluetooth.entity.BluetoothCourse;
+import com.guotop.palmschool.bluetooth.entity.BluetoothData;
+import com.guotop.palmschool.bluetooth.service.BluetoothDataService;
+import com.guotop.palmschool.bluetooth.service.BraceletService;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.entity.Role;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.service.StudentService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 蓝牙手环数据统计
+ * 
+ * @author Administrator
+ *
+ */
+@RequestMapping("/statistics")
+@Controller
+public class StatisticsController {
+
+	@Autowired
+	private BraceletService braceletService;
+
+	@Autowired
+	private BluetoothDataService bluetoothDataService;
+	@Autowired
+	private StudentService studentService;
+	
+	@Autowired
+    private CommonService commonService;
+	/**
+	 * 进入统计页面
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月6日 下午4:12:31
+	 */
+	@RequestMapping("/toStatistics.do")
+	public String toStatistics(Model model, HttpSession session, String crtCode) {
+		User user = (User) session.getAttribute("user");
+		List<Role> roleList = user.getRoleList();// 用户角色
+		List<BluetoothCourse> list = braceletService.getAllBluetoothCourse();
+		model.addAttribute("bluetoothCourses", list);
+		if(StringUtil.isEmpty(crtCode)){
+			boolean isParent = false;
+			for (Role code : roleList) {
+				if ("parent".equals(code.getRoleCode())) {// 家长
+					isParent = true;
+					break;
+				}
+			}
+			if(isParent){
+				List<User> stuidents = studentService.getStudentListByParentId(user.getUserId());
+				model.addAttribute("stuidents", stuidents);// 家长看自己的小孩
+				return "asset/bluetooth_parent";
+			}
+			boolean isAdmin = false;
+			if(commonService.hasAdminPermission(user)){
+				isAdmin = true;
+			}
+			if (isAdmin)
+			{
+				return "asset/bluetooth_president";
+			}else{
+				return "asset/bluetooth_classLeader";
+			}
+		}else{
+			if("parent".equals(crtCode) || "student".equals(crtCode)){
+				List<User> stuidents = studentService.getStudentListByParentId(user.getUserId());
+				model.addAttribute("stuidents", stuidents);// 家长看自己的小孩
+				return "asset/bluetooth_parent";
+			}
+			if("admin".equals(crtCode) || "chairman".equals(crtCode) ||"president".equals(crtCode) || user.getUserId() == 1){
+				return "asset/bluetooth_president";
+			}else{
+				return "asset/bluetooth_classLeader";
+			}
+		}
+	}
+
+	/**
+	 * 根据不同角色获得数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月8日 上午9:56:50
+	 */
+	@RequestMapping("/getPageStatisticsBluetoothData.do")
+	@ResponseBody
+	public void getPageStatisticsBluetoothData(Integer page, String roleCode, HttpSession session,
+			HttpServletResponse response, String studentId, Integer course, String content, String startTime,
+			String endTime,Integer clazzId) {
+		Map<String, Object> paramMap = new HashMap<>();
+		User user = (User) session.getAttribute("user");
+		String code = null;
+		if("parent".equals(roleCode) || "student".equals(roleCode)){
+			code="isParent";
+		}
+		if("admin".equals(roleCode) || "chairman".equals(roleCode) ||"president".equals(roleCode) || user.getUserId() == 1){
+			code="isAdmin";
+		}else{
+			code="isTeacher";
+		}
+	
+		paramMap.put("roleCode", code);
+		paramMap.put("studentIds", studentId);
+		paramMap.put("course", course);
+		paramMap.put("content", content);
+		paramMap.put("startTime", startTime);
+		paramMap.put("clazzId", clazzId);
+		paramMap.put("endTime", endTime);
+		paramMap.put("userId", user.getUserId());
+		Pages<BluetoothData> pages = bluetoothDataService.getPageStatisticsBluetoothData(page, 30, paramMap);
+		try {
+			response.setCharacterEncoding("UTF-8");
+			response.getWriter().write(GsonHelper.toJson(pages));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 家长查看详细
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月8日 下午1:46:25
+	 */
+	@RequestMapping("/toBluetoothParentDetail.do")
+	public String toBluetoothParentDetail(Model model, Integer studentId, Integer bluetoothCourseTimeId, String title,
+			Integer clazzId) {
+		model.addAttribute("studentId", studentId);
+		model.addAttribute("bluetoothCourseTimeId", bluetoothCourseTimeId);
+		model.addAttribute("title", title);
+		model.addAttribute("clazzId", clazzId);
+		return "asset/bluetooth_parent_detail";
+	}
+
+	/**
+	 * 家长查看小孩对比信息
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月8日 下午6:10:46
+	 */
+	@RequestMapping("/toBluetoothParentCompare.do")
+	public String toBluetoothParentCompare(Model model, Integer studentId1, Integer studentId2,
+			Integer bluetoothCourseTimeId, String courseName) {
+		Map<String, Object> map = new HashMap<>();
+		map.put("userId", studentId1);
+		map.put("bluetoothCourseTimeId", bluetoothCourseTimeId);
+		List<BluetoothData> listUser1 = bluetoothDataService.getBluetoothDataByUserIdTimeId(map);
+		map = new HashMap<>();
+		map.put("userId", studentId2);
+		map.put("bluetoothCourseTimeId", bluetoothCourseTimeId);
+		List<BluetoothData> listUser2 = bluetoothDataService.getBluetoothDataByUserIdTimeId(map);
+		model.addAttribute("listUser1", GsonHelper.toJson(listUser1));
+		model.addAttribute("listUser2", GsonHelper.toJson(listUser2));
+		model.addAttribute("courseName", courseName);
+		return "asset/bluetooth_parent_compare";
+	}
+
+	/**
+	 * 获得家长查看详细的统计数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月8日 下午3:12:01
+	 */
+	@RequestMapping("/getBluetoothParentDetail.do")
+	@ResponseBody
+	public void getBluetoothParentDetail(HttpServletResponse response, Integer userId, Integer bluetoothCourseTimeId,
+			Integer clazzId) {
+		Map<String, Object> map = new HashMap<>();
+		map.put("userId", userId);
+		map.put("bluetoothCourseTimeId", bluetoothCourseTimeId);
+		map.put("clazzId", clazzId);
+		List<BluetoothData> listUser = bluetoothDataService.getBluetoothDataByUserIdTimeId(map);
+		List<BluetoothData> listUserGroup = bluetoothDataService.getGroupBluetoothDataByTimeId(map);
+		map = new HashMap<>();
+		map.put("listUser", listUser);
+		map.put("listUserGroup", listUserGroup);
+		response.setCharacterEncoding("UTF-8");
+		try {
+			response.getWriter().write(GsonHelper.toJson(map));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 根据班级和课程时间获得数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月9日 上午11:46:37
+	 */
+	@RequestMapping("/getDataByClazzAndTimeId.do")
+	@ResponseBody
+	public void getDataByClazzAndTimeId(Integer clazzId, Integer bluetoothCourseTimeId, HttpServletResponse response) {
+		Map<String, Object> map = new HashMap<>();
+		map.put("clazzId", clazzId);
+		map.put("bluetoothCourseTimeId", bluetoothCourseTimeId);
+		List<BluetoothData> list = bluetoothDataService.getByClazzAndTimeId(map);
+		response.setCharacterEncoding("UTF-8");
+		try {
+			response.getWriter().write(GsonHelper.toJson(list));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 班级与班级的平均值比较
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月9日 下午2:20:05
+	 */
+	@RequestMapping("/getClazzAvgByClazzIdAndTimeId.do")
+	@ResponseBody
+	public void getClazzAvgByClazzIdAndTimeId(Integer clazzId, Integer bluetoothCourseTimeId,
+			HttpServletResponse response) {
+		Map<String, Object> map = new HashMap<>();
+		map.put("clazzId", clazzId);
+		map.put("bluetoothCourseTimeId", bluetoothCourseTimeId);
+		List<BluetoothData> list = bluetoothDataService.getClazzAvgByClazzIdAndTimeId(map);
+		response.setCharacterEncoding("UTF-8");
+		try {
+			response.getWriter().write(GsonHelper.toJson(list));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 进入班级与班级的比较
+	 * 
+	 * @author chenyong
+	 * @Time 2017年5月9日 下午2:42:45
+	 */
+	@RequestMapping("/bluetoothClazzCompare.do")
+	public String bluetoothClazzCompare(Model model, Integer clazzId1, Integer clazzId2,
+			Integer bluetoothCourseTimeId,String courseName) {
+		model.addAttribute("clazzId1", clazzId1);
+		model.addAttribute("clazzId2", clazzId2);
+		model.addAttribute("courseName", courseName);
+		model.addAttribute("bluetoothCourseTimeId", bluetoothCourseTimeId);
+		return "asset/bluetooth_clazz_compare";
+	}
+}

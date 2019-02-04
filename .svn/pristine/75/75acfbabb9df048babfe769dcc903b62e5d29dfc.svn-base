@@ -1,0 +1,86 @@
+package com.guotop.palmschool.patrol.service;
+
+import java.util.List;
+
+import com.guotop.palmschool.patrol.entity.Patrol;
+import com.guotop.palmschool.patrol.entity.PatrolInout;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 校务巡查巡检业务层
+ *
+ */
+public interface PatrolService
+{
+
+	/**
+	 * 添加校务巡查巡更设置
+	 * @param patrol
+	 * @return
+	 */
+	public Integer addPatrol(Patrol patrol);
+
+	/**
+	 * 批量添加校务巡查巡更设置
+	 * @param patrolList
+	 * @return
+	 */
+	public void batchAddPatrol(List<Patrol> patrolList);
+	
+	/**
+	 * 添加校务巡查巡更刷卡记录
+	 * @param patrolInout
+	 * @return
+	 */
+	public Integer addPatrolInout(PatrolInout patrolInout);
+	
+	/**
+	 * 添加校务巡查巡更刷卡记录
+	 * @param patrolInout
+	 * @return
+	 */
+	public boolean addPatrolInout(PatrolInout inout, String ipSwitch, String position);
+
+	/**
+	 * 更新校务巡查巡更设置
+	 * @param patrol
+	 */
+	public void updatePatrol(Patrol patrol);
+
+	/**
+	 * 根据主键id获取校务巡查巡更详情
+	 * @param id
+	 * @return
+	 */
+	public Patrol getPatrolById(Integer id);
+
+	/**
+	 * 【分页】根据创建时间和真实姓名查询校务巡查巡更列表
+	 * @param createDate
+	 * @param realName
+	 * @return
+	 */
+	public Pages<Patrol> getPatrolListByCreateDateAndRealName(int pageSize, int page, String createDate, String realName);
+	
+	/**
+	 * 根据创建时间和真实姓名查询校务巡查巡更列表
+	 * @param createDate
+	 * @param realName
+	 * @return
+	 */
+	public List<Patrol> getPatrolListByCreateDateAndRealNameAPP(int pageSize, int page, String createDate, String realName);
+	
+	/**
+	 * 根据地点id和userId 以及createDate获取打卡记录
+	 * @param createDate
+	 * @param userId
+	 * @param placeId
+	 * @return
+	 */
+	public List<PatrolInout> getInoutList(String createDate,Integer userId,Integer placeId);
+	/**
+	 * 清空今天以后的校务巡查巡更设置
+	 * @param currentDate
+	 */
+	public void clearPatrol(String currentDate);
+}

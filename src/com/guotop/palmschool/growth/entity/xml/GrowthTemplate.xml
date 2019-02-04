@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="GrowthTemplate">
+	<typeAlias alias="growthTemplate" type="com.guotop.palmschool.growth.entity.GrowthTemplate" />
+
+	<resultMap class="com.guotop.palmschool.growth.entity.GrowthTemplate" id="result_templateList">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="path" column="path" />
+	</resultMap>
+	
+	<!--查找模板列表 -->
+	<select id="getTemplateList" resultMap="result_templateList">
+		select id,name,path from palm_growthtemplate
+	</select>
+	
+</sqlMap>

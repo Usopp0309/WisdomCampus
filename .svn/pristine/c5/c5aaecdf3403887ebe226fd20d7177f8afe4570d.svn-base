@@ -1,0 +1,5 @@
+﻿/*function archiveAutoHeight(){
+	 this.height=archive_page.document.body.scrollHeight;
+	 parent.document.getElementById('mainPage').style.height= document.body.scrollHeight + 'px';
+}*/
+

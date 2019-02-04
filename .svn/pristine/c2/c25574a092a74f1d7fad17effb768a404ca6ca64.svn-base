@@ -1,0 +1,835 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>作息时间选人设定时间</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+</head>
+	<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+		<input class="themes" type="hidden" value="<%=ThemePath%>">
+	    <!-- 公共顶部开始-->
+	    <%@ include file="/public_module/public_header.jsp"%>    
+	    <!--公共顶部结束-->
+	    <div class="clearfix"> </div>
+	    <!-- 内容页开始 -->
+	    <div class="page-container">
+	        <!--主菜单开始-->
+	        <%@include file="/public_module/public_menu.jsp"%>
+	        <!--主菜单结束-->
+	        <div class="page-content-wrapper">
+	            <div class="page-content m_overflow_hidden m_page_content">
+	            	<!-- 页面内容开始 -->
+	            	<div class="col-md-12 col-sm-12 m_page_con">
+	                <div class="page-bar m_margin_0_0_0_0">
+	                    <ul class="page-breadcrumb">
+	                        <li><a href="">首页</a><i class="fa fa-circle"></i></li>
+	                        <li><a href="">作息时间</a><i class="fa fa-circle"></i></li>
+	                        <li><span>作息时间选人设定时间</span></li>
+	                    </ul>
+	                </div>
+	                <h3 class="page-title">作息时间选人设定时间</h3>
+	                <div class="row">
+	                    <div class="col-md-12 col-sm-12">
+	                    	<img src="<%=basePath%>assets/global/img/m_img/ScheduleTime2.png" style="display:block;margin:15px auto;">
+	                        <!-- 页面搜索开始 -->
+	                       	<div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption">
+	                                    <i class="fa fa-list"></i>作息时间选人设定时间</div>
+	                            </div>
+	                            <div class="portlet-body form-horizontal ">
+	                            	<div class="form-body">
+										<div class="form-group">
+											<label class="control-label col-md-3">作用对象</label>
+											<div class="col-md-4">
+												<select class="form-control" id="objectType" onchange="getChangeObject()">
+													<option value="0">老师</option>
+													<option value="1">学生</option>
+												</select>
+											</div>
+										</div>
+										<div class="form-group department" style="overflow:hidden">
+											<label class="control-label col-md-3"></label>
+											<div class="col-md-8">
+												<div class="selectObject col-md-4">
+							                       	<p><i class="all-depart"></i>全部部门</p>
+							                       	<ul class="scroller" style="height:260px" id="departmentList">
+							                       	</ul>
+						                       </div>
+						                       <div class="selectObject col-md-4">
+							                       	<p><i class="all-person"></i>全部人员</p>
+							                       	<ul class="scroller" style="height:260px" id="teacherList">
+							                       	</ul>
+						                       </div>
+											</div>
+										</div>
+										<div class="form-group grade" style="display: none">
+											<label class="control-label col-md-3"></label>
+											<div class="col-md-8">
+						                       <div class="selectObject span3" >
+							                       	<p><i class="all-grade"></i>全选年级</p>
+							                       	<ul class="scroller" style="height:260px" id="gradeList">
+							                       	</ul>
+						                       </div>
+											</div>
+										</div>
+										<div class="form-group"  style="clear:both">
+											<label class="control-label col-md-3">时间单元：</label>
+											<div class="col-md-8">
+												<table class="table table-bordered table-hover schedule_time" id="scheduleTime">
+												</table>
+											</div>
+										</div>
+										</div>
+										<div class="form-actions">
+											<div class="row">
+                                                <div class="col-md-offset-3 col-md-9">
+													<button type="button" class="btn blue" id="save">保存当前设置</button>
+													<button type="button" class="btn green" id="next" style="display:none;">下一步<i class="icon-angle-right"></i></button>
+												</div>
+											</div>
+										</div>
+										<input type="hidden" id="userId" value="${userId}"/>
+										<input type="hidden" id="type" value="${type}"/>
+										<input type="hidden" id="startDay" value="${startDay}"/>
+										<input type="hidden" id="endDay" value="${endDay}"/>
+									</div>
+					
+	                        </div>
+	                       <!-- 列表展现开始 -->
+	                    </div>
+	                </div>
+	                </div>
+	                <!--页面内容结束 -->
+	            </div>
+	        </div>
+	        <!-- 亦信聊天开始 -->
+	    	<%@ include file="/public_module/public_QQ.jsp" %>
+	        <!-- 亦信聊天结束 -->
+	    </div>
+	    <!-- 内容页结束 -->
+	    <!-- 底部开始 -->
+	    <%@ include file="/public_module/public_footer.jsp" %>
+	    <!-- 底部结束 -->
+	</body>
+    <!-- 公共js开始 -->
+    <%@ include file="/public_module/public_js.jsp" %>
+    <!-- 公共js结束 -->
+	<script type="text/javascript">
+		var departmentMap={};
+		var teacherMap={};
+		var gradeMap={};
+		var allDayTimeWeekMap={};
+		var amTimeWeekMap={};
+		var pmTimeWeekMap={};
+		var nightTimeWeekMap={};
+		var num=1;
+		$(function() {   
+			loadSubMenu("schoolManager"); 
+			//选取当前菜单位置
+			setActive("schoolManager","scheduleManage");  
+			$('#startTime,#endTime').datetimepicker({
+				 format:"Y-m-d H" ,
+			     timepicker:false
+				});
+			$('.time').datetimepicker({
+				datepicker:false,
+				format:'H:i',
+				step:5
+			});   
+			loadDepartmentList();
+			loadGradeList();
+			loadTimeList();
+			//全选年级
+			$(".all-grade").on("click",function(){
+				if($(this).hasClass("fa-check")){
+					$(this).removeClass("fa fa-check");
+					$(this).parent().parent().find(".select-grade").removeClass("fa fa-check");
+				}else{
+					$(this).addClass("fa fa-check");
+					$(this).parent().parent().find(".select-grade").addClass("fa fa-check");
+				}
+			})
+			
+			//全选部门
+			$(".all-depart").on("click",function(){
+				if($(this).hasClass("fa-check")){
+					$(this).removeClass("fa fa-check");
+					$(this).parent().parent().find(".select-depart").removeClass("fa fa-check");
+					loadTeacherList();
+				}else{
+					$(this).addClass("fa fa-check");
+					$(this).parent().parent().find(".select-depart").addClass("fa fa-check");
+					loadTeacherList();
+				}
+			})
+			
+			//全选人员
+			$(".all-person").on("click",function(){
+				if($(this).hasClass("fa-check")){
+					$(this).removeClass("fa fa-check");
+					$(this).parent().parent().find(".select-teacher").removeClass("fa fa-check");
+				}else{
+					$(this).addClass("fa fa-check");
+					$(this).parent().parent().find(".select-teacher").addClass("fa fa-check");
+				}
+			})
+			
+			
+			//单选
+			$(".select,.day").on("click",function(){
+				if($(this).hasClass("fa-check")){
+					$(this).removeClass("fa fa-check");
+				}else{
+					$(this).addClass("fa fa-check");
+				}
+			})
+			
+			//保存
+			$("#save").on("click",function(){
+				layer.confirm('作息时间对应的设定对象是否确定,点击后【是】后即将保存！', {
+					  btn: ['是','否'] //按钮
+					}, function(){
+						 saveSchedule();
+					});
+			});
+
+			$("#next").on("click",function(){
+				layer.confirm('学生和教师的作息时间是否都已经设定?', {
+					  btn: ['是','否'] //按钮
+					}, function(){
+						 window.location.href='<%=basePath%>schedule/toSuccessPage.do';
+					});
+			});
+		})
+		
+		//作用对象改变
+		function getChangeObject(){
+			var type = $("#objectType").val();
+			if (type == 0)
+			{
+				$(".grade").hide();
+				$(".department").show();
+			}else{
+				$(".grade").show();
+				$(".department").hide();
+			}
+		}
+		
+		//加载部门列表
+		function loadDepartmentList()
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>baseData/getDepartmentList.do",
+				data:{
+					},
+				success: function(data){
+					var departmentList = eval("(" + data + ")");
+					var appendHtml = '';
+					$.each(departmentList, function(n, value) 
+					{
+						if("D"+value.id in departmentMap)
+						{
+							appendHtml += '<li id="D'+value.id+'"><i class="select-depart fa fa-check"></i>'+value.departmentName+'</li>';
+						}else
+						{
+	           				appendHtml += '<li id="D'+value.id+'"><i class="select-depart"></i>'+value.departmentName+'</li>';
+						}
+           			}); 
+           			//初始化带选框
+           			$("#departmentList").html(appendHtml);
+           			//单选
+           			$("#departmentList .select-depart").on("click",function(){
+           				if($(this).hasClass("fa-check")){
+           					$(this).removeClass("fa fa-check");
+           					loadTeacherList();
+           				}else{
+           					$(this).addClass("fa fa-check");
+           					loadTeacherList();
+           				}
+           			})
+				},
+			});
+		}
+		
+		//加载部门列表
+		function loadTeacherList()
+		{
+			var departmentIdArray = new Array();
+			$(".select-depart").each(function(){
+				if($(this).hasClass("fa-check")){
+					departmentIdArray.push($(this).parent().attr("id").replace("D",""));
+				}
+			});
+			
+			$.ajax({
+				type: "POST",
+			 	url: "<%=basePath%>schedule/loadTeacherListByDepartmentIdArray.do",
+			 	processData:true,
+			 	data:{
+			 			departmentIdArray : JSON.stringify(departmentIdArray)
+				 	 },
+			 	success: function(data){
+			 		var teacherList = eval("(" + data + ")");
+					var appendHtml = '';
+
+					$.each(teacherList, function(n, value){
+						if("T"+value.userId in teacherMap)
+						{
+							appendHtml += '<li id="T' + value.userId + '"><i class="selected-teacher fa fa-check"></i>' + value.realName + '</li>';
+						}else
+						{
+							appendHtml += '<li id="T' + value.userId + '"><i class="select-teacher"></i>' + value.realName + '</li>';
+						}
+						
+           			}); 
+
+           			$("#teacherList").html(appendHtml);
+           			//单选
+           			$(".select-teacher").on("click",function(){
+           				if($(this).hasClass("fa-check")){
+           					$(this).removeClass("fa fa-check");
+           				}else{
+           					$(this).addClass("fa fa-check");
+           				}
+           			})
+			 	}
+			});
+
+		}
+		
+		//加载部门列表
+		function loadGradeList()
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>baseData/loadGradeList.do",
+				data:{
+					},
+				success: function(data){
+					var departmentList = eval("(" + data + ")");
+					var appendHtml = '';
+					$.each(departmentList, function(n, value) 
+					{
+						if("D"+value.id in gradeMap)
+						{
+	           				appendHtml += '<li id="D'+value.id+'"><i class="selected-grade fa fa-check"></i>'+value.name+'</li>';
+						}else
+						{
+							appendHtml += '<li id="D'+value.id+'"><i class="select-grade"></i>'+value.name+'</li>';
+						}
+           			}); 
+           			//初始化带选框
+           			$("#gradeList").html(appendHtml);
+           			//单选
+           			$(".select-grade").on("click",function(){
+           				if($(this).hasClass("fa-check")){
+           					$(this).removeClass("fa fa-check");
+           				}else{
+           					$(this).addClass("fa fa-check");
+           				}
+           			})
+				},
+			});
+		}
+		
+		//加载时间段列表
+		function loadTimeList()
+		{
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>schedule/getScheduleTimeListByStartDayAndEndDay.do",
+				data:{
+						startDay : $("#startDay").val(),
+						endDay : $("#endDay").val()
+					},
+				success: function(data){
+					var timeList = eval("(" + data + ")");
+					var appendHtml = '';
+					var type;
+					$.each(timeList, function(n, value) 
+					{
+						if(n==0)
+						{
+							if(value.type==1)
+							{
+								appendHtml += '<tr><td colspan="4">上午</td></tr>';
+							}
+							else if(value.type==2)
+							{
+								appendHtml += '<tr><td colspan="4">下午</td></tr>';
+							}
+							else if(value.type==3)
+							{
+								appendHtml += '<tr><td colspan="4">晚上</td></tr>';
+							}
+							else
+							{
+							}
+						}
+						else
+						{
+							if(type != value.type)
+							{
+								if(value.type==1)
+								{
+									appendHtml += '<tr><td colspan="4">上午</td></tr>';
+								}
+								else if(value.type==2)
+								{
+									appendHtml += '<tr><td colspan="4">下午</td></tr>';
+								}
+								else if(value.type==3)
+								{
+									appendHtml += '<tr><td colspan="4">晚上</td></tr>';
+								}
+								else
+								{
+								}
+							}
+						}
+						
+						appendHtml += '<tr attr="time'+value.type+'" id="'+value.id+'" >';
+						appendHtml += '	<td class="m_width_10"><i class="td_row"></i></td>';
+						appendHtml += '	<td class="m_width_10">'+value.beginTime+'</td>';
+						appendHtml += '	<td class="m_width_10">'+value.endTime+'</td>';
+						appendHtml += '	<td class="m_width_70"><p>'
+										+'<span><i class="all_time"></i>全选</span>'
+										+'<span><i id="mon" class="day"></i>周一</span>'
+										+'<span><i id="tue" class="day"></i>周二</span>'
+										+'<span><i id="wed" class="day"></i>周三</span>'
+										+'<span><i id="thu" class="day"></i>周四</span>'
+										+'<span><i id="fir" class="day"></i>周五</span>'
+										+'<span><i id="sat" class="day"></i>周六</span>'
+										+'<span><i id="sun" class="day"></i>周日</span>'
+										+'</p></td>';
+						appendHtml += '</tr>';
+						type = value.type;
+           			}); 
+           			//初始化带选框
+           			$("#scheduleTime").html(appendHtml);
+           			
+           			$(".td_row").on("click",function(){
+        				if($(this).hasClass("fa-check")){
+        					$(this).removeClass("fa fa-check");
+        					$(this).parent().parent().find("p").removeAttr("style");
+        				}else{
+        					$(this).addClass("fa fa-check");
+        					$(this).parent().parent().find("p").show();
+        				}
+        			});
+           			
+           			//全选
+        			$(".all_time").on("click",function(){
+        				var tiemType = $(this).parent().parent().parent().parent().attr("attr");
+        				if($(this).hasClass("fa-check")){
+        					$(this).parent().parent().find(".day").each(function(){
+        						if($(this).hasClass("fa-check"))
+        						{
+        							var text = $(this).parent().text();
+        							if(tiemType == "time0")
+               						{
+                   						delete allDayTimeWeekMap[text];
+               						}
+                					else if(tiemType == "time1")
+               						{
+                						delete amTimeWeekMap[text];
+                						
+               						}else if(tiemType == "time2")
+               						{
+               							delete pmTimeWeekMap[text];
+               							
+               						}else if(tiemType == "time3")
+               						{
+               							delete nightTimeWeekMap[text];
+               						}
+        						}
+        					});
+        					$(this).removeClass("fa fa-check");
+        					$(this).parent().parent().find("i").removeClass("fa fa-check");
+        				}else{
+        					if(tiemType == "time0")
+       						{
+        						checkMapContain(allDayTimeWeekMap,this)
+       						}
+        					else if(tiemType == "time1")
+       						{
+        						checkMapContain(amTimeWeekMap,this)
+   								
+       						}else if(tiemType == "time2")
+       						{
+       							checkMapContain(pmTimeWeekMap,this)
+   								
+       						}else if(tiemType == "time3")
+       						{
+       							checkMapContain(nightTimeWeekMap,this)
+       						}
+        				}
+        			});
+        			
+           			//单选
+           			$(".day").on("click",function(){
+           				var tiemType = $(this).parent().parent().parent().parent().attr("attr");
+           				var text = $(this).parent().text();
+           				if($(this).hasClass("fa-check")){
+           					$(this).removeClass("fa fa-check");
+           					if(tiemType == "time0")
+       						{
+           						delete allDayTimeWeekMap[text];
+       						}
+        					else if(tiemType == "time1")
+       						{
+        						delete amTimeWeekMap[text];
+        						
+       						}else if(tiemType == "time2")
+       						{
+       							delete pmTimeWeekMap[text];
+       							
+       						}else if(tiemType == "time3")
+       						{
+       							delete nightTimeWeekMap[text];
+       						}
+           				}else{
+           					if(tiemType == "time0")
+       						{
+           						if(text in allDayTimeWeekMap)
+       							{
+       								layer.msg("已有时间段选择"+text+",请勿重复选择");
+       								return false;
+       							}
+           						else
+       							{
+           							allDayTimeWeekMap[text]=text;
+       							}
+       						}
+        					else if(tiemType == "time1")
+       						{
+        						if(text in amTimeWeekMap)
+       							{
+       								layer.msg("上午已有时间段选择"+text+",请勿重复选择");
+       								return false;
+       							}
+           						else
+       							{
+           							amTimeWeekMap[text]=text;
+       							}
+        						
+       						}else if(tiemType == "time2")
+       						{
+       							if(text in pmTimeWeekMap)
+       							{
+       								layer.msg("下午已有时间段选择"+text+",请勿重复选择");
+       								return false;
+       							}
+           						else
+       							{
+           							pmTimeWeekMap[text]=text;
+       							}
+       							
+       						}else if(tiemType == "time3")
+       						{
+       							if(text in nightTimeWeekMap)
+       							{
+       								layer.msg("晚上已有时间段选择"+text+",请勿重复选择");
+       								return false;
+       							}
+           						else
+       							{
+           							nightTimeWeekMap[text]=text;
+       							}
+       						}
+           					
+           					$(this).addClass("fa fa-check");
+           				}
+           			});
+				},
+			});
+
+		}
+		
+		//判断星期map中是否包含某个周几
+		function checkMapContain(map,obj)
+		{
+			if("周一" in map)
+			{
+				layer.msg("已有时间段选择周一，请勿重复选择");
+				return false;
+			}
+			else
+			{
+				map["周一"]="周一";
+				$(obj).addClass("fa fa-check");
+				$(obj).parent().parent().find("#mon").addClass("fa fa-check");
+			}
+			if("周二" in map)
+			{
+				layer.msg("已有时间段选择周二，请勿重复选择");
+				return false;
+			}
+			else
+			{
+				map["周二"]="周二";
+				$(obj).addClass("fa fa-check");
+				$(obj).parent().parent().find("#tue").addClass("fa fa-check");
+			}
+			if("周三" in map)
+			{
+				layer.msg("已有时间段选择周三，请勿重复选择");
+				return false;
+			}
+			else
+			{
+				map["周三"]="周三";
+				$(obj).addClass("fa fa-check");
+				$(obj).parent().parent().find("#wed").addClass("fa fa-check");
+			}
+			if("周四" in map)
+			{
+				layer.msg("已有时间段选择周四，请勿重复选择");
+				return false;
+			}
+			else
+			{
+				map["周四"]="周四";
+				$(obj).addClass("fa fa-check");
+				$(obj).parent().parent().find("#thu").addClass("fa fa-check");
+			}
+			if("周五" in map)
+			{
+				layer.msg("已有时间段选择周五，请勿重复选择");
+				return false;
+			}
+			else
+			{
+				map["周五"]="周五";
+				$(obj).addClass("fa fa-check");
+				$(obj).parent().parent().find("#fir").addClass("fa fa-check");
+			}
+			if("周六" in map)
+			{
+				layer.msg("已有时间段选择周六，请勿重复选择");
+				return false;
+			}
+			else
+			{
+				map["周六"]="周六";
+				$(obj).addClass("fa fa-check");
+				$(obj).parent().parent().find("#sat").addClass("fa fa-check");
+			}
+			if("周日" in map)
+			{
+				layer.msg("已有时间段选择周日，请勿重复选择");
+				return false;
+			}
+			else
+			{
+				map["周日"]="周日";
+				$(obj).addClass("fa fa-check");
+				$(obj).parent().parent().find("#sun").addClass("fa fa-check");
+			}
+			
+			return true;
+		}
+		
+		
+		function saveSchedule()
+		{
+			var teacherFlag = true;
+			var gradeFlag = true;
+			var timeFlag = true;
+			
+			var teacherMapArr = {};
+			var gradeMapArr = {};
+			var objectType = $("#objectType").val();
+			if(objectType == 0)//教师
+			{
+				$(".select-teacher").each(function(){
+					if($(this).hasClass("fa-check")){
+						var teacherId = $(this).parent().attr("id");
+						teacherMapArr[teacherId]=$(this).parent().attr("id").replace("T","");
+						teacherFlag = false;
+					}
+				});
+				
+				if(teacherFlag)
+				{
+					layer.msg('至少选择一位教师');
+					return false;
+				}
+			
+			}else if(objectType == 1)//学生
+			{
+				$(".select-grade").each(function(){
+					if($(this).hasClass("fa-check")){
+						var gradeId = $(this).parent().attr("id");
+						gradeMapArr[gradeId]=$(this).parent().attr("id").replace("D","");
+						gradeFlag = false;
+					}
+				});
+				
+				if(gradeFlag)
+				{
+					layer.msg('至少选择一个年级');
+					return false;
+				}
+			}
+			var timeIdMapArr = {};
+			var weekFlag = false;
+			$(".td_row").each(function(){
+				var weekArr =  [];
+				if($(this).hasClass("fa-check")){
+					$(this).parent().parent().find(".day").each(function(){
+						if($(this).hasClass("fa-check"))
+						{
+							weekArr.push($(this).parent().text());
+							weekFlag = false;
+						}
+					});
+					var timeId = $(this).parent().parent().attr("id");
+					timeIdMapArr[timeId]=weekArr;
+					timeFlag = false;
+					var timeType = $(this).parent().parent().attr("attr");
+				
+					if(timeType == "time0" && Object.getOwnPropertyNames(allDayTimeWeekMap).length<7)
+					{
+						layer.msg('时间段对应的星期选择不完整');
+						weekFlag = true;
+						return false;
+					}
+					if(timeType == "time1" && Object.getOwnPropertyNames(amTimeWeekMap).length<7)
+					{
+						layer.msg('上午时间段星期选择不完整');
+						weekFlag = true;
+						return false;
+					}
+				 	if(timeType == "time2" && Object.getOwnPropertyNames(pmTimeWeekMap).length<7)
+					{
+				 		layer.msg('下午时间段星期选择不完整');
+				 		weekFlag = true;
+						return false;
+					}
+				 	if(timeType == "time3" && Object.getOwnPropertyNames(nightTimeWeekMap).length<7 )
+					{
+				 		layer.msg('晚上时间星期选择不完整');
+				 		weekFlag = true;
+						return false;
+					}
+					
+				}
+			});
+			
+			if(weekFlag)
+			{
+				return false;
+			}
+			if(timeFlag)
+			{
+				layer.msg('至少选择一个时间段');
+				return false;
+			}
+			if(weekFlag)
+			{
+				layer.msg('请选择星期');
+				return false;
+			}
+			
+			var startDay = $("#startDay").val();
+			var endDay = $("#endDay").val(); 
+			if(startDay == "" && endDay =="")
+			{
+				layer.msg('找不到对应的开始结束日期');
+				return false;
+			}
+			else if(!startDay == "" && endDay =="")
+			{
+				layer.msg('找不到对应的结束日期');
+				return false;
+			}else if(startDay == "" && !endDay =="")
+			{
+				layer.msg('找不到对应的开始日期');
+				return false;
+			}
+			
+			var d_ = layer.msg('正在保存,请稍候。。。',{icon: 16,time:0,shade:0.3});
+			
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>schedule/saveScheduleObject.do",
+				data:{
+					teacherMap : JSON.stringify(teacherMapArr),
+					gradeMap : JSON.stringify(gradeMapArr),
+					timeIdMap : JSON.stringify(timeIdMapArr),
+					objectType : objectType,
+					type : $("#type").val(),
+					startDay : startDay,
+					endDay : endDay
+					},
+				success: function(data){
+					var data = eval("(" + data + ")");
+					if(data)
+					{
+						layer.msg('保存成功');
+						if(objectType == 0)//教师
+						{
+							var departmentIdArray = new Array();
+							$(".select-depart").each(function(){
+								if($(this).hasClass("fa-check")){
+									departmentIdArray.push($(this).parent().attr("id").replace("D",""));
+									departmentMap[$(this).parent().attr("id")]=$(this).parent().attr("id").replace("D","");
+								}
+							});
+							
+							$(".select-teacher,.selected-teacher").each(function(){
+								if($(this).hasClass("fa-check")){
+									var teacherId = $(this).parent().attr("id");
+									teacherMap[teacherId]=$(this).parent().attr("id").replace("T","");
+									teacherFlag = false;
+								}
+							});
+							
+							loadDepartmentList();
+							loadTeacherList(departmentIdArray);
+						}else if(objectType == 1)//学生
+						{
+							$(".select-grade,.selected-grade").each(function(){
+								if($(this).hasClass("fa-check")){
+									var gradeId = $(this).parent().attr("id");
+									gradeMap[gradeId]=$(this).parent().attr("id").replace("D","");
+									gradeFlag = false;
+								}
+							});
+							
+							loadGradeList();
+						}
+						
+						loadTimeList();
+						allDayTimeWeekMap={};
+						amTimeWeekMap={};
+						pmTimeWeekMap={};
+						nightTimeWeekMap={};
+
+						//下一步按钮显示
+						$("#next").removeAttr("style");
+					}
+					else
+					{
+						layer.msg("保存失败请联系管理员");
+					}
+					layer.close(d_);
+					
+				},
+			});
+			
+		}
+		
+	</script>
+</html>

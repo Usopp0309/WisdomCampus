@@ -1,0 +1,2398 @@
+package com.guotop.palmschool.rest.controller;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.guotop.palmschool.check.service.AbnormalService;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons.PUSHTYPE;
+import com.guotop.palmschool.entity.AbnormalInformation;
+import com.guotop.palmschool.entity.Device;
+import com.guotop.palmschool.entity.Inout;
+import com.guotop.palmschool.entity.Schedule;
+import com.guotop.palmschool.entity.ScheduleClazz;
+import com.guotop.palmschool.entity.ScheduleTeacher;
+import com.guotop.palmschool.entity.School;
+import com.guotop.palmschool.entity.SmsDetail;
+import com.guotop.palmschool.entity.StudentClazz;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.entity.UserDepartment;
+import com.guotop.palmschool.entity.Ykt;
+import com.guotop.palmschool.entity.YktPlace;
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.rest.entity.PushItem;
+import com.guotop.palmschool.service.InoutService;
+import com.guotop.palmschool.service.ScheduleService;
+import com.guotop.palmschool.service.SchoolService;
+import com.guotop.palmschool.service.SmsService;
+import com.guotop.palmschool.service.impl.InoutServiceImpl;
+import com.guotop.palmschool.system.entity.InformationType;
+import com.guotop.palmschool.system.service.InformationTypeService;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+
+/**
+ * 同步数据控制类 用于明德幼儿园进出记录与一卡通同步数据
+ * 
+ * @author Administrator
+ *
+ */
+@RequestMapping("/syn")
+@Controller
+public class SynController
+{
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private SmsService smsService;
+
+	@Resource
+	private SchoolService schoolService;
+
+	@Resource
+	private ScheduleService scheduleService;
+
+	@Resource
+	private AbnormalService abnormalService;
+
+	@Resource
+	private InformationTypeService informationTypeService;
+
+	@Resource
+	private InoutService inoutService;
+	/**
+	 * 日志
+	 */
+	private Log logger = LogFactory.getLog(InoutServiceImpl.class);
+
+	/**
+	 * 用于明德幼儿园进出记录，非通用接口
+	 */
+	@SuppressWarnings("rawtypes")
+	@RequestMapping(value = "/synInout.do", method = RequestMethod.POST)
+	public String synInout(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line);
+			}
+
+			String msgInfoStr = sb.toString();
+			Gson gson = new Gson();
+
+			List<HashMap> list = gson.fromJson(msgInfoStr, new TypeToken<List<HashMap>>()
+			{
+			}.getType());
+
+			for (int i = 0; i < list.size(); i++)
+			{
+
+				String cardCode = (String) list.get(i).get("cardCode");
+				String createTime = (String) list.get(i).get("createTime");
+				String position = (String) list.get(i).get("position");
+				String schoolId = (String) list.get(i).get("schoolId");
+				DBContextHolder.setDBType(schoolId);
+
+				Device device = commonService.getDeviceByIP(position);
+				User user = commonService.getUserByCardCode(cardCode);
+
+				try
+				{
+
+					Date now = new Date();
+					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+					String date = dateFormat.format(now).split("\\s+")[0];// 日期
+
+					Date nowTime = (Date) dateFormat.parse(dateFormat.format(now));
+					Date swInTimeBegin = (Date) dateFormat.parse(date + " 05:00:00");
+					Date swInTimeEnd = (Date) dateFormat.parse(date + " 10:00:00");
+					Date swOutTimeBegin = (Date) dateFormat.parse(date + " 10:30:00");
+					Date swOutTimeEnd = (Date) dateFormat.parse(date + " 12:30:00");
+					Date xwInTimeBegin = (Date) dateFormat.parse(date + " 13:00:00");
+					Date xwInTimeEnd = (Date) dateFormat.parse(date + " 15:30:00");
+					Date xwOutTimeBegin = (Date) dateFormat.parse(date + " 16:00:00");
+					Date xwOutTimeEnd = (Date) dateFormat.parse(date + " 18:30:00");
+
+					String content = null;
+					Integer status = 1;
+					PUSHTYPE p = PUSHTYPE.INSCHOOLPUSH;
+
+					Integer infType = null;
+
+					// AM5:00~AM10：00入园
+					if (nowTime.getTime() > swInTimeBegin.getTime() && nowTime.getTime() < swInTimeEnd.getTime())
+					{
+						infType = 8001;
+						status = 1;
+						content = "尊敬的家长您好，您的孩子已入园，快乐的上午即将开始，在园期间您有任何问题请直接和班主任联系！明德幼儿园";
+						p = PUSHTYPE.INSCHOOLPUSH;
+					}
+					// AM10：30~PM12：30离园
+					else if (nowTime.getTime() > swOutTimeBegin.getTime() && nowTime.getTime() < swOutTimeEnd.getTime())
+
+					{
+						infType = 8002;
+						status = 2;
+						content = "尊敬的家长您好，您已入园接孩子，即将离园！如需帮助请和我园联系！明德幼儿园";
+						p = PUSHTYPE.OUTSCHOOLPUSH;
+					}
+					// 13：00~15：30入园
+					else if (nowTime.getTime() > xwInTimeBegin.getTime() && nowTime.getTime() < xwInTimeEnd.getTime())
+					{
+						infType = 8001;
+						status = 1;
+						content = "尊敬的家长您好，您的孩子已入园，快乐下午即将开始，在园期间您有任何问题请直接和班主任联系！明德幼儿园";
+						p = PUSHTYPE.INSCHOOLPUSH;
+					}
+					// 16:00~18：30为离园
+					else if (nowTime.getTime() > xwOutTimeBegin.getTime() && nowTime.getTime() < xwOutTimeEnd.getTime())
+					{
+						infType = 8002;
+						status = 2;
+						content = "尊敬的家长您好，您已入园接孩子，即将离园！如需帮助请和我园联系！明德幼儿园";
+						p = PUSHTYPE.OUTSCHOOLPUSH;
+					}
+
+					String deviceId = null;
+					Inout inout = new Inout();
+					inout.setCode(cardCode);
+					inout.setCreateTime(createTime);
+					inout.setStatus(status);
+					try
+					{
+						deviceId = device.getId();
+					} catch (Exception e)
+					{
+						deviceId = "0";
+						logger.error("查不到关联设备");
+					}
+					inout.setPosition(deviceId);
+
+					try
+					{
+						inout.setUserId(user.getUserId());
+						commonService.addInout(inout);
+
+						if (content != null)
+						{
+							InformationType informationType = informationTypeService.getInformationTypeByInformationType(infType);
+
+							if (informationType.getType() == 1)// 只发送短信
+							{
+								SmsDetail smsDetail = new SmsDetail();
+								smsDetail.setContent(content);
+								smsDetail.setSenderId(1);
+								smsDetail.setSenderName("学校管理员");
+								smsDetail.setReceiverId(user.getUserId());
+								smsDetail.setReceiverName(user.getRealName());
+								smsDetail.setType("5");
+								smsDetail.setStatus(0);
+								smsDetail.setCreateTime(TimeUtil.getInstance().now());
+								smsDetail.setSentTime(TimeUtil.getInstance().now());
+
+								if (user.getRoleCode().equals("student"))
+								{
+									List<User> parentList = commonService.getParentByStudentId(user.getUserId());
+									for (User parent : parentList)
+									{
+
+										smsDetail.setPhone(parent.getPhone());
+										smsService.addSmsDetail(smsDetail);
+										commonService.sendSmsByDB(schoolId, p, parent.getPhone(), parent.getUserId(), content, null, 1);
+
+									}
+								} else if (user.getRoleCode().equals("parent"))
+								{
+									smsDetail.setPhone(user.getPhone());
+									smsService.addSmsDetail(smsDetail);
+									commonService.sendSmsByDB(schoolId, p, user.getPhone(), user.getUserId(), content, null, 1);
+								}
+
+							} else if (informationType.getType() == 2)// 只推送
+							{
+								if (user.getRoleCode().equals("student"))
+								{
+									List<User> parentList = commonService.getParentByStudentId(user.getUserId());
+									for (User parent : parentList)
+									{
+										// 推送手机端消息
+										pushItem(p, content, parent, schoolId);
+
+									}
+								} else if (user.getRoleCode().equals("parent"))
+								{
+									// 推送手机端消息
+									pushItem(p, content, user, schoolId);
+
+								}
+							} else if (informationType.getType() == 3)// 短信+推送
+							{
+								SmsDetail smsDetail = new SmsDetail();
+								smsDetail.setContent(content);
+								smsDetail.setSenderId(1);
+								smsDetail.setSenderName("学校管理员");
+								smsDetail.setReceiverId(user.getUserId());
+								smsDetail.setReceiverName(user.getRealName());
+								smsDetail.setType("5");
+								smsDetail.setStatus(0);
+								smsDetail.setCreateTime(TimeUtil.getInstance().now());
+								smsDetail.setSentTime(TimeUtil.getInstance().now());
+
+								if (user.getRoleCode().equals("student"))
+								{
+									List<User> parentList = commonService.getParentByStudentId(user.getUserId());
+									for (User parent : parentList)
+									{
+										smsDetail.setPhone(parent.getPhone());
+										smsService.addSmsDetail(smsDetail);
+										commonService.sendSmsByDB(schoolId, p, parent.getPhone(), parent.getUserId(), content, null, 3);
+
+									}
+								} else if (user.getRoleCode().equals("parent"))
+								{
+									smsDetail.setPhone(user.getPhone());
+									smsService.addSmsDetail(smsDetail);
+									commonService.sendSmsByDB(schoolId, p, user.getPhone(), user.getUserId(), content, null, 3);
+								}
+							} else if (informationType.getType() == 4)// 不发短信不推送
+							{
+
+							}
+
+						}
+
+					} catch (Exception e)
+					{
+						commonService.addInoutError(inout);
+						logger.error("卡号:" + cardCode + "查不到关联用户");
+					}
+
+				} catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
+			}
+			response.setCharacterEncoding("utf-8");
+			response.getWriter().write("success");
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+
+			try
+			{
+				response.setCharacterEncoding("utf-8");
+				response.getWriter().write("false");
+				response.getWriter().flush();
+			} catch (Exception ex)
+			{
+				ex.printStackTrace();
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * 用于文婷一卡通同步接口
+	 */
+	@SuppressWarnings("rawtypes")
+	@RequestMapping(value = "/synYkt.do", method = RequestMethod.POST)
+	public String synYkt(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line);
+			}
+
+			String msgInfoStr = sb.toString();
+			Gson gson = new Gson();
+			List<HashMap> list = gson.fromJson(msgInfoStr, new TypeToken<List<HashMap>>()
+			{
+			}.getType());
+
+			for (int i = 0; i < list.size(); i++)
+			{
+
+				String cardCode = (String) list.get(i).get("cardCode");
+				String consTime = (String) list.get(i).get("consTime");
+				String consMoney = (String) list.get(i).get("consMoney");
+				String oldMoney = (String) list.get(i).get("oldMoney");
+				String consPlace = (String) list.get(i).get("consPlace");
+				String balance = (String) list.get(i).get("balance");
+				String consStatus = (String) list.get(i).get("consStatus");
+				String schoolId = (String) list.get(i).get("schoolId");
+				DBContextHolder.setDBType(schoolId);
+
+				School school = schoolService.getSchoolInfoBySchoolId(Long.valueOf(schoolId));
+
+				User user = commonService.getUserByCardCode(cardCode);
+
+				Ykt ykt = new Ykt();
+
+				ykt.setCardCode(cardCode);
+				ykt.setConsMoney(Double.valueOf(consMoney));
+				ykt.setBalance(Double.valueOf(balance));
+				ykt.setOldMoney(Double.valueOf(oldMoney));
+				ykt.setConsTime(consTime);
+				ykt.setConsPlace(consPlace);
+				ykt.setConsStatus(consStatus);
+				ykt.setCreateTime(TimeUtil.getInstance().now());
+
+				try
+				{
+					ykt.setUserName(user.getRealName());
+					ykt.setUserId(user.getUserId());
+					if (user.getRoleCode().equals("student"))
+					{
+						List<StudentClazz> studentClazz = commonService.getUserClazzId(user.getUserId());
+						if (studentClazz.size() == 0)
+						{
+						} else
+						{
+							ykt.setClazzId(studentClazz.get(0).getClazzId());
+						}
+					} else
+					{
+						List<UserDepartment> userDepartment = commonService.getUserDeparmentId(user.getUserId());
+						if (userDepartment.size() == 0)
+						{
+						} else
+						{
+							ykt.setDepartmentId(userDepartment.get(0).getDepartmentId());
+						}
+					}
+					commonService.addYkt(ykt);
+
+					List<YktPlace> yktPlaceList = commonService.getYktPlace(consPlace);
+					if (yktPlaceList.size() == 0)
+					{
+						YktPlace yktPlace = new YktPlace();
+						yktPlace.setConsPlace(consPlace);
+						yktPlace.setUpdateTime(TimeUtil.getInstance().now());
+						yktPlace.setCreateTime(TimeUtil.getInstance().now());
+						commonService.addYktPlace(yktPlace);
+					}
+
+					PUSHTYPE pushStatesEnum = PUSHTYPE.YKTBALANCEPUSH;
+					String content = null;
+
+					SmsDetail smsDetail = new SmsDetail();
+
+					smsDetail.setSenderId(1);
+					smsDetail.setSenderName("学校管理员");
+					smsDetail.setReceiverId(user.getUserId());
+					smsDetail.setReceiverName(user.getRealName());
+					smsDetail.setType("6");
+					smsDetail.setStatus(0);
+					smsDetail.setCreateTime(TimeUtil.getInstance().now());
+					smsDetail.setSentTime(TimeUtil.getInstance().now());
+
+					if (user.getRoleCode().equals("student"))
+					{
+						List<User> parentList = commonService.getParentByStudentId(user.getUserId());
+						for (User parent : parentList)
+						{
+							smsDetail.setPhone(parent.getPhone());
+
+							if (Double.valueOf(balance) < 5)
+							{
+								pushStatesEnum = PUSHTYPE.YKTBALANCEPUSH;
+								content = "尊敬的" + user.getRealName() + "家长您好，您的孩子一卡通余额已不足5元，请及时充值！";
+								smsDetail.setContent(content);
+
+								InformationType informationType = informationTypeService.getInformationTypeByInformationType(9001);
+
+								if (informationType.getType() == 1)// 只发送短信
+								{
+									smsService.addSmsDetail(smsDetail);
+									commonService.sendSmsByDB(schoolId, pushStatesEnum, parent.getPhone(), parent.getUserId(), content, null, 1);
+
+								} else if (informationType.getType() == 2)// 只推送
+								{
+									// 推送手机端消息
+									pushItem(pushStatesEnum, content, parent, schoolId);
+
+								} else if (informationType.getType() == 3)// 短信+推送
+								{
+									smsService.addSmsDetail(smsDetail);
+									commonService.sendSmsByDB(schoolId, pushStatesEnum, parent.getPhone(), parent.getUserId(), content, null, 3);
+								} else if (informationType.getType() == 4)// 不发短信不推送
+								{
+
+								}
+
+							} else if (consStatus.equals("存款") || consStatus.equals("充值"))
+							{
+								pushStatesEnum = PUSHTYPE.YKTDEPOSITPUSH;
+								content = "尊敬的" + user.getRealName() + "家长，您好！您的孩子于" + consTime + "一卡通缴费" + consMoney + "元已成功，当前余额" + balance + "元！";
+								smsDetail.setContent(content);
+
+								InformationType informationType = informationTypeService.getInformationTypeByInformationType(9003);
+
+								if (informationType.getType() == 1)// 只发送短信
+								{
+									smsService.addSmsDetail(smsDetail);
+									commonService.sendSmsByDB(schoolId, pushStatesEnum, parent.getPhone(), parent.getUserId(), content, null, 1);
+
+								} else if (informationType.getType() == 2)// 只推送
+								{
+									// 推送手机端消息
+									pushItem(pushStatesEnum, content, parent, schoolId);
+
+								} else if (informationType.getType() == 3)// 短信+推送
+								{
+									smsDetail.setContent(content);
+									smsService.addSmsDetail(smsDetail);
+									commonService.sendSmsByDB(schoolId, pushStatesEnum, parent.getPhone(), parent.getUserId(), content, null, 3);
+								} else if (informationType.getType() == 4)// 不发短信+不推送
+								{
+
+								}
+
+							} else if (consStatus.equals("消费"))
+							{
+								pushStatesEnum = PUSHTYPE.YKTCONSUMPTIONPUSH;
+								content = "尊敬的" + user.getRealName() + "家长，您好！您的孩子于" + consTime + "在" + consPlace + "消费" + consMoney + "元，当前余额" + balance + "元！"
+										+ school.getSchoolName();
+								smsDetail.setContent(content);
+
+								InformationType informationType = informationTypeService.getInformationTypeByInformationType(9002);
+
+								if (informationType.getType() == 1)// 只发送短信
+								{
+									smsService.addSmsDetail(smsDetail);
+									commonService.sendSmsByDB(schoolId, pushStatesEnum, parent.getPhone(), parent.getUserId(), content, null, 1);
+								} else if (informationType.getType() == 2)// 只推送
+								{
+									// 推送手机端消息
+									pushItem(pushStatesEnum, content, parent, schoolId);
+
+								} else if (informationType.getType() == 3)// 短信+推送
+								{
+									smsService.addSmsDetail(smsDetail);
+									commonService.sendSmsByDB(schoolId, pushStatesEnum, parent.getPhone(), parent.getUserId(), content, null, 3);
+								} else if (informationType.getType() == 4)// 不发短信不推送
+								{
+
+								}
+
+							}
+						}
+					} else
+					{
+						smsDetail.setPhone(user.getPhone());
+						if (Double.valueOf(balance) < 5)
+						{
+							pushStatesEnum = PUSHTYPE.YKTBALANCEPUSH;
+							content = "尊敬的用户，您的余额已不足5元，请及时充值！";
+							smsDetail.setContent(content);
+
+							InformationType informationType = informationTypeService.getInformationTypeByInformationType(9001);
+
+							if (informationType.getType() == 1)// 只发送短信
+							{
+								smsService.addSmsDetail(smsDetail);
+								commonService.sendSmsByDB(schoolId, pushStatesEnum, user.getPhone(), user.getUserId(), content, null, 1);
+
+							} else if (informationType.getType() == 2)// 只推送
+							{
+								// 推送手机端消息
+								pushItem(pushStatesEnum, content, user, schoolId);
+
+							} else if (informationType.getType() == 3)// 短信+推送
+							{
+								smsService.addSmsDetail(smsDetail);
+								commonService.sendSmsByDB(schoolId, pushStatesEnum, user.getPhone(), user.getUserId(), content, null, 3);
+							} else if (informationType.getType() == 4)// 不发短信+不推送
+							{
+
+							}
+
+						}
+						if (consStatus.equals("存款"))
+						{
+							pushStatesEnum = PUSHTYPE.YKTDEPOSITPUSH;
+							content = "尊敬的用户，您好！您于" + consTime + "一卡通缴费" + consMoney + "元已成功，当前余额" + balance + "元！";
+							smsDetail.setContent(content);
+
+							InformationType informationType = informationTypeService.getInformationTypeByInformationType(9003);
+
+							if (informationType.getType() == 1)// 只发送短信
+							{
+								smsService.addSmsDetail(smsDetail);
+								commonService.sendSmsByDB(schoolId, pushStatesEnum, user.getPhone(), user.getUserId(), content, null, 1);
+
+							} else if (informationType.getType() == 2)// 只推送
+							{
+								// 推送手机端消息
+								pushItem(pushStatesEnum, content, user, schoolId);
+
+							} else if (informationType.getType() == 3)// 短信+推送
+							{
+								smsService.addSmsDetail(smsDetail);
+								commonService.sendSmsByDB(schoolId, pushStatesEnum, user.getPhone(), user.getUserId(), content, null, 3);
+							} else if (informationType.getType() == 4)// 不发短信+不推送
+							{
+
+							}
+
+						} else if (consStatus.equals("消费"))
+						{
+							pushStatesEnum = PUSHTYPE.YKTCONSUMPTIONPUSH;
+							content = "尊敬的用户，您好！您于" + consTime + "在" + consPlace + "消费" + consMoney + "元，当前余额" + balance + "元！" + school.getSchoolName();
+							smsDetail.setContent(content);
+
+							InformationType informationType = informationTypeService.getInformationTypeByInformationType(9002);
+
+							if (informationType.getType() == 1)// 只发送短信
+							{
+								smsService.addSmsDetail(smsDetail);
+								commonService.sendSmsByDB(schoolId, pushStatesEnum, user.getPhone(), user.getUserId(), content, null, 1);
+
+							} else if (informationType.getType() == 2)// 只推送
+							{
+								// 推送手机端消息
+								pushItem(pushStatesEnum, content, user, schoolId);
+
+							} else if (informationType.getType() == 3)// 短信+推送
+							{
+								smsService.addSmsDetail(smsDetail);
+								commonService.sendSmsByDB(schoolId, pushStatesEnum, user.getPhone(), user.getUserId(), content, null, 3);
+							} else if (informationType.getType() == 4)// 不发短信+不推送
+							{
+
+							}
+
+						}
+					}
+				} catch (Exception e)
+				{
+					logger.error("卡号:" + cardCode + "查不到关联用户");
+					commonService.addYktError(ykt);
+				}
+
+			}
+			response.setCharacterEncoding("utf-8");
+			response.getWriter().write("success");
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			try
+			{
+				response.setCharacterEncoding("utf-8");
+				response.getWriter().write("false");
+				response.getWriter().flush();
+			} catch (IOException e1)
+			{
+				e1.printStackTrace();
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * 用于成武文婷进出记录，非通用接口
+	 */
+	@RequestMapping(value = "/synInoutCwwt.do", method = RequestMethod.POST)
+	public String synInoutCwwt(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+
+			// boolean isPush = false;
+			// boolean isAbnormalLeave = false;
+			// boolean isAbnormalIn = false;
+			int pushType = -1;
+			int pushContentType = 0;
+			String title = null;
+
+			String content = null;
+
+			// AbnormalInformation abnormalInfo = new AbnormalInformation();
+
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line);
+			}
+
+			String msgInfoStr = sb.toString();
+			Gson gson = new Gson();
+
+			List<Inout> list = gson.fromJson(msgInfoStr, new TypeToken<List<Inout>>()
+			{
+			}.getType());
+
+			for (int i = 0; i < list.size(); i++)
+			{
+				String code = list.get(i).getCode();
+				Integer status = list.get(i).getStatus();
+				if (status == 0)
+				{
+					status = 2;
+				}
+				String createTime = list.get(i).getCreateTime();
+				Integer syn = list.get(i).getSync();
+				String schoolId = list.get(i).getSchoolId();
+				DBContextHolder.setDBType(schoolId);
+
+				User user = commonService.getUserByCardCode(code);
+
+				Inout inout = new Inout();
+				inout.setCode(code);
+				inout.setStatus(Integer.valueOf(status));
+				inout.setPosition("1");
+				inout.setCreateTime(createTime);
+				inout.setSync(Integer.valueOf(syn));
+				try
+				{
+					inout.setUserId(user.getUserId());
+					commonService.addInout(inout);
+
+					boolean flag = inout.getStatus() == 2;
+
+					// String[] date = createTime.split(" ");
+
+					// // 判断是否迟到早退，是则记录异常
+					// List<Schedule> schedulelist =
+					// scheduleService.selectScheduleListByLiveingDate(date[0]);
+					//
+					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					// Date nowTime = (Date) df.parse(createTime);// 刷卡时间
+
+					School school = schoolService.getSchoolInfoBySchoolId(Long.valueOf(DBContextHolder.getDBType()));
+
+					// for (Schedule s : schedulelist)
+					// {
+					// isPush = true;
+					// String amStart = s.getAmStartTime() + ":00";
+					// String amEnd = s.getAmEndTime() + ":00";
+					// String pmStart = s.getPmStartTime() + ":00";
+					// String pmEnd = s.getPmEndTime() + ":00";
+					// String beginTime = s.getBeginTime() + ":00";
+					// String endTime = s.getEndTime() + ":00";
+					// int type = s.getType();
+					//
+					// Integer informationType = null;
+					//
+					// if (type == 0)// 分段
+					// {
+					// if (!amStart.equals("null:00"))
+					// {
+					// if (nowTime.after(df.parse(amStart)) &&
+					// nowTime.before(df.parse(amEnd)))// 上午迟到早退
+					// {
+					// if (flag)
+					// {
+					// isAbnormalLeave = true;
+					// } else
+					// {
+					// isAbnormalIn = true;
+					// }
+					// }
+					//
+					// }
+					// if (!pmStart.equals("null:00"))
+					// {
+					// if (nowTime.after(df.parse(pmStart)) &&
+					// nowTime.before(df.parse(pmEnd)))// 下午迟到早退
+					// {
+					// if (flag)
+					// {
+					// isAbnormalLeave = true;
+					// } else
+					// {
+					// isAbnormalIn = true;
+					// }
+					// }
+					// }
+					// } else
+					// // 整天
+					// {
+					// if (!beginTime.equals("null:00"))
+					// {
+					// if (nowTime.after(df.parse(beginTime)) &&
+					// nowTime.before(df.parse(endTime)))// 迟到早退
+					// {
+					// if (flag)
+					// {
+					// isAbnormalLeave = true;
+					// } else
+					// {
+					// isAbnormalIn = true;
+					// }
+					// }
+					// }
+					// }
+					//
+					// if (user.getRoleCode().equals("student"))
+					// {
+					// if (isAbnormalLeave)
+					// {
+					// content = user.getRealName() + "家长您好：您的孩子于" +
+					// df.format(new Date()) +
+					// "离开学校，现在是上课时间，系统将记录为早退，如有疑问请联系学校教务处。" +
+					// school.getSchoolName();
+					// informationType = 8004;
+					// } else if (isAbnormalIn)
+					// {
+					// content = user.getRealName() + "家长您好：您的孩子于" +
+					// df.format(new Date()) +
+					// "进入学校，现在是上课时间，系统将记录为迟到，如有疑问请联系学校教务处。" +
+					// school.getSchoolName();
+					// informationType = 8003;
+					// } else
+					// {
+					// content = user.getRealName() + "家长您好：您的孩子于" +
+					// df.format(new Date()) + (flag ? "离开" : "进入") +
+					// "学校，如有问题请及时和班主任联系。" + school.getSchoolName();
+					//
+					// informationType = flag ? 8002 : 8001;
+					// }
+					//
+					// } else
+					// {
+					// if (isAbnormalLeave)
+					// {
+					// content = user.getRealName() + "老师您好：您于" + df.format(new
+					// Date()) + "离开学校，现在是上课时间，系统将记录您为早退，如有疑问请联系学校教务处。" +
+					// school.getSchoolName();
+					//
+					// informationType = 8004;
+					//
+					// } else if (isAbnormalIn)
+					// {
+					// content = user.getRealName() + "老师您好：您于" + df.format(new
+					// Date()) + "进入学校，现在是上课时间，系统将记录您为迟到，如有疑问请联系学校教务处。" +
+					// school.getSchoolName();
+					//
+					// informationType = 8003;
+					// } else
+					// {
+					// content = user.getRealName() + "老师您好：您于" + df.format(new
+					// Date()) + (flag ? "离开" : "进入") + "学校，祝您生活快乐！" +
+					// school.getSchoolName();
+					//
+					// informationType = flag ? 8002 : 8001;
+					// }
+					// }
+					//
+					// information = new InformationType();
+					// information =
+					// informationTypeService.getInformationTypeByInformationType(informationType);
+					//
+					// }
+
+					Integer informationType = null;
+
+					if (user.getRoleCode().equals("student"))
+					{
+						content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + (flag ? "离开" : "进入") + "学校，如有问题请及时和班主任联系。"
+								+ school.getSchoolName();
+
+						informationType = flag ? 8002 : 8001;
+
+					} else
+					{
+						content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + (flag ? "离开" : "进入") + "学校，祝您生活快乐！" + school.getSchoolName();
+
+						informationType = flag ? 8002 : 8001;
+					}
+
+					InformationType information = informationTypeService.getInformationTypeByInformationType(informationType);
+
+					pushType = PUSHTYPE.OUTSCHOOLPUSH.getType();
+					pushContentType = flag ? PUSHTYPE.OUTSCHOOLPUSH.getContentType() : PUSHTYPE.INSCHOOLPUSH.getContentType();
+					title = flag ? PUSHTYPE.OUTSCHOOLPUSH.getName() : PUSHTYPE.INSCHOOLPUSH.getName();
+
+					// 推送消息
+					// 若是学生，则找寻其家长，发送推送消息
+					if (information.getType() == 1 || information.getType() == 3)// 1只发送短信3推送+短信
+					{
+						SmsDetail smsDetail = new SmsDetail();
+						smsDetail.setContent(content);
+						smsDetail.setSenderId(1);
+						smsDetail.setSenderName("学校管理员");
+						smsDetail.setReceiverId(user.getUserId());
+						smsDetail.setReceiverName(user.getRealName());
+						smsDetail.setType("5");
+						smsDetail.setStatus(0);
+						smsDetail.setCreateTime(TimeUtil.getInstance().now());
+						smsDetail.setSentTime(TimeUtil.getInstance().now());
+
+						List<User> parentList = null;
+
+						if (user.getRoleCode().equals("student"))
+						{
+							parentList = new ArrayList<User>();
+							parentList = commonService.getParentByStudentId(user.getUserId());
+							for (User parent : parentList)
+							{
+								// if (isAbnormalLeave || isAbnormalIn)
+								// {
+								// if (inout.getStatus() == 2)
+								// {
+								// abnormalInfo.setType(1);
+								// } else
+								// {
+								// abnormalInfo.setType(0);
+								// }
+								// abnormalInfo.setContent(content);
+								// abnormalInfo.setUserId(parent.getUserId());
+								// abnormalInfo.setCreateTime(df.format(new
+								// Date()));
+								// abnormalService.addAbnormalInfo(abnormalInfo);
+								// }
+								smsDetail.setPhone(parent.getPhone());
+								smsService.addSmsDetail(smsDetail);
+
+								commonService.sendSmsByDB(schoolId, flag ? PUSHTYPE.OUTSCHOOLPUSH : PUSHTYPE.INSCHOOLPUSH, parent.getPhone(),
+										parent.getUserId(), content, null, information.getType());
+
+							}
+						} else
+						{
+							// if (isAbnormalLeave || isAbnormalIn)
+							// {
+							// if (inout.getStatus() == 2)
+							// {
+							// abnormalInfo.setType(1);
+							// } else
+							// {
+							// abnormalInfo.setType(0);
+							// }
+							// abnormalInfo.setContent(content);
+							// abnormalInfo.setUserId(user.getUserId());
+							// abnormalInfo.setCreateTime(df.format(new
+							// Date()));
+							// abnormalService.addAbnormalInfo(abnormalInfo);
+							// }
+							smsDetail.setPhone(user.getPhone());
+							smsService.addSmsDetail(smsDetail);
+
+							commonService.sendSmsByDB(schoolId, flag ? PUSHTYPE.OUTSCHOOLPUSH : PUSHTYPE.INSCHOOLPUSH, user.getPhone(), user.getUserId(),
+									content, null, information.getType());
+
+						}
+
+					} else if (information.getType() == 2)// 只推送
+					{
+						List<User> parentList = null;
+						List<PushItem> piList = new ArrayList<PushItem>();
+						if (user.getRoleCode().equals("student"))
+						{
+							parentList = new ArrayList<User>();
+							parentList = commonService.getParentByStudentId(user.getUserId());
+							for (User parent : parentList)
+							{
+								PushItem pi = new PushItem();
+								pi.channels = parent.getBaiduChannelId();
+								pi.deviceType = String.valueOf(parent.getDeviceType());
+								pi.PushContent = content;
+								pi.PushType = pushType;
+								pi.PushContentType = pushContentType;
+								pi.title = title;
+								pi.receiverId = parent.getUserId();
+								piList.add(pi);
+
+								// if (isAbnormalLeave || isAbnormalIn)
+								// {
+								// if (inout.getStatus() == 2)
+								// {
+								// abnormalInfo.setType(1);
+								// } else
+								// {
+								// abnormalInfo.setType(0);
+								// }
+								// abnormalInfo.setContent(content);
+								// abnormalInfo.setUserId(parent.getUserId());
+								// abnormalInfo.setCreateTime(df.format(new
+								// Date()));
+								// abnormalService.addAbnormalInfo(abnormalInfo);
+								// }
+							}
+						} else
+						{
+							PushItem pi = new PushItem();
+							pi.channels = user.getBaiduChannelId();
+							pi.deviceType = String.valueOf(user.getDeviceType());
+							pi.PushContent = content;
+							pi.PushType = pushType;
+							pi.PushContentType = pushContentType;
+							pi.title = title;
+							pi.receiverId = user.getUserId();
+							piList.add(pi);
+							// if (isAbnormalLeave || isAbnormalIn)
+							// {
+							// if (inout.getStatus() == 2)
+							// {
+							// abnormalInfo.setType(1);
+							// } else
+							// {
+							// abnormalInfo.setType(0);
+							// }
+							// abnormalInfo.setContent(content);
+							// abnormalInfo.setUserId(user.getUserId());
+							// abnormalInfo.setCreateTime(df.format(new
+							// Date()));
+							// abnormalService.addAbnormalInfo(abnormalInfo);
+							// }
+						}
+						commonService.pushMsg(piList, true);// 消息推送
+
+					} else if (information.getType() == 4)// 不发短信不推送
+					{
+
+					}
+
+				} catch (Exception e)
+				{
+					commonService.addInoutError(inout);
+					e.printStackTrace();
+					logger.error("卡号:" + code + "查不到关联用户");
+				}
+
+			}
+			response.setCharacterEncoding("utf-8");
+			response.getWriter().write("success");
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+
+			try
+			{
+				response.setCharacterEncoding("utf-8");
+				response.getWriter().write("false");
+				response.getWriter().flush();
+			} catch (IOException e1)
+			{
+				e1.printStackTrace();
+			}
+
+		}
+
+		return null;
+	}
+
+	/**
+	 * 用于第一实验学校进出记录，非通用接口
+	 */
+	@RequestMapping(value = "/synInoutDysyxx.do", method = RequestMethod.POST)
+	public String synInoutDysyxx(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		Gson gson = new Gson();
+		try
+		{
+			BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+
+			boolean isPush = false;
+			boolean isAbnormalLeave = false;
+			boolean isAbnormalIn = false;
+
+			String content = null;
+
+			AbnormalInformation abnormalInfo = new AbnormalInformation();
+
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line);
+			}
+
+			String msgInfoStr = sb.toString();
+
+			List<Inout> list = gson.fromJson(msgInfoStr, new TypeToken<List<Inout>>()
+			{
+			}.getType());
+
+			for (int i = 0; i < list.size(); i++)
+			{
+				String code = list.get(i).getCode();
+				Integer status = list.get(i).getStatus();
+				String position = list.get(i).getPosition();
+				if (status == 0)
+				{
+					status = 2;
+				}
+				String createTime = list.get(i).getCreateTime();
+				Integer syn = list.get(i).getSync();
+				String schoolId = list.get(i).getSchoolId();
+				DBContextHolder.setDBType(schoolId);
+
+				User user = commonService.getUserByCardCode(code);
+
+				Device device = commonService.getDeviceByIP(position);
+
+				String deviceId;
+				Inout inout = new Inout();
+				inout.setCode(code);
+				inout.setStatus(Integer.valueOf(status));
+				try
+				{
+					deviceId = device.getId();
+				} catch (Exception e)
+				{
+					deviceId = "0";
+					logger.error("查不到关联设备");
+				}
+				inout.setPosition(deviceId);
+				inout.setCreateTime(createTime);
+				inout.setSync(Integer.valueOf(syn));
+				try
+				{
+					inout.setUserId(user.getUserId());
+					commonService.addInout(inout);
+
+					boolean flag = inout.getStatus() == 2;
+
+					String[] date = createTime.split(" ");
+
+					// 判断是否迟到早退，是则记录异常
+					List<Schedule> schedulelist = scheduleService.selectScheduleListByLiveingDate(date[0]);
+
+					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					Date nowTime = (Date) df.parse(createTime);// 刷卡时间
+
+					School school = schoolService.getSchoolInfoBySchoolId(Long.valueOf(DBContextHolder.getDBType()));
+
+					PUSHTYPE p = PUSHTYPE.INSCHOOLPUSH;
+
+					InformationType information = null;
+
+					boolean scheduleFlag = false;
+					if (user.getRoleCode().equals("student"))
+					{
+
+						ScheduleClazz scheduleClazz = scheduleService.getScheduleClazzByUserIdAndLiveingDate(date[0], user.getUserId());
+						if (scheduleClazz == null)
+						{
+							scheduleFlag = true;
+						} else
+						{
+							isPush = true;
+							String amStart = scheduleClazz.getAmStartTime() + ":00";
+							String amEnd = scheduleClazz.getAmEndTime() + ":00";
+							String pmStart = scheduleClazz.getPmStartTime() + ":00";
+							String pmEnd = scheduleClazz.getPmEndTime() + ":00";
+							String beginTime = scheduleClazz.getBeginTime() + ":00";
+							String endTime = scheduleClazz.getEndTime() + ":00";
+							int type = scheduleClazz.getType();
+
+							Integer informationType = null;
+
+							if (type == 0)// 分段
+							{
+								if (!amStart.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(amStart)) && nowTime.before(df.parse(amEnd)))// 上午迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+
+								}
+								if (!pmStart.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(pmStart)) && nowTime.before(df.parse(pmEnd)))// 下午迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+								}
+							} else
+							// 整天
+							{
+								if (!beginTime.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(beginTime)) && nowTime.before(df.parse(endTime)))// 迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+								}
+							}
+
+							if (user.getRoleCode().equals("student"))
+							{
+								if (isAbnormalLeave)
+								{
+									p = PUSHTYPE.OUTSCHOOLPUSH;
+									informationType = 8004;
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + "离开学校，现在是上课时间，系统将记录为早退，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								} else if (isAbnormalIn)
+								{
+									p = PUSHTYPE.INSCHOOLPUSH;
+									informationType = 8003;
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + "进入学校，现在是上课时间，系统将记录为迟到，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								} else
+								{
+									if (flag)
+									{
+										p = PUSHTYPE.OUTSCHOOLPUSH;
+										informationType = 8002;
+									} else
+									{
+										p = PUSHTYPE.INSCHOOLPUSH;
+										informationType = 8001;
+									}
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + (flag ? "离开" : "进入") + "学校，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								}
+
+							} else
+							{
+								if (isAbnormalLeave)
+								{
+									p = PUSHTYPE.OUTSCHOOLPUSH;
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + "离开学校，现在是上课时间，系统将记录您为早退，如有疑问请联系学校教务处。"
+											+ school.getSchoolName();
+									informationType = 8004;
+								} else if (isAbnormalIn)
+								{
+									p = PUSHTYPE.INSCHOOLPUSH;
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + "进入学校，现在是上课时间，系统将记录您为迟到，如有疑问请联系学校教务处。"
+											+ school.getSchoolName();
+									informationType = 8003;
+
+								} else
+								{
+									if (flag)
+									{
+										p = PUSHTYPE.OUTSCHOOLPUSH;
+										informationType = 8002;
+									} else
+									{
+										p = PUSHTYPE.INSCHOOLPUSH;
+										informationType = 8001;
+									}
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + (flag ? "离开" : "进入") + "学校，祝您生活快乐！"
+											+ school.getSchoolName();
+								}
+
+							}
+
+							information = new InformationType();
+							information = informationTypeService.getInformationTypeByInformationType(informationType);
+
+						}
+					} else
+					{
+						ScheduleTeacher scheduleTeacher = scheduleService.getScheduleTeacherByUserIdAndLiveingDate(date[0], user.getUserId());
+						if (scheduleTeacher == null)
+						{
+							scheduleFlag = true;
+						} else
+						{
+							isPush = true;
+							String amStart = scheduleTeacher.getAmStartTime() + ":00";
+							String amEnd = scheduleTeacher.getAmEndTime() + ":00";
+							String pmStart = scheduleTeacher.getPmStartTime() + ":00";
+							String pmEnd = scheduleTeacher.getPmEndTime() + ":00";
+							String beginTime = scheduleTeacher.getBeginTime() + ":00";
+							String endTime = scheduleTeacher.getEndTime() + ":00";
+							int type = scheduleTeacher.getType();
+
+							Integer informationType = null;
+
+							if (type == 0)// 分段
+							{
+								if (!amStart.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(amStart)) && nowTime.before(df.parse(amEnd)))// 上午迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+
+								}
+								if (!pmStart.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(pmStart)) && nowTime.before(df.parse(pmEnd)))// 下午迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+								}
+							} else
+							// 整天
+							{
+								if (!beginTime.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(beginTime)) && nowTime.before(df.parse(endTime)))// 迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+								}
+							}
+
+							if (user.getRoleCode().equals("student"))
+							{
+								if (isAbnormalLeave)
+								{
+									p = PUSHTYPE.OUTSCHOOLPUSH;
+									informationType = 8004;
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + "离开学校，现在是上课时间，系统将记录为早退，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								} else if (isAbnormalIn)
+								{
+									p = PUSHTYPE.INSCHOOLPUSH;
+									informationType = 8003;
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + "进入学校，现在是上课时间，系统将记录为迟到，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								} else
+								{
+									if (flag)
+									{
+										p = PUSHTYPE.OUTSCHOOLPUSH;
+										informationType = 8002;
+									} else
+									{
+										p = PUSHTYPE.INSCHOOLPUSH;
+										informationType = 8001;
+									}
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + (flag ? "离开" : "进入") + "学校，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								}
+
+							} else
+							{
+								if (isAbnormalLeave)
+								{
+									p = PUSHTYPE.OUTSCHOOLPUSH;
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + "离开学校，现在是上课时间，系统将记录您为早退，如有疑问请联系学校教务处。"
+											+ school.getSchoolName();
+									informationType = 8004;
+								} else if (isAbnormalIn)
+								{
+									p = PUSHTYPE.INSCHOOLPUSH;
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + "进入学校，现在是上课时间，系统将记录您为迟到，如有疑问请联系学校教务处。"
+											+ school.getSchoolName();
+									informationType = 8003;
+
+								} else
+								{
+									if (flag)
+									{
+										p = PUSHTYPE.OUTSCHOOLPUSH;
+										informationType = 8002;
+									} else
+									{
+										p = PUSHTYPE.INSCHOOLPUSH;
+										informationType = 8001;
+									}
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + (flag ? "离开" : "进入") + "学校，祝您生活快乐！"
+											+ school.getSchoolName();
+								}
+
+							}
+
+							information = new InformationType();
+							information = informationTypeService.getInformationTypeByInformationType(informationType);
+
+						}
+					}
+
+					if (scheduleFlag)
+					{
+						for (Schedule s : schedulelist)
+						{
+							isPush = true;
+							String amStart = s.getAmStartTime() + ":00";
+							String amEnd = s.getAmEndTime() + ":00";
+							String pmStart = s.getPmStartTime() + ":00";
+							String pmEnd = s.getPmEndTime() + ":00";
+							String beginTime = s.getBeginTime() + ":00";
+							String endTime = s.getEndTime() + ":00";
+							int type = s.getType();
+
+							Integer informationType = null;
+
+							if (type == 0)// 分段
+							{
+								if (!amStart.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(amStart)) && nowTime.before(df.parse(amEnd)))// 上午迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+
+								}
+								if (!pmStart.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(pmStart)) && nowTime.before(df.parse(pmEnd)))// 下午迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+								}
+							} else
+							// 整天
+							{
+								if (!beginTime.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(beginTime)) && nowTime.before(df.parse(endTime)))// 迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+								}
+							}
+
+							if (user.getRoleCode().equals("student"))
+							{
+								if (isAbnormalLeave)
+								{
+									p = PUSHTYPE.OUTSCHOOLPUSH;
+									informationType = 8004;
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + "离开学校，现在是上课时间，系统将记录为早退，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								} else if (isAbnormalIn)
+								{
+									p = PUSHTYPE.INSCHOOLPUSH;
+									informationType = 8003;
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + "进入学校，现在是上课时间，系统将记录为迟到，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								} else
+								{
+									if (flag)
+									{
+										p = PUSHTYPE.OUTSCHOOLPUSH;
+										informationType = 8002;
+									} else
+									{
+										p = PUSHTYPE.INSCHOOLPUSH;
+										informationType = 8001;
+									}
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + (flag ? "离开" : "进入") + "学校，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								}
+
+							} else
+							{
+								if (isAbnormalLeave)
+								{
+									p = PUSHTYPE.OUTSCHOOLPUSH;
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + "离开学校，现在是上课时间，系统将记录您为早退，如有疑问请联系学校教务处。"
+											+ school.getSchoolName();
+									informationType = 8004;
+								} else if (isAbnormalIn)
+								{
+									p = PUSHTYPE.INSCHOOLPUSH;
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + "进入学校，现在是上课时间，系统将记录您为迟到，如有疑问请联系学校教务处。"
+											+ school.getSchoolName();
+									informationType = 8003;
+
+								} else
+								{
+									if (flag)
+									{
+										p = PUSHTYPE.OUTSCHOOLPUSH;
+										informationType = 8002;
+									} else
+									{
+										p = PUSHTYPE.INSCHOOLPUSH;
+										informationType = 8001;
+									}
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + (flag ? "离开" : "进入") + "学校，祝您生活快乐！"
+											+ school.getSchoolName();
+								}
+
+							}
+
+							information = new InformationType();
+							information = informationTypeService.getInformationTypeByInformationType(informationType);
+
+						}
+					}
+
+					// 推送消息
+					// 若是学生，则找寻其家长，发送推送消息
+					if (isPush)
+					{
+
+						if (information.getType() == 1 || information.getType() == 3)// 1只发送短信
+						// 3推送+短信
+						{
+							List<User> parentList = null;
+							if (user.getRoleCode().equals("student"))
+							{
+								parentList = new ArrayList<User>();
+								parentList = commonService.getParentByStudentId(user.getUserId());
+								for (User parent : parentList)
+								{
+									if (isAbnormalLeave || isAbnormalIn)
+									{
+										if (inout.getStatus() == 2)
+										{
+											abnormalInfo.setType(1);
+										} else
+										{
+											abnormalInfo.setType(0);
+										}
+										abnormalInfo.setContent(content);
+										abnormalInfo.setUserId(parent.getUserId());
+										abnormalInfo.setCreateTime(df.format(new Date()));
+										abnormalService.addAbnormalInfo(abnormalInfo);
+									}
+
+									if (content != null)
+									{
+										SmsDetail smsDetail = new SmsDetail();
+										smsDetail.setContent(content);
+										smsDetail.setSenderId(1);
+										smsDetail.setSenderName("学校管理员");
+										smsDetail.setReceiverId(user.getUserId());
+										smsDetail.setReceiverName(user.getRealName());
+										smsDetail.setPhone(parent.getPhone());
+										smsDetail.setType("5");
+										smsDetail.setStatus(0);
+										smsDetail.setCreateTime(TimeUtil.getInstance().now());
+										smsDetail.setSentTime(TimeUtil.getInstance().now());
+										smsService.addSmsDetail(smsDetail);
+										commonService.sendSmsByDB(schoolId, p, parent.getPhone(), parent.getUserId(), content, null, information.getType());
+									}
+
+								}
+							} else
+							{
+								if (isAbnormalLeave || isAbnormalIn)
+								{
+									if (inout.getStatus() == 2)
+									{
+										abnormalInfo.setType(1);
+									} else
+									{
+										abnormalInfo.setType(0);
+									}
+									abnormalInfo.setContent(content);
+									abnormalInfo.setUserId(user.getUserId());
+									abnormalInfo.setCreateTime(df.format(new Date()));
+									abnormalService.addAbnormalInfo(abnormalInfo);
+								}
+
+								if (content != null)
+								{
+									SmsDetail smsDetail = new SmsDetail();
+									smsDetail.setContent(content);
+									smsDetail.setSenderId(1);
+									smsDetail.setSenderName("学校管理员");
+									smsDetail.setReceiverId(user.getUserId());
+									smsDetail.setReceiverName(user.getRealName());
+									smsDetail.setPhone(user.getPhone());
+									smsDetail.setType("5");
+									smsDetail.setStatus(0);
+									smsDetail.setCreateTime(TimeUtil.getInstance().now());
+									smsDetail.setSentTime(TimeUtil.getInstance().now());
+									smsService.addSmsDetail(smsDetail);
+									commonService.sendSmsByDB(schoolId, p, user.getPhone(), user.getUserId(), content, null, information.getType());
+								}
+							}
+
+						} else if (information.getType() == 2)// 只推送
+						{
+							List<User> parentList = null;
+							List<PushItem> piList = new ArrayList<PushItem>();
+							if (user.getRoleCode().equals("student"))
+							{
+								parentList = new ArrayList<User>();
+								parentList = commonService.getParentByStudentId(user.getUserId());
+								for (User parent : parentList)
+								{
+									PushItem pi = new PushItem();
+									pi.channels = parent.getBaiduChannelId();
+									pi.deviceType = String.valueOf(parent.getDeviceType());
+									pi.PushContent = content;
+									pi.PushType = p.getType();
+									pi.PushContentType = p.getContentType();
+									pi.title = p.getName();
+									pi.schoolId = schoolId;
+									pi.receiverId = parent.getUserId();
+									piList.add(pi);
+
+									if (isAbnormalLeave || isAbnormalIn)
+									{
+										if (inout.getStatus() == 2)
+										{
+											abnormalInfo.setType(1);
+										} else
+										{
+											abnormalInfo.setType(0);
+										}
+										abnormalInfo.setContent(content);
+										abnormalInfo.setUserId(parent.getUserId());
+										abnormalInfo.setCreateTime(df.format(new Date()));
+										abnormalService.addAbnormalInfo(abnormalInfo);
+									}
+								}
+							} else
+							{
+								PushItem pi = new PushItem();
+								pi.channels = user.getBaiduChannelId();
+								pi.deviceType = String.valueOf(user.getDeviceType());
+								pi.PushContent = content;
+								pi.PushType = p.getType();
+								pi.PushContentType = p.getContentType();
+								pi.title = p.getName();
+								pi.schoolId = schoolId;
+								pi.receiverId = user.getUserId();
+								piList.add(pi);
+								if (isAbnormalLeave || isAbnormalIn)
+								{
+									if (inout.getStatus() == 2)
+									{
+										abnormalInfo.setType(1);
+									} else
+									{
+										abnormalInfo.setType(0);
+									}
+									abnormalInfo.setContent(content);
+									abnormalInfo.setUserId(user.getUserId());
+									abnormalInfo.setCreateTime(df.format(new Date()));
+									abnormalService.addAbnormalInfo(abnormalInfo);
+								}
+							}
+
+							commonService.pushMsg(piList, true);// 消息推送
+
+						} else if (information.getType() == 4)// 不发短信不推送
+						{
+
+						}
+
+					}
+
+				} catch (Exception e)
+				{
+					commonService.addInoutError(inout);
+					// e.printStackTrace();
+					logger.error("卡号:" + code + "查不到关联用户");
+				}
+
+			}
+
+			response.setCharacterEncoding("utf-8");
+			response.getWriter().write("success");
+			response.getWriter().flush();
+
+			// return "success";
+
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			// return "false";
+
+			try
+			{
+				response.setCharacterEncoding("utf-8");
+				response.getWriter().write("false");
+				response.getWriter().flush();
+			} catch (IOException e1)
+			{
+
+				e1.printStackTrace();
+			}
+
+		}
+
+		return null;
+
+	}
+
+	// 推送
+	public void pushItem(PUSHTYPE pushStatesEnum, String content, User user, String schoolId)
+	{
+		// 推送手机端消息
+		List<PushItem> pushItemlist = new ArrayList<PushItem>();
+		PushItem pi = new PushItem();
+		pi.title = pushStatesEnum.getName();
+		pi.PushContent = content;
+		pi.PushType = pushStatesEnum.getType();
+		pi.PushContentType = pushStatesEnum.getContentType();
+		String channelId = user.getBaiduChannelId();
+		Integer deviceType = user.getDeviceType();
+		if (!StringUtil.isEmpty(channelId) && deviceType != null && deviceType != 0)
+		{
+			pi.channels = channelId;
+			pi.deviceType = String.valueOf(deviceType);
+		}
+		pi.receiverId = user.getUserId();
+		pi.schoolId = schoolId;
+		pushItemlist.add(pi);
+
+		commonService.pushMsg(pushItemlist, true);
+	}
+
+	/**
+	 * 用于天美指纹机同步进出记录
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	@RequestMapping(value = "/synInoutByTimmy.do", method = RequestMethod.POST)
+	public String synInoutByTimmy(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+
+			boolean isPush = false;
+			boolean isAbnormalLeave = false;
+			boolean isAbnormalIn = false;
+
+			String content = null;
+
+			AbnormalInformation abnormalInfo = new AbnormalInformation();
+
+			while ((line = br.readLine()) != null)
+			{
+				sb.append(line);
+			}
+
+			String msgInfoStr = sb.toString();
+			Gson gson = new Gson();
+
+			List<HashMap> list = gson.fromJson(msgInfoStr, new TypeToken<List<HashMap>>()
+			{
+			}.getType());
+
+			for (int i = 0; i < list.size(); i++)
+			{
+
+				String code = (String) list.get(i).get("cardCode");
+				String createTime = (String) list.get(i).get("createTime");
+				String position = (String) list.get(i).get("position");
+				String schoolId = (String) list.get(i).get("schoolId");
+				DBContextHolder.setDBType(schoolId);
+				// inout = new Inout();
+				// inout.setCode(code);
+				// inout.setCreateTime(createTime);
+				// inoutService.addInout(inout, "1", position);
+
+				DBContextHolder.setDBType(schoolId);
+
+				User user = commonService.getUserByCardCode(code);
+
+				Device device = commonService.getDeviceByIP(position);
+
+				String deviceId;
+				Inout inout = new Inout();
+				inout.setCode(code);
+				inout.setStatus(1);
+				try
+				{
+					deviceId = device.getId();
+				} catch (Exception e)
+				{
+					deviceId = "0";
+					logger.error("查不到关联设备");
+				}
+				inout.setPosition(deviceId);
+				inout.setCreateTime(createTime);
+				inout.setSync(1);
+				try
+				{
+					inout.setUserId(user.getUserId());
+					commonService.addInout(inout);
+
+					boolean flag = inout.getStatus() == 2;
+
+					String[] date = createTime.split(" ");
+
+					// 判断是否迟到早退，是则记录异常
+					List<Schedule> schedulelist = scheduleService.selectScheduleListByLiveingDate(date[0]);
+
+					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					Date nowTime = (Date) df.parse(createTime);// 刷卡时间
+
+					School school = schoolService.getSchoolInfoBySchoolId(Long.valueOf(DBContextHolder.getDBType()));
+
+					PUSHTYPE p = PUSHTYPE.INSCHOOLPUSH;
+
+					InformationType information = null;
+
+					boolean scheduleFlag = false;
+					if (user.getRoleCode().equals("student"))
+					{
+
+						ScheduleClazz scheduleClazz = scheduleService.getScheduleClazzByUserIdAndLiveingDate(date[0], user.getUserId());
+						if (scheduleClazz == null)
+						{
+							scheduleFlag = true;
+						} else
+						{
+
+							isPush = true;
+							String amStart = scheduleClazz.getAmStartTime() + ":00";
+							String amEnd = scheduleClazz.getAmEndTime() + ":00";
+							String pmStart = scheduleClazz.getPmStartTime() + ":00";
+							String pmEnd = scheduleClazz.getPmEndTime() + ":00";
+							String beginTime = scheduleClazz.getBeginTime() + ":00";
+							String endTime = scheduleClazz.getEndTime() + ":00";
+							int type = scheduleClazz.getType();
+
+							Integer informationType = null;
+
+							if (type == 0)// 分段
+							{
+								if (!amStart.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(amStart)) && nowTime.before(df.parse(amEnd)))// 上午迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+
+								}
+								if (!pmStart.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(pmStart)) && nowTime.before(df.parse(pmEnd)))// 下午迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+								}
+							} else
+							// 整天
+							{
+								if (!beginTime.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(beginTime)) && nowTime.before(df.parse(endTime)))// 迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+								}
+							}
+
+							if (user.getRoleCode().equals("student"))
+							{
+								if (isAbnormalLeave)
+								{
+									p = PUSHTYPE.OUTSCHOOLPUSH;
+									informationType = 8004;
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + "离开学校，现在是上课时间，系统将记录为早退，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								} else if (isAbnormalIn)
+								{
+									p = PUSHTYPE.INSCHOOLPUSH;
+									informationType = 8003;
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + "进入学校，现在是上课时间，系统将记录为迟到，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								} else
+								{
+									if (flag)
+									{
+										p = PUSHTYPE.OUTSCHOOLPUSH;
+										informationType = 8002;
+									} else
+									{
+										p = PUSHTYPE.INSCHOOLPUSH;
+										informationType = 8001;
+									}
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + (flag ? "离开" : "进入") + "学校，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								}
+
+							} else
+							{
+								if (isAbnormalLeave)
+								{
+									p = PUSHTYPE.OUTSCHOOLPUSH;
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + "离开学校，现在是上课时间，系统将记录您为早退，如有疑问请联系学校教务处。"
+											+ school.getSchoolName();
+									informationType = 8004;
+								} else if (isAbnormalIn)
+								{
+									p = PUSHTYPE.INSCHOOLPUSH;
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + "进入学校，现在是上课时间，系统将记录您为迟到，如有疑问请联系学校教务处。"
+											+ school.getSchoolName();
+									informationType = 8003;
+
+								} else
+								{
+									if (flag)
+									{
+										p = PUSHTYPE.OUTSCHOOLPUSH;
+										informationType = 8002;
+									} else
+									{
+										p = PUSHTYPE.INSCHOOLPUSH;
+										informationType = 8001;
+									}
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + (flag ? "离开" : "进入") + "学校，祝您生活快乐！"
+											+ school.getSchoolName();
+								}
+
+							}
+
+							information = new InformationType();
+							information = informationTypeService.getInformationTypeByInformationType(informationType);
+
+						}
+					} else
+					{
+						ScheduleTeacher scheduleTeacher = scheduleService.getScheduleTeacherByUserIdAndLiveingDate(date[0], user.getUserId());
+						if (scheduleTeacher == null)
+						{
+							scheduleFlag = true;
+						} else
+						{
+							isPush = true;
+							String amStart = scheduleTeacher.getAmStartTime() + ":00";
+							String amEnd = scheduleTeacher.getAmEndTime() + ":00";
+							String pmStart = scheduleTeacher.getPmStartTime() + ":00";
+							String pmEnd = scheduleTeacher.getPmEndTime() + ":00";
+							String beginTime = scheduleTeacher.getBeginTime() + ":00";
+							String endTime = scheduleTeacher.getEndTime() + ":00";
+							int type = scheduleTeacher.getType();
+
+							Integer informationType = null;
+
+							if (type == 0)// 分段
+							{
+								if (!amStart.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(amStart)) && nowTime.before(df.parse(amEnd)))// 上午迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+
+								}
+								if (!pmStart.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(pmStart)) && nowTime.before(df.parse(pmEnd)))// 下午迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+								}
+							} else
+							// 整天
+							{
+								if (!beginTime.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(beginTime)) && nowTime.before(df.parse(endTime)))// 迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+								}
+							}
+
+							if (user.getRoleCode().equals("student"))
+							{
+								if (isAbnormalLeave)
+								{
+									p = PUSHTYPE.OUTSCHOOLPUSH;
+									informationType = 8004;
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + "离开学校，现在是上课时间，系统将记录为早退，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								} else if (isAbnormalIn)
+								{
+									p = PUSHTYPE.INSCHOOLPUSH;
+									informationType = 8003;
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + "进入学校，现在是上课时间，系统将记录为迟到，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								} else
+								{
+									if (flag)
+									{
+										p = PUSHTYPE.OUTSCHOOLPUSH;
+										informationType = 8002;
+									} else
+									{
+										p = PUSHTYPE.INSCHOOLPUSH;
+										informationType = 8001;
+									}
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + (flag ? "离开" : "进入") + "学校，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								}
+
+							} else
+							{
+								if (isAbnormalLeave)
+								{
+									p = PUSHTYPE.OUTSCHOOLPUSH;
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + "离开学校，现在是上课时间，系统将记录您为早退，如有疑问请联系学校教务处。"
+											+ school.getSchoolName();
+									informationType = 8004;
+								} else if (isAbnormalIn)
+								{
+									p = PUSHTYPE.INSCHOOLPUSH;
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + "进入学校，现在是上课时间，系统将记录您为迟到，如有疑问请联系学校教务处。"
+											+ school.getSchoolName();
+									informationType = 8003;
+
+								} else
+								{
+									if (flag)
+									{
+										p = PUSHTYPE.OUTSCHOOLPUSH;
+										informationType = 8002;
+									} else
+									{
+										p = PUSHTYPE.INSCHOOLPUSH;
+										informationType = 8001;
+									}
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + (flag ? "离开" : "进入") + "学校，祝您生活快乐！"
+											+ school.getSchoolName();
+								}
+
+							}
+
+							information = new InformationType();
+							information = informationTypeService.getInformationTypeByInformationType(informationType);
+
+						}
+					}
+
+					if (scheduleFlag)
+					{
+						for (Schedule s : schedulelist)
+						{
+							isPush = true;
+							String amStart = s.getAmStartTime() + ":00";
+							String amEnd = s.getAmEndTime() + ":00";
+							String pmStart = s.getPmStartTime() + ":00";
+							String pmEnd = s.getPmEndTime() + ":00";
+							String beginTime = s.getBeginTime() + ":00";
+							String endTime = s.getEndTime() + ":00";
+							int type = s.getType();
+
+							Integer informationType = null;
+
+							if (type == 0)// 分段
+							{
+								if (!amStart.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(amStart)) && nowTime.before(df.parse(amEnd)))// 上午迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+
+								}
+								if (!pmStart.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(pmStart)) && nowTime.before(df.parse(pmEnd)))// 下午迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+								}
+							} else
+							// 整天
+							{
+								if (!beginTime.equals("null:00"))
+								{
+									if (nowTime.after(df.parse(beginTime)) && nowTime.before(df.parse(endTime)))// 迟到早退
+									{
+										if (flag)
+										{
+											isAbnormalLeave = true;
+										} else
+										{
+											isAbnormalIn = true;
+										}
+									}
+								}
+							}
+
+							if (user.getRoleCode().equals("student"))
+							{
+								if (isAbnormalLeave)
+								{
+									p = PUSHTYPE.OUTSCHOOLPUSH;
+									informationType = 8004;
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + "离开学校，现在是上课时间，系统将记录为早退，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								} else if (isAbnormalIn)
+								{
+									p = PUSHTYPE.INSCHOOLPUSH;
+									informationType = 8003;
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + "进入学校，现在是上课时间，系统将记录为迟到，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								} else
+								{
+									if (flag)
+									{
+										p = PUSHTYPE.OUTSCHOOLPUSH;
+										informationType = 8002;
+									} else
+									{
+										p = PUSHTYPE.INSCHOOLPUSH;
+										informationType = 8001;
+									}
+									content = user.getRealName() + "家长您好：您的孩子于" + df.format(new Date()) + (flag ? "离开" : "进入") + "学校，如有问题请及时和班主任联系。"
+											+ school.getSchoolName();
+								}
+
+							} else
+							{
+								if (isAbnormalLeave)
+								{
+									p = PUSHTYPE.OUTSCHOOLPUSH;
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + "离开学校，现在是上课时间，系统将记录您为早退，如有疑问请联系学校教务处。"
+											+ school.getSchoolName();
+									informationType = 8004;
+								} else if (isAbnormalIn)
+								{
+									p = PUSHTYPE.INSCHOOLPUSH;
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + "进入学校，现在是上课时间，系统将记录您为迟到，如有疑问请联系学校教务处。"
+											+ school.getSchoolName();
+									informationType = 8003;
+
+								} else
+								{
+									if (flag)
+									{
+										p = PUSHTYPE.OUTSCHOOLPUSH;
+										informationType = 8002;
+									} else
+									{
+										p = PUSHTYPE.INSCHOOLPUSH;
+										informationType = 8001;
+									}
+									content = user.getRealName() + "老师您好：您于" + df.format(new Date()) + (flag ? "离开" : "进入") + "学校，祝您生活快乐！"
+											+ school.getSchoolName();
+								}
+
+							}
+
+							information = new InformationType();
+							information = informationTypeService.getInformationTypeByInformationType(informationType);
+
+						}
+					}
+
+					// 推送消息
+					// 若是学生，则找寻其家长，发送推送消息
+					if (isPush)
+					{
+
+						if (information.getType() == 1 || information.getType() == 3)// 1只发送短信
+						// 3推送+短信
+						{
+							List<User> parentList = null;
+							if (user.getRoleCode().equals("student"))
+							{
+								parentList = new ArrayList<User>();
+								parentList = commonService.getParentByStudentId(user.getUserId());
+								for (User parent : parentList)
+								{
+									if (isAbnormalLeave || isAbnormalIn)
+									{
+										if (inout.getStatus() == 2)
+										{
+											abnormalInfo.setType(1);
+										} else
+										{
+											abnormalInfo.setType(0);
+										}
+										abnormalInfo.setContent(content);
+										abnormalInfo.setUserId(parent.getUserId());
+										abnormalInfo.setCreateTime(df.format(new Date()));
+										abnormalService.addAbnormalInfo(abnormalInfo);
+									}
+
+									if (content != null)
+									{
+										SmsDetail smsDetail = new SmsDetail();
+										smsDetail.setContent(content);
+										smsDetail.setSenderId(1);
+										smsDetail.setSenderName("学校管理员");
+										smsDetail.setReceiverId(user.getUserId());
+										smsDetail.setReceiverName(user.getRealName());
+										smsDetail.setPhone(parent.getPhone());
+										smsDetail.setType("5");
+										smsDetail.setStatus(0);
+										smsDetail.setCreateTime(TimeUtil.getInstance().now());
+										smsDetail.setSentTime(TimeUtil.getInstance().now());
+										smsService.addSmsDetail(smsDetail);
+										commonService.sendSmsByDB(schoolId, p, parent.getPhone(), parent.getUserId(), content, null, information.getType());
+									}
+
+								}
+							} else
+							{
+								if (isAbnormalLeave || isAbnormalIn)
+								{
+									if (inout.getStatus() == 2)
+									{
+										abnormalInfo.setType(1);
+									} else
+									{
+										abnormalInfo.setType(0);
+									}
+									abnormalInfo.setContent(content);
+									abnormalInfo.setUserId(user.getUserId());
+									abnormalInfo.setCreateTime(df.format(new Date()));
+									abnormalService.addAbnormalInfo(abnormalInfo);
+								}
+
+								if (content != null)
+								{
+									SmsDetail smsDetail = new SmsDetail();
+									smsDetail.setContent(content);
+									smsDetail.setSenderId(1);
+									smsDetail.setSenderName("学校管理员");
+									smsDetail.setReceiverId(user.getUserId());
+									smsDetail.setReceiverName(user.getRealName());
+									smsDetail.setPhone(user.getPhone());
+									smsDetail.setType("5");
+									smsDetail.setStatus(0);
+									smsDetail.setCreateTime(TimeUtil.getInstance().now());
+									smsDetail.setSentTime(TimeUtil.getInstance().now());
+									smsService.addSmsDetail(smsDetail);
+									commonService.sendSmsByDB(schoolId, p, user.getPhone(), user.getUserId(), content, null, information.getType());
+								}
+							}
+
+						} else if (information.getType() == 2)// 只推送
+						{
+							List<User> parentList = null;
+							List<PushItem> piList = new ArrayList<PushItem>();
+							if (user.getRoleCode().equals("student"))
+							{
+								parentList = new ArrayList<User>();
+								parentList = commonService.getParentByStudentId(user.getUserId());
+								for (User parent : parentList)
+								{
+									PushItem pi = new PushItem();
+									pi.channels = parent.getBaiduChannelId();
+									pi.deviceType = String.valueOf(parent.getDeviceType());
+									pi.PushContent = content;
+									pi.PushType = p.getType();
+									pi.PushContentType = p.getContentType();
+									pi.title = p.getName();
+									pi.schoolId = schoolId;
+									pi.receiverId = parent.getUserId();
+									piList.add(pi);
+
+									if (isAbnormalLeave || isAbnormalIn)
+									{
+										if (inout.getStatus() == 2)
+										{
+											abnormalInfo.setType(1);
+										} else
+										{
+											abnormalInfo.setType(0);
+										}
+										abnormalInfo.setContent(content);
+										abnormalInfo.setUserId(parent.getUserId());
+										abnormalInfo.setCreateTime(df.format(new Date()));
+										abnormalService.addAbnormalInfo(abnormalInfo);
+									}
+								}
+							} else
+							{
+								PushItem pi = new PushItem();
+								pi.channels = user.getBaiduChannelId();
+								pi.deviceType = String.valueOf(user.getDeviceType());
+								pi.PushContent = content;
+								pi.PushType = p.getType();
+								pi.PushContentType = p.getContentType();
+								pi.title = p.getName();
+								pi.schoolId = schoolId;
+								pi.receiverId = user.getUserId();
+								piList.add(pi);
+								if (isAbnormalLeave || isAbnormalIn)
+								{
+									if (inout.getStatus() == 2)
+									{
+										abnormalInfo.setType(1);
+									} else
+									{
+										abnormalInfo.setType(0);
+									}
+									abnormalInfo.setContent(content);
+									abnormalInfo.setUserId(user.getUserId());
+									abnormalInfo.setCreateTime(df.format(new Date()));
+									abnormalService.addAbnormalInfo(abnormalInfo);
+								}
+							}
+
+							commonService.pushMsg(piList, true);// 消息推送
+
+						} else if (information.getType() == 4)// 不发短信不推送
+						{
+
+						}
+
+					}
+
+				} catch (Exception e)
+				{
+					commonService.addInoutError(inout);
+					// e.printStackTrace();
+					logger.error("卡号:" + code + "查不到关联用户");
+				}
+
+			}
+
+			response.getWriter().write("success");
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+
+			try
+			{
+				response.setCharacterEncoding("utf-8");
+				response.getWriter().write("false");
+				response.getWriter().flush();
+			} catch (Exception ex)
+			{
+				ex.printStackTrace();
+			}
+		}
+
+		return null;
+	}
+}

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="EvaluateKindergarten">
+  	<typeAlias alias="evaluateKindergarten" type="com.guotop.palmschool.evaluationKindergarten.entity.EvaluateKindergarten" />
+	
+  	<!-- 添加评论 20160316-->
+	<insert id="addEvaluateKindergarten" parameterClass="evaluateKindergarten">
+		insert into palm_evaluate_kindergarten
+		(
+			teacherId,
+			studentId,
+			createTime,
+			conductStar,
+			conduct,
+			sportStar,
+			sport,
+			studyStar,
+			study,
+			lifeStar,
+			life,
+			clazzId
+		)
+		values
+		(
+			#teacherId#,
+			#studentId#,
+			#createTime#,
+			#conductStar#,
+			#conduct#,
+			#sportStar#,
+			#sport#,
+			#studyStar#,
+			#study#,
+			#lifeStar#,
+			#life#,
+			#clazzId#
+		)
+	</insert>
+	
+	<!-- 加载学生的最新评价 20160316 -->
+	<select id="loadEvaluateKindergartenByStudentId" parameterClass="Integer" resultClass="evaluateKindergarten">
+		 SELECT e.* FROM palm_evaluate_kindergarten e 
+			 WHERE e.studentId = #studentId#
+			 ORDER BY e.createTime DESC
+			 LIMIT 1
+	</select>
+	
+		<!-- 加载学生的所有评价 20160411 -->
+	<select id="loadEvaluateKindergartenListByStudentId" parameterClass="Integer" resultClass="evaluateKindergarten">
+		 SELECT e.* FROM palm_evaluate_kindergarten e 
+			 WHERE e.studentId = #studentId#
+			 ORDER BY e.createTime DESC
+	</select>	
+		<!-- 加载学生的评价详情 20160411 -->
+	<select id="loadEvaluateKindergartenByEvaluateId" parameterClass="Integer" resultClass="evaluateKindergarten">
+		 SELECT e.* FROM palm_evaluate_kindergarten e 
+			 WHERE e.id = #id#
+	</select>	
+	<!-- 根据学生ID查找对应的评价 -->
+	<select id="loadEvaluateKindergartenByUserId" parameterClass="HashMap" resultClass="evaluateKindergarten">
+		 SELECT e.* FROM palm_evaluate_kindergarten e 
+			 WHERE e.studentId = #id# and createTime  <![CDATA[ <= ]]> #endDate# order by createTime limit 0,1
+	</select>	
+	
+</sqlMap>

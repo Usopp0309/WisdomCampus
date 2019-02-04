@@ -1,0 +1,818 @@
+package com.guotop.palmschool.imp.controller;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.log4j.Logger;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.guotop.palmschool.common.controller.BaseUploadController;
+import com.guotop.palmschool.common.entity.Excel;
+import com.guotop.palmschool.common.entity.ResultInfo;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.entity.Card;
+import com.guotop.palmschool.entity.Clazz;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.listener.StartupListener;
+import com.guotop.palmschool.service.CardService;
+import com.guotop.palmschool.service.ClazzService;
+import com.guotop.palmschool.service.GradeService;
+import com.guotop.palmschool.service.StudentService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.PhoneAuthenticator;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+
+/**
+ * 学生导入控制类
+ * 
+ * @author
+ */
+@RequestMapping("/studentImport")
+@Controller
+public class StudentImportController extends BaseUploadController
+{
+	private Logger log = Logger.getLogger(StudentImportController.class);
+	@Resource
+	private StudentService studentService;
+
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private CardService cardService;
+
+	@Resource
+	private ClazzService clazzService;
+
+	@Resource
+	private UserService userService;
+
+	@Resource
+	private GradeService gradeService;
+
+	@RequestMapping(value = "/onUploadStudent.do")
+	public synchronized String uploadStudent(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("utf-8");
+		User loginUser = (User) session.getAttribute("user");
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
+		FileOutputStream fos = null;
+		try
+		{
+			/**
+			 * 用户ID
+			 */
+			Integer userId = loginUser.getUserId();
+			// 通过userId查找schoolId
+			Long schoolId = Long.valueOf(loginUser.getSchoolId());
+			File file = upload(request, userId);
+			String fullName = file.getCanonicalPath();
+
+			Excel excel = new Excel(new File(fullName));
+
+			// 参数
+			Map<String, Object> paramMap_student = new HashMap<String, Object>();
+			Map<String, Object> paramMap_studentParent = new HashMap<String, Object>();
+			HashMap<String, Clazz> existClazzs = new HashMap<String, Clazz>();
+			HashSet<String> cards = new HashSet<String>();
+
+			// 获取上传excel的文件名,
+			// 导入学生时候是以入学年份作为文件名（例如:小学_六年级.xls）
+			String filename = file.getName();
+			// 获取文件名前6位 即入学年份
+			Integer gradeId = 0;
+			String gradeName = "";
+			if (filename == null || filename.trim().equals(""))
+			{
+				modelMap.put("errorMsg", "文件名为空");
+				return "student/student_import";
+			} else if (filename.endsWith(".xls") || filename.endsWith(".xlsx"))
+			{
+				String[] fileNameStrs = filename.split("\\.");
+				HashMap<String, Object> gradeMap = new HashMap<String, Object>();
+				String gradeIdStr = null;
+				if (fileNameStrs != null && fileNameStrs.length > 0)
+				{
+					// 该判断条件内处理的是根据文件名称获取系统的内的gradeId
+					if (fileNameStrs[0].contains("_"))
+					{
+						String type = fileNameStrs[0].split("_")[0];
+						int typeInt = 0;
+						if (type.equals("幼儿园"))
+						{
+							typeInt = 0;
+						} else if (type.equals("小学"))
+						{
+							typeInt = 1;
+						} else if (type.equals("初中"))
+						{
+							typeInt = 2;
+						} else if (type.equals("高中"))
+						{
+							typeInt = 3;
+						} else
+						{
+							modelMap.put("errorMsg", "系统暂无定义该教学阶段，请联系系统管理员");
+							return "student/student_import";
+						}
+						gradeName = fileNameStrs[0].split("_")[1];
+						gradeMap.put("gradeName", gradeName);
+						gradeMap.put("type", typeInt);
+						gradeIdStr = gradeService.getGradeIdByGradeNameAndType(gradeMap);
+					}
+				}
+
+				// 如果gradeIdStr为空的情况下情况下说明说明系统系统中年级不存在，先添加年级
+				if (!StringUtil.isEmpty(gradeIdStr))
+				{
+					try
+					{
+						gradeId = Integer.valueOf(gradeIdStr);
+					} catch (Exception e)
+					{
+						log.error("学生导入gradeIdStr类型转换出错：" + e.getMessage());
+					}
+				} else
+				{
+					modelMap.put("errorMsg", "年级不存在，请先添加年级后再进行学生导入");
+					return "student/student_import";
+				}
+			} else
+			{
+				modelMap.put("errorMsg", "文件类型必须为excel文件");
+				return "student/student_import";
+			}
+
+			// 获取操作导入人的userid
+			Integer importUserId = Integer.valueOf(loginUser.getUserId());
+
+			String[] sheets = excel.getSheets(); // sheet名为班级名
+			String[][][] data = excel.getData(); // 内容
+			if (sheets == null || sheets.length == 0 || data == null || data.length == 0)
+			{
+				modelMap.put("errorMsg", "数据为空");
+				return "student/student_import";
+			}
+
+			if (sheets.length != data.length)
+			{
+				modelMap.put("errorMsg", "数据异常");
+				return "student/student_import";
+			}
+
+			for (int i = 0; i < sheets.length; i++)
+			{
+				int no = i + 1;
+
+				// 只要表格中的sheet名有一个为空，就直接返回提醒用户
+				String clazzName = sheets[i];
+				if (StringUtil.isEmpty(clazzName))
+				{
+					modelMap.put("errorMsg", "第 " + no + " 个sheet名称为空");
+					return "student/student_import";
+				}
+				// 只要任意一个sheet中的数据为空，直接返回提醒用户
+				String[][] dsTemp = data[i];
+				if (dsTemp == null || dsTemp.length == 0)
+				{
+					modelMap.put("errorMsg", "第 " + no + " 个sheet数据为空");
+					return "student/student_import";
+				}
+			}
+			// 创建错误汇总文件 start
+			String errorFileDirectoryPath = "/downLoad/excel/" + schoolId + "/" + formatter.format(new Date()) + "/";
+			File errorFileDirectory = new File(StartupListener.getRoot() + errorFileDirectoryPath);
+			if (!errorFileDirectory.exists())
+			{
+				errorFileDirectory.mkdirs();
+			}
+			String errorFileName = filename.split("\\.")[0] + "_error" + ".xls";
+			String errorFilePath = errorFileDirectory.getAbsolutePath() + "/" + errorFileName;
+			File errorFile = new File(errorFilePath);
+			if (!errorFile.exists())
+			{
+				errorFile.createNewFile();
+			} else
+			{
+				errorFile.delete();
+				errorFile.createNewFile();
+			}
+			// 创建错误汇总文件 end
+
+			boolean hasError = false;
+			// POIFSFileSystem fs=new POIFSFileSystem(new
+			// FileInputStream(errorFile));
+			// 得到Excel工作簿对象
+			HSSFWorkbook wb = new HSSFWorkbook();
+			// 添加学生对应的卡号
+			List<Card> studentCardList = new ArrayList<Card>();
+			// 家长1对应卡号列表
+			List<Card> parent1CardList = new ArrayList<Card>();
+			// 家长2对应卡号列表
+			List<Card> parent2CardList = new ArrayList<Card>();
+			// 家长基本信息列表
+			List<User> studentParentBaseList = new ArrayList<User>();
+			// 家长详细信息列表
+			List<User> studentParentDetailList = new ArrayList<User>();
+			for (int j = 0; j < sheets.length; j++)
+			{
+				String clazzName = sheets[j];
+				HSSFSheet hsheet = wb.createSheet(clazzName);
+				HSSFRow row = hsheet.createRow((short) 0);
+				row.createCell(0).setCellValue("姓名");
+				row.createCell(1).setCellValue("学号");
+				row.createCell(2).setCellValue("学生手机号");
+				row.createCell(3).setCellValue("卡号1");
+				row.createCell(4).setCellValue("卡号2");
+				row.createCell(5).setCellValue("家长1姓名");
+				row.createCell(6).setCellValue("家长1联系电话");
+				row.createCell(7).setCellValue("家长1卡号1");
+				row.createCell(8).setCellValue("家长1卡号2");
+				row.createCell(9).setCellValue("家长2姓名");
+				row.createCell(10).setCellValue("家长2联系电话");
+				row.createCell(11).setCellValue("家长2卡号1");
+				row.createCell(12).setCellValue("家长2卡号2");
+				row.createCell(13).setCellValue("备注");
+
+				// 根据sheet名得到系统内的班级信息，如果不存在该班级的话，就创建班级
+				Clazz clazz = null;
+				//表格中的sheet只填1，2，3，4，5类似
+				//gradeName.substring(0, 1) 取年级中的第一个字
+//				String newClazzName = gradeName.substring(0, 1)+"("+clazzName+")班";
+//				if (existClazzs.containsKey(newClazzName))
+//				{
+//					clazz = existClazzs.get(newClazzName);
+//				} else
+//				{
+//					Map<String, Object> clazzParamMap = new HashMap<String, Object>();
+//					clazzParamMap.put("clazzName", newClazzName);
+//					clazzParamMap.put("gradeId", gradeId);
+//					clazz = clazzService.getClazzByNameAndGradeId(clazzParamMap);
+//					if (clazz == null)
+//					{
+//						clazz = new Clazz();
+//						clazz.setClazzName(newClazzName);
+//						clazz.setCreateTime(StringUtil.toStr(new Date()));
+//						clazz.setUpdateTime(StringUtil.toStr(new Date()));
+//						clazz.setGradeId(gradeId);// /---
+//						Integer clazzId = clazzService.addClazz(clazz);
+//						clazz.setId(clazzId);
+//					}
+//					existClazzs.put(newClazzName, clazz);
+//				}
+				if (existClazzs.containsKey(clazzName))
+				{
+					clazz = existClazzs.get(clazzName);
+				} else
+				{
+					Map<String, Object> clazzParamMap = new HashMap<String, Object>();
+					clazzParamMap.put("clazzName", clazzName);
+					clazzParamMap.put("gradeId", gradeId);
+					clazz = clazzService.getClazzByNameAndGradeId(clazzParamMap);
+					if (clazz == null)
+					{
+						clazz = new Clazz();
+						clazz.setClazzName(clazzName);
+						clazz.setCreateTime(StringUtil.toStr(new Date()));
+						clazz.setUpdateTime(StringUtil.toStr(new Date()));
+						clazz.setGradeId(gradeId);// /---
+						Integer clazzId = clazzService.addClazz(clazz);
+						clazz.setId(clazzId);
+					}
+					existClazzs.put(clazzName, clazz);
+				}
+				
+				Integer clazzId = clazz.getId();
+				// 获取sheet中对应的数据
+				String[][] ds = data[j];
+				int errorRow = 1;
+				for (int k = 1; k < ds.length; k++)
+				{
+					Card card = new Card();
+					Card card2 = new Card();
+					Card parent1Card1 = new Card();
+					Card parent1Card2 = new Card();
+					Card parent2Card1 = new Card();
+					Card parent2Card2 = new Card();
+
+					User studentBase = new User();
+					User studentDetail = new User();
+					User studentParent1Base = new User();
+					User studentParent2Base = new User();
+					User studentParent1Detail = new User();
+					User studentParent2Detail = new User();
+
+					studentCardList.clear();
+					parent1CardList.clear();
+					parent2CardList.clear();
+					studentParentBaseList.clear();
+					studentParentDetailList.clear();
+
+					// 记录该行数据中的错误信息
+					StringBuilder sb = new StringBuilder();
+					// 定义每一行数据是否正确的标记
+					boolean isError = false;
+					String[] line = ds[k];
+					// 当前行数据为空的时候，程序进入下一次循环
+					if (StringUtil.isEmpty(line))
+					{
+						continue;// 该行为空
+					}
+
+					// 获取某一行的第一列数据(既学生姓名)
+					String name = line.length > 0 ? line[0] : null;
+					if (StringUtil.isEmpty(name))
+					{
+						name = "";
+						isError = true;
+						sb.append(" 姓名为空");
+					}
+					name = name.trim();
+
+					// 获取某一行的第二列数据(既学生学号)
+					String code = line.length > 1 ? line[1] : null;
+					String palmUserName = null;
+					if (StringUtil.isEmpty(code))
+					{
+						code = "";
+						isError = true;
+						sb.append(" 学号为空");
+					}else{
+						code = code.trim();
+						// 学生智慧校园登录名(schoolId+学号)
+						palmUserName = schoolId + code.trim();
+
+						// 检查该学校内学号是否存在,判断是否重复导入
+						ResultInfo resultInfo = commonService.checkUserByCode(code, schoolId);
+						// 存在则跳过
+						if (ResultInfo.RESULT_SUCCESS.equals(resultInfo.getResultCode()))
+						{
+							isError = true;
+							sb.append(" 学号已存在");
+						}
+					}
+					
+					// 获取某一行的第三列数据(既学生手机号码)
+					String studentPhone = line.length > 2 ? line[2] : null;
+					if (!StringUtil.isEmpty(studentPhone))
+					{
+						studentPhone = studentPhone.trim();
+						if(!PhoneAuthenticator.isMobileNO(studentPhone)){
+							sb.append(" 学生电话号码格式不正确");
+							isError = true;
+						}
+					}
+
+					// 获取某一行的第三列数据(既学生卡号1)
+					String cardCode1 = line.length > 3 ? line[3] : null;
+					if (!StringUtil.isEmpty(cardCode1))
+					{
+						cardCode1 = cardCode1.trim();
+						if (cards.contains(cardCode1))
+						{
+							isError = true;
+							sb.append(" 卡号1重复：" + cardCode1);
+						}
+						// 卡号存在(意思是说卡号已经存在系统中)
+						if (cardService.checkCardByCardCode(cardCode1))
+						{
+							isError = true;
+							sb.append(" 卡号1已被使用：" + cardCode1);
+						}
+
+					}
+					// 获取某一行的第四列数据(既学生卡号2)
+					String cardCode2 = line.length > 4 ? line[4] : null;
+					if (!StringUtil.isEmpty(cardCode2))
+					{
+						cardCode2 = cardCode2.trim();
+						if (cards.contains(cardCode2))
+						{
+							isError = true;
+							sb.append(" 卡号2重复：" + cardCode2);
+						}
+						if (cardService.checkCardByCardCode(cardCode2))
+						{
+							isError = true;
+							sb.append(" 卡号2已被使用：" + cardCode2);
+						}
+
+					}
+
+					// 获取某一行的第五列数据(既家长1姓名)
+					String parentName = line.length > 5 ? line[5] : null;
+					if (StringUtil.isEmpty(parentName))
+					{
+						parentName = "";
+						isError = true;
+						sb.append("家长1姓名为空");
+					}
+					parentName = parentName.trim();
+
+					// 获取某一行的第六列数据(既家长1联系电话)
+					String phone = line.length > 6 ? line[6] : null;
+					if (StringUtil.isEmpty(phone))
+					{
+						phone = "";
+						isError = true;
+						sb.append(" 家长1电话号码为空");
+					}else{
+						phone = phone.trim();
+						if(!PhoneAuthenticator.isMobileNO(phone)){
+							sb.append("家长1电话号码格式不正确");
+							isError = true;
+						}
+					}
+
+					// 获取某一行的第七列数据(既家长1的卡号1)
+					String parent1CardCode1 = line.length > 7 ? line[7] : null;
+					if (!StringUtil.isEmpty(parent1CardCode1))
+					{
+						parent1CardCode1 = parent1CardCode1.trim();
+						if (cards.contains(parent1CardCode1))
+						{
+							isError = true;
+							sb.append(" 家长1卡号1重复：" + parent1CardCode1);
+						}
+						if (cardService.checkCardByCardCode(parent1CardCode1))
+						{
+							isError = true;
+							sb.append(" 家长1卡号1已被使用：" + parent1CardCode1);
+						}
+					}
+
+					// 获取某一行的第八列数据(既家长1的卡号2)
+					String parent1CardCode2 = line.length > 8 ? line[8] : null;
+					if (!StringUtil.isEmpty(parent1CardCode2))
+					{
+						parent1CardCode2 = parent1CardCode2.trim();
+						if (cards.contains(parent1CardCode2))
+						{
+							isError = true;
+							sb.append(" 家长1卡号2重复：" + parent1CardCode2);
+						}
+						if (cardService.checkCardByCardCode(parent1CardCode2))
+						{
+							isError = true;
+							sb.append(" 家长1卡号2已被使用：" + parent1CardCode2);
+						}
+
+					}
+
+					// 获取某一行的第九列数据(既家长2姓名)
+					String parent2Name = line.length > 9 ? line[9] : null;
+					if (!StringUtil.isEmpty(parent2Name))
+					{
+						parent2Name = parent2Name.trim();
+					} else
+					{
+						parent2Name = "";
+					}
+
+					// 获取某一行的第十列数据(既家长2的联系电话)
+					String phone2 = line.length > 10 ? line[10] : null;
+					if (!StringUtil.isEmpty(phone2))
+					{
+						phone2 = phone2.trim();
+						if (StringUtil.isEmpty(parent2Name))
+						{
+							isError = true;
+							sb.append(" 家长2名称不能为空");
+						}
+						if(!PhoneAuthenticator.isMobileNO(phone2)){
+							sb.append(" 家长2电话号码格式不正确");
+							isError = true;
+						}
+					} else
+					{
+						phone2 = "";
+					}
+
+					// 获取某一行的第十一列数据(既家长2的卡号1)
+					String parent2CardCode1 = line.length > 11 ? line[11] : null;
+					if (!StringUtil.isEmpty(parent2CardCode1))
+					{
+						parent2CardCode1 = parent2CardCode1.trim();
+						if (cards.contains(parent2CardCode1))
+						{
+							isError = true;
+							sb.append(" 家长2卡号1重复：" + parent2CardCode1);
+						}
+						if (cardService.checkCardByCardCode(parent2CardCode1))
+						{
+							isError = true;
+							sb.append(" 家长2卡号1已被使用：" + parent2CardCode1);
+						}
+					}
+
+					// 获取某一行的第十二列数据(既家长2的卡号2)
+					String parent2CardCode2 = line.length > 12 ? line[12] : null;
+					if (!StringUtil.isEmpty(parent2CardCode2))
+					{
+						parent2CardCode2 = parent2CardCode2.trim();
+						if (cards.contains(parent2CardCode2))
+						{
+							isError = true;
+							sb.append(" 家长2卡号2重复：" + parent2CardCode2);
+						}
+						if (cardService.checkCardByCardCode(parent2CardCode2))
+						{
+							isError = true;
+							sb.append(" 家长2卡号2已被使用：" + parent2CardCode2);
+						}
+					}
+					// 判断改行数据是否有错误，有错误的话，将错误信息记录到错误汇总文件中
+					if (isError)
+					{
+						HSSFRow tempRow = hsheet.createRow((short) errorRow);
+						tempRow.createCell(0).setCellValue(name);
+						tempRow.createCell(1).setCellValue(code);
+						tempRow.createCell(2).setCellValue(studentPhone);
+						tempRow.createCell(3).setCellValue(cardCode1);
+						tempRow.createCell(4).setCellValue(cardCode2);
+						tempRow.createCell(5).setCellValue(parentName);
+						tempRow.createCell(6).setCellValue(phone);
+						tempRow.createCell(7).setCellValue(parent1CardCode1);
+						tempRow.createCell(8).setCellValue(parent1CardCode2);
+						tempRow.createCell(9).setCellValue(parent2Name);
+						tempRow.createCell(10).setCellValue(phone2);
+						tempRow.createCell(11).setCellValue(parent2CardCode1);
+						tempRow.createCell(12).setCellValue(parent2CardCode2);
+						tempRow.createCell(13).setCellValue(sb.toString());
+						errorRow++;
+						hasError = true;
+						continue;
+					}
+					// 添加卡信息
+					cards.add(cardCode1);
+					cards.add(cardCode2);
+					cards.add(parent1CardCode1);
+					cards.add(parent1CardCode2);
+					cards.add(parent2CardCode1);
+					cards.add(parent2CardCode2);
+
+					if (!StringUtil.isEmpty(cardCode1))
+					{
+						card.setCardCode(cardCode1);
+						card.setStatus("1");
+						card.setBattery("1");
+						card.setCreatetime(TimeUtil.getInstance().now());
+						card.setUpdatetime(TimeUtil.getInstance().now());
+						studentCardList.add(card);
+					}
+					if (!StringUtil.isEmpty(cardCode2))
+					{
+						card2.setCardCode(cardCode2);
+						card2.setStatus("1");
+						card2.setBattery("1");
+						card2.setCreatetime(TimeUtil.getInstance().now());
+						card2.setUpdatetime(TimeUtil.getInstance().now());
+						studentCardList.add(card2);
+					}
+
+					if (!StringUtil.isEmpty(parent1CardCode1))
+					{
+						parent1Card1.setCardCode(parent1CardCode1);
+						parent1Card1.setStatus("1");
+						parent1Card1.setBattery("1");
+						parent1Card1.setCreatetime(TimeUtil.getInstance().now());
+						parent1Card1.setUpdatetime(TimeUtil.getInstance().now());
+						parent1CardList.add(parent1Card1);
+					}
+					if (!StringUtil.isEmpty(parent1CardCode2))
+					{
+						parent1Card2.setCardCode(parent1CardCode2);
+						parent1Card2.setStatus("1");
+						parent1Card2.setBattery("1");
+						parent1Card2.setCreatetime(TimeUtil.getInstance().now());
+						parent1Card2.setUpdatetime(TimeUtil.getInstance().now());
+						parent1CardList.add(parent1Card2);
+					}
+
+					if (!StringUtil.isEmpty(parent2CardCode1))
+					{
+						parent2Card1.setCardCode(parent2CardCode1);
+						parent2Card1.setStatus("1");
+						parent2Card1.setBattery("1");
+						parent2Card1.setCreatetime(TimeUtil.getInstance().now());
+						parent2Card1.setUpdatetime(TimeUtil.getInstance().now());
+						parent2CardList.add(parent2Card1);
+					}
+					if (!StringUtil.isEmpty(parent2CardCode2))
+					{
+						parent2Card2.setCardCode(parent2CardCode2);
+						parent2Card2.setStatus("1");
+						parent2Card2.setBattery("1");
+						parent2Card2.setCreatetime(TimeUtil.getInstance().now());
+						parent2Card2.setUpdatetime(TimeUtil.getInstance().now());
+						parent2CardList.add(parent2Card2);
+					}
+
+					// 导入学生需要添加数据到以下表
+					// 1. userbase 2.user_detail 3.user_school 4.student_parent
+					// 5.palm_card 6.palm_user_card 7.palm_user_role
+					// 8.palm_user_permission 9. palm_user_clazz 10. palm_clazz
+
+					studentBase.setPassword(StringUtil.toMD5(code));// 学生的密码默认设为学号
+					studentBase.setPalmUserName(palmUserName);// 学生智慧校园账号是(schoolId+学号)
+					studentBase.setPhone(studentPhone);
+					studentBase.setType(0);// 0 代表学生
+					studentBase.setSource("1");
+					studentBase.setClazzId(clazzId);
+
+					studentDetail.setRealName(name);// 真实姓名
+					studentDetail.setCode(code);
+					studentDetail.setCreateTime(TimeUtil.getInstance().now());
+					studentDetail.setCreateUserId(importUserId);
+
+					studentParent1Base.setPhone(phone);
+					studentParent1Base.setPassword(StringUtil.toMD5(phone));
+					studentParent1Base.setPalmUserName(phone);// 家长智慧校园账号是手机号码
+					studentParent1Base.setType(1);// 0 代表其他
+					studentParent1Base.setSource("1");
+
+					studentParent1Detail.setRealName(parentName);// 真实姓名
+					studentParent1Detail.setCreateTime(TimeUtil.getInstance().now());
+					studentParent1Detail.setCreateUserId(importUserId);
+					if ((!StringUtil.isEmpty(phone2)) && (!StringUtil.isEmpty(parent2Name)))
+					{
+						studentParent2Base.setPhone(phone2);
+						studentParent2Base.setPassword(StringUtil.toMD5(phone2));
+						studentParent2Base.setPalmUserName(phone2);// 家长智慧校园账号是手机号码
+						studentParent2Base.setType(1);// 0 代表其他
+						studentParent2Base.setSource("1");
+
+						studentParent2Detail.setRealName(parent2Name);// 真实姓名
+						studentParent2Detail.setCreateTime(TimeUtil.getInstance().now());
+						studentParent2Detail.setCreateUserId(importUserId);
+					}
+
+					paramMap_student.put("clazzId", clazzId);
+					paramMap_student.put("schoolId", schoolId);
+
+					paramMap_studentParent.put("clazzId", clazzId);
+					paramMap_studentParent.put("schoolId", schoolId);
+
+					/*
+					 * 家长不存在系统中的情况下
+					3.判断该行数据中家长手机号码是否已经存在在系统中
+					 3.1 不存在的情况
+					    3.1.1 不存在的情况，正常添加家长，只需要判断家长相关的卡号是否有人使用
+					 3.2 存在的情况
+					    3.2.1 手机号码已经存在的情况下，判断表格中家长姓名和系统的是否相同
+					           如果姓名相同 只添加该学生和家长的关系，卡号相关操作正常，判断已经存在的用户是否用户家长角色和权限
+					                       已经有家长角色，就不添加角色和权限
+					                       没有家长角色 就添加家长角色和角色对应的权限
+					           如果姓名不相同 就返回前台告诉导入人员已经存在该用户
+					*/
+					Map<String, Object> palmUserNameMap1 = new HashMap<String, Object>();
+					palmUserNameMap1.put("palmUserName", phone);
+					User user1 = commonService.getUserByPalmUserName(palmUserNameMap1);
+					if(null == user1){
+						//判断该phone是否已经被亦信用户作为绑定手机号码,该用户仅仅是亦信账号
+						//判断条件 1.bindPhone 2.user_school
+						palmUserNameMap1.put("bindPhone", phone);
+						user1 = commonService.getUserByBindPhone(palmUserNameMap1);
+						if(null == user1){
+							studentParent1Base.setExist(false);
+						}else{
+							studentParent1Base.setExist(true);
+							studentParent1Base.setUserId(user1.getUserId());
+						}
+						studentParentBaseList.add(studentParent1Base);
+						studentParentDetailList.add(studentParent1Detail);
+					}else{
+						if(parentName.equals(user1.getRealName())){
+							studentParent1Base.setExist(true);
+							studentParent1Base.setUserId(user1.getUserId());
+							studentParentBaseList.add(studentParent1Base);
+							studentParentDetailList.add(studentParent1Detail);
+						}else{
+							sb.append(" 家长1手机号码：" + phone+ "被"+user1.getRealName()+"占用");
+							isError = true;
+						}
+					}
+					
+					if ((!StringUtil.isEmpty(phone2)) && (!StringUtil.isEmpty(parent2Name)))
+					{
+						if(phone2.equals(phone)){
+							sb.append(" 家长2手机号码不能与家长1手机号码重复：" + parent2Name + phone2);
+							isError = true;
+						}
+						
+						Map<String, Object> palmUserNameMap2 = new HashMap<String, Object>();
+						palmUserNameMap2.put("palmUserName", phone2);
+						User user2 = commonService.getUserByPalmUserName(palmUserNameMap2);
+						if(null == user2){
+							//判断该phone是否已经被亦信用户作为绑定手机号码,该用户仅仅是亦信账号
+							//判断条件 1.bindPhone 2.user_school
+							palmUserNameMap2.put("bindPhone", phone2);
+							user2 = commonService.getUserByBindPhone(palmUserNameMap2);
+							if(null == user2){
+								studentParent2Base.setExist(false);
+							}else{
+								studentParent2Base.setExist(true);
+								studentParent2Base.setUserId(user2.getUserId());
+							}
+							studentParentBaseList.add(studentParent2Base);
+							studentParentDetailList.add(studentParent2Detail);
+						}else{
+							if(parent2Name.equals(user2.getRealName())){
+								studentParent2Base.setExist(true);
+								studentParent2Base.setUserId(user2.getUserId());
+								studentParentBaseList.add(studentParent2Base);
+								studentParentDetailList.add(studentParent2Detail);
+							}else{
+								sb.append(" 家长2手机号码："+phone2 +"被"+user2.getRealName()+"占用");
+								isError = true;
+							}
+						}
+					}
+					
+					if (isError)
+					{
+						HSSFRow tempRow = hsheet.createRow((short) errorRow);
+						tempRow.createCell(0).setCellValue(name);
+						tempRow.createCell(1).setCellValue(code);
+						tempRow.createCell(2).setCellValue(studentPhone);
+						tempRow.createCell(3).setCellValue(cardCode1);
+						tempRow.createCell(4).setCellValue(cardCode2);
+						tempRow.createCell(5).setCellValue(parentName);
+						tempRow.createCell(6).setCellValue(phone);
+						tempRow.createCell(7).setCellValue(parent1CardCode1);
+						tempRow.createCell(8).setCellValue(parent1CardCode2);
+						tempRow.createCell(9).setCellValue(parent2Name);
+						tempRow.createCell(10).setCellValue(phone2);
+						tempRow.createCell(11).setCellValue(parent2CardCode1);
+						tempRow.createCell(12).setCellValue(parent2CardCode2);
+						tempRow.createCell(13).setCellValue(sb.toString());
+						errorRow++;
+						hasError = true;
+						continue;
+					}else{
+						studentService.addStudentImport(studentBase, studentDetail, studentParentBaseList, studentParentDetailList, studentCardList, parent1CardList,
+								parent2CardList, paramMap_student, paramMap_studentParent,false);
+					}
+				}
+			}
+			if (hasError)
+			{
+				fos = new FileOutputStream(errorFile);
+				wb.write(fos);
+				modelMap.addAttribute("errorMsg", "导入文件含有错误内容，具体错误信息请点击<a href='" + request.getContextPath() + errorFileDirectoryPath + errorFileName + "'>\"下载\"</a>");
+				return "student/student_import";
+			} else
+			{
+				errorFile.deleteOnExit();
+				modelMap.addAttribute("errorMsg", "导入成功");
+				return "student/student_import";
+			}
+		} catch (Exception ex)
+		{
+			modelMap.put("errorMsg", "系统错误，请联系管理员");
+			log.error("StudentImportController.import is error : " + ex.getMessage());
+			return "student/student_import";
+
+		} finally
+		{
+			if (fos != null)
+			{
+				try
+				{
+					fos.close();
+				} catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}
+
+	}
+
+	@Override
+	public String getCommandName()
+	{
+		// TODO Auto-generated method stub
+		return "student";
+	}
+
+}

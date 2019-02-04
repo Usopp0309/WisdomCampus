@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>用户须知</title>
+<link href="../../media/metronic_css_m/Rich_Agreement.css" rel="stylesheet" type="text/css" media="screen" />
+
+</head>
+<body>
+<div class="content">
+<h1>用户须知</h1>
+<hr>
+<h2>1. RichX智慧校园系统可以使用手机号码登录，也可以通过“亦信”号登录，请用户下载“亦信”APP，及时掌握全部信息。</h2>
+<h2>2. RichX智慧校园登录名与手机号码对应，如果您使用的手机号终止，请及时联系我们停止账号使用；如果您更换手机号，请及时联系我们更换新的号码以便您正常登陆和使用RICH智慧校园。</h2>
+<h2>3. 针对以上情形，请您及时告知相关人员和学校有关RICH智慧校园登录名（手机号）终止或变更的情况。因您没有及时关闭或通知产生的任何损失的，仁齐公司不承担任何责任。</h2>
+
+<input class="close" type=button value="关闭" onclick="CloseWin()">
+<script type="text/javascript">
+function CloseWin()     
+{      
+window.opener=null;     
+window.open('','_self');     
+window.close();      
+}  
+</script>
+</div>
+</body>
+</html>

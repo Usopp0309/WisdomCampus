@@ -1,0 +1,115 @@
+package com.guotop.palmschool.classphotoalbum.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.classphotoalbum.entity.Photo;
+import com.guotop.palmschool.classphotoalbum.service.PhotoService;
+import com.guotop.palmschool.service.BaseService;
+
+@Service("/photoService")
+public class PhotoServiceImpl extends BaseService implements PhotoService
+{
+
+	@Override
+	public void addPhoto(Photo photo)
+	{
+		getBaseDao().addObject("Photo.addPhoto", photo);
+		
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Photo> getPhotoListByRecordsId(Map<String, Object> paramMap)
+	{
+		List<Photo> list = this.getBaseDao().selectListByObject("Photo.getPhotoListByRecordsId", paramMap);
+		return list;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Photo> getPhotoAllListByRecordsId(Map<String, Object> paramMap)
+	{
+		List<Photo> list = this.getBaseDao().selectListByObject("Photo.getPhotoAllListByRecordsId", paramMap);
+		return list;
+	}
+
+	/**
+	 * 根据albumId加载所有的照片
+	 * @param albumId
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Photo> getPhotoDetailByAlbumId(Integer albumId)
+	{
+		List<Photo> list = this.getBaseDao().selectList("Photo.getPhotoDetailByAlbumId", albumId);
+		return list;
+	}
+	
+	/**
+	 * 根据albumId加载所有的照片和评论
+	 * @param albumId
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Photo> getPhotoListAndCommentListByAlbumId(Integer albumId)
+	{
+		List<Photo> list = this.getBaseDao().selectList("Photo.getPhotoListAndCommentListByAlbumId", albumId);
+		return list;
+	}
+	
+	/**
+	 * 根据photoId删除所有的照片和评论
+	 * @param photoId
+	 */
+	public void deletePhotoByPhotoId(Integer photoId)
+	{
+		getBaseDao().deleteObjectById("Photo.deletePhotoByPhotoId", photoId);
+	}
+	
+	/**
+	 * 根据photoId修改对应的照片信息
+	 * @param photo
+	 */
+	public void modifyPhotoByPhotoId(Photo photo)
+	{
+		getBaseDao().updateObject("Photo.modifyPhotoByPhotoId", photo);
+	}
+	
+	/**
+	 *根据recordsId批量修改照片
+	 * @param photo
+	 */
+	public void savePhotoByRecordsId(Photo photo)
+	{
+		getBaseDao().updateObject("Photo.savePhotoByRecordsId", photo);
+	}
+	
+	/**
+	 * 根据相片id查询对应记录Id下面的所有照片
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Photo> getPhotoList(Integer photoId)
+	{
+		return (List<Photo>)getBaseDao().selectList("Photo.getPhotoList", photoId);
+	}
+	
+	/**
+	 * 根据recordsId删除相片和对应的评论
+	 * @param recordsId
+	 */
+	public void deletePhotoByRecordsId(Integer recordsId)
+	{
+		getBaseDao().deleteObjectById("Photo.deletePhotoByRecordsId", recordsId);
+	}
+	
+	
+	/**
+	 * 根据photoId查找照片
+	 * @param photoId
+	 */
+	public Photo getPhotoByPhotoId(Integer photoId)
+	{
+		return (Photo)getBaseDao().selectObject("Photo.getPhotoByPhotoId", photoId);
+	}
+}

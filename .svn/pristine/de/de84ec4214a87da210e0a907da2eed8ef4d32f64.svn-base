@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE sqlMapConfig
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map Config 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-config-2.dtd">
+    
+   
+<sqlMapConfig>
+	<settings cacheModelsEnabled="true" lazyLoadingEnabled="true" enhancementEnabled="true" 
+	errorTracingEnabled="true" maxSessions="1024" maxTransactions="512" maxRequests="2048" useStatementNamespaces="true"/>
+	
+	<sqlMap resource="com/guotop/palmschool/entity/xml/UserDataChangeRecords.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/UserDataChangeRecordsDetail.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/User.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Student.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Clazz.xml"/>	
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Card.xml"/>
+    <sqlMap resource="com/guotop/palmschool/entity/xml/Sms.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/SmsDetail.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/OnlineMessage.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/OnlineMessageDetail.xml"/>		
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Announcement.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Leave.xml"/>	
+	<sqlMap resource="com/guotop/palmschool/entity/xml/StudentInOutRecoder.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/School.xml"/>		
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Grade.xml"/> 
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Depart.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/UserDepartment.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Inout.xml"/>		
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Schedule.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Device.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/DeviceMonitor.xml"/>	
+	<sqlMap resource="com/guotop/palmschool/entity/xml/RolePermission.xml"/>	
+	<sqlMap resource="com/guotop/palmschool/check/entity/xml/Check.xml"/>		
+	<sqlMap resource="com/guotop/palmschool/check/entity/xml/Abnormal.xml"/>		
+	<sqlMap resource="com/guotop/palmschool/check/entity/xml/Stay.xml"/>		
+	<sqlMap resource="com/guotop/palmschool/check/entity/xml/Total.xml"/>		
+	<sqlMap resource="com/guotop/palmschool/system/entity/xml/Import.xml"/>		
+    <sqlMap resource="com/guotop/palmschool/system/entity/xml/SystemLog.xml"/>
+    <sqlMap resource="com/guotop/palmschool/system/entity/xml/CardApplyAudit.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/UserRole.xml"/>
+	<sqlMap resource="com/guotop/palmschool/meeting/entity/xml/Meeting.xml"/>	
+	<sqlMap resource="com/guotop/palmschool/meeting/entity/xml/MeetingDetail.xml"/>
+	<sqlMap resource="com/guotop/palmschool/dormitory/entity/xml/Dormitory.xml"/>
+	<sqlMap resource="com/guotop/palmschool/schoolbus/entity/xml/SchoolBus.xml"/>
+	<sqlMap resource="com/guotop/palmschool/schoolbus/entity/xml/SchoolBusAbnormal.xml"/>
+	<sqlMap resource="com/guotop/palmschool/schoolbus/entity/xml/SchoolBusSmsDetail.xml"/>
+	<sqlMap resource="com/guotop/palmschool/schoolbus/entity/xml/SchoolBusSchedule.xml"/>
+	<sqlMap resource="com/guotop/palmschool/common/entity/xml/SmsMT.xml"/>
+	<sqlMap resource="com/guotop/palmschool/main/entity/xml/Main.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Place.xml"/>	
+	<sqlMap resource="com/guotop/palmschool/apply/entity/xml/Area.xml"/>
+	<sqlMap resource="com/guotop/palmschool/apply/entity/xml/Apply.xml"/>	
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Role.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Permission.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/UserPermission.xml"/>	
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Menu.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/News.xml"/>
+	<sqlMap resource="com/guotop/palmschool/scheduler/entity/xml/SchoolCountInfo.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Score.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Agency.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Ykt.xml"/>
+	<sqlMap resource="com/guotop/palmschool/evaluation/entity/xml/EvaluationTime.xml"/>
+	<sqlMap resource="com/guotop/palmschool/evaluation/entity/xml/EvaluationTemplate.xml"/>
+	<sqlMap resource="com/guotop/palmschool/evaluation/entity/xml/EvaluationList.xml"/>
+	<sqlMap resource="com/guotop/palmschool/evaluation/entity/xml/TeacherEvaluationView.xml"/>
+	<sqlMap resource="com/guotop/palmschool/evaluation/entity/xml/StudentEvaluationView.xml"/>
+	<sqlMap resource="com/guotop/palmschool/evaluation/entity/xml/TeacherEvaluationDetail.xml"/>
+	<sqlMap resource="com/guotop/palmschool/evaluation/entity/xml/StudentEvaluationDetail.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Groups.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Groupmember.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/AbnormalInformation.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/SysMessage.xml"/>
+	<sqlMap resource="com/guotop/palmschool/shopping/entity/xml/Goods.xml"/>
+	<sqlMap resource="com/guotop/palmschool/shopping/entity/xml/Orders.xml"/>
+	<sqlMap resource="com/guotop/palmschool/curriculum/entity/xml/Curriculum.xml"/>
+	<sqlMap resource="com/guotop/palmschool/curriculum/entity/xml/Classroom.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/LocationInfo.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/OrderMessage.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/MorningCheck.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/FriendSms.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/FriendSmsDetail.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/UserAccount.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/UserAccountHistory.xml"/>
+	<sqlMap resource="com/guotop/palmschool/recipe/entity/xml/Recipe.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/Dish.xml"/>
+	<sqlMap resource="com/guotop/palmschool/system/entity/xml/InformationType.xml"/>
+	<sqlMap resource="com/guotop/palmschool/evaluationKindergarten/entity/xml/EvaluateKindergarten.xml"/>
+	<sqlMap resource="com/guotop/palmschool/entity/xml/UserForwardsmsSwitch.xml"/>
+	<sqlMap resource="com/guotop/palmschool/schoolbus/entity/xml/PointInfo.xml"/>
+	<sqlMap resource="com/guotop/palmschool/classphotoalbum/entity/xml/Records.xml"/>
+	<sqlMap resource="com/guotop/palmschool/classphotoalbum/entity/xml/Album.xml"/>
+	<sqlMap resource="com/guotop/palmschool/classphotoalbum/entity/xml/Photo.xml"/>
+	<sqlMap resource="com/guotop/palmschool/classphotoalbum/entity/xml/Comment.xml"/>
+	<sqlMap resource="com/guotop/palmschool/growth/entity/xml/GrowthArchive.xml"/>
+	<sqlMap resource="com/guotop/palmschool/growth/entity/xml/GrowthTemplate.xml"/>
+	<sqlMap resource="com/guotop/palmschool/growth/entity/xml/SelfGrowth.xml"/>
+	<sqlMap resource="com/guotop/palmschool/growth/entity/xml/UserDetail.xml"/>
+	<sqlMap resource="com/guotop/palmschool/growth/entity/xml/GrowthContent.xml"/>
+	<sqlMap resource="com/guotop/palmschool/schoolnews/entity/xml/ApplicantUser.xml"/>
+	<sqlMap resource="com/guotop/palmschool/schoolnews/entity/xml/Reviewers.xml"/>
+	<sqlMap resource="com/guotop/palmschool/schoolnews/entity/xml/SchoolNewsInfo.xml"/>
+	<sqlMap resource="com/guotop/palmschool/personAlbum/entity/xml/PersonAlbum.xml"/>
+	<sqlMap resource="com/guotop/palmschool/taskAssistant/entity/xml/TaskSubject.xml"/>
+	<sqlMap resource="com/guotop/palmschool/taskAssistant/entity/xml/TaskHistory.xml"/>
+	<sqlMap resource="com/guotop/palmschool/schoolnews/entity/xml/ApplyInfo.xml"/>
+	<sqlMap resource="com/guotop/palmschool/todayActivity/entity/xml/TodayActivity.xml"/>
+	<sqlMap resource="com/guotop/palmschool/camera/entity/xml/Camera.xml"/>
+	<sqlMap resource="com/guotop/palmschool/teachingResources/entity/xml/TeachingResources.xml"/>
+	<sqlMap resource="com/guotop/palmschool/dynamicGraph/entity/xml/DynamicGraph.xml"/>
+	<sqlMap resource="com/guotop/palmschool/apphomepage/entity/xml/APPHomePage.xml"/>
+	<sqlMap resource="com/guotop/palmschool/common/entity/xml/Bill.xml"/>	
+</sqlMapConfig>

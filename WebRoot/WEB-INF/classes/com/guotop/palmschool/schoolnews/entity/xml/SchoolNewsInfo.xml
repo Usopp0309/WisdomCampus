@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="SchoolNewsInfo">
+	<typeAlias alias="schoolNewsInfo" type="com.guotop.palmschool.schoolnews.entity.SchoolNewsInfo" />
+	
+	<!-- 增加新闻 -->
+	<insert id="addSchoolNewsRelease" parameterClass="schoolNewsInfo">
+		insert into palm_school_news
+		(
+			newsType,
+			newsTitle,
+			newsAuthor,
+			newsContent,
+			newsCover,
+			newsDigest,
+			phone,
+			newsRanye,
+			schoolId,
+			createUserId,
+			createUserName,
+			createTime,
+			functionType,
+			status
+		)
+		values
+		(
+			#newsType#,
+			#newsTitle#,
+			#newsAuthor#,
+			#newsContent#,
+			#newsCover#,
+			#newsDigest#,
+			#phone#,
+			#newsRanye#,
+			#schoolId#,
+			#createUserId#,
+			#createUserName#,
+			#createTime#,
+			#functionType#,
+			#status#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="newsId">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	
+	<delete id="deleteSchoolNews" parameterClass="Integer">
+		delete from palm_school_news where newsId = #newsId#
+	</delete>
+	<!-- 首页新闻 -->
+	<select id="getSchoolNewsIndexInfo" resultClass="schoolNewsInfo" parameterClass="HashMap">
+	select * from palm_school_news n where 1=1
+	    <isNotEmpty property="newsType">
+		 	and n.newsType = #newsType#
+		</isNotEmpty>
+		and (n.createUserId = #createUserId#
+		<isNotEmpty property="grade">
+		<iterate  conjunction="or" property="grade"> 
+		 or n.newsRanye like CONCAT('%',#grade[]#,'%') 
+		 </iterate> 
+		</isNotEmpty>
+		<isNotEmpty property="clazz" >
+		<iterate conjunction="or" property="clazz">  
+		  or n.newsRanye like CONCAT('%',#clazz[]#,'%') 
+		 </iterate> 
+		 </isNotEmpty>
+		 
+		 <isNotEmpty property="T0">
+		 or n.newsRanye like CONCAT('%',#T0#,'%') 
+		 </isNotEmpty>
+		 <isNotEmpty property="P0">
+		 or n.newsRanye like CONCAT('%',#P0#,'%') 
+		 </isNotEmpty>
+		 )
+		order by createTime desc limit 12
+	</select>
+	
+	<select id="getNewsList" resultClass="schoolNewsInfo" parameterClass="HashMap">
+		select * from palm_school_news where 1=1
+		<isNotEmpty property="createTime">
+		 	and createTime like concat('%',#createTime#,'%')
+		</isNotEmpty>
+		<isNotEmpty property="newsType">
+		 	and newsType = #newsType#
+		</isNotEmpty>
+		<isNotEmpty property="newsContent">
+			and (newsContent like concat('%',#newsContent#,'%') or newsAuthor like concat('%',#newsContent#,'%') or newsTitle like concat('%',#newsContent#,'%') or newsDigest like concat('%',#newsContent#,'%'))
+		</isNotEmpty>
+		<isNotEmpty property="createUserId">
+			and createUserId = #createUserId#
+		</isNotEmpty>
+		order by createTime desc
+		<isNotEmpty property="startIndex">
+			LIMIT #startIndex#, #length#
+		</isNotEmpty>
+	</select>
+	<select id="getNewsListCount" resultClass="Integer" parameterClass="HashMap">
+		select count(*) from palm_school_news where 1=1
+		<isNotEmpty property="createTime">
+		 	and createTime like concat('%',#createTime#,'%')
+		</isNotEmpty>
+		<isNotEmpty property="newsType">
+		 	and newsType = #newsType#
+		</isNotEmpty>
+		<isNotEmpty property="newsContent">
+			and (newsContent like concat('%',#newsContent#,'%') or newsAuthor like concat('%',#newsContent#,'%') or newsTitle like concat('%',#newsContent#,'%') or newsDigest like concat('%',#newsContent#,'%'))
+		</isNotEmpty>
+		<isNotEmpty property="createUserId">
+			and createUserId = #createUserId#
+		</isNotEmpty>
+		order by createTime desc
+	</select>
+	<select id="getSchoolNewsById" resultClass="schoolNewsInfo" parameterClass="String">
+		select * from palm_school_news where newsId = #newsId#
+	</select>
+	
+	<!-- 根据传入的type类型查询   1、校园新闻，2、学校活动，3、学校招生信息  4、家长课堂 -->
+	<select id="getSchoolNewsByNewsType" resultClass="schoolNewsInfo" parameterClass="HashMap">
+		select newsId,newsType,newsTitle,newsCover,newsDigest,newsAuthor,schoolId,createTime from palm_school_news 
+		  where newsType = #newsType# order by createTime desc 
+			    <isNotEmpty property="startIndex">
+				   LIMIT #startIndex#, #length#
+			    </isNotEmpty>
+	</select>
+	<!-- RichClound接口 -->
+	<select id="getRichCloundNewsList" resultClass="schoolNewsInfo" parameterClass="HashMap">
+		select newsId,newsTitle,createTime,newsAuthor,newsDigest,newsCover from palm_school_news where newsType = #newsType# and status=1
+		order by createTime desc
+			LIMIT #startIndex#, #length#
+	</select>
+	
+	<select id="getRichCloundNewsListCount" resultClass="Integer" parameterClass="HashMap">
+		select count(*) from palm_school_news where  newsType = #newsType# and status=1
+	</select>
+	
+	<select id="getPersonSchoolNewsListByUserId" resultClass="schoolNewsInfo" parameterClass="HashMap">
+		select * from palm_school_news where 1=1
+		<isNotEmpty property="newsType">
+		 	and newsType = #newsType#
+		</isNotEmpty>
+		<isNotEmpty property="userId">
+			and createUserId = #userId#
+		</isNotEmpty>
+		<isNotEmpty property="newsId">
+			and #newsId# > newsId
+		</isNotEmpty>
+		order by createTime desc
+		<isNotEmpty property="number">
+			LIMIT 0, #number#
+		</isNotEmpty>
+	</select>
+</sqlMap>

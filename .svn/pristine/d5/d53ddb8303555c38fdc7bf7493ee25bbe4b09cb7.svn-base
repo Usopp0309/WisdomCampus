@@ -1,0 +1,153 @@
+package com.guotop.palmschool.system.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.system.entity.Import;
+import com.guotop.palmschool.system.service.ImportService;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 导入记录业务实现类
+ * 
+ * @author zhou
+ */
+@Service("importService")
+public class ImportServiceImpl extends BaseService implements ImportService
+{
+	/**
+	 * 页面加载导入记录列表
+	 * 
+	 * @param paramMap
+	 *            参数map
+	 * @return 检测导入记录/分页
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages loadImportList(int pageSize, int page, Map<String, Object> paramMap)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<Import> list = new ArrayList<Import>();
+		allRow = this.getBaseDao().getAllRowCountByCondition("Import.selectImportList", paramMap);
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		currentPage = Pages.countCurrentPage(page);
+		list = this.getBaseDao().queryForPageByCondition("Import.selectImportList", paramMap, offset, length);
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	/**
+	 * 页面加载成绩发送记录列表
+	 * 
+	 * @param paramMap
+	 *            参数map
+	 * @return 检测导入记录/分页
+	 */
+	@SuppressWarnings("unchecked")
+	public Pages loadImportListByUserid(int pageSize, int page, Map<String, Object> paramMap)
+	{
+		int allRow = 0;
+		int currentPage = 0;
+		int totalPage = 0;
+		List<Import> list = new ArrayList<Import>();
+		allRow = this.getBaseDao().getAllRowCountByCondition("Import.selectImportListByUserid", paramMap);
+		totalPage = Pages.countTotalPage(pageSize, allRow);
+
+		final int offset = Pages.countOffset(pageSize, page);
+		final int length = pageSize;
+		currentPage = Pages.countCurrentPage(page);
+		list = this.getBaseDao().queryForPageByCondition("Import.selectImportListByUserid", paramMap, offset, length);
+
+		Pages pages = new Pages();
+		pages.setPageSize(pageSize);
+		/**
+		 * 如果总页数为0，当前页也应该为0
+		 */
+		if (0 == totalPage)
+		{
+			currentPage = 0;
+		}
+		pages.setCurrentPage(currentPage);
+		pages.setAllRow(allRow);
+		pages.setTotalPage(totalPage);
+		pages.setList(list);
+		pages.init();
+		return pages;
+	}
+
+	/**
+	 * 新增导入bean
+	 * 
+	 * @param imp
+	 *            待新增的导入bean
+	 */
+	public void addImport(Import imp)
+	{
+		getBaseDao().addObject("Import.addImport", imp);
+	}
+	
+	
+	/**
+	 * 新增导入bean  返回主键id
+	 * 
+	 * @param imp
+	 *            待新增的导入bean
+	 */
+	public int addImportReturnId(Import imp)
+	{
+		int importid =  getBaseDao().addObject("Import.addImportReturnId", imp);
+		 return importid;
+	}
+	
+	/**
+	 * 修改导入bean
+	 * 
+	 * @param imp
+	 *            待修改的导入bean
+	 */
+	public void updateImport(Import imp)
+	{
+		getBaseDao().updateObject("Import.updateImport", imp);
+	}
+
+	/**
+	 * 重置import
+	 */
+	public void resetErrorImports()
+	{
+		getBaseDao().updateObject("Import.resetErrorImports", null);
+	}
+
+	/**
+	 * 查找下个需要导入的文件
+	 * 
+	 * @return 下个需要导入的文件
+	 */
+	public Import getNextImport()
+	{
+		return (Import) getBaseDao().selectObjectByObject("Import.getNextImport", null);
+	}
+	
+}

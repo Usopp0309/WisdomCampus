@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="APPHomePage">
+	<typeAlias alias="aPPHomePage" type="com.guotop.palmschool.apphomepage.entity.APPHomePage" />
+	<typeAlias alias="addressList" type="com.guotop.palmschool.apphomepage.entity.AddressList" />
+	<typeAlias alias="menu" type="com.guotop.palmschool.entity.Menu" />
+
+	<!-- 获取所有的首页菜单 -->
+	<select id="getMenuList" parameterClass="Integer" resultClass="aPPHomePage">
+		SELECT * FROM palm_app_home_page where menuStatus = #menuStatus# ORDER BY menuStatus ASC,menuType ASC
+	</select>
+	
+	<select id="getAPPHomePageByTypeAndStatus" parameterClass="HashMap" resultClass="aPPHomePage">
+		SELECT * FROM palm_app_home_page where menuStatus = #menuStatus# and menuType = #menuType# ORDER BY menuStatus ASC,menuType ASC
+	</select>
+	
+	<select id="getMiddleMenuList" parameterClass="java.util.ArrayList" resultClass="menu">
+       SELECT * FROM palm_menu 
+           		 WHERE id IN 
+	            <iterate open="(" close=")" conjunction="," > 
+	                #menuIdList[]# 
+	            </iterate> 
+	</select>
+
+	<insert id="addMiddleMenu" parameterClass="aPPHomePage">
+		insert into palm_app_home_page
+		(
+			menuId,
+			menuType,
+			menuStatus,
+			menuName,
+			menuUrl,
+			menuIcon,
+			permissionCode
+		)
+		values
+		(
+			#menuId#,
+			#menuType#,
+			#menuStatus#,
+			#menuName#,
+			#menuUrl#,
+			#menuIcon#,
+			#permissionCode#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	
+	
+	<update id="updateMiddleMenu" parameterClass="aPPHomePage">
+		update palm_app_home_page 
+			set menuId = #menuId#,
+				menuName = #menuName#,
+				menuUrl = #menuUrl#,
+				menuIcon = #menuIcon#,
+				permissionCode = #permissionCode#
+				where menuType = #menuType# and menuStatus=#menuStatus#
+	</update>
+	
+	<select id="getAddressList" resultClass="addressList">
+		select * from palm_address_list
+	</select>
+	
+	<update id="updateAddressList" parameterClass="HashMap">
+		update palm_address_list set status = #status# where menuId = #menuId#
+	</update>
+	
+	<select id="getPageListByType" parameterClass="HashMap" resultClass="aPPHomePage">
+		select * from palm_app_home_page where menuStatus = #menuStatus# and menuType > #menuType#
+	</select>
+	
+	<delete id="deleteMenu" parameterClass="HashMap">
+		delete from palm_app_home_page where menuStatus = #menuStatus# and menuType = #menuType# and menuId = #menuId#
+	</delete>
+	
+	<update id="updateMenu" parameterClass="HashMap">
+		update palm_app_home_page set menuType = #menuType# where id = #id#
+	</update>
+</sqlMap>

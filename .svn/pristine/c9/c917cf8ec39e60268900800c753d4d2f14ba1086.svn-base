@@ -1,0 +1,106 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<head>
+	<title>会议刷卡记录搜索</title>
+  	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+	<!--公共css开始-->
+	<%@ include file="/public_module/app_public_css.jsp"%>
+	<!--公共css结束--> 
+</head>
+<body>
+
+	<div class="app_head">
+		<i class="m_icon-return icon_left" onclick="history.go(-1);"></i>会议刷卡记录搜索
+	</div>
+	<div class="app_search">
+	
+	<form action="<%=basePath%>meetingInout/toMeetingInoutByHuxinId.do" class="form-horizontal" method="post">
+
+		<span>出席状态</span>
+		<ul id="status">
+			<li class="select" id="3">全部</li><li id="0">正常</li><li id="1">迟到</li>
+			<input type="hidden" class="val" name="status" value="">
+		</ul>
+			
+		<span>开始日期</span>
+		<p>
+			<input readonly="readonly" name="startDate" id="startDate" type="text">
+		</p>
+		<span>结束日期</span>
+		<p>
+			<input readonly="readonly"  name="endDate" id="endDate" type="text">
+		</p>
+			<span>开始时间</span>
+		<p>
+			<input readonly="readonly" name="startTime" value="00:00" class="time" type="text">
+		</p>
+		<span>结束时间</span>
+		<p>
+			<input readonly="readonly"  name="endTime" value="23:59" class="time" type="text">
+		</p>
+		
+		<span>刷卡人/会议名称</span>
+		<p>
+			<input type="text" name="queryContent" ></p>
+		<p>
+			<button type="submit">查找</button>
+		</p>
+	
+		<input type="hidden" name="schoolId" value="${schoolId}">
+		<input type="hidden" name="apiKey" value="${apiKey}">
+		<input type="hidden" name="roleCode" value="${roleCode }">
+	
+	</form>
+	</div>
+	
+<!-- 	<div data-keyboard="false" data-backdrop="select_type" tabindex="-1" class="modal hide fade" id="select_type" style="display: none; margin-top: 8%;" aria-hidden="true"> -->
+<!-- 		<div class="modal-body"> -->
+<!-- 			<h2 class="modal_h2">选择类型</h2> -->
+<!-- 			<ul class="leave_type"> -->
+<!-- 			<li id="3">全部</li> -->
+<!-- 			<li id="0">正常</li>	 -->
+<!-- 			<li id="1">迟到</li> -->
+<!-- 			</ul> -->
+<!-- 		</div> -->
+<%-- 		<input type="hidden" value="${userId}" name="userId" id="userId"/> --%>
+<!-- 		<div class="modal-footer"> -->
+<!-- 			<button class="leave_add leave_type_sub" data-dismiss="modal" type="button">确定</button> -->
+<!-- 		</div> -->
+		
+<!-- 	</div> -->
+
+		</body>
+	<!--公共js开始-->
+	<%@ include file="/public_module/app_public_js.jsp"%>
+	<!--公共js结束-->  
+	
+	 <script type="text/javascript">
+
+	 var opt={};
+		var currYear = (new Date()).getFullYear();
+		opt.date = {preset : 'date'};
+		opt.datetime = {preset : 'datetime'};
+		opt.time = {preset : 'time'};
+		opt.default = {
+			theme: 'android-ics light', //皮肤样式
+	        display: 'modal', //显示方式 
+	        mode: 'scroller', //日期选择模式
+			dateFormat: 'yyyy-mm-dd',
+			lang: 'zh',
+			showNow: true,
+			nowText: "当前",
+	        startYear: currYear-10, //开始年份
+	        endYear: currYear + 10 //结束年份
+		};
+		var optDateTime = $.extend(opt['datetime'], opt['default']);
+	  	var optTime = $.extend(opt['time'], opt['default']);
+	    $("#startDate,#endDate").mobiscroll($.extend(opt['date'], opt['default']));
+	    $(".time").mobiscroll(optTime).time(optTime);
+	    
+   </script>
+
+
+
+</html>

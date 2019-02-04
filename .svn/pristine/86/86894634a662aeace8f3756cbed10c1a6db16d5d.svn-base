@@ -1,0 +1,5 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<div class="page-footer">
+    <div class="page-footer-inner" style="width:100%;text-align: center;">Copyright &copy; 2016 All Rights Reserved 仁齐公司版权所有 隐私权政策 沪ICP备15044552</div>
+    <div class="scroll-to-top"><i class="icon-arrow-up"></i></div>
+</div>

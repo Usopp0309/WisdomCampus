@@ -1,0 +1,179 @@
+package com.guotop.palmschool.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.guotop.palmschool.entity.AuthCodeEmail;
+import com.guotop.palmschool.entity.Sms;
+import com.guotop.palmschool.entity.SmsDetail;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.TimeUtil;
+
+/**
+ * 短信业务类接口
+ * 
+ * @author zhou
+ * 
+ */
+public interface SmsService
+{
+
+
+	/**
+	 * 加载短信列表信息
+	 * 
+	 * @param pageSize
+	 * @param page
+	 * @param paramMap
+	 *            参数列表
+	 * @param roleId
+	 *            权限ID
+	 * @return 根据不同权限加载短信列表数据(分页)
+	 * 
+	 * update by tao 20151203
+	 */
+	public Pages loadSmsList(int pageSize, int page, Map<String, Object> paramMap, User user);
+	
+	
+	/**
+	 * 加载平台库发送短信列表信息
+	 * 
+	 * @param pageSize
+	 * @param page
+	 * @param paramMap
+	 *            参数列表
+	 * @return 根据不同权限加载短信列表数据(分页) 20160120
+	 */
+	public Pages loadSmsListFromPlatform(int pageSize, int page, Map<String, Object> paramMap);
+	/**
+	 * 根据senderId查询详细信息
+	 * 
+	 * tao 20151204
+	 */
+	public List<SmsDetail> loadSmsDetail(Integer id);
+	
+	/**
+	 * 根据senderId查询详细信息
+	 * 
+	 * sheng 20160120
+	 */
+	public List<SmsDetail> loadSmsDetailFromPlatform(Integer id);
+	
+	/**
+	 * 根据ReceiverId 和  content 查出信息详情
+	 * update by shengyinjiang 20151206
+	 */
+	public Integer loadSmsDetailByReceiverIdAndContent(Map<String, Object> paramMap);
+	
+	/**
+	 * 根据ReceiverId 和  content 和 家长手机号码  查出信息详情
+	 * update by shengyinjiang 20151206
+	 */
+	public Integer loadSmsDetailByReceiverIdAndContentInScoreSending(Map<String, Object> paramMap);
+	
+	/**
+	 * 加载接收的短信列表信息
+	 * 
+	 * @param pageSize
+	 * @param page
+	 * @param paramMap
+	 *            参数列表
+	 * @return 加载接收的短信数据(分页)
+	 * 
+	 * update by shengyinjiang 20151202
+	 */
+	public Pages getAcceptSmsList(int pageSize, int page, Map<String, Object> paramMap);
+	
+	/**
+	 * 加载接收的短信列表信息【福建专用】
+	 * 
+	 * @param pageSize
+	 * @param page
+	 * @param paramMap
+	 *            参数列表
+	 * @return 加载接收的短信数据(分页)
+	 * 
+	 * update by shengyinjiang 20151202
+	 */
+	public Pages getAcceptSmsListFj(int pageSize, int page, Map<String, Object> paramMap);
+	
+	/**
+	 * 从平台库加载接收的好友短信列表信息
+	 * 
+	 * @param pageSize
+	 * @param page
+	 * @param paramMap
+	 *            参数列表
+	 * @return 加载接收的短信数据(分页)
+	 * 
+	 * update by shengyinjiang 20160120
+	 */
+	public Pages getAcceptSmsListFromPlatform(int pageSize, int page, Map<String, Object> paramMap);
+	
+	/**
+	 * 新增短信内容
+	 * 
+	 * @param sms
+	 *            待新增的短信实体
+	 *  update by shengyinjiang 20151203
+	 */
+	public int addSms(Sms sms);
+	
+	/**
+	 * 新增短信内容详情
+	 * 
+	 * @param sms
+	 *            待新增的短信实体详情
+	 *  update by shengyinjiang 20151203
+	 */
+	public void addSmsDetail(SmsDetail smsDetail);
+	
+	/**
+	 * 页面加载成绩发送详细列表
+	 * 20151203
+	 * @param paramMap 参数map
+	 * @return 检测导入记录/分页
+	 */
+	public Pages loadScoreSendingSmsDetail(int pageSize, int page, Map<String, Object> paramMap);
+	
+	/**
+	 * 根据 content 查出信息详情
+	 * update by syj 20151206
+	 */
+	public Integer loadSmsByContent(Map<String, Object> paramMap);
+	
+	/**
+	 * 获取sms表中最后一条数据
+	 * 
+	 * update by syj 20151210	
+	 */
+	public Sms getLastOneFromSms(Map<String, Object> paramMap);
+	
+	/**
+	 * 更新sms的smsSum 和 errorSmsSum
+	 * 
+	 * update by syj 20151210
+	 */
+	public void updateSms(Map<String, Object> paramMap);
+	
+	public void saveAuthCodeEmail(AuthCodeEmail authCodeEmail);
+	
+	/**
+	 * 获取学校是否有短信套餐   虚拟套餐是否开启
+	 * @return key:schoolHasMessage value:false没有短信套餐，true有短信套餐
+	 *   key:isVirtualOpen value: false学校虚拟套餐关闭 ，true学校虚拟套餐开启
+	 */
+	public Map<String,Object>  getSmsServiceStatus();
+	
+	/**
+	 * 添加短信详情 （发短信时调用）
+	 * @param content
+	 * @param user
+	 * @param parent
+	 * @param stauts 0 成功 1失败 2为教服务费
+	 *  @param stauts
+	 */
+	public void saveSmsDetail(String content, User user, User parent, int stauts,String type);
+	
+}

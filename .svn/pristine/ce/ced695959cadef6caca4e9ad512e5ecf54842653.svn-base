@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Leave">
+	<typeAlias alias="leave" type="com.guotop.palmschool.entity.Leave"/>
+	
+	<resultMap class="com.guotop.palmschool.entity.Leave" id="result_leave">
+		<result property="id" column="id"/>
+		<result property="startTime" column="startTime"/>
+		<result property="endTime" column="endTime"/>	
+		<result property="type" column="type"/>
+		<result property="remark" column="remark"/>
+		<result property="auditId" column="auditId"/>
+		<result property="applyUserId" column="applyUserId"/>
+		<result property="userName" column="userName"/>
+		<result property="auditStatus" column="auditStatus"/>
+		<result property="auditRemark" column="auditRemark"/>
+	</resultMap>
+	
+	<!-- 查找自己请假信息(家长查找对应还子的请假记录) 20151130 -->	
+	<select id="selectLeaveListByUserId" parameterClass="java.util.HashMap" resultMap="result_leave">
+		SELECT l.*, u.realName AS userName FROM palm_leave l, platform.user_detail u
+			WHERE l.applyUserId = u.userId
+			AND (l.applyUserId = #userId#
+			OR l.applyUserId IN (SELECT sp.userId FROM  platform.student_parent sp WHERE sp.parent_userId = #userId#))
+			ORDER BY l.id DESC 	
+	</select>
+	
+	<!-- 查找自己请假信息(自己的记录) 20151130 -->	
+	<select id="selectLeaveListByUserIdApp" parameterClass="java.util.HashMap" resultMap="result_leave">
+		SELECT l.*, u.realName AS userName FROM palm_leave l, platform.user_detail u
+			WHERE l.applyUserId = u.userId
+			AND l.applyUserId = #userId#
+			ORDER BY l.id DESC 	
+			LIMIT #startIndex#, #length#
+	</select>
+	
+	<!-- 查找自己请假信息(家长查找对应还子的请假记录) 20151130 -->	
+	<select id="selectLeaveListByUserIdAppParent" parameterClass="java.util.HashMap" resultMap="result_leave">
+		SELECT l.*, u.realName AS userName FROM palm_leave l, platform.user_detail u
+			WHERE l.applyUserId = u.userId
+			AND (l.applyUserId = #userId#
+			OR l.applyUserId IN (SELECT sp.userId FROM  platform.student_parent sp WHERE sp.parent_userId = #userId#))
+			ORDER BY l.id DESC 	
+			LIMIT #startIndex#, #length#
+	</select>
+	
+	<!-- 添加请假 -->
+	<insert id="addLeave" parameterClass="leave">
+		insert into palm_leave
+		(
+			startTime, 
+			endTime, 
+			type, 
+			remark,
+			auditId, 
+			applyUserId
+		)
+		values
+		(
+			#startTime#,
+			#endTime#, 
+			#type#, 
+			#remark#, 
+			#auditId#, 
+			#applyUserId#
+		)
+	</insert>
+	
+	<!-- 根据学校ID找到校长ID(普通教师,班主任请假) -->
+	<select id="selectHeadMasterIdBySchoolId" parameterClass="String" resultClass="Integer">
+		select u.id 
+			from palm_user u , palm_user_role ur
+			where u.id = ur.userId
+				AND ur.roleId = 3
+				<!-- AND u.schoolId = #schoolId# -->
+	</select>
+	
+	<!-- 根据班级ID找到班主任(学生请假) -->
+	<select id="selectHeadTeacherIdByClazzId" parameterClass="Integer" resultClass="Integer">
+		SELECT l.*, u.name as userName 
+			from  palm_leave l, palm_user u , palm_user_role ur
+			where u.id = ur.userId
+			    AND  u.id=l.applyUserId
+				AND ur.roleId = 7
+				AND ur.clazzId = #clazzId#
+	</select>
+	
+	<!-- 以校长权限查找需要自己审核的请假信息(审核班主任和普通教师) 20151130-->	
+	<select id="getAuditLeaveList" parameterClass="HashMap" resultMap="result_leave">
+		SELECT l.*, u.realName AS userName 
+		   FROM palm_leave l, platform.user_detail u
+	         WHERE u.userId=l.applyUserId
+	         AND l.auditId = #auditId#
+			   
+	</select>
+	
+	<!-- 以校长权限查找需要自己审核的请假信息(审核班主任和普通教师) 20151130-->	
+	<select id="getAuditLeaveListApp" parameterClass="HashMap" resultMap="result_leave">
+		SELECT l.*, u.realName AS userName 
+		   FROM palm_leave l, platform.user_detail u
+	         WHERE u.userId=l.applyUserId
+	         AND l.auditId = #auditId#
+	         ORDER BY l.id DESC 	
+	         LIMIT #startIndex#, #length#
+			   
+	</select>
+	
+	<!-- 以班主任权限查找需要自己审核的请假信息 -->	
+	<select id="selectAuditLeaveListAsHeadTeacher" parameterClass="HashMap" resultMap="result_leave">
+		SELECT l.*, u.name as userName 
+		    FROM palm_leave l, palm_user u, palm_user_role ur
+			WHERE l.userid = u.id
+				AND l.applyUserId = ur.userId
+				AND ur.roleId = 7
+				AND ur.clazzId = #clazzId#
+	</select>
+	
+	<!-- 以班主任权限查找需要自己审核的请假信息 -->	
+	<select id="selectLeaveById" parameterClass="Integer" resultMap="result_leave">
+		SELECT l.*, u.realName AS userName 
+		  FROM palm_leave l, platform.user_detail u
+			WHERE l.applyUserId = u.userId
+			  AND l.id = #leaveId#
+	</select>
+	
+	<!-- 根据请假单ID改变请假审核信息 -->
+	<update id="updateLeaveById" parameterClass="HashMap">
+	    update palm_leave  
+		  	set auditStatus = #auditStatus#,
+			   	auditTime = #auditTime#,
+			   	auditRemark = #auditRemark#
+		  	where id = #leaveId#	  
+	</update>
+	
+	<!-- 考勤统计 -->
+	<!-- 获取请假的信息 -->
+	<select id="selectLeaveListForTotal" parameterClass="java.util.HashMap" resultMap="result_leave">
+		select l.*, u.name as userName from palm_leave l, palm_user u
+			where l.userid = u.id
+			and l.applyUserId = #userId#
+			and l.createTime = #start#
+			ORDER BY l.id DESC 
+	</select>
+</sqlMap>

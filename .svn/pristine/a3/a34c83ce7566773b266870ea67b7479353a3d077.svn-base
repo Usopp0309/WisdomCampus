@@ -1,0 +1,2828 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="User">
+  	<typeAlias alias="user" type="com.guotop.palmschool.entity.User" />
+  	<typeAlias alias="student" type="com.guotop.palmschool.entity.Student" />
+  	<typeAlias alias="rolePermission" type="com.guotop.palmschool.entity.RolePermission" />
+  	<typeAlias alias="userInfoDetail" type="com.guotop.palmschool.rest.entity.UserInfoDetail" />
+  	<typeAlias alias="userAuthorization" type="com.guotop.palmschool.rest.entity.UserAuthorization" />
+  	<typeAlias alias="userForYixinToWisdom" type="com.guotop.palmschool.entity.UserForYixinToWisdom" />
+  	
+  	<resultMap class="com.guotop.palmschool.entity.User" id="result-userBase">
+		<result property="userId" column="userId"/>
+		<result property="uuserId" column="uuserId"/>
+		<result property="username" column="username"/>
+		<result property="password" column="password"/>
+		<result property="type" column="type"/>
+		<result property="phone" column="phone"/>
+		<result property="palmUserName" column="palmUserName"/>
+		<result property="realName" column="realName"/>
+		<result property="sex" column="sex"/>
+		<result property="headImg" column="headImg"/>
+		<result property="voipAccount" column="voipAccount"/>
+		<result property="source" column="source"/>
+	</resultMap>
+  	<resultMap class="com.guotop.palmschool.entity.User" id="result-userType">
+		<result property="userId" column="userId"/>
+		<result property="type" column="type"/>
+		<result property="realName" column="realName"/>
+		<result property="sex" column="sex"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-userBase-huxin">
+		<result property="userId" column="userId"/>
+		<result property="username" column="username"/>
+		<result property="password" column="password"/>
+		<result property="type" column="type"/>
+		<result property="schoolType" column="schoolType"/>
+		<result property="schoolId" column="schoolId"/>
+		<result property="phone" column="phone"/>
+		<result property="palmUserName" column="palmUserName"/>
+		<result property="realName" column="realName"/>
+		<result property="sex" column="sex"/>
+		<result property="schoolName" column="schoolName"/>
+		<result property="headImg" column="headImg"/>
+		<result property="voipAccount" column="voipAccount"/>
+		<result property="source" column="source"/>
+		<result property="bindPhone" column="bindPhone"/>
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-userBase-fj">
+		<result property="userId" column="userId"/>
+		<result property="username" column="username"/>
+		<result property="password" column="password"/>
+		<result property="type" column="type"/>
+		<result property="fjSchoolId" column="fjSchoolId"/>
+		<result property="schoolType" column="schoolType"/>
+		<result property="schoolId" column="schoolId"/>
+		<result property="phone" column="phone"/>
+		<result property="palmUserName" column="palmUserName"/>
+		<result property="realName" column="realName"/>
+		<result property="sex" column="sex"/>
+		<result property="schoolName" column="schoolName"/>
+		<result property="headImg" column="headImg"/>
+		<result property="voipAccount" column="voipAccount"/>
+	</resultMap>
+	
+	<!-- 全部教师，不包括职工，校长， 学校管理员 -->
+  	<resultMap class="com.guotop.palmschool.entity.User" id="result-allTeacher">
+		<result property="userId" column="userId"/>
+		<result property="realName" column="realName"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-user">
+		<result property="id" column="id"/>
+		<result property="code" column="code"/>	
+		<result property="username" column="username"/>
+		<result property="password" column="password"/>
+		<result property="type" column="type"/>
+		<result property="parentname" column="parentname"/>
+		<result property="name" column="name"/>
+		<result property="sex" column="sex"/>
+		<result property="stupic" column="stupic"/>
+		<result property="schoolId" column="schoolId"/>
+		<result property="gradeId" column="gradeId"/>
+		<result property="clazzId" column="clazzId"/>
+		<result property="updateTime" column="updateTime"/>
+		<result property="createTime" column="createTime"/>
+	</resultMap>
+	
+	<!-- 刷卡时查用户信息 -->
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-user_tcp">
+		<result property="userId" column="userId"/>
+		<result property="roleCode" column="roleCode"/>	
+		<result property="realName" column="realName"/>
+		<result property="code" column="code"/>
+		<result property="phone" column="phone"/>
+		<result property="cardCode" column="cardCode"/>
+		<result property="baiduChannelId" column="baiduChannelId"/>
+		<result property="deviceType" column="deviceType"/>	
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-user-department">
+		<result property="id" column="id"/>
+		<result property="code" column="code"/>	
+		<result property="username" column="username"/>
+		<result property="password" column="password"/>
+		<result property="type" column="type"/>
+		<result property="parentname" column="parentname"/>
+		<result property="name" column="name"/>
+		<result property="sex" column="sex"/>
+		<result property="stupic" column="stupic"/>
+		<result property="schoolId" column="schoolId"/>
+		<result property="gradeId" column="gradeId"/>
+		<result property="departmentId" column="departmentId"/>
+		<result property="clazzId" column="clazzId"/>
+		<result property="updateTime" column="updateTime"/>
+		<result property="createTime" column="createTime"/>
+	</resultMap>
+	
+	<!--  -->
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-user-announce">
+		<result property="id" column="id"/>
+		<result property="code" column="code"/>	
+		<result property="username" column="username"/>
+		<result property="password" column="password"/>
+		<result property="type" column="type"/>
+		<result property="parentname" column="parentname"/>
+		<result property="name" column="name"/>
+		<result property="sex" column="sex"/>
+		<result property="stupic" column="stupic"/>
+		<result property="schoolId" column="schoolId"/>
+		<result property="gradeId" column="gradeId"/>
+		<result property="departmentId" column="departmentId"/>
+		<result property="clazzId" column="clazzId"/>
+		<result property="updateTime" column="updateTime"/>
+		<result property="createTime" column="createTime"/>
+		<result property="gradeName" column="gradeName"/>
+		<result property="clazzName" column="clazzName"/>
+	</resultMap>
+		
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-userId">
+		<result property="id" column="id"/>
+		<result property="code" column="code"/>	
+		<result property="username" column="username"/>
+		<result property="password" column="password"/>
+		<result property="type" column="type"/>
+		<result property="parentname" column="parentname"/>
+		<result property="name" column="name"/>
+		<result property="sex" column="sex"/>
+		<result property="stupic" column="stupic"/>
+		<result property="schoolId" column="schoolId"/>
+		<result property="updateTime" column="updateTime"/>
+		<result property="createTime" column="createTime"/>
+	</resultMap>	
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-teacher">
+	    <result property="userId" column="userId"/>
+		<result property="phone" column="phone"/>	
+		<result property="realName" column="realName"/>
+		<result property="roleName" column="roleName"/>
+		<result property="roleCode" column="roleCode"/>
+		<result property="code" column="code"/>
+		<result property="departmentName" column="departmentName"/>
+		<result property="departmentCode" column="departmentCode"/>
+		<result property="departmentId" column="departmentId"/>
+		<result property="createTime" column="createTime"/>
+		<result property="updateTime" column="updateTime"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-teacherModify">
+		 <result property="userId" column="userId"/>
+		<result property="phone" column="phone"/>	
+		<result property="realName" column="realName"/>
+		<result property="roleName" column="roleName"/>
+		<result property="code" column="code"/>
+		<result property="roleCode" column="roleCode"/>
+		<result property="departmentName" column="departmentName"/>
+		<result property="departmentId" column="departmentId"/>
+		<result property="departmentCode" column="departmentCode"/>
+		<result property="createTime" column="createTime"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-teacherDetail">
+		 <result property="userId" column="userId"/>
+		<result property="phone" column="phone"/>	
+		<result property="password" column="password"/>
+		<result property="realName" column="realName"/>
+		<result property="code" column="code"/>
+		<result property="updateTime" column="updateTime"/>
+		<result property="createTime" column="createTime"/>
+		<result property="state" column="state"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-teacherOfJob">
+	
+		<result property="gradeName" column="gradeName"/>
+		
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-userIdFordepart">
+	
+		<result property="id" column="id"/>
+		
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-student-list" groupBy="userId">
+		<result property="userId" column="userId" />
+		<result property="code" column="code" />
+		<result property="username" column="username" />
+		<result property="password" column="password" />
+		<result property="realName" column="realName" />
+		<result property="schoolType" column="schoolType" />
+		<result property="parentList"  resultMap="User.parent-list" />
+		<result property="clazzId" column="clazzId" />
+		<result property="createTime" column="createTime" />
+		<result property="updateTime" column="updateTime" />
+		<result property="studentPhone" column="studentPhone" />
+		<result property="parentId" column="parentId" />
+		<result property="orderMessage" column="orderMessage" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.User" id="parent-list">
+		<result property="parentname" column="parentname" />
+		<result property="phone" column="phone" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-parent-list" groupBy="userId">
+		<result property="userId" column="userId" />
+		<result property="username" column="username" />
+		<result property="password" column="password" />
+		<result property="realName" column="realName" />
+		<result property="createTime" column="createTime" />
+		<result property="phone" column="phone" />
+		<result property="voipAccount" column="voipAccount" />
+		<result property="studentId" column="studentId" />
+		<result property="studentList"  resultMap="User.student-list" />
+	</resultMap>
+	<resultMap class="com.guotop.palmschool.entity.User" id="student-list">
+		<result property="studentName" column="studentName" />
+	</resultMap>
+	
+	
+	<resultMap class="com.guotop.palmschool.entity.UserCard" id="result-userCard">
+		<result property="id" column="id"/>
+		<result property="userId" column="userId"/>
+		<result property="cardId" column="cardId"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-userCode">
+		<result property="id" column="id"/>
+		<result property="code" column="code"/>	
+		<result property="username" column="username"/>
+		<result property="password" column="password"/>
+		<result property="name" column="name"/>
+		<result property="type" column="type"/>
+		<result property="parentname" column="parentname"/>
+		<result property="schoolId" column="schoolId"/>
+		<result property="updateTime" column="updateTime"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-userRole">
+	    <result property="userId" column="userId"/>
+		<result property="clazzId" column="clazzId"/>	
+		<result property="departmentId" column="departmentId"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-user-info">
+		<result property="userId" column="userId"/>
+		<result property="realName" column="realName"/>	
+		<result property="code" column="code"/>
+		<result property="departmentId" column="departmentId"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-syncUser">
+	    <result property="id" column="id"/>
+		<result property="username" column="username"/>	
+		<result property="password" column="password"/>
+		<result property="name" column="name"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-hxId">
+	</resultMap>
+	
+	<!-- 请假申请时加载申请人和审核人信息 -->
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-userApplyLeave">
+		<result property="code" column="code"/>	
+		<result property="realName" column="realName"/>
+		<result property="userId" column="userId"/>
+	</resultMap>
+
+	<!-- update by shengyinjiang 20151201 -->
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-allChildren">
+		<result property="code" column="code"/>	
+		<result property="realName" column="realName"/>
+		<result property="userId" column="userId"/>
+		<result property="clazzId" column="clazzId"/>
+	</resultMap>	
+	
+	<!--  shengyinjiang 20151203 -->
+  	<resultMap class="com.guotop.palmschool.entity.User" id="result-parentBystudentId">
+  		<result property="userId" column="userId"/>
+		<result property="realName" column="realName"/>
+		<result property="phone" column="phone"/>
+		<result property="baiduChannelId" column="baiduChannelId"/>
+		<result property="deviceType" column="deviceType"/>
+		<result property="voipAccount" column="voipAccount"/>
+	</resultMap>
+	
+		<!--  shengyinjiang 20151206 -->
+  	<resultMap class="com.guotop.palmschool.entity.User" id="result-student-StudentSMS">
+  		<result property="userId" column="userId"/>
+		<result property="realName" column="realName"/>
+		<result property="code" column="code"/>
+		<result property="orderMessage" column="orderMessage"/>
+		<result property="clazzId" column="clazzId"/>
+	</resultMap>
+	
+		<!--  shengyinjiang 20151206 -->
+  	<resultMap class="com.guotop.palmschool.entity.User" id="result-student-Evaluation">
+  		<result property="userId" column="userId"/>
+		<result property="realName" column="realName"/>
+		<result property="clazzName" column="clazzName"/>
+	</resultMap>	
+	
+		<!--  shengyinjiang 20151207 -->
+  	<resultMap class="com.guotop.palmschool.entity.User" id="result-student-parentPhone-StudentSMS">
+  		<result property="userId" column="userId"/>
+		<result property="realName" column="realName"/>
+		<result property="phone" column="phone"/>
+		<result property="parentname" column="parentname"/>
+		<result property="parentId" column="parentId"/>
+		
+	</resultMap>
+		<!--  shengyinjiang 20151207 -->
+  	<resultMap class="com.guotop.palmschool.entity.User" id="result-student-parentPhoneAndRealName-scoreSending">
+  		<result property="userId" column="userId"/>
+		<result property="realName" column="realName"/>
+		<result property="phone" column="phone"/>
+		<result property="parentname" column="parentname"/>
+		<result property="parentId" column="parentId"/>
+		<result property="clazzName" column="clazzName"/>
+		<result property="clazzId" column="clazzId"/>
+	</resultMap>	
+	
+	<!--app接口使用    syj 20151211-->
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-student-app">
+		<result property="userId" column="userId"/>
+		<result property="realName" column="realName"/>	
+		<result property="clazzId" column="clazzId"/>
+		<result property="gradeId" column="gradeId"/>
+		<result property="clazzName" column="clazzName"/>
+		<result property="gradeName" column="gradeName"/>
+	</resultMap>
+	
+	<!-- app接口使用 -->
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-teacher-app">
+		<result property="id" column="id"/>
+		<result property="name" column="name"/>	
+		<result property="departmentId" column="departmentId"/>
+		<result property="departmentName" column="departmentName"/>
+		<result property="username" column="username"/>
+	</resultMap>
+	<!-- app接口使用 syj 20160122-->
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-parent-app">
+		<result property="userId" column="userId" />
+		<result property="uuserId" column="uuserId" />
+		<result property="userName" column="userName" />
+		<result property="nickName" column="nickName" />
+		<result property="phone" column="phone" />
+		<result property="headImg" column="headImg" />
+	</resultMap>
+	<!-- 根据id获取学生修改页面信息 jfy 2015-11-29 -->
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-studentById">
+		<result property="userId" column="userId" />
+		<result property="code" column="code" />
+		<result property="username" column="username" />
+		<result property="password" column="password" />
+		<result property="realName" column="realName" />
+		<result property="type" column="type" />
+		<result property="schoolType" column="schoolType" />
+		<result property="clazzId" column="clazzId" />
+		<result property="createTime" column="createTime" />
+		<result property="phone" column="phone" />
+	</resultMap>
+	
+	<!-- 修改用户权限时 20151214 -->
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-user-permission">
+		<result property="userId" column="userId"/>
+		<result property="realName" column="realName"/>	
+		<result property="code" column="code"/>
+		<result property="phone" column="phone"/>
+	</resultMap>
+	<!-- 审核补卡时 20151219 -->
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-user-cardAudit">
+		<result property="realName" column="realName"/>	
+	</resultMap>
+	<!-- 根据学校ID获取学校所有用户ID -->
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-userIdListBySchoolId">
+		<result property="userId" column="userId"/>
+		<result property="baiduChannelId" column="baiduChannelId"/>
+		<result property="deviceType" column="deviceType"/>	
+	</resultMap>
+	<!-- 一体机 20160229 -->
+	<resultMap class="com.guotop.palmschool.entity.User" id="result-user-yiti">
+		<result property="realName" column="realName"/>	
+		<result property="cardCode" column="cardCode"/>	
+	</resultMap>
+	
+	<select id="getSysAdmin" parameterClass="java.util.HashMap" resultMap="result-userBase">
+		SELECT ub.userId, ub.uuserId,ub.phone , ub.palmUserName, ub.username, ub.type,ub.source,
+		ub.password, ud.realName, ud.sex, ud.headImg,ud.voipAccount
+		FROM platform.userbase ub, platform.user_detail ud
+		WHERE  ub.userId = ud.userId 
+		AND ub.userId = 1
+	</select>
+	
+	<select id="doLogin" parameterClass="java.util.HashMap" resultMap="result-userBase">
+		select ub.userId, ub.uuserId,ub.phone , ub.palmUserName, ub.username, ub.type,ub.source,
+		ub.password, ud.realName, ud.sex, ud.headImg,ud.voipAccount
+		from platform.userbase ub, platform.user_detail ud
+		where  ub.userId = ud.userId and ub.state = 0
+		and (ub.username = #userName# or ub.bindPhone = #userName#)
+		AND ub.PASSWORD = #md5password#
+	</select>
+	<select id="getUserByUUserId" parameterClass="String" resultMap="result-userBase">
+		select ub.userId, ub.uuserId,ub.phone , ub.palmUserName, ub.username, ub.type,ub.source,
+		ub.password, ud.realName, ud.sex, ud.headImg,ud.voipAccount
+			from platform.userbase ub, platform.user_detail ud
+				where ub.userId = ud.userId and ub.state = 0
+				  and ub.uuserId = #uuserId#
+	</select>
+
+	<select id="selectUserCardByHomeId" parameterClass="java.lang.String" resultMap="result-userCard">
+		select * from palm_userinfo_card  
+			where code = #code#
+	</select>
+	
+	<select id="selectCardIdByUserId" parameterClass="java.lang.Integer" resultMap="result-userCard">
+		select * from palm_user_card  
+			where userid = #userid#
+	</select>
+    <!-- 根据学生获得家长 -->
+    <select id="getParentByStudent" resultClass="com.guotop.palmschool.entity.User" parameterClass="java.util.List">
+    select u.phone,ud.realName,p.userId from platform.userbase u
+    left join platform.user_detail ud on ud.userId=u.userId
+    left join platform.student_parent p on p.parent_userId=u.userId
+    where p.userId in
+    <iterate conjunction="," open="(" close=")">
+     #studentUserId[]# 
+   </iterate>
+   </select>
+    <!-- 根据学生获得家长 【福建专用】-->
+    <select id="getParentByStudentFj" resultClass="com.guotop.palmschool.entity.User" parameterClass="java.util.List">
+    select u.phone,ud.realName,p.userId from fjzyyptxx.userbase u
+    left join fjzyyptxx.user_detail ud on ud.userId=u.userId
+    left join fjzyyptxx.student_parent p on p.parent_userId=u.userId
+    where  p.userId in
+    <iterate conjunction="," open="(" close=")">
+     #listuserId[]# 
+   </iterate>
+   </select>
+   <!-- 查找学生信息 （学校管理员，校长）jfy 2015-11-28 -->
+	<select id="getStudentList" parameterClass="java.util.HashMap" resultClass="com.guotop.palmschool.entity.User">
+        SELECT DISTINCT
+		u.userid,ud.code,ud.realname,ud.createTime,ud.updateTime,IFNULL(u.username,u.palmUserName) username,u.password,ud.type schoolType,getOrderMessageUser(u.userid) as orderMessage,
+		u.phone as studentPhone,cl.id AS clazzId
+		from platform.userbase u,platform.user_detail ud, palm_clazz cl,palm_grade g ,
+		palm_student_clazz sc,palm_user_role ur
+		WHERE u.userid = sc.userId
+		AND u.userId = ur.userId
+		AND u.userId = ud.userid
+		AND g.id = cl.gradeId
+		AND g.state = '0'
+		AND cl.id = sc.clazzId
+		AND ur.roleCode = 'student'
+	<isNotEmpty  property="clazzList">
+	 and sc.clazzId=#clazzList#
+	</isNotEmpty>
+	  <isNotEmpty property="clazzIds">
+	     and cl.id in
+		<iterate open="(" close=")" conjunction="," property="clazzIds"> 
+                    #clazzIds[]# 
+        </iterate>
+	 </isNotEmpty>
+		<isNotEmpty property="queryContent">
+			AND ( ud.code LIKE CONCAT('%',#queryContent#,'%')
+			or ud.realname LIKE CONCAT('%',#queryContent#,'%')
+			or u.username LIKE CONCAT('%',#queryContent#,'%')
+			or u.phone like CONCAT('%',#queryContent#,'%')
+			)
+		</isNotEmpty>
+	    ORDER BY ud.code
+		<isNotEmpty property="startIndex">
+		limit #startIndex#, #length#
+		</isNotEmpty>
+	</select>
+	<!-- 查找学生信息 （学校管理员，校长）【学校专用】 -->
+	<select id="getStudentListFj" parameterClass="java.util.HashMap" resultClass="com.guotop.palmschool.entity.User">
+	 SELECT DISTINCT
+		u.userid,ud.code,ud.realname,ud.createTime,ud.updateTime,IFNULL(u.username,u.palmUserName) username,u.password,ud.type schoolType,getOrderMessageUser(u.userid) as orderMessage,
+		u.phone as studentPhone,cl.id AS clazzId
+		from fjzyyptxx.userbase u,fjzyyptxx.user_detail ud, palm_clazz cl,palm_grade g ,
+		palm_student_clazz sc,palm_user_role ur
+		WHERE u.userid = sc.userId
+		AND u.userId = ur.userId
+		AND u.userId = ud.userid
+		AND g.id = cl.gradeId
+		AND g.state = '0'
+		AND cl.id = sc.clazzId
+		AND ur.roleCode = 'student'
+		and u.fjSchoolId=#fjSchoolId#
+	<isNotEmpty  property="clazzList">
+	 and sc.clazzId=#clazzList#
+	</isNotEmpty>
+	  <isNotEmpty property="clazzIds">
+	     and cl.id in
+		<iterate open="(" close=")" conjunction="," property="clazzIds"> 
+                    #clazzIds[]# 
+        </iterate>
+	 </isNotEmpty>
+		<isNotEmpty property="queryContent">
+			AND ( ud.code LIKE CONCAT('%',#queryContent#,'%')
+			or ud.realname LIKE CONCAT('%',#queryContent#,'%')
+			or u.username LIKE CONCAT('%',#queryContent#,'%')
+			or u.phone like CONCAT('%',#queryContent#,'%')
+			)
+		</isNotEmpty>
+	    ORDER BY ud.updateTime DESC
+		<isNotEmpty property="startIndex">
+		limit #startIndex#, #length#
+		</isNotEmpty>
+	</select>
+	<!-- 查询学生数量 jfy 2015-11-28 -->
+	<select id="getStudentListCount" parameterClass="java.util.HashMap" resultClass="Integer">
+	 select count(*) from (SELECT DISTINCT
+		u.userid,ud.code,ud.realname,ud.createTime,ud.updateTime,IFNULL(u.username,u.palmUserName) username,u.password,ud.type schoolType,getOrderMessageUser(u.userid) as orderMessage,
+		u.phone as studentPhone,cl.id AS clazzId
+		from platform.userbase u,platform.user_detail ud, palm_clazz cl,palm_grade g ,
+		palm_student_clazz sc,palm_user_role ur
+		WHERE u.userid = sc.userId
+		AND u.userId = ur.userId
+		AND u.userId = ud.userid
+		AND g.id = cl.gradeId
+		AND g.state = '0'
+		AND cl.id = sc.clazzId
+		AND ur.roleCode = 'student'
+	<isNotEmpty  property="clazzList">
+	 and sc.clazzId=#clazzList#
+	</isNotEmpty>
+	  <isNotEmpty property="clazzIds">
+	     and cl.id in
+		<iterate open="(" close=")" conjunction="," property="clazzIds"> 
+                    #clazzIds[]# 
+        </iterate>
+	 </isNotEmpty>
+		<isNotEmpty property="queryContent">
+			AND ( ud.code LIKE CONCAT('%',#queryContent#,'%')
+			or ud.realname LIKE CONCAT('%',#queryContent#,'%')
+			or u.username LIKE CONCAT('%',#queryContent#,'%')
+			or u.phone like CONCAT('%',#queryContent#,'%')
+			)
+		</isNotEmpty>
+		)tt
+	</select>
+	<select id="getStudentListCountFj" parameterClass="java.util.HashMap" resultClass="Integer">
+	 select count(*) from (SELECT DISTINCT
+		u.userid,ud.code,ud.realname,ud.createTime,ud.updateTime,IFNULL(u.username,u.palmUserName) username,u.password,ud.type schoolType,getOrderMessageUser(u.userid) as orderMessage,
+		u.phone as studentPhone,cl.id AS clazzId
+		from fjzyyptxx.userbase u,fjzyyptxx.user_detail ud, palm_clazz cl,palm_grade g ,
+		palm_student_clazz sc,palm_user_role ur
+		WHERE u.userid = sc.userId
+		AND u.userId = ur.userId
+		AND u.userId = ud.userid
+		AND g.id = cl.gradeId
+		AND g.state = '0'
+		AND cl.id = sc.clazzId
+		AND ur.roleCode = 'student'
+		and u.fjSchoolId=#fjSchoolId#
+	<isNotEmpty  property="clazzList">
+	 and sc.clazzId=#clazzList#
+	</isNotEmpty>
+	  <isNotEmpty property="clazzIds">
+	     and cl.id in
+		<iterate open="(" close=")" conjunction="," property="clazzIds"> 
+                    #clazzIds[]# 
+        </iterate>
+	 </isNotEmpty>
+		<isNotEmpty property="queryContent">
+			AND ( ud.code LIKE CONCAT('%',#queryContent#,'%')
+			or ud.realname LIKE CONCAT('%',#queryContent#,'%')
+			or u.username LIKE CONCAT('%',#queryContent#,'%')
+			or u.phone like CONCAT('%',#queryContent#,'%')
+			)
+		</isNotEmpty>
+		)tt
+	</select>
+	
+	<!-- 查找学生家长信息 （校长） jfy 2015-11-28 -->
+	<select id="getParentList" parameterClass="java.util.HashMap" resultMap="result-parent-list">
+	SELECT tmp.* FROM (
+		SELECT u.userid,ud.realname,IFNULL(u.username,u.palmUserName),platform.getRealName(sp.userid) studentName ,sp.userid AS studentId, username,u.password,u.phone,ud.createTime,ud.voipAccount
+			FROM platform.userbase u,platform.user_detail ud,palm_user_role ur, platform.student_parent sp
+			WHERE u.userId = ur.userId
+				AND u.userid = ud.userid
+				AND u.userid = sp.parent_userId
+				AND ur.roleCode = 'parent'
+				<isNotEmpty prepend="and" property="clazzList">
+					u.userId in(select sp.parent_UserId from platform.student_parent sp,
+					platform.userbase u, palm_student_clazz sc
+					where sp.userId = u.userId
+					AND u.userId = sc.userId
+					AND sc.clazzId = #clazzList#)
+				</isNotEmpty>
+				<isNotEmpty property="queryContent">
+					AND ( u.phone LIKE CONCAT('%',#queryContent#,'%')
+					or ud.realname LIKE CONCAT('%',#queryContent#,'%')
+					or u.username LIKE CONCAT('%',#queryContent#,'%')
+					)
+				</isNotEmpty>
+				ORDER BY ud.createTime ASC
+	)tmp,platform.user_school us
+		WHERE tmp.studentId=us.userid
+		AND us.schoolId=#schoolId#
+		<isNotEmpty property="startIndex">
+				limit #startIndex#, #length#
+		</isNotEmpty>
+	</select>
+	<!-- 查找学生家长信息 （校长）【福建专用】 -->
+	<select id="getParentListFj" parameterClass="java.util.HashMap" resultMap="result-parent-list">
+	SELECT tmp.* FROM (
+		SELECT u.userid,ud.realname,IFNULL(u.username,u.palmUserName),platform.getRealName(sp.userid) studentName ,sp.userid AS studentId, username,u.password,u.phone,ud.createTime,ud.voipAccount
+			FROM platform.userbase u,platform.user_detail ud,palm_user_role ur, platform.student_parent sp
+			WHERE u.userId = ur.userId
+				AND u.userid = ud.userid
+				AND u.userid = sp.parent_userId
+				AND ur.roleCode = 'parent'
+				<isNotEmpty prepend="and" property="clazzList">
+					u.userId in(select sp.parent_UserId from platform.student_parent sp,
+					platform.userbase u, palm_student_clazz sc
+					where sp.userId = u.userId
+					AND u.userId = sc.userId
+					AND sc.clazzId = #clazzList#)
+				</isNotEmpty>
+				<isNotEmpty property="queryContent">
+					AND ( u.phone LIKE CONCAT('%',#queryContent#,'%')
+					or ud.realname LIKE CONCAT('%',#queryContent#,'%')
+					or u.username LIKE CONCAT('%',#queryContent#,'%')
+					)
+				</isNotEmpty>
+				ORDER BY ud.createTime ASC
+	)tmp,platform.user_school us
+		WHERE tmp.studentId=us.userid
+		AND us.fjSchoolId=#fjSchoolId#
+		<isNotEmpty property="startIndex">
+				limit #startIndex#, #length#
+		</isNotEmpty>
+	</select>
+	
+
+	<!-- 通过班级Id查找学生信息（班主任） jfy 2015-11-28 -->
+	<select id="getStudentListByClazzIds" parameterClass="java.util.HashMap" resultMap="result-student-list">
+		select u.userid, ud.code, ud.realName, ud.type schoolType, u.username, u.password,u.phone as studentPhone,sp.parent_userId AS parentId,getOrderMessageUser(u.userid) as orderMessage,
+		platform.getRealName(sp.parent_userId) parentname,(select phone from platform.userbase where userid=sp.parent_userId) phone, us.schoolId,
+		ud.createTime,ud.updateTime, cl.id AS clazzId
+		from platform.userbase u, platform.user_detail ud, platform.student_parent
+		sp, platform.user_school us, palm_clazz cl,palm_grade g,palm_student_clazz sc
+		,palm_user_role ur
+		where u.userId = ud.userId
+		and u.userid = sp.userid
+		and u.userid = us.userid
+		and u.userId=sc.userid
+		and u.userId = ur.userid
+		AND g.id = cl.gradeId
+		AND g.state = '0'
+		and ur.rolecode = 'student'
+		and cl.id = sc.clazzId
+		<isNotEmpty property="queryContent">
+			AND ( ud.code LIKE CONCAT('%',#queryContent#,'%')
+			or ud.realName LIKE CONCAT('%',#queryContent#,'%')
+			or u.username LIKE CONCAT('%',#queryContent#,'%')
+			or u.phone like CONCAT('%',#queryContent#,'%')
+			)
+		</isNotEmpty>
+		and cl.id in
+		<iterate open="(" close=")" conjunction="," property="clazzIds"> 
+                    #clazzIds[]# 
+        </iterate>
+        <isNotEmpty prepend="and" property="clazzList">
+			cl.id = #clazzList#
+		</isNotEmpty>
+		ORDER BY ud.code ASC
+		<isNotEmpty property="startIndex">
+		limit #startIndex#, #length#
+		</isNotEmpty>
+	</select>
+	
+	<!-- 通过班级Id查找学生信息 syj 2015-12-06 -->
+	<select id="getStudentListByClazzIdInStudentSMS" parameterClass="java.util.HashMap" resultMap="result-student-StudentSMS">
+		select u.userId, ud.realName,ud.code,getOrderMessageUser(u.userId) as orderMessage,cl.id as clazzId
+		from platform.userbase u, platform.user_detail ud, palm_clazz cl,palm_grade g,palm_student_clazz sc,palm_user_role ur
+		where u.userId = ud.userId
+		and u.userId = sc.userId
+		and u.userId = ur.userId
+		AND g.id = cl.gradeId
+		AND g.state = '0'
+		and cl.id = sc.clazzId
+		and ur.rolecode = 'student'
+		<isNotEmpty property="clazzId">
+		and cl.id = #clazzId#
+		</isNotEmpty>
+		ORDER BY ud.code ASC
+	</select>
+	<!-- 通过班级Id查找已评论学生信息 syj 2016-03-17 -->
+	<select id="getAlreadyCommentStudentListByClazzIdInEvaluation" parameterClass="java.util.HashMap" resultMap="result-student-Evaluation">
+		<![CDATA[
+		SELECT tmp1.* FROM (
+				SELECT u.userId, ud.realName,getClazzName(cl.id) AS clazzName
+				FROM platform.userbase u, platform.user_detail ud, palm_clazz cl,palm_grade g,alm_student_clazz sc,palm_user_role ur
+				WHERE u.userId = ud.userId
+				AND u.userId = sc.userId
+				AND u.userId = ur.userId
+				AND g.id = cl.gradeId
+				AND g.state = '0'
+				AND cl.id = sc.clazzId
+				AND ur.rolecode = 'student'
+				AND cl.id = #clazzId#
+				ORDER BY ud.code ASC
+			)tmp1 , (SELECT tmp2.* FROM (
+				SELECT u.userId,ek.createTime FROM platform.userbase u,palm_evaluate_kindergarten ek
+				WHERE u.userId = ek.studentId
+				ORDER BY ek.createTime DESC 
+				) tmp2
+				GROUP BY tmp2.userId
+			) tmp3
+		WHERE tmp1.userId = tmp3.userId
+		AND tmp3.createTime > #dateTime#
+		]]>
+	</select>
+	
+	<!-- 通过班级Id查找未评论学生信息 syj 2016-03-17 -->
+	<select id="getNoCommentStudentListByClazzIdInEvaluation" parameterClass="java.util.HashMap" resultMap="result-student-Evaluation">
+	<![CDATA[
+	select tmp5.* from (
+			SELECT u.userId, ud.realName,getClazzName(cl.id) AS clazzName
+			FROM platform.userbase u, platform.user_detail ud, palm_clazz cl,palm_grade g,palm_student_clazz sc,palm_user_role ur
+			WHERE u.userId = ud.userId
+			AND u.userId = sc.userId
+			AND u.userId = ur.userId
+			AND g.id = cl.gradeId
+		    AND g.state = '0'
+			AND cl.id = sc.clazzId
+			AND ur.rolecode = 'student'
+			AND cl.id = #clazzId#
+		)tmp5
+		where tmp5.userId NOT IN 
+		   (SELECT tmp1.* FROM (
+					SELECT u.userId
+					FROM platform.userbase u) tmp1 , 
+					(SELECT tmp2.* FROM (
+						SELECT u.userId,ek.createTime FROM platform.userbase u,palm_evaluate_kindergarten ek
+						WHERE u.userId = ek.studentId
+						ORDER BY ek.createTime DESC 
+						) tmp2
+					GROUP BY tmp2.userId
+					) tmp3
+			WHERE tmp1.userId = tmp3.userId
+			AND tmp3.createTime > #dateTime#
+			)	
+		]]>
+	</select>	
+	
+	<!-- 通过班级Id查找学生信息 syj 2015-12-07 -->
+	<select id="getStudentListWithPartentPhoneByClazzIdInStudentSMS" parameterClass="Integer" resultMap="result-student-parentPhone-StudentSMS">
+		select u.userId, ud.realName,platform.getPhone(sp.parent_userId) phone , platform.getRealName(sp.parent_userId) parentname , sp.parent_userId AS parentId
+		from platform.userbase u, platform.user_detail ud, platform.student_parent sp, palm_clazz cl,palm_grade g,palm_student_clazz sc,palm_user_role ur
+		where u.userId = ud.userId
+		and u.userid = sp.userid
+		and u.userId=sc.userid
+		and u.userId = ur.userid
+		AND g.id = cl.gradeId
+		AND g.state = '0'
+		and ur.rolecode = 'student'
+		and cl.id = sc.clazzId
+		and cl.id = #clazzId#
+		AND EXISTS(SELECT * from platform.user_school c where c.userId=sp.parent_userId)
+		ORDER BY ud.code ASC
+	</select>
+	
+	<!-- 通过学生Id查找学生信息 syj 2015-12-07 -->
+	<select id="getStudentListWithPartentPhoneByIdInStudentSMS" parameterClass="Integer" resultMap="result-student-parentPhone-StudentSMS">
+		select u.userId, ud.realName,platform.getPhone(sp.parent_userId) phone, platform.getRealName(sp.parent_userId) parentname, sp.parent_userId AS parentId
+		from platform.userbase u, platform.user_detail ud, platform.student_parent sp, palm_clazz cl,palm_grade g,palm_student_clazz sc,palm_user_role ur
+		where u.userId = ud.userId
+		and u.userid = sp.userid
+		AND g.id = cl.gradeId
+		AND g.state = '0'
+		and u.userId=sc.userid
+		and u.userId = ur.userid
+		and ur.rolecode = 'student'
+		and cl.id = sc.clazzId
+		and u.userid = #userId#
+		AND EXISTS(SELECT * from platform.user_school c where c.userId=sp.parent_userId)
+		ORDER BY ud.code ASC
+	</select>	
+	
+	<!-- 通过班级Id查找家长信息（班主任） jfy 2015-11-28 -->
+	<select id="getParentListByClazzId" parameterClass="java.util.HashMap" resultMap="result-parent-list">
+		select * from (SELECT u.userid,ud.realname,IFNULL(u.username,u.palmUserName),platform.getRealName(sp.userid) studentName ,sp.userid AS studentId,
+		username,u.password,u.phone,ud.createTime,ud.voipAccount
+		FROM platform.userbase u,platform.user_detail ud,palm_user_role ur, platform.student_parent sp
+		WHERE u.userId = ur.userId
+		AND u.userid = ud.userid
+		AND u.userid = sp.parent_userId
+		AND ur.roleCode = 'parent'
+		<isNotEmpty prepend="and" property="clazzIds">
+			u.userId in(select sp.parent_UserId from platform.student_parent sp,
+			platform.userbase u, palm_student_clazz sc
+			where sp.userId = u.userId
+			AND u.userId = sc.userId
+			AND sc.clazzId in 
+			<iterate open="(" close=")" conjunction="," property="clazzIds"> 
+                    #clazzIds[]# 
+        	</iterate>
+        	)
+		</isNotEmpty>
+		<isNotEmpty property="queryContent">
+			AND ( u.phone LIKE CONCAT('%',#queryContent#,'%')
+			or ud.realName LIKE CONCAT('%',#queryContent#,'%')
+			or u.username LIKE CONCAT('%',#queryContent#,'%')
+			)
+		</isNotEmpty>
+		)tmp ,platform.user_school us
+		WHERE tmp.studentId=us.userid
+		AND us.schoolId=#schoolId#
+	</select>	
+	<!-- 通过班级Id查找家长信息（班主任【福建专用】 -->
+	<select id="getParentListByClazzIdFj" parameterClass="java.util.HashMap" resultMap="result-parent-list">
+		select * from (SELECT u.userid,ud.realname,IFNULL(u.username,u.palmUserName),platform.getRealName(sp.userid) studentName ,sp.userid AS studentId,
+		username,u.password,u.phone,ud.createTime,ud.voipAccount
+		FROM platform.userbase u,platform.user_detail ud,palm_user_role ur, platform.student_parent sp
+		WHERE u.userId = ur.userId
+		AND u.userid = ud.userid
+		AND u.userid = sp.parent_userId
+		AND ur.roleCode = 'parent'
+		<isNotEmpty prepend="and" property="clazzIds">
+			u.userId in(select sp.parent_UserId from platform.student_parent sp,
+			platform.userbase u, palm_student_clazz sc
+			where sp.userId = u.userId
+			AND u.userId = sc.userId
+			AND sc.clazzId in 
+			<iterate open="(" close=")" conjunction="," property="clazzIds"> 
+                    #clazzIds[]# 
+        	</iterate>
+        	)
+		</isNotEmpty>
+		<isNotEmpty property="queryContent">
+			AND ( u.phone LIKE CONCAT('%',#queryContent#,'%')
+			or ud.realName LIKE CONCAT('%',#queryContent#,'%')
+			or u.username LIKE CONCAT('%',#queryContent#,'%')
+			)
+		</isNotEmpty>
+		)tmp ,platform.user_school us
+		WHERE tmp.studentId=us.userid
+		AND us.fjSchoolId=#fjSchoolId#
+	</select>	
+	
+	<!-- 查询家长数量 jfy 2015-11-29 -->
+	<select id="getParentListCount" parameterClass="java.util.HashMap" resultClass="Integer">
+		SELECT COUNT(*)
+		FROM(
+		SELECT u.userid,ud.realname,IFNULL(u.username,u.palmUserName),platform.getRealName(sp.userid) studentName,sp.userid AS studentId,
+		username,u.password,u.phone,ud.createTime,ud.voipAccount
+		FROM platform.userbase u,platform.user_detail ud,palm_user_role ur, platform.student_parent sp
+		WHERE u.userId = ur.userId
+		AND u.userid = ud.userid
+		AND u.userid = sp.parent_userId
+		AND ur.roleCode = 'parent'
+		<isNotEmpty prepend="and" property="clazzList">
+			u.userId in(select sp.parent_UserId from platform.student_parent sp,
+			platform.userbase u, palm_student_clazz sc
+			where sp.userId = u.userId
+			AND u.userId = sc.userId
+			AND sc.clazzId = #clazzList#)
+		</isNotEmpty>
+		<isNotEmpty property="queryContent">
+			AND ( u.phone LIKE CONCAT('%',#queryContent#,'%')
+			or ud.realname LIKE CONCAT('%',#queryContent#,'%')
+			)
+		</isNotEmpty>
+		)AS tmp,platform.user_school us
+		WHERE tmp.studentId=us.userid
+		AND us.schoolId=#schoolId#
+	</select>
+	<!-- 查询家长数量 【福建专用】 -->
+	<select id="getParentListCountFj" parameterClass="java.util.HashMap" resultClass="Integer">
+		SELECT COUNT(*)
+		FROM(
+		SELECT u.userid,ud.realname,IFNULL(u.username,u.palmUserName),platform.getRealName(sp.userid) studentName,sp.userid AS studentId,
+		username,u.password,u.phone,ud.createTime,ud.voipAccount
+		FROM fjzyyptxx.userbase u,fjzyyptxx.user_detail ud,palm_user_role ur, fjzyyptxx.student_parent sp
+		WHERE u.userId = ur.userId
+		AND u.userid = ud.userid
+		AND u.userid = sp.parent_userId
+		AND ur.roleCode = 'parent'
+		AND u.fjSchoolId=#fjSchoolId#
+		<isNotEmpty prepend="and" property="clazzList">
+			u.userId in(select sp.parent_UserId from platform.student_parent sp,
+			platform.userbase u, palm_student_clazz sc
+			where sp.userId = u.userId
+			AND u.userId = sc.userId
+			AND sc.clazzId = #clazzList#)
+		</isNotEmpty>
+		<isNotEmpty property="queryContent">
+			AND ( u.phone LIKE CONCAT('%',#queryContent#,'%')
+			or ud.realname LIKE CONCAT('%',#queryContent#,'%')
+			)
+		</isNotEmpty>
+		)AS tmp,platform.user_school us
+		WHERE tmp.studentId=us.userid
+	</select>
+	
+	<!-- 根据Id查找所有学生信息 jfy 2015-11-28 -->
+	<select id="getStudentById" parameterClass="Integer" resultMap="result-studentById">
+		select
+		u.userId,ud.code,u.phone,ud.realName, ud.type,ud.type as schoolType,IFNULL(u.userName, u.palmUserName) username,u.password,us.schoolId,ud.createTime,cl.id AS clazzId 
+		from platform.userbase u,platform.user_detail ud, palm_user_role ur,
+		platform.user_school us,
+		palm_student_clazz sc, 
+		palm_clazz cl,palm_grade g
+		where u.userId = ud.userId
+		AND u.userId = ur.userId
+		AND u.userId = us.userId
+		AND u.userId = sc.userId
+		AND g.id = cl.gradeId
+		AND g.state = '0'
+		AND cl.id = sc.clazzId
+		AND u.userId = #studentId# LIMIT 1
+	</select>
+	
+	<!-- 修改密码【福建专用】 -->
+	<update id="modifyPasswordFj" parameterClass="HashMap">
+		update fjzyyptxx.userbase
+		set password = #md5newPassword#
+		WHERE userid = #userId#
+		AND PASSWORD = #md5OldPassword#
+	</update>
+
+	<!-- 添加用户角色关系 20151124 -->
+	<insert id="addUserRole" parameterClass="HashMap">
+		insert into
+		palm_user_role
+		(
+		userId,
+		roleCode
+		)
+		values
+		(
+		#userId#,
+		#roleCode#
+
+		)
+	</insert>
+
+	<!-- 添加用户部门关系 20151124 -->
+	<insert id="addUserDepartment" parameterClass="HashMap">
+		insert into palm_user_department
+		(
+			userId,
+			departmentId
+		)
+		values
+		(
+			#userId#,
+			#departmentId#
+			
+		)
+	</insert>
+
+	<!-- 添加用户基本信息 20151124 -->
+	<insert id="addUserBase" parameterClass="user">
+		insert into platform.userbase
+		(
+		uuserId,
+		userName,
+		passWord,
+		state,
+		phone,
+		bindPhone,
+		palmUserName,
+		type,
+		source,
+		isDefalutUserName
+		)
+		values
+		(
+		#uuserId#,
+		#username#,
+		#password#,
+		0,
+		#phone#,
+		#bindPhone#,
+		#palmUserName#,
+		#type#,
+		1,
+		0
+		)
+		<selectKey resultClass="int" type="post" keyProperty="userId">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+
+	<!-- 添加用户基本信息 20161029 -->
+	<insert id="addUserBaseForFJ" parameterClass="user">
+		insert into fjzyyptxx.userbase
+		(
+		uuserId,
+		userName,
+		passWord,
+		state,
+		phone,
+		bindPhone,
+		palmUserName,
+		type,
+		source,
+		fjSchoolId
+		)
+		values
+		(
+		#uuserId#,
+		#username#,
+		#password#,
+		0,
+		#phone#,
+		#bindPhone#,
+		#palmUserName#,
+		#type#,
+		1,
+		#fjSchoolId#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="userId">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 添加用户详细信息 20151124 -->
+	<insert id="addUserDetail" parameterClass="user">
+		insert into
+		platform.user_detail
+		(
+		userId,
+		realName,
+		createTime,
+		updateTime,
+		code,
+		birthday,
+		city,
+		province,
+		sex,
+		age,
+		QQ,
+		nickName,
+		createUserId,
+		certificateId,
+		email,
+		voipAccount,
+		type
+		)
+		values
+		(
+		#userId#,
+		#realName#,
+		#createTime#,
+		#updateTime#,
+		#code#,
+		#birthday#,
+		#city#,
+		#province#,
+		#sex#,
+		#age#,
+		#QQ#,
+		#nickName#,
+		#createUserId#,
+		#certificateId#,
+		#email#,
+		#voipAccount#,
+		#schoolType#
+		)
+	</insert>
+
+	<!-- 添加用户详细信息 20161029 -->
+	<insert id="addUserDetailForFJ" parameterClass="user">
+		insert into
+		fjzyyptxx.user_detail
+		(
+		userId,
+		realName,
+		createTime,
+		updateTime,
+		code,
+		birthday,
+		city,
+		province,
+		sex,
+		age,
+		QQ,
+		nickName,
+		createUserId,
+		certificateId,
+		email,
+		voipAccount,
+		type
+		)
+		values
+		(
+		#userId#,
+		#realName#,
+		#createTime#,
+		#updateTime#,
+		#code#,
+		#birthday#,
+		#city#,
+		#province#,
+		#sex#,
+		#age#,
+		#QQ#,
+		#nickName#,
+		#createUserId#,
+		#certificateId#,
+		#email#,
+		#voipAccount#,
+		#schoolType#
+		)
+	</insert>
+	
+	<!-- 添加用户学校关系 20151124 -->
+	<insert id="addUserSchool" parameterClass="HashMap">
+		insert into
+		platform.user_school
+		(
+		userId,
+		schoolId,
+		type
+		)
+		values
+		(
+		#userId#,
+		#schoolId#
+		<isNotEmpty prepend="," property="type">
+			#type#
+		</isNotEmpty>
+		<isNull prepend="," property="type">
+			1
+		</isNull>
+
+		)
+	</insert>
+	
+	<!-- 添加用户学校关系 FOR 福建 -->
+	<insert id="addUserSchoolForFJ" parameterClass="HashMap">
+		insert into
+		fjzyyptxx.user_school
+		(
+		userId,
+		schoolId,
+		type
+		)
+		values
+		(
+		#userId#,
+		#schoolId#
+		<isNotEmpty prepend="," property="type">
+			#type#
+		</isNotEmpty>
+		<isNull prepend="," property="type">
+			1
+		</isNull>
+
+		)
+	</insert>
+
+	<!-- 添加学生和家长关系 20151125 -->
+	<insert id="addStudent_Parent" parameterClass="HashMap">
+		insert into
+		platform.student_parent
+		(
+		userId,
+		parent_userId
+		)
+		values
+		(
+		#userId#,
+		#parent_userId#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 添加学生和家长关系  For 福建 -->
+	<insert id="addStudent_ParentForFJ" parameterClass="HashMap">
+		insert into
+		fjzyyptxx.student_parent
+		(
+		userId,
+		parent_userId
+		)
+		values
+		(
+		#userId#,
+		#parent_userId#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	
+	<!-- 修改学生和家长关系 20151129 -->
+	<update id="modifyStudent_Parent" parameterClass="HashMap">
+		update platform.student_parent set parent_userId=#parentId# where userId=#studentId#
+	</update>
+	<!-- 添加学生和班级关系 20151125 -->
+	<insert id="addStudentClazz" parameterClass="HashMap">
+		insert into
+		palm_student_clazz
+		(
+		userId,
+		clazzId
+		)
+		values
+		(
+		#userId#,
+		#clazzId#
+		)
+	</insert>
+	<!-- 修改学生和班级关系 20151129 -->
+	<update id="modifyStudentClazz" parameterClass="HashMap">
+		update palm_student_clazz set clazzId = #clazzId# where userId=#userId#
+	</update>
+	<!-- 添加家长和手机关系 20151125 -->
+	<insert id="addUserPhones" parameterClass="HashMap">
+		insert into
+		platform.user_phones
+		(
+		userId,
+		phone,
+		status
+		)
+		values
+		(
+		#userId#,
+		#phone#,
+		#status#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="id">
+			select LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+
+
+	<!-- 修改用户基础信息 20151126 -->
+	<update id="modifyUserBaseById" parameterClass="HashMap">
+		update
+		platform.userbase
+		set phone = #phone#
+		<isNotEmpty property="bindPhone">
+		 ,bindPhone=#bindPhone#
+		</isNotEmpty>
+		<isNotNull property="passWord">
+			<isNotEmpty property="passWord">
+				,passWord = #passWord#
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="palmUserName">
+		<isNotEmpty property="palmUserName">
+			,palmUserName=#palmUserName#
+		</isNotEmpty>
+		</isNotNull>
+		where userId = #userId#
+	</update>
+
+	<!-- 修改用户detail信息 20151126 -->
+	<update id="modifyUserDetailById" parameterClass="HashMap">
+		update
+		platform.user_detail
+		set realName = #realName#,
+		code = #code#,
+		type=#detailType#,
+		updateTime = #updateTime#
+		where userId = #userId#
+	</update>
+	
+	<!-- 查找教师信息 20151125 -->
+	<!-- 校长 以及学校管理权限 -->
+	<select id="getTeacherList" parameterClass="java.util.HashMap" resultClass="user" >			
+		SELECT DISTINCT us.userId,us.phone,us.bindPhone,ud.realName,ud.code,ud.createTime ,ud.updateTime,pr.roleName,pr.roleCode,de.departmentName,de.code AS departmentCode,pde.departmentId
+          FROM  platform.userbase us ,platform.user_detail ud ,palm_user_role ur ,palm_role pr, palm_user_department pde ,palm_department de
+          WHERE us.userId = ud.userId 
+              AND us.userId = ur.userId
+			  AND ur.roleCode = pr.roleCode
+			  AND us.userId = pde.userId
+			  AND pde.departmentId = de.id
+			  AND pr.roleCode IN ('classLeader','departManager','employee','president','teacher','admin','chairman','other')
+			  <isNotEmpty prepend="and" property="departmentList">
+			  		de.id in 
+				   <iterate open="(" close=")" conjunction="," property="departmentList" > 
+					    #departmentList[].id# 
+				   </iterate>
+			  </isNotEmpty>
+        <isNotEmpty prepend="and" property="queryContent">
+			(ud.code LIKE CONCAT('%',#queryContent#,'%') 
+			or ud.realName LIKE CONCAT('%',#queryContent#,'%') 
+			or us.phone LIKE CONCAT('%',#queryContent#,'%') 
+			or de.departmentName LIKE CONCAT('%',#queryContent#,'%'))
+		</isNotEmpty> 	
+		order by ud.code
+	</select>
+		<!-- 校长 以及学校管理权限【福建专用】 -->
+	<select id="getTeacherListFj" parameterClass="java.util.HashMap" resultMap="result-teacher">			
+		SELECT us.userId,us.phone,ud.realName,ud.code,ud.createTime ,ud.updateTime,pr.roleName,pr.roleCode,de.departmentName,de.code AS departmentCode,pde.departmentId
+          FROM  fjzyyptxx.userbase us ,fjzyyptxx.user_detail ud ,fjzyyptxx.palm_user_role ur ,fjzyyptxx.palm_role pr,
+           fjzyyptxx.palm_user_department pde ,fjzyyptxx.palm_department de
+          WHERE us.userId = ud.userId 
+              AND us.userId = ur.userId
+			  AND ur.roleCode = pr.roleCode
+			  AND us.userId = pde.userId
+			  AND pde.departmentId = de.id
+			  AND pr.roleCode IN ('classLeader','departManager','employee','president','teacher','admin','chairman','other')	
+        <isNotEmpty prepend="and" property="queryContent">
+			(ud.code LIKE CONCAT('%',#queryContent#,'%') 
+			or ud.realName LIKE CONCAT('%',#queryContent#,'%') 
+			or us.phone LIKE CONCAT('%',#queryContent#,'%') 
+			or de.departmentName LIKE CONCAT('%',#queryContent#,'%'))
+		</isNotEmpty>
+		and us.fjSchoolId=#fjSchoolId#
+		order by ud.code
+	</select>
+	<!-- 根据教师Id查找该教师信息 20151125 -->
+	<select id="getTeacherById" parameterClass="HashMap" resultClass="user">
+		SELECT us.userId,us.bindPhone,us.phone,ud.realName,us.userName,ud.code,ud.createTime ,pr.roleName,de.code departmentCode,de.departmentName,pde.departmentId,pr.roleCode
+          FROM  platform.userbase us ,platform.user_detail ud ,palm_user_role ur ,palm_role pr, palm_user_department pde ,palm_department de
+          WHERE us.userId = ud.userId 
+              AND us.userId = ur.userId
+			  AND ur.roleCode = pr.roleCode
+			  AND us.userId = pde.userId
+			  AND pde.departmentId = de.id
+			  AND us.userId=#teacherId#
+			  <isNotEmpty property="departmentId">
+			   AND pde.departmentId=#departmentId#
+			  </isNotEmpty>
+	         <isNotEmpty property="roleCode">
+	           AND ur.roleCode=#roleCode#
+	         </isNotEmpty>
+	         
+	</select>
+	
+	<select id="getTeacherByUserId" parameterClass="Integer" resultMap="result-teacherDetail">
+		SELECT us.userId,us.phone,us.password,ud.realName,ud.code,ud.updateTime,us.state,ud.createTime
+          FROM  platform.userbase us ,platform.user_detail ud 
+          WHERE us.userId = ud.userId 
+			  AND us.userId=#teacherId#
+	</select>
+	
+	<!-- 通过手机号码和真实姓名查询用户  20151126-->
+	<select id="getUserIdByPhoneAndRealName" parameterClass="HashMap" resultClass="Integer">
+ 		SELECT ub.userId FROM platform.userbase ub , platform.user_detail ud 
+ 			WHERE ub.userId = ud.userId
+ 			AND ub.phone = #phone#
+ 			AND ud.realName = #realName#
+	</select>
+	
+	<!-- 通过姓名和学校Id来获取这个小孩的信息,顺带出家长的姓名和手机号码 -->
+	<select id="getStudentByRealName" parameterClass="HashMap" resultClass="user">
+		SELECT tmp1.userId , tmp1.realName ,sp.parent_userId AS parentId, 
+		platform.getPhone(sp.parent_userId) AS phone,
+		platform.getRealName(sp.parent_userId) AS parentname
+		FROM 
+		(
+			SELECT ud.userId,ud.realName
+			FROM platform.user_detail ud, platform.user_school us 
+			WHERE ud.userId = us.userId 
+			and ud.realName = #realName# 
+			and us.schoolId = #schoolId#
+		) tmp1 left join platform.student_parent sp on tmp1.userId = sp.userId 
+	</select>
+	
+	<select id="getUserByRealName" parameterClass="HashMap" resultClass="user">
+			SELECT ud.userId,ud.realName,ub.phone
+			FROM platform.userbase ub,platform.user_detail ud, platform.user_school us 
+			WHERE  ub.userId = ud.userId
+			and ud.userId = us.userId 
+			and ud.realName = #realName# 
+			and us.schoolId = #schoolId#
+	</select>
+
+
+	<!-- 通过userId来查该用户的学校id 20151125 -->
+	<select id="getSchoolIdByUserId" parameterClass="Integer" resultClass="user">
+		SELECT us.schoolId,ud.realName,ub.* FROM platform.user_school us, platform.user_detail ud,platform.userbase ub
+		WHERE ub.userId = us.userId and ud.userId = us.userId and us.userId = #userId#
+	</select>
+
+	<!-- 查找所有的教师数据 不包括职工,20151126 -->
+	<select id="getAllTeacherList" resultMap="result-allTeacher">
+		SELECT DISTINCT
+		ud.userId , ud.realName
+		FROM platform.user_detail ud, palm_user_role ur
+		WHERE ud.userId = ur.userId
+		AND ur.roleCode IN ('classLeader' , 'departManager' ,'teacher'
+		,'president')
+		ORDER BY ud.code ASC
+	</select>
+
+	<!-- 查找部门教师信息 20151125 -->
+	<!-- 校长 以及学校管理权限 -->
+	<select id="getDepartUserList" parameterClass="java.util.HashMap" resultMap="result-teacher">
+		SELECT us.userId,us.phone,ud.realName,ud.code,ud.createTime ,ud.updateTime,pr.roleName,pr.roleCode,de.departmentName,de.code AS departmentCode,pud.departmentId
+			FROM platform.userbase us ,platform.user_detail ud ,palm_user_role ur ,palm_role pr, palm_user_department pud ,palm_department de
+				WHERE us.userId = ud.userId
+				AND us.userId = ur.userId
+				AND ur.roleCode = pr.roleCode
+				AND ur.roleCode NOT IN('parent','student')
+				AND us.userId = pud.userId
+				AND pud.departmentId = de.id
+				AND pud.departmentId = #departmentId#
+				<isNotEmpty prepend="and" property="queryContent">
+					( ud.code LIKE CONCAT('%',#queryContent#,'%')
+					or ud.realName LIKE CONCAT('%',#queryContent#,'%')
+					or us.phone LIKE CONCAT('%',#queryContent#,'%') )
+				</isNotEmpty>
+				ORDER BY ud.code ASC
+	</select>
+
+	<!-- 根据部门的id查询教师 20151127 -->
+	<select id="getTeacherDetailByDepartmentId" parameterClass="java.lang.Integer" resultMap="result-teacher">
+		SELECT us.userId,us.phone,ud.realName,ud.code,ud.createTime,ud.updateTime,pr.roleName,pr.roleCode,de.departmentName,de.code AS departmentCode,pud.departmentId
+			FROM platform.userbase us ,platform.user_detail ud ,palm_user_role ur ,palm_role pr, palm_user_department pud ,palm_department de
+			  WHERE us.userId = ud.userId
+				AND us.userId = ur.userId
+				AND ur.roleCode = pr.roleCode
+				AND us.userId = pud.userId
+				AND pud.departmentId = de.id
+				AND pr.roleCode != 'parent'
+				AND pud.departmentId = #departmentId#
+				ORDER BY ud.code ASC
+	</select>
+	<!-- 根据部门的id查询教师 【福建专用】 -->
+	<select id="getTeacherDetailByDepartmentIdFj" parameterClass="java.lang.Integer" resultMap="result-teacher">
+		SELECT us.userId,us.phone,ud.realName,ud.code,ud.createTime,ud.updateTime,pr.roleName,pr.roleCode,de.departmentName,de.code AS departmentCode,pud.departmentId
+			FROM fjzyyptxx.userbase us ,fjzyyptxx.user_detail ud ,palm_user_role ur ,palm_role pr, palm_user_department pud ,palm_department de
+			  WHERE us.userId = ud.userId
+				AND us.userId = ur.userId
+				AND ur.roleCode = pr.roleCode
+				AND us.userId = pud.userId
+				AND pud.departmentId = de.id
+				AND pr.roleCode != 'parent'
+				AND pud.departmentId = #departmentId#
+				and us.fjSchoolId=#fjSchoolId#
+				ORDER BY ud.code ASC
+	</select>
+	<!-- 根据部门的id查询教师 (资源云接口) -->
+	<select id="getCloudTeacherByDepartmentId" parameterClass="HashMap" resultMap="result-teacher">
+		SELECT us.userId,us.phone,ud.realName,ud.code,ud.createTime,ud.updateTime,pr.roleName,pr.roleCode,de.departmentName,de.code AS departmentCode,pud.departmentId
+			FROM platform.userbase us ,platform.user_detail ud ,palm_user_role ur ,palm_role pr, palm_user_department pud ,palm_department de
+			  WHERE us.userId = ud.userId
+				AND us.userId = ur.userId
+				AND ur.roleCode = pr.roleCode
+				AND us.userId = pud.userId
+				AND pud.departmentId = de.id
+				AND pr.roleCode != 'parent'
+				AND pud.departmentId = #departmentId#
+				and not EXISTS(select * from richcloud.cloud_tv_user_permission p where p.user_id=ud.userId and p.tv_children_id=#channelId#)
+				ORDER BY ud.code ASC
+	</select>
+	
+	<!-- 根据部门的id查询教师 20151208 -->
+	<select id="getTeacherDetailByDepartmentIdInSms" parameterClass="java.lang.Integer" resultMap="result-parentBystudentId">
+		SELECT us.userId,us.phone,ud.realName, us.baiduChannelId, us.deviceType ,ud.voipAccount
+			FROM platform.userbase us ,platform.user_detail ud ,palm_user_department pud
+			  WHERE us.userId = ud.userId
+				AND us.userId = pud.userId
+				AND pud.departmentId = #departmentId#
+		ORDER BY ud.code ASC
+	</select>
+<!-- 根据部门的id查询教师 【福建专用】 -->
+	<select id="getTeacherDetailByDepartmentIdInSmsFj" parameterClass="java.lang.Integer" resultMap="result-parentBystudentId">
+		SELECT us.userId,us.phone,ud.realName, us.baiduChannelId, us.deviceType ,ud.voipAccount
+			FROM fjzyyptxx.userbase us ,fjzyyptxx.user_detail ud ,palm_user_department pud
+			  WHERE us.userId = ud.userId
+				AND us.userId = pud.userId
+				AND pud.departmentId = #departmentId#
+		ORDER BY ud.code ASC
+	</select>
+
+	<!-- 根据UserId查出用户信息 20151127 -->
+	<select id="selectUserInfoByUserId" parameterClass="java.lang.Integer"
+		resultMap="result-user-info">
+		SELECT ud.userId,ud.realName,ud.code,pud.departmentId
+		FROM platform.user_detail ud , palm_user_department pud
+		WHERE ud.userId = pud.userId
+		AND ud.userId = #userId#
+	</select>
+	
+	<!-- 根据UserId查出用户信息 20151208 -->
+	<select id="getUserDetailByUserId" parameterClass="java.lang.Integer" resultMap="result-parentBystudentId">
+		SELECT us.userId,us.phone,ud.realName, us.baiduChannelId, us.deviceType ,ud.voipAccount
+		FROM platform.userbase us ,platform.user_detail ud
+			  WHERE us.userId = ud.userId
+				AND us.userId = #userId#
+	</select>
+	<!-- 根据UserId查出用户信息 【福建专用】 -->
+	<select id="getUserDetailByUserIdFj" parameterClass="java.lang.Integer" resultMap="result-parentBystudentId">
+		SELECT us.userId,us.phone,ud.realName, us.baiduChannelId, us.deviceType ,ud.voipAccount
+		FROM fjzyyptxx.userbase us ,fjzyyptxx.user_detail ud
+			  WHERE us.userId = ud.userId
+				AND us.userId = #userId#
+	</select>
+	<!-- 根据UserId查出用户信息 20151130-->
+	<select id="getUserByUserId" parameterClass="java.lang.Integer" resultMap="result-userApplyLeave">
+		SELECT ud.userId,ud.realName,ud.code
+          FROM  platform.user_detail ud 
+           WHERE ud.userId = #userId#
+	</select>
+	
+	<!-- 根据UserId查出用户对应孩子信息 20151130-->
+	<select id="getAllChildrenByUserId" parameterClass="java.lang.Integer" resultMap="result-allChildren">
+		SELECT ud.userId,ud.realName,ud.code,sc.clazzId
+          FROM  platform.user_detail ud ,platform.student_parent sp , palm_student_clazz sc
+           WHERE ud.userId = sp.userId
+           	 AND  ud.userId = sc.userId
+             AND  sp.parent_userId = #userId#
+	</select>
+	<!-- 根据UserId查出用户对应孩子信息 【福建专用】-->
+	<select id="getAllChildrenByUserIdFj" parameterClass="java.lang.Integer" resultMap="result-allChildren">
+		SELECT ud.userId,ud.realName,ud.code,sc.clazzId
+          FROM  fjzyyptxx.user_detail ud ,fjzyyptxx.student_parent sp , palm_student_clazz sc
+            WHERE  ud.userId = sp.userId
+           	 AND  ud.userId = sc.userId
+             AND  sp.parent_userId = #userId#
+	</select>
+	
+	<!-- 根据UserId查出用户对应孩子信息 亦信-->
+	<select id="getAllChildrenByUserIdYixin" parameterClass="java.lang.Integer" resultClass="student">
+		SELECT ud.userId,ud.realName,ud.headImg
+          FROM  platform.user_detail ud ,platform.student_parent sp , palm_student_clazz sc
+           WHERE ud.userId = sp.userId
+           	 AND  ud.userId = sc.userId
+             AND  sp.parent_userId = #userId#
+	</select>
+	
+	<!-- 根据UserId查出用户信息 亦信-->
+	<select id="getUserByUserIdYixin" parameterClass="java.lang.Integer" resultClass="student">
+		SELECT ud.userId,ud.realName,ud.headImg  FROM  platform.user_detail ud  WHERE ud.userId = #userId#
+	</select>
+	
+	<!-- 根据申请Id找到对应的审核人（申请人为家长或学生） 20151201-->
+	<select id="getAuditPersonByApplyPersonIdFromParentOrStudent" parameterClass="java.lang.Integer" resultMap="result-userApplyLeave">
+		
+		SELECT ud.realName,ud.userId,ud.code  FROM palm_clazz c,palm_grade g, platform.user_detail ud 
+		   WHERE c.leaderId = ud.userId AND g.id = c.gradeId
+		   AND g.state = '0' AND c.id = (SELECT pc.clazzId FROM palm_student_clazz pc WHERE pc.userId = #applyPersonId# )
+		UNION 
+	    SELECT ud.realName,ud.userId,ud.code FROM palm_user_permission up, platform.user_detail ud 
+		 WHERE up.userId = ud.userId AND up.permissionCode = 'leaveAuditForStudent' 
+		   AND up.optClazzId = (SELECT pc.clazzId FROM palm_student_clazz pc WHERE pc.userId = #applyPersonId# )    
+	</select>
+	
+	<!-- 根据申请Id找到对应的审核人（教师，班主任，部门主管，教职工等） 20151201-->
+	<select id="getAuditPersonByApplyPersonId" parameterClass="java.lang.Integer" resultMap="result-userApplyLeave">
+		SELECT ud.realName,ud.userId,ud.code FROM palm_user_role ur, platform.user_detail ud 
+		   WHERE ur.userId = ud.userId
+		    AND ur.roleCode = 'president'
+		UNION 
+        SELECT ud.realName,ud.userId,ud.code FROM palm_user_permission up, platform.user_detail ud 
+          WHERE up.userId = ud.userId AND up.permissionCode = 'leaveAuditForTeacher' 
+            AND up.optDepartId IN (SELECT de.departmentId FROM palm_user_department de WHERE de.userId = #applyPersonId# )    
+	</select>
+	<!-- 通过手机号及姓名检查用户是否存在 20151128 -->
+	<select id="checkUserExistsByPhoneAndName" parameterClass="HashMap"
+		resultClass="Integer">
+		SELECT count(*) FROM platform.userbase ub WHERE ub.phone =	#phone#
+	</select>
+	<!-- 通过phone判断用户是否存在-->
+	<select id="checkUserExistsByPalmUserName" parameterClass="HashMap"
+		resultClass="Integer">
+		SELECT count(*) FROM platform.userbase ub WHERE  ub.state = 0 
+		<isNotEmpty property="palmUserName">
+		 and ub.palmUserName =#palmUserName#
+		</isNotEmpty>
+		<isNotEmpty property="userId">
+		 and ub.userId!=#userId#
+		</isNotEmpty>
+	</select>
+	
+	<!-- 根据用户Id及学校id 判断用户与该学校是否有关 20151216 -->
+	<select id="getUserByUserIdAndSchoolId" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM platform.user_school us 
+		WHERE us.userId = #userId#
+		AND us.schoolId = #schoolId#
+	</select>
+	
+	<!-- 修改家长手机号 -->
+	<update id="modifyParentPhoneByUserId" parameterClass="HashMap">
+		update platform.userbase set phone=#parentPhone#,bindPhone=#bindPhone#
+		<isNotNull property="passWord">
+			<isNotEmpty property="passWord">
+				,passWord = #passWord#
+			</isNotEmpty>
+		</isNotNull>
+		 where userId=#userId#
+	</update>
+	
+	<!-- 修改用戶的bindPhone -->
+	<update id="modifyBindPhoneByUserId" parameterClass="HashMap">
+		update platform.userbase set bindPhone=#bindPhone# 
+		 where userId=#wUserId#
+	</update>
+	<!-- 刪除亦信賬號 -->
+	<delete id="delYinUserByUserId" parameterClass="Integer" >
+		DELETE u.*,ud.* 
+		FROM platform.userbase u, platform.user_detail ud  
+		WHERE u.userId = ud.userId 
+		AND u.userId = #yUserId#
+	</delete>
+	<!-- 修改学生phone,palmUserName -->
+	<update id="modifyStudentPhoneByUserId" parameterClass="HashMap">
+	update platform.userbase set phone=#phone#
+	<isNotNull property="palmUserName">
+		<isNotEmpty property="palmUserName">
+			,palmUserName=#palmUserName#
+		</isNotEmpty>
+	</isNotNull>
+	<isNotNull property="passWord">
+		<isNotEmpty property="passWord">
+			,passWord=#passWord#
+		</isNotEmpty>
+	</isNotNull>
+	where userId=#userId#
+</update>
+	<!-- 修改家长姓名 -->
+	<update id="modifyParentRealNameByUserId">
+		update platform.user_detail set realName=#realName# where userId=#userId#
+	</update>
+	<!-- 获取家长信息 -->
+	<select id="getParentInfoByUserId" parameterClass="java.lang.Integer"  resultClass="user">
+		select u.userId, u.phone, ud.realName from platform.userbase u, platform.user_detail ud where u.userId = ud.userId and u.userId=#userId#
+	</select>
+	<!-- 根据用户ID和老手机号修改手机号 -->
+	<update id="modifyUserPhoneByUserIdAndOldPhone" parameterClass="HashMap">
+		update platform.user_phones set phone=#phone# where userid=#userId# and phone=#oldPhone#	
+	</update>
+	<!-- 根据用户ID获取班级ID -->
+	<select id="getClazzIdByUserId" parameterClass="Integer" resultClass="String">
+		SELECT clazzId FROM palm_student_clazz where userId=#userId# 
+	</select>
+	
+	<!-- 获取所有部门管理员  20151130-->
+	<select id="getDepartManagerList" resultMap="result-allTeacher">
+		select ud.userId, ud.realName from platform.user_detail ud, palm_user_role ur 
+		where ud.userId = ur.userId
+		AND ur.roleCode in ('departManager','classLeader','president','teacher')
+	</select>
+	
+	<!-- 获取所有班主任  20151130-->
+	<select id="getClazzLeaderList" resultMap="result-allTeacher">
+		select ud.userId, ud.realName from platform.user_detail ud, palm_user_role ur 
+		where ud.userId = ur.userId
+		AND ur.roleCode='classLeader'
+	</select>
+
+	
+	<!-- 通过学号或者工号查询学生id update by shengyinjiang 20151214 -->
+	<select id="getUserByCode" parameterClass="HashMap" resultMap="result-student-parentPhoneAndRealName-scoreSending">
+		SELECT ud.userId , ud.realName , platform.getPhone(sp.parent_userId) phone , platform.getRealName(sp.parent_userId) parentname 
+		, sp.parent_userId parentId,getClazzName(sc.clazzId) clazzName, sc.clazzId 
+		FROM platform.userbase u ,platform.user_detail ud,  platform.user_school us , platform.student_parent sp, palm_student_clazz sc
+		WHERE u.userId = ud.userId
+		  AND ud.userId = us.userId
+		  AND sp.userId = u.userId
+		  AND ud.userId = sc.userId
+		  AND ud.code = #code# 
+		  AND us.schoolId = #schoolId#
+	</select>
+	<!-- 通过学生id 查询家长信息  update by shengyinjiang 20151203-->
+	<select id="getParentByStudentId" parameterClass="java.lang.Integer" resultClass="user">
+		SELECT ud.realName,ub.userName, ub.phone , ub.userId, ub.baiduChannelId, ub.deviceType ,ud.voipAccount,ub.bindPhone 
+		FROM platform.userbase ub ,platform.user_detail ud, platform.student_parent sp 
+		WHERE ub.userId = ud.userId
+		  AND ud.userId = sp.parent_userId
+		  AND sp.userId = #studentId#
+	</select>
+	
+	<!-- 根据卡号查出持有者刷卡时  20151210 -->
+	<select id="getUserByCardCode" parameterClass="String" resultMap="result-user_tcp">
+		 SELECT u.userId,u.realName,u.code,us.baiduChannelId, us.deviceType, ur.roleCode,us.phone,c.cardCode 
+			FROM platform.user_detail u,platform.userbase us, palm_user_role ur, palm_user_card uc, palm_card c
+			  WHERE u.userId = ur.userId
+	  			AND u.userId = us.userId
+	  			AND u.userId = uc.userId
+	  			AND uc.cardId = c.id
+	  			AND c.cardCode = #code#
+	  			LIMIT 1
+	</select>	
+	
+	<!-- 互信接口 通过apiKey 查找登录用户 -->
+	<select id="selectUserByApiKey" parameterClass="String" resultMap="result-userBase-huxin">
+		SELECT ub.userId, ub.phone , ub.palmUserName,ub.bindPhone, ub.username, ub.type,ub.source,
+		ub.password, us.schoolId, us.type schoolType, ud.realName, ud.sex, s.schoolName, ud.headImg, ud.voipAccount
+		FROM platform.userbase ub 
+		LEFT JOIN platform.user_detail ud ON ub.userId = ud.userId 
+		LEFT JOIN platform.user_school us ON  ub.userId = us.userId 
+		LEFT JOIN platform.school s ON us.schoolId = s.schoolId
+		WHERE ub.state = 0
+		AND ub.apikey = #apiKey#
+	</select>
+	
+	<!-- 互信接口 通过apiKey 查找用户信息 -->
+	<select id="getHuxinUserByApiKey" parameterClass="String" resultClass="user">
+		SELECT ub.userId, ub.phone , ub.palmUserName, ub.username, ub.type,
+		ub.password, ud.realName, ud.sex, ud.headImg, ud.voipAccount,ua.personid
+		FROM platform.userbase ub 
+		LEFT JOIN platform.user_detail ud ON ub.userId = ud.userId 
+		LEFT JOIN platform.user_authorization ua ON ub.userId = ua.userId 
+		WHERE ub.state = 0
+		AND ub.apikey = #apiKey#
+	</select>
+	
+	<!-- 互信接口 通过userId 查找登录用户 -->
+	<select id="selectUserByUserId" parameterClass="Integer" resultMap="result-userBase-huxin">
+		SELECT ub.userId, ub.phone , ub.palmUserName,ub.bindPhone, ub.username, ub.type,ub.source,
+		ub.password, us.schoolId, us.type schoolType, ud.realName, ud.sex, s.schoolName, ud.headImg, ud.voipAccount
+		FROM platform.userbase ub 
+		LEFT JOIN platform.user_detail ud ON ub.userId = ud.userId 
+		LEFT JOIN platform.user_school us ON  ub.userId = us.userId 
+		LEFT JOIN platform.school s ON us.schoolId = s.schoolId
+		WHERE ub.state = 0
+		AND ub.userId = #userId#
+	</select>	
+	
+	<select id="getUserByUserIdForFJ" parameterClass="Integer" resultMap="result-userBase-fj">
+		SELECT ub.userId, ub.phone , ub.palmUserName, ub.username, ub.type,ub.fjSchoolId,
+		ub.password, us.schoolId, us.type schoolType, ud.realName, ud.sex, s.schoolName, ud.headImg, ud.voipAccount
+		FROM fjzyyptxx.userbase ub 
+		LEFT JOIN fjzyyptxx.user_detail ud ON ub.userId = ud.userId 
+		LEFT JOIN fjzyyptxx.user_school us ON  ub.userId = us.userId 
+		LEFT JOIN fjzyyptxx.school s ON us.schoolId = s.schoolId
+		WHERE ub.state = 0
+		AND ub.userId = #userId#
+	</select>		
+	
+	<!-- 互信接口 查找学生信息 （学校管理员，校长）syj 2015-12-11 -->
+	<select id="getStudentListInSms" parameterClass="java.util.HashMap" resultClass="com.guotop.palmschool.entity.User">
+		SELECT tmp1.* ,tmp2.userId ,tmp2.realName FROM
+		(
+		SELECT cl.id AS clazzId, g.id AS gradeId , cl.clazzName AS clazzName,g.name AS gradeName
+		FROM palm_grade g , palm_clazz cl
+		WHERE cl.gradeId= g.id and g.state = '0'
+		) tmp1 
+		LEFT JOIN 
+		(
+		SELECT
+		u.userid AS userId ,ud.realname AS realName,sc.clazzId AS clazzId, ud.code
+		FROM platform.userbase u,platform.user_detail ud,palm_student_clazz sc,palm_user_role ur
+		WHERE u.userId = ud.userid
+		AND u.userid = sc.userId
+		AND u.userId = ur.userId
+		AND ur.roleCode = 'student'
+		AND u.type = 0
+		)tmp2
+		ON tmp1.clazzId = tmp2.clazzId
+		ORDER BY tmp2.code ASC
+		
+	</select>
+	
+	<!-- 互信接口 通过班级Id查找学生信息（班主任） syj 2015-12-11 -->
+	<select id="getStudentListByClazzIdsInSms" parameterClass="java.util.HashMap"  resultClass="com.guotop.palmschool.entity.User">		
+		SELECT tmp1.* ,tmp2.userId ,tmp2.realName FROM
+		(
+		SELECT cl.id AS clazzId, g.id AS gradeId , cl.clazzName AS clazzName,g.name AS gradeName
+		FROM palm_grade g , palm_clazz cl
+		WHERE cl.gradeId = g.id and g.state = '0'
+		) tmp1 
+		LEFT JOIN 
+		(
+		SELECT
+		u.userid AS userId ,ud.realname AS realName,sc.clazzId AS clazzId, ud.code
+		FROM platform.userbase u,platform.user_detail ud,palm_student_clazz sc,palm_user_role ur
+		WHERE u.userId = ud.userid
+		AND u.userid = sc.userId
+		AND u.userId = ur.userId
+		AND ur.roleCode = 'student'
+		AND u.type = 0
+		)tmp2
+		ON tmp1.clazzId = tmp2.clazzId
+		<isNotEmpty  property="clazzIds">
+		WHERE tmp1.clazzId in
+		<iterate open="(" close=")" conjunction="," property="clazzIds"> 
+                    #clazzIds[]# 
+        </iterate>
+        </isNotEmpty>
+		ORDER BY tmp2.code ASC		
+	</select>
+	
+		<!-- 20151214 -->
+	<select id="getCountByUserIdAndSchoolId" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from platform.user_school where userId=#userId# and schoolId=#schoolId#
+	
+	</select>
+
+	<select id="getCountByUserIdAndSchoolIdForFJ" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from fjzyyptxx.user_school where userId=#userId# and schoolId=#schoolId#
+	
+	</select>
+		
+	<select id="getCountByUserIdAndClazzId" parameterClass="HashMap" resultClass="Integer">
+<!-- 		select count(*) from palm_student_clazz where userId=#userId# and clazzId=#clazzId# -->
+		select count(*) from palm_student_clazz where userId=#userId#
+	</select>
+	
+	<!-- 校长 以及学校管理权限  给某个人赋权或修改权限时 -->
+	<select id="getTeacherByIdForModifyPermission" parameterClass="Integer" resultMap="result-user-permission">			
+		SELECT us.userId,us.phone,ud.realName,ud.code
+          FROM platform.userbase us ,platform.user_detail ud
+            WHERE us.userId = ud.userId 
+            AND us.userId = #teacherId#
+	</select>
+	<!-- 修改技术支持基础信息 20151215 -->
+	<update id="modifySupportUserBase" parameterClass="user">
+		update platform.userbase set username=#username#, palmUserName=#palmUserName#,phone=#phone#,password=#password#,state=#state# where userId=#userId#
+	</update>
+	<!-- 修改技术支持详细信息 20151215 -->
+	<update id="modifySupportUserDetail" parameterClass="user">
+		update platform.user_detail set realname=#realName#, email=#email# where userId=#userId#
+	</update>
+	
+	<!-- 通过代理商id 查找代理对应的所有技术支持人员   syj 20151215 -->
+	<select id="getSupportUserListByAgencyId" parameterClass="Integer" resultMap="result-allTeacher">			
+		SELECT  ud.userId , ud.realName
+		FROM platform.agency_technicalsupport ats, platform.userbase ub ,platform.user_detail ud
+		WHERE ub.userId = ud.userId
+		AND ub.userId = ats.userId
+		AND ub.type = 3
+		AND ats.agencyId = #agencyId#
+	</select>
+	<!-- 根据用户ID与学校ID获取用户是否为该学校管理员 20151216 -->
+	<select id="isManagerBySchoolIdAndUserId" parameterClass="HashMap" resultClass="String">
+		select type from platform.user_school where userid=#userId# and schoolId = #schoolId#
+	</select>
+	
+	<!-- 根据用户ID与学校ID获取用户是否为该学校管理员  FOR 福建 -->
+	<select id="isManagerBySchoolIdAndUserIdForFJ" parameterClass="HashMap" resultClass="String">
+		select type from fjzyyptxx.user_school where userid=#userId# and schoolId = #schoolId#
+	</select>
+	
+	<!-- 根据用户ID与phone 得出user_phones中是否已经包含 20151218 -->
+	<select id="getCountByUserIdAndPhone" parameterClass="HashMap" resultClass="Integer">
+		select COUNT(*) from platform.user_phones where userId=#userId# and phone = #phone#
+	</select>
+	<!-- 补卡申请时查询所有补卡人员名称 名称为真实姓名+工号或学号 20151219 -->
+	<select id="getUserNameByUserId" resultClass="String" parameterClass="Integer">
+		select concat(ud.realName,'(', ud.code,')') realName from platform.user_detail ud where ud.userid=#userId#
+	</select>
+	<!-- 获取老师数量 20151222 -->
+	<select id="getTeacherCount" resultClass="Integer">
+		select count(distinct userid) from palm_user_department
+	</select>
+	<!-- 根据用户iD获取推送所需内容 20151222 -->
+	<select id="getUserByUserIdForPush" resultClass="user" parameterClass="Integer">
+		select u.userId, u.baiduChannelId, u.deviceType, ud.messageType,ud.realName,u.phone from platform.userbase u, platform.user_detail ud where u.userId = ud.userId and u.userId=#userId#
+	</select>
+	<!--  根据学校iD获取所有用户推送所需内容 20151222 -->
+	<select id="getUserIdBySchoolId" parameterClass="Long" resultMap="result-userIdListBySchoolId">
+		select u.userId, u.baiduChannelId,u.deviceType from platform.user_school us, platform.userbase u  where u.userid = us.userid and us.schoolid=#schoolId# group by userid
+ 	</select>	
+	<!-- 根据ClazzIdList 查询学生信息 -->
+	<select id="getStudentListByClazzId" parameterClass="HashMap" resultMap="result-student-app">
+		SELECT ud.userId,ud.realName,sc.clazzId,c.gradeId, c.clazzName AS clazzName,g.name AS gradeName
+		  FROM platform.user_detail ud ,palm_student_clazz sc, palm_clazz c,palm_grade g
+			 WHERE ud.userId = sc.userId
+			   AND sc.clazzId = c.id
+			   AND c.gradeId= g.id
+			   AND g.state = '0'
+			   <isNotEmpty property="clazzIdList">
+			   		AND sc.clazzId in 
+				   <iterate open="(" close=")" conjunction="," property="clazzIdList" > 
+					    #clazzIdList[]# 
+				   </iterate> 
+			   </isNotEmpty>
+			   <isEmpty property="clazzIdList">
+			   		AND sc.clazzId is null
+			   </isEmpty>
+			   ORDER BY ud.code ASC
+	</select>
+	<!-- 根据学校id查找学校管理员信息 20160104 -->
+	<select id="getSchoolAdminBySchoolId" parameterClass="java.lang.Long" resultMap="result-parentBystudentId">
+		SELECT ub.userId,ub.phone,ud.realName, ub.baiduChannelId, ub.deviceType,ud.voipAccount
+		FROM platform.userbase ub ,platform.user_detail ud , platform.user_school us
+		WHERE ub.userId = ud.userId
+		AND ub.userId = us.userId
+		AND us.type = 0
+		AND us.schoolId = #schoolId#
+	</select>
+	
+	<!-- 根据渠道编码获取用户编码 -->
+	<select id="getUserIdByChannel" parameterClass="String" resultClass="Integer">
+		select userId from platform.userbase where baiduChannelId = #channelId#;
+	</select>
+	<!-- 根据用户ID获取用户UUSERID，用于修改openfire密码 -->
+	<select id="getUuserIdByUserId" parameterClass="Integer" resultClass="String">
+		select uuserId from platform.userbase where userId=#userId#
+	</select>
+	<!-- 查询学生家长关系是否存在 -->
+	<select id="isExistsStudentAndParentLink" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from platform.student_parent where userId=#studentId# and parent_userid=#parentId#
+	</select>
+	<!-- 查询学生家长关系是否存在  For 福建-->
+	<select id="isExistsStudentAndParentLinkForFJ" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from fjzyyptxx.student_parent where userId=#studentId# and parent_userid=#parentId#
+	</select>
+	<!-- 查询亦信用户与智慧校园用户的绑定关系 -->
+	<select id="getPalmUserbyUserId" parameterClass="Integer" resultClass="Integer">
+		select relate_userId from platform.user_relation where userId=#userId# 
+	</select>
+	<!-- 删除亦信用户与智慧校园用户绑定关系 -->
+	<delete id="delBindPalmUserbyUserId" parameterClass="Integer" >
+		delete from platform.user_relation where userId=#userId# 
+	</delete>
+	<!-- 查询智慧校园用户对应的绑定的亦信用户的详细信息 -->
+	<select id="getYIXINUserDetailListbyUserId" parameterClass="Integer" resultMap="result-userIdListBySchoolId">
+		SELECT 
+		  ub.userId,
+		  ub.baiduChannelId,
+		  ub.deviceType
+		FROM
+		  platform.userbase ub,
+		  platform.user_relation ur 
+		WHERE ub.userId = ur.userId 
+		  AND ur.relate_userId = #userId#
+	</select>
+	<!-- 亦信接口使用	通过班级Id查找家长信息 syj 2016-01-22 -->
+	<select id="getParentListByClazzIdInRICHBOOK" parameterClass="Integer" resultMap="result-parent-app">
+		SELECT u.userId,u.uuserId,CONCAT(platform.getRealName(sp.userId),'(',ud.realName,')') AS nickName,IFNULL(u.username,u.palmUserName) userName,u.phone,ud.headImg
+		FROM platform.userbase u,platform.user_detail ud,palm_user_role ur,platform.student_parent sp
+		WHERE u.userId = ur.userId
+		AND u.userid = ud.userid
+		AND ur.roleCode = 'parent'
+		AND sp.parent_UserId = u.userId
+		AND	sp.userId IN
+			(
+			SELECT sp.userId FROM platform.student_parent sp,platform.userbase u, palm_student_clazz sc
+			WHERE sp.userId = u.userId
+			AND u.userId = sc.userId
+			AND sc.clazzId = #clazzId# 
+        	)
+	</select>
+	<!-- 亦信接口使用  通过班级Id查找班主任信息 syj 2016-01-22-->
+	<select id="getClazzLeaderByClazzIdInRICHBOOK" parameterClass="Integer" resultMap="result-parent-app">
+		SELECT u.userId,u.uuserId,ud.realName AS nickName,IFNULL(u.username,u.palmUserName) userName,u.phone,ud.headImg
+		FROM platform.userbase u,platform.user_detail ud, palm_clazz c,palm_grade g
+		WHERE u.userid = ud.userid
+		AND u.userid = c.leaderId
+		AND g.id = c.gradeId
+		AND g.state = '0'
+		AND c.id = #clazzId#
+	</select>
+	
+	<!-- 亦信接口使用 通过班级Id查找学生信息 syj 2016-01-22 -->
+	<select id="getStudentListByClazzIdInRICHBOOK" parameterClass="Integer" resultMap="result-parent-app">
+		select u.userId,u.uuserId,ud.realName AS nickName,IFNULL(u.username,u.palmUserName) userName,u.phone,ud.headImg
+		from platform.userbase u, platform.user_detail ud, palm_clazz cl,palm_grade g,palm_student_clazz sc,palm_user_role ur
+		where u.userId = ud.userId
+		and u.userId = sc.userId
+		and u.userId = ur.userId
+		AND g.id = cl.gradeId
+		AND g.state = '0'
+		and cl.id = sc.clazzId
+		and ur.rolecode = 'student'
+		and cl.id = #clazzId#
+		ORDER BY ud.code ASC
+	</select>
+	<!-- 根据部门的id查询教师 20151208 -->
+	<select id="getTeacherListByDepartmentIdInRICHBOOK" parameterClass="Integer" resultMap="result-parent-app">
+		SELECT u.userId,u.uuserId,ud.realName AS nickName,IFNULL(u.username,u.palmUserName) userName,u.phone,ud.headImg
+			FROM platform.userbase u ,platform.user_detail ud ,palm_user_department pud
+			  WHERE u.userId = ud.userId
+				AND u.userId = pud.userId
+				AND pud.departmentId = #departmentId#
+	</select>
+
+	<!-- 根据userId获取该用户的voipAccount 20160129 syj-->
+	<select id="getVoipAccountByUserId" parameterClass="Integer" resultClass="String">
+		select ud.voipAccount from platform.user_detail ud where ud.userId=#userId#
+	</select>
+	<!-- 根据卡号获取用户信息 用于晨检系统 20160130 -->
+	<select id="getUserInfoByCardCode" parameterClass="String" resultClass="user">
+		 select ud.userId,u.phone, ud.realName,getClazzName(sc.clazzId) clazzName,(select realName from platform.user_detail where userid=cl.leaderid) classTeacherName from palm_card c 
+			LEFT JOIN palm_user_card uc on c.id = uc.cardId
+			LEFT JOIN platform.user_detail ud on uc.userid = ud.userid
+			LEFT JOIN palm_student_clazz sc on ud.userid = sc.userid
+			LEFT JOIN palm_clazz cl on sc.clazzId = cl.id
+			LEFT JOIN platform.userbase u on u.userId = ud.userId
+			where c.cardCode=#cardCode# and c.status=1
+			limit 1
+	</select>
+	<!-- 清空学生的学号、或者教师的工号 -->
+	<update id="deleteUserCode" parameterClass="Integer">
+	update platform.user_detail d set code='' where d.userId=#userId#
+	</update>
+	<!-- 清空学生的palmUserName -->
+	<update id="deleteUserbaseCode" parameterClass="Integer">
+	update platform.userbase u set u.palmUserName='' where u.userId=#userId#
+	</update>
+	<!-- 更新教职工工号 -->
+	<update id="updateUserbaseCode"  parameterClass="HashMap">
+	update platform.user_detail d set code=#code# where d.userId=#userId#
+	</update>
+	<!-- 更改app下载次数 20160201 -->
+	<update id="addDownLoadNum">
+		update platform.appDownNum set downNum = downNum + 1 where id=0
+	</update>
+	<!-- 根据userId获取该用户的关联手机号码 20160203 syj-->
+	<select id="getPhonesByUserId" parameterClass="Integer" resultClass="String">
+		select up.phone from platform.user_phones up where up.userId=#userId# and up.status =1
+	</select>
+	<!-- 删除用户与学校的关联关系 -->
+	<delete id="delUserAndSchoolLink" parameterClass="HashMap">
+		delete from platform.user_school where userId=#userId# and schoolId=#schoolId#
+	</delete>
+
+	<!-- 根据家长ID获取孩子数量 -->
+	<select id="getStudentCountByParentId" parameterClass="Integer" resultClass="Integer">
+		select count(*) from  platform.student_parent sp where  sp.parent_userId=#userId#
+	</select>
+	<!-- 根据家长ID获取孩子数量 -->
+	<select id="getUserNameAndCardCode" parameterClass="Long"  resultMap="result-user-yiti">
+		select c.cardCode, ud.realName from palm_user_card uc, palm_card c, platform.user_detail ud where uc.userid=ud.userid and uc.cardId=c.id and cardcode is not null and cardcode !='' group by c.cardcode
+	</select>
+	<!-- 根据学生id和家长id获取student_parent的主键 -->
+	<select id="getIdByStudentIdAndParentId" parameterClass="HashMap"  resultClass="Integer">
+		SELECT id FROM platform.student_parent WHERE (userId = #loginId# AND parent_userId =#cardId# ) OR (userId = #cardId# AND parent_userId =#loginId# )
+	</select>	
+	<!-- 根据学生name和code获取学生数量 -->
+	<select id="getStudentByPalmUserNameAndName" parameterClass="HashMap"  resultClass="user">
+		SELECT u.userId FROM platform.userbase u, platform.user_detail ud where u.userid= ud.userid and ud.realName=#realName# and u.palmUserName=#palmUserName# limit 1
+	</select>
+	<!-- 根据学号和真实名称获得数据-->
+	<select id="getUserByCodeRealName" parameterClass="HashMap" resultClass="user">
+	SELECT u.userId FROM platform.userbase u left join platform.user_detail ud on u.userid=ud.userid 
+	where ud.code=#code# and ud.realName=#realName# limit 1
+	</select>
+
+	<!-- [学生身份]根据studengtId和clazzId 查找自己信息 syj 2016-04-28 -->
+	<select id="getStudentListByClazzIdListAndStudentIdInEvaluate" parameterClass="java.util.HashMap" resultClass="user">
+		SELECT tmp1.*,tmp3.studentId,tmp5.createTime FROM (
+				SELECT u.userId,ud.code,ud.realName,getClazzName(cl.id) clazzName
+				FROM platform.userbase u, platform.user_detail ud,palm_clazz cl,palm_grade g,palm_student_clazz sc,palm_user_role ur
+				WHERE u.userId = ud.userId
+				AND u.userId=sc.userid
+				AND u.userId = ur.userid
+				AND ur.rolecode = 'student'
+				AND g.id = cl.gradeId
+				AND g.state = '0'
+				AND cl.id = sc.clazzId
+				AND u.userId = #studentId#
+				<isNotEmpty property="queryContent">
+					AND ( ud.code LIKE CONCAT('%',#queryContent#,'%')
+					or ud.realName LIKE CONCAT('%',#queryContent#,'%')
+					)
+				</isNotEmpty>
+				and cl.id in
+				<iterate open="(" close=")" conjunction="," property="clazzList"> 
+		                    #clazzList[]# 
+		        </iterate>
+				ORDER BY ud.code ASC
+				<isNotEmpty property="startIndex">
+				limit #startIndex#, #length#
+				</isNotEmpty>
+		)tmp1 LEFT JOIN (
+				SELECT tmp2.studentId,tmp2.createTime FROM (
+					SELECT ek.* FROM palm_evaluate_kindergarten ek
+					<![CDATA[
+					WHERE ek.createTime > #dateTime#
+					]]>
+					ORDER BY ek.createTime DESC
+				) tmp2
+				GROUP BY tmp2.studentId
+		) tmp3
+		ON tmp1.userId = tmp3.studentId
+		LEFT JOIN (
+				SELECT tmp4.studentId,tmp4.createTime FROM (
+					SELECT ek.* FROM palm_evaluate_kindergarten ek					
+					ORDER BY ek.createTime DESC
+				) tmp4
+				GROUP BY tmp4.studentId
+		) tmp5
+		ON tmp1.userId = tmp5.studentId
+	</select>
+	<!-- [学生身份]根据studengtId和clazzId 查询自己数量 syj 2016-04-28 -->
+	<select id="getStudentListCountByClazzIdListAndStudentIdInEvaluate" parameterClass="java.util.HashMap" resultClass="Integer">
+		SELECT COUNT(u.userId)
+		FROM platform.userbase u, platform.user_detail ud,palm_clazz cl,palm_grade g,palm_student_clazz sc,palm_user_role ur
+		WHERE u.userId = ud.userId
+		AND u.userId=sc.userid
+		AND u.userId = ur.userid
+		AND ur.rolecode = 'student'
+		AND g.id = cl.gradeId
+		AND g.state = '0'
+		AND cl.id = sc.clazzId
+		AND u.userId = #studentId#
+		<isNotEmpty property="queryContent">
+			AND ( ud.code LIKE CONCAT('%',#queryContent#,'%')
+			or ud.realname LIKE CONCAT('%',#queryContent#,'%')
+			)
+		</isNotEmpty>
+		and cl.id in
+		<iterate open="(" close=")" conjunction="," property="clazzList"> 
+                    #clazzList[]# 
+        </iterate>
+	</select>
+		
+	<!-- [家长身份]根据家长id和clazzId 查找自己小孩信息 syj 2016-04-28 -->
+	<select id="getStudentListByClazzIdListAndParentUserIdInEvaluate" parameterClass="java.util.HashMap" resultClass="user">
+		SELECT tmp1.*,tmp3.studentId,tmp5.createTime FROM (
+				SELECT u.userId,ud.code,ud.realName,getClazzName(cl.id) clazzName
+				FROM platform.userbase u, platform.user_detail ud,palm_clazz cl,palm_grade g,palm_student_clazz sc,palm_user_role ur,platform.student_parent sp
+				WHERE u.userId = ud.userId
+				AND u.userId=sc.userid
+				AND u.userId = ur.userid
+				AND ur.rolecode = 'student'
+				AND g.id = cl.gradeId
+				AND g.state = '0'
+				AND cl.id = sc.clazzId
+				AND u.userId = sp.userId
+				AND sp.parent_userId = #parentUserId#
+				<isNotEmpty property="queryContent">
+					AND ( ud.code LIKE CONCAT('%',#queryContent#,'%')
+					or ud.realName LIKE CONCAT('%',#queryContent#,'%')
+					)
+				</isNotEmpty>
+				and cl.id in
+				<iterate open="(" close=")" conjunction="," property="clazzList"> 
+		                    #clazzList[]# 
+		        </iterate>
+				ORDER BY ud.code ASC
+				<isNotEmpty property="startIndex">
+				limit #startIndex#, #length#
+				</isNotEmpty>
+		)tmp1 LEFT JOIN (
+				SELECT tmp2.studentId,tmp2.createTime FROM (
+					SELECT ek.* FROM palm_evaluate_kindergarten ek
+					<![CDATA[
+					WHERE ek.createTime > #dateTime#
+					]]>
+					ORDER BY ek.createTime DESC
+				) tmp2
+				GROUP BY tmp2.studentId
+		) tmp3
+		ON tmp1.userId = tmp3.studentId
+		LEFT JOIN (
+				SELECT tmp4.studentId,tmp4.createTime FROM (
+					SELECT ek.* FROM palm_evaluate_kindergarten ek					
+					ORDER BY ek.createTime DESC
+				) tmp4
+				GROUP BY tmp4.studentId
+		) tmp5
+		ON tmp1.userId = tmp5.studentId
+	</select>
+	<!-- [家长身份]根据家长id和clazzId 查询自己小孩数量 syj 2016-04-28 -->
+	<select id="getStudentListCountByClazzIdListAndParentUserIdInEvaluate" parameterClass="java.util.HashMap" resultClass="Integer">
+		SELECT COUNT(u.userId)
+		FROM platform.userbase u, platform.user_detail ud,palm_clazz cl,palm_grade g,palm_student_clazz sc,palm_user_role ur,platform.student_parent sp
+		WHERE u.userId = ud.userId
+		AND u.userId=sc.userid
+		AND u.userId = ur.userid
+		AND ur.rolecode = 'student'
+		AND g.id = cl.gradeId
+		AND g.state = '0'
+		AND cl.id = sc.clazzId
+		AND u.userId = sp.userId
+		AND sp.parent_userId = #parentUserId#
+		<isNotEmpty property="queryContent">
+			AND ( ud.code LIKE CONCAT('%',#queryContent#,'%')
+			or ud.realname LIKE CONCAT('%',#queryContent#,'%')
+			)
+		</isNotEmpty>
+		and cl.id in
+		<iterate open="(" close=")" conjunction="," property="clazzList"> 
+                    #clazzList[]# 
+        </iterate>
+	</select>
+	
+	<!-- [除家长，学生身份之外的身份]通过班级IdList查找学生信息 syj 2016-04-09 -->
+	<select id="getStudentListByClazzIdListInEvaluate" parameterClass="java.util.HashMap" resultClass="user">
+		SELECT tmp1.*,tmp3.studentId,tmp5.createTime FROM (
+				SELECT u.userId,ud.code,ud.realName,getClazzName(cl.id) clazzName
+				FROM platform.userbase u, platform.user_detail ud,palm_clazz cl,palm_grade g,palm_student_clazz sc,palm_user_role ur
+				WHERE u.userId = ud.userId
+				AND u.userId=sc.userid
+				AND u.userId = ur.userid
+				AND ur.rolecode = 'student'
+				AND g.id = cl.gradeId
+				AND g.state = '0'
+				AND cl.id = sc.clazzId
+				<isNotEmpty property="queryContent">
+					AND ( ud.code LIKE CONCAT('%',#queryContent#,'%')
+					or ud.realName LIKE CONCAT('%',#queryContent#,'%')
+					)
+				</isNotEmpty>
+				and cl.id in
+				<iterate open="(" close=")" conjunction="," property="clazzList"> 
+		                    #clazzList[]# 
+		        </iterate>
+				ORDER BY ud.code ASC
+				<isNotEmpty property="startIndex">
+				limit #startIndex#, #length#
+				</isNotEmpty>
+		)tmp1 LEFT JOIN (
+				SELECT tmp2.studentId,tmp2.createTime FROM (
+					SELECT ek.* FROM palm_evaluate_kindergarten ek
+					<![CDATA[
+					WHERE ek.createTime > #dateTime#
+					]]>
+					ORDER BY ek.createTime DESC
+				) tmp2
+				GROUP BY tmp2.studentId
+		) tmp3
+		ON tmp1.userId = tmp3.studentId
+		LEFT JOIN (
+				SELECT tmp4.studentId,tmp4.createTime FROM (
+					SELECT ek.* FROM palm_evaluate_kindergarten ek					
+					ORDER BY ek.createTime DESC
+				) tmp4
+				GROUP BY tmp4.studentId
+		) tmp5
+		ON tmp1.userId = tmp5.studentId
+	</select>
+	<!-- [除家长，学生身份之外的身份]查询学生数量 syj 2016-04-09 -->
+	<select id="getStudentListCountByClazzIdListInEvaluate" parameterClass="java.util.HashMap" resultClass="Integer">
+		SELECT COUNT(u.userId)
+		FROM platform.userbase u, platform.user_detail ud,palm_clazz cl,palm_grade g,palm_student_clazz sc,palm_user_role ur
+		WHERE u.userId = ud.userId
+		AND u.userId=sc.userid
+		AND u.userId = ur.userid
+		AND ur.rolecode = 'student'
+		AND g.id = cl.gradeId
+		AND g.state = '0'
+		AND cl.id = sc.clazzId
+		<isNotEmpty property="queryContent">
+			AND ( ud.code LIKE CONCAT('%',#queryContent#,'%')
+			or ud.realname LIKE CONCAT('%',#queryContent#,'%')
+			)
+		</isNotEmpty>
+		and cl.id in
+		<iterate open="(" close=")" conjunction="," property="clazzList"> 
+                    #clazzList[]# 
+        </iterate>
+	</select>
+	
+	<!-- 获取所有家长的信息 -->
+	<select id="getAllParentList" resultMap="result-parentBystudentId">
+		SELECT ud.realName , ub.phone , ub.userId, ub.baiduChannelId, ub.deviceType ,ud.voipAccount
+		FROM platform.userbase ub ,platform.user_detail ud, palm_user_role ur
+		WHERE ub.userId = ud.userId
+		  AND ud.userId = ur.userId
+		  AND ur.roleCode = 'parent'
+	</select>
+	
+	<!-- 获取所有教职工的信息 -->
+	<select id="getAllTeacher" resultMap="result-parentBystudentId">
+		SELECT ud.realName , ub.phone , ub.userId, ub.baiduChannelId, ub.deviceType ,ud.voipAccount
+		FROM platform.userbase ub ,platform.user_detail ud, palm_user_role ur
+		WHERE ub.userId = ud.userId
+		  AND ud.userId = ur.userId
+		  AND ur.roleCode not in ('parent','student')
+	</select>
+	
+	<!-- 根据班级id获取所有家长的信息 -->
+	<select id="getAllParentListByClazz" parameterClass="Integer" resultMap="result-parentBystudentId">
+		SELECT ud.realName , ub.phone , ub.userId, ub.baiduChannelId, ub.deviceType ,ud.voipAccount
+		  FROM platform.userbase ub ,platform.user_detail ud, palm_user_role ur,platform.student_parent sp, palm_student_clazz sc
+		  WHERE ub.userId = ud.userId
+		    AND ud.userId = ur.userId
+		    AND ud.userId = sp.parent_userId
+		    AND sp.userId = sc.userId
+		    AND ur.roleCode = 'parent'
+		    AND sc.clazzId = #clazzId#
+	</select>
+	
+	<!-- 根据年级id获取所有家长的信息 -->
+	<select id="getAllParentListByGradeId" parameterClass="Integer" resultMap="result-parentBystudentId">
+		SELECT ud.realName , ub.phone , ub.userId, ub.baiduChannelId, ub.deviceType ,ud.voipAccount
+		  FROM platform.userbase ub ,platform.user_detail ud, palm_user_role ur,platform.student_parent sp, palm_student_clazz sc,palm_clazz c,palm_grade g
+		  WHERE ub.userId = ud.userId
+		    AND ud.userId = ur.userId
+		    AND ud.userId = sp.parent_userId
+		    AND sp.userId = sc.userId
+		    AND g.id = c.gradeId
+			AND g.state = '0'
+		    AND ur.roleCode = 'parent'
+		    AND sc.clazzId = c.id
+		    AND c.gradeId = #gradeId#
+	</select>
+	
+	<!-- 获取学生或家长信息 -->
+	<select id="getTypeByUserId" resultMap="result-userType" parameterClass="String">
+		select ud.userId,ud.type,ud.realName,ud.sex from platform.user_detail ud,platform.student_parent sp 
+		where (ud.userId = sp.userId or ud.userId = sp.parent_userId) and (sp.userId = #userId# or sp.parent_userId = #userId#)
+	</select>
+	
+	<select id="getCountByPhoneAndUserId" parameterClass="HashMap" resultClass="Integer">
+		select count(*) ct from platform.userbase where phone=#phone# and userId != #userId#
+	</select>
+	
+	<!-- 家长获取本班级下自己的小孩 -->
+	<select id="loadStudentByClazzIdForParent" parameterClass="HashMap" resultMap="result-allTeacher">
+		select ud.userId,ud.realName from platform.user_detail ud, palm_student_clazz sc
+		 where ud.userId = sc.userId
+		   and sc.clazzId = #clazzId#
+		   and ud.userId in (select userId from platform.student_parent where parent_userId = #userId#) 
+	</select>
+	
+	<!-- 获取本班级下所有的小孩 -->
+	<select id="loadStudentByClazzIdForTeacher" parameterClass="HashMap" resultMap="result-allTeacher">
+		select ud.userId,ud.realName from platform.user_detail ud, palm_student_clazz sc where ud.userId = sc.userId and sc.clazzId = #clazzId#
+		union 
+		select ud.userId,ud.realName from platform.user_detail ud where ud.userId = #userId#
+	</select>
+	
+	<!--  更新userbase 中的palmUserName为手机号 和source为1智慧校园用户 -->
+	<update id="updateUserBase" parameterClass="HashMap">
+		update platform.userbase
+		set userId = #userId#
+		<isNotEmpty property="source">
+			,source = #source#
+		</isNotEmpty>
+		<isNotEmpty property="palmUserName">
+			,palmUserName = #palmUserName#
+		</isNotEmpty>
+		<isNotEmpty property="phone">
+			,phone = #phone#
+		</isNotEmpty>
+		<isNotEmpty property="bindPhone">
+			,bindPhone = #bindPhone#
+		</isNotEmpty>
+		<isNotEmpty property="passWord">
+			,passWord = #passWord#
+		</isNotEmpty>
+		where userId = #userId#
+	</update>
+	
+	<update id="updateUserDetail" parameterClass="HashMap">
+		update platform.user_detail
+		set updateTime = now()
+		<isNotEmpty property="code">
+			,code = #code#
+		</isNotEmpty>
+		<isNotEmpty property="realName">
+			,realName = #realName#
+		</isNotEmpty>
+		<isNotEmpty property="email">
+			,email = #email#
+		</isNotEmpty>
+		where userId = #userId#
+	</update>
+	
+	<select id="getCASUserByPhone" parameterClass="java.util.HashMap" resultMap="result-userBase">
+		select ub.userId, ub.uuserId,ub.phone , ub.palmUserName, ub.username, ub.type,ub.source,
+		ub.password, ud.realName, ud.sex, ud.headImg,ud.voipAccount
+		from platform.userbase ub, platform.user_detail ud
+		where  ub.userId = ud.userId and ub.state = 0
+		and ub.bindPhone = #phone#
+	</select>
+
+	<select id="getCASUserByName" parameterClass="java.util.HashMap" resultMap="result-userBase">
+		select ub.userId, ub.uuserId,ub.phone , ub.palmUserName, ub.username, ub.type,ub.source,
+		ub.password, ud.realName, ud.sex, ud.headImg,ud.voipAccount
+		from platform.userbase ub, platform.user_detail ud
+		where  ub.userId = ud.userId and ub.state = 0
+		and ud.realName LIKE CONCAT('%',#name#,'%')
+	</select>	
+	<!-- 根据登录家长的userId查询对应小孩的所有家长,不包含自己 -->
+	<select id="getAllParentByParentId" parameterClass="java.util.HashMap" resultClass="user">
+		select ub.userId, ud.realName , ub.palmUserName, ub.phone
+		from platform.userbase ub, platform.user_detail ud
+		where ub.userId = ud.userId 
+		and ub.userId != #userId# 
+		and ub.userId in 
+		(select parent_userId from platform.student_parent where userId in 
+			(select sp.userId from platform.student_parent sp,platform.user_school us 
+			where sp.userId = us.userId and us.schoolId=#schoolId# and sp.parent_userId=#userId#
+			)
+		)
+	</select>
+	
+	<select id="getFJUserDetailByPersonid" parameterClass="java.lang.String" resultClass="userInfoDetail">
+		select userId,personid,mobnum AS phone,email,name as realName,nickname AS nickName,areacode,
+		gender AS sex,birthday,usertype AS roleCode,address,postcode,logotype,logourl AS headImg,
+		interests,profession,credtype,idcardno,singature AS userDescription,fnascount,teachesubjectlist,subjectid,subjectname,
+		teachmaterialid,teachmaterialname,classid AS clazzId,classname AS clazzName, grade AS gradeId,
+		studysection AS section,foundtime,classidentity,orgaid AS schoolId,organame AS schoolName,
+		orgaidentity,tags,CONCAT(provicename,IFNULL(cityname,"")) AS provicename
+		from platform.user_authorization 
+		where personid = #personid#
+	</select>
+	
+	<select id="getUserDetailByUserIdInPersonCenter" parameterClass="java.lang.Integer" resultClass="user">
+		SELECT ub.userId,ub.phone,ud.realName,ud.code,ud.type As schoolType,ud.userDescription
+		FROM platform.userbase ub ,platform.user_detail ud
+		WHERE ub.userId = ud.userId
+		AND ub.userId = #userId#
+	</select>
+	
+	<!-- 根据personid查看 -->
+	<select id="getUserAuthorizationByPersonidForFJ" parameterClass="java.lang.String" resultClass="userAuthorization">
+		SELECT ua.*
+		FROM fjzyyptxx.user_authorization ua
+		WHERE ua.personid = #personid#
+	</select>
+	
+		<!-- 根据userId查看 -->
+	<select id="getUserAuthorizationByUserId" parameterClass="java.lang.String" resultClass="userAuthorization">
+		SELECT ua.*
+		FROM platform.user_authorization ua
+		WHERE ua.userId = #userId#
+	</select>
+		
+	<!-- 添加数据到 fjzyyptxx.user_authorization -->
+	<insert id="addUserAuthorizationForFJ" parameterClass="userAuthorization">
+		insert into fjzyyptxx.user_authorization
+		(
+		userId,personid,mobnum,email,
+		name,nickname,areacode,gender,
+		birthday,usertype,address,
+		postcode,logotype,logourl,
+		interests,profession,credtype,
+		idcardno,singature,fnascount,
+		teachesubjectlist,subjectid,
+		subjectname,teachmaterialid,
+		teachmaterialname,classid,classlist,
+		classname,grade,classidentity,
+		orgaid,organame,orgaidentity,
+		tags,cityname,provicename,
+		studysection,foundtime,account
+		) 
+		values 
+		(
+		#userId#,#personid#,#mobnum#,#email#,
+		#name#,#nickname#,#areacode#,#gender#,
+		#birthday#,#usertype#,#address#,
+		#postcode#,#logotype#,#logourl#,
+		#interests#,#profession#,#credtype#,
+		#idcardno#,#singature#,#fnascount#,
+		#teachesubjectlist#,#subjectid#,
+		#subjectname#,#teachmaterialid#,
+		#teachmaterialname#,#classid#,#classlist#,
+		#classname#,#grade#,#classidentity#,
+		#orgaid#,#organame#,#orgaidentity#,
+		#tags#,#cityname#,#provicename#,
+		#studysection#,#foundtime#,#account#
+		) 
+	</insert>
+	
+	<!-- 根据personid更新fjzyyptxx.user_authorization中数据  -->
+	<update id="updateUserAuthorizationForFJ" parameterClass="userAuthorization">
+		update fjzyyptxx.user_authorization
+		set userId = #userId#
+			<isNotEmpty property="personid">
+			,personid = #personid#
+			</isNotEmpty>
+			<isNotEmpty property="account">
+			,account = #account#
+			</isNotEmpty>
+			<isNotEmpty property="mobnum">
+			,mobnum = #mobnum#
+			</isNotEmpty>
+			<isNotEmpty property="email">
+			,email = #email#
+			</isNotEmpty>
+			<isNotEmpty property="name">
+			,name = #name#
+			</isNotEmpty>
+			<isNotEmpty property="nickname">
+			,nickname = #nickname#
+			</isNotEmpty>
+			<isNotEmpty property="areacode">
+			,areacode = #areacode#
+			</isNotEmpty>
+			<isNotEmpty property="gender">
+			,gender = #gender#
+			</isNotEmpty>
+			<isNotEmpty property="birthday">
+			,birthday = #birthday#
+			</isNotEmpty>
+			<isNotEmpty property="usertype">
+			,usertype = #usertype#
+			</isNotEmpty>
+			<isNotEmpty property="address">
+			,address = #address#
+			</isNotEmpty>
+			<isNotEmpty property="postcode">
+			,postcode = #postcode#
+			</isNotEmpty>
+			<isNotEmpty property="logotype">
+			,logotype = #logotype#
+			</isNotEmpty>
+			<isNotEmpty property="logourl">
+			,logourl = #logourl#
+			</isNotEmpty>
+			<isNotEmpty property="interests">
+			,interests = #interests#
+			</isNotEmpty>
+			<isNotEmpty property="profession">
+			,profession = #profession#
+			</isNotEmpty>
+			<isNotEmpty property="credtype">
+			,credtype = #credtype#
+			</isNotEmpty>
+			<isNotEmpty property="idcardno">
+			,idcardno = #idcardno#
+			</isNotEmpty>
+			<isNotEmpty property="singature">
+			,singature = #singature#
+			</isNotEmpty>
+			<isNotEmpty property="fnascount">
+			,fnascount = #fnascount#
+			</isNotEmpty>
+			<isNotEmpty property="teachesubjectlist">
+			,teachesubjectlist = #teachesubjectlist#
+			</isNotEmpty>
+			<isNotEmpty property="subjectid">
+			,subjectid = #subjectid#
+			</isNotEmpty>
+			<isNotEmpty property="subjectname">
+			,subjectname = #subjectname#
+			</isNotEmpty>
+			<isNotEmpty property="teachmaterialid">
+			,teachmaterialid = #teachmaterialid#
+			</isNotEmpty>
+			<isNotEmpty property="teachmaterialname">
+			,teachmaterialname = #teachmaterialname#
+			</isNotEmpty>
+			<isNotEmpty property="classid">
+			,classid = #classid#
+			</isNotEmpty>
+			<isNotEmpty property="classlist">
+			,classlist=#classlist#
+			</isNotEmpty>
+			<isNotEmpty property="classname">
+			,classname = #classname#
+			</isNotEmpty>
+			<isNotEmpty property="grade">
+			,grade = #grade#
+			</isNotEmpty>
+			<isNotEmpty property="classidentity">
+			,classidentity = #classidentity#
+			</isNotEmpty>
+			<isNotEmpty property="orgaid">
+			,orgaid = #orgaid#
+			</isNotEmpty>
+			<isNotEmpty property="organame">
+			,organame = #organame#
+			</isNotEmpty>
+			<isNotEmpty property="orgaidentity">
+			,orgaidentity = #orgaidentity#
+			</isNotEmpty>
+			<isNotEmpty property="tags">
+			,tags = #tags#
+			</isNotEmpty>
+			<isNotEmpty property="cityname">
+			,cityname = #cityname#
+			</isNotEmpty>
+			<isNotEmpty property="provicename">
+			,provicename = #provicename#
+			</isNotEmpty>
+			<isNotEmpty property="studysection">
+			,studysection = #studysection#
+			</isNotEmpty>
+			<isNotEmpty property="foundtime">
+			,foundtime = #foundtime#
+			</isNotEmpty>	
+		where personid = #personid#
+	</update>
+     <select id="getTeacherListByDepartmentIdList" resultClass="com.guotop.palmschool.entity.User" parameterClass="java.util.List">
+	    select distinct u.phone,ud.realName,u.userId from platform.userbase u,platform.user_detail ud,palm_user_department d
+	    where u.userId = ud.userId
+		  and d.userId = u.userId
+		  and d.departmentId in
+		    <iterate conjunction="," open="(" close=")">
+		     #departmentIdList[]# 
+		   </iterate>
+		   ORDER BY d.departmentId ASC
+   </select>
+   
+   <select id="getAllUserButWalletBalanceLessThan0" resultClass="userForYixinToWisdom" parameterClass="java.lang.String">
+		SELECT tmp3.* FROM (
+			SELECT * FROM (
+				SELECT u1.userId AS yUserId,u1.phone yPhone,u1.palmUserName yPalmUsername ,u1.bindPhone yBindPhone 
+				FROM  platform.userbase u1 WHERE u1.bindPhone IS NOT NULL 
+				AND u1.palmUserName IS NULL AND u1.source = 0
+			)tmp1 ,(
+				SELECT u2.userId wUserId ,u2.phone wPhone,u2.palmUserName wPalmUserName,u2.bindPhone wBindphone,us.schoolId 
+				FROM  platform.userbase u2 ,platform.user_school us 
+				WHERE us.userId = u2.userId AND us.schoolId = #schoolId#
+				AND u2.phone IS NOT NULL AND u2.phone !="" 
+				AND u2.source = 1
+				AND (u2.bindPhone IS NULL )
+			)tmp2 WHERE tmp1.yBindPhone = tmp2.wPalmUserName
+		)tmp3 LEFT JOIN platform.`user_account` uc ON (tmp3.yUserId = uc.userId )
+		WHERE (uc.userId IS NULL OR uc.balance = '0' or uc.balance = '0.0') 
+   </select>  	
+   <select id="getAllUserButYinxinWalletBalanceGreaterThan0" resultClass="userForYixinToWisdom" parameterClass="java.lang.String">
+		SELECT tmp3.*,uc.balance FROM (
+			SELECT * FROM (
+					SELECT u1.userId AS yUserId,u1.phone yPhone,u1.palmUserName yPalmUsername ,u1.bindPhone yBindPhone
+					FROM  platform.userbase u1 WHERE u1.bindPhone IS NOT NULL 
+					AND u1.palmUserName IS NULL AND u1.source = 0
+				)tmp1 ,(
+					SELECT u2.userId wUserId ,u2.phone wPhone,u2.palmUserName wPalmUserName,u2.bindPhone wBindphone,us.schoolId 
+					FROM  platform.userbase u2 ,platform.user_school us 
+					WHERE us.userId = u2.userId AND us.schoolId = #schoolId#
+					AND u2.phone IS NOT NULL AND u2.phone !="" 
+					AND u2.source = 1
+					AND (u2.bindPhone IS NULL )
+			)tmp2 WHERE tmp1.yBindPhone = tmp2.wPalmUserName
+		)tmp3 LEFT JOIN platform.`user_account` uc ON (tmp3.yUserId = uc.userId )
+		WHERE (uc.userId IS NOT NULL AND uc.balance > 0) 
+   </select> 
+   <select id="getAllUserButWisdomWalletBalanceGreaterThan0" resultClass="userForYixinToWisdom" parameterClass="java.lang.String">
+		SELECT tmp3.*,uc.balance FROM (
+			SELECT * FROM (
+					SELECT u1.userId AS yUserId,u1.phone yPhone,u1.palmUserName yPalmUsername ,u1.bindPhone yBindPhone 
+					FROM  platform.userbase u1 WHERE u1.bindPhone IS NOT NULL 
+					AND u1.palmUserName IS NULL AND u1.source = 0
+				)tmp1 ,(
+					SELECT u2.userId wUserId ,u2.phone wPhone,u2.palmUserName wPalmUserName,u2.bindPhone wBindphone,us.schoolId 
+					FROM  platform.userbase u2 ,platform.user_school us 
+					WHERE us.userId = u2.userId AND us.schoolId = #schoolId#
+					AND u2.phone IS NOT NULL AND u2.phone !="" 
+					AND u2.source = 1
+					AND (u2.bindPhone IS NULL )
+				)tmp2 WHERE tmp1.yBindPhone = tmp2.wPalmUserName
+		)tmp3 LEFT JOIN platform.`user_account` uc ON (tmp3.wUserId = uc.userId )
+		WHERE (uc.userId IS NOT NULL AND uc.balance > 0) 
+   </select>  
+   
+   <update id="updateUserFriend1" parameterClass="HashMap">
+		update platform.user_friend
+		set userId = #wUserId#
+		where userId = #yUserId#
+	</update>  
+	   <update id="updateUserFriend2" parameterClass="HashMap">
+		update platform.user_friend
+		set userIdRef = #wUserId#
+		where userIdRef = #yUserId#
+	</update> 	
+	
+	
+ 	<!-- 智慧校园3.0修改 新增SQL -->
+    <!-- 根据bindPhone查询用户是否存在    update by taomingyue 20161216 -->
+    <select id="getUserListByBindPhone" parameterClass="String" resultMap="result-userBase">
+		select ub.userId,ub.uuserId,ub.phone,ub.bindPhone, ub.palmUserName,ub.username, ub.type,ub.source,ub.password,ud.realName,ud.sex,ud.headImg,ud.voipAccount
+			from platform.userbase ub, platform.user_detail ud
+				where ub.userId = ud.userId 
+				  and ub.state = 0
+				  and ub.bindPhone = #bindPhone# 		
+	</select>
+	
+	<!-- 验证用户密码是否正确  -->
+	<select id="checkPasswordExist" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from platform.userbase where userId=#userId# and password=#password#
+	</select>
+	
+	<!-- 修改密码 -->
+	<update id="modifyPassword" parameterClass="HashMap">
+		update platform.userbase
+		set password = #md5newPassword#
+		WHERE userid = #userId#
+		AND PASSWORD = #md5OldPassword#
+	</update>
+	
+	<!-- 在【新用户添加】时检测工号或学号是否存在-->
+	<select id="checkCodeIsExistInAddNewUser" parameterClass="HashMap" resultClass="Integer">
+		SELECT count(ud.userId) FROM platform.user_detail ud, platform.user_school us WHERE
+		ud.userId = us.userId and ud.code = #code# and us.schoolId = #schoolId#
+	</select>
+	
+	<!-- 在【用户修改】时检测工号或者学号是否存在 -->
+	<select id="checkCodeIsExistInModifyUser" parameterClass="HashMap" resultClass="Integer">
+		SELECT count(d.code) FROM (SELECT ud.code FROM platform.user_detail ud, platform.user_school us where ud.userId = us.userId and ud.code!=#origCode#) d
+		where d.code = #code#
+	</select>
+	
+	<!-- 在【新用户添加】时检测绑定手机号是否存在-->
+	<select id="checkBindPhoneIsExist" parameterClass="HashMap" resultClass="Integer">
+		SELECT count(ub.userId) FROM platform.userbase ub WHERE ub.bindPhone = #bindPhone#
+	</select>
+	
+	<!-- 在【用户修改】时检测绑定手机号是否存在-->
+	<select id="checkBindPhoneIsExistInModifyUser" parameterClass="HashMap" resultClass="Integer">
+		SELECT count(d.bindPhone) FROM (SELECT ub.bindPhone FROM platform.userbase ub WHERE ub.bindPhone != #origBindPhone#) d
+		where d.bindPhone = #bindPhone#
+	</select>	
+	
+	<!-- 根据bindPhone获取已存在用户信息 -->
+	<select id="getUserByBindPhone" parameterClass="String" resultClass="user">
+		SELECT ub.userId,ub.palmUserName,ub.source,ud.realName ,ud.nickName,ub.isDefalutUserName
+		FROM  platform.userbase ub,platform.user_detail ud 
+		WHERE ub.userId = ud.userId and ub.state = 0 
+		and ub.bindPhone =#bindPhone#
+		limit 1
+	</select>
+	
+	<!-- 通过 studentId 查询 其对应的schoolId 20151214-->
+	<select id="getSchoolIdByStudentId" parameterClass="HashMap" resultClass="Long">
+		select schoolId from platform.user_school where userId=#studentId#
+	</select>
+	
+	<!-- 通过 userId 查询 其对应的schoolId和schoolName-->
+	<select id="getUserSchoolByUserId" parameterClass="Integer" resultClass="user">
+		SELECT us.userId,us.schoolId,s.schoolName 
+		from platform.user_school us,platform.school s 
+		where us.schoolId = s.schoolId and us.userId=#userId#
+	</select>
+	
+	<!-- 根据家长ID获取孩子列表 -->
+	<select id="getStudentListByParentId" parameterClass="Integer" resultClass="user">
+		select ud.userId,ud.realName ,getClazzName(sc.clazzId) AS clazzName
+		from platform.user_detail ud,platform.student_parent sp ,palm_student_clazz sc
+		where ud.userid = sp.userId 
+		and ud.userid = sc.userid 
+		and sp.parent_userId=#userId#
+	</select>
+	
+	<!-- 校长 以及学校管理权限  给某个人赋权或修改权限时 -->
+	<select id="getAllTeacherListForPermission" parameterClass="java.util.HashMap" resultMap="result-user-permission">			
+		SELECT DISTINCT us.userId,us.phone,ud.realName,ud.code
+          FROM platform.userbase us ,platform.user_detail ud ,palm_user_role ur 
+            WHERE us.userId = ud.userId 
+              AND us.userId = ur.userId
+		      AND ur.roleCode NOT IN('parent','student')
+	          <isNotEmpty prepend="and" property="queryContent">
+				( ud.code LIKE CONCAT('%',#queryContent#,'%') 
+				or ud.realName LIKE CONCAT('%',#queryContent#,'%') 
+				or us.phone LIKE CONCAT('%',#queryContent#,'%'))
+			  </isNotEmpty>
+			  <isNotEmpty property="permissionManage">
+			  and EXISTS(select * from palm_user_permission p where EXISTS (select * from palm_user_department dp where dp.userId=ud.userId and dp.departmentId=p.optDepartId) and p.userId=#userId#)
+			  </isNotEmpty>
+	</select>
+	<!-- 智慧校园3.0查询可以年级所有的班级 -->
+	<select id="getAllStudentList" resultClass="user">
+		select u.userId, ud.realName,ud.code,cl.id as clazzId
+		from platform.userbase u, platform.user_detail ud, palm_clazz cl,palm_grade g,palm_student_clazz sc,palm_user_role ur
+		where u.userId = ud.userId
+		and u.userId = sc.userId
+		and u.userId = ur.userId
+		AND g.id = cl.gradeId
+		AND g.state = '0'
+		and cl.id = sc.clazzId
+		and ur.rolecode = 'student'
+		ORDER BY ud.code ASC
+	</select>
+	<!-- 根据学生Id删除用户与家长的关联关系 -->
+	<delete id="delStudentAndParentLinkByStudentId" parameterClass="Integer" >
+		delete from platform.student_parent where userId=#userId# 
+	</delete>
+	<!-- 根据家长Id删除用户与孩子的关联关系 -->
+	<delete id="delStudentAndParentLinkByParentId" parameterClass="Integer">
+		delete from platform.student_parent where parent_userId=#parentId#
+	</delete>
+	<!-- 根据家长Id删除与孩子的关联关系 -->
+	<delete id="delStudentAndParentLinkByStudentIdAndParentId" parameterClass="HashMap">
+		delete from platform.student_parent where parent_userId=#parentId# and userId=#studentId#
+	</delete>
+	
+	<!-- 获取所有未购买服务费的学生家长 -->
+    <select id="getNotPurchaseStudentList" resultClass="com.guotop.palmschool.entity.User" parameterClass="HashMap">	
+		SELECT b.userId, b.userId AS parentId ,b.phone,d.realName,b.deviceType,b.baiduChannelId 
+			FROM platform.userbase b,platform.user_detail d,platform.user_school s,palm_user_role p,palm_student_clazz sc
+				WHERE d.userId=b.userId
+				  AND s.userId = b.userId 
+				  AND sc.userId = b.userId 
+				  AND s.schoolId = #schoolId#
+				  AND p.userId = b.userId 
+				  AND p.roleCode = 'student'
+				  AND getOrderMessageUser(b.userId)=0
+    </select>
+    
+    <!-- 获得一键购买短信套餐 -->
+    <select id="getUserAccountMoreThanPrice" resultClass="com.guotop.palmschool.entity.User" parameterClass="HashMap">
+		SELECT b.userId,b.phone,b.apiKey,ua.password,d.realName
+			FROM platform.userbase b, platform.user_detail d,platform.user_account ua,platform.user_school s,platform.student_parent sp
+			WHERE b.userId = d.userId 
+			  AND b.userId = ua.userId
+			  AND b.userId = s.userId
+			  AND b.userId = sp.parent_userId
+			  AND sp.userId = #studentId#
+			  AND s.schoolId = #schoolId#
+			  AND ua.balance >= #price#
+    </select>
+	
+	<!-- 根据家长ID和学校ID获取孩子列表 -->
+	<select id="getStudentListByParentIdAndSchoolId" parameterClass="HashMap" resultClass="user">
+		select temp.* ,om.type from
+		(
+		select ud.userId,ud.realName ,getClazzName(sc.clazzId) AS clazzName,sc.clazzId,platform.getRealName(sp.parent_userId) parentname,sp.parent_userId AS parentId
+		from platform.user_detail ud,platform.student_parent sp ,palm_student_clazz sc,platform.user_school us
+		where ud.userId = sp.userId 
+		and ud.userId = sc.userId 
+		and ud.userId = us.userId 
+		and sp.parent_userId=#userId#
+		and us.schoolId=#schoolId#
+		) temp LEFT JOIN palm_order_message_user om ON (om.userId = temp.userId AND om.status = 0)
+	</select>
+	<!-- 根据bindPone获得用户多个逗号隔开 -->
+	<select id="getTechnicalSupportPhone" parameterClass="String" resultClass="user">
+	 select u.bindPhone,u.phone,d.voipAccount,d.realName,d.QQ,d.email,d.headImg from platform.userbase u,platform.user_detail d where d.userId=u.userId and bindPhone in ($bindPone$)
+	</select>
+	
+	 <select id="getNoInoutStudentListByDate" parameterClass="java.util.HashMap" resultClass="user">
+	    SELECT ud.realName,ud.userId,sc.clazzId,c.clazzName FROM platform.user_detail ud ,palm_student_clazz sc ,palm_clazz c,platform.user_school us 
+			WHERE ud.userId = sc.userId 
+			AND ud.userId = us.userId
+			AND sc.clazzId = c.id
+			AND us.schoolId = #schoolId#
+			AND ud.userId NOT IN (SELECT DISTINCT userId FROM palm_inout WHERE createTime BETWEEN #todayBegin# AND #todayEnd#)
+			ORDER BY sc.clazzId ASC
+    </select>
+</sqlMap>

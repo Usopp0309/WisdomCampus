@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="ApplyInfo">
+
+	<typeAlias alias="applyInfo" type="com.guotop.palmschool.schoolnews.entity.ApplyInfo"/>
+	<typeAlias alias="activity" type="com.guotop.palmschool.schoolnews.entity.TakePartInActivity"/>
+	
+	<resultMap class="com.guotop.palmschool.schoolnews.entity.ApplyInfo" id="result_signUp">
+		<result property="id" column="id" />
+		<result property="schoolId" column="schoolId" />
+		<result property="userName" column="userName" />
+		<result property="phone" column="phone" />
+		<result property="remark" column="remark" />
+		<result property="referrer" column="referrer" />
+		<result property="address" column="address" />
+		<result property="birth" column="birth" />
+		<result property="sex" column="sex" />
+		<result property="createTime" column="createTime" />
+		<result property="status" column="status" />
+		<result property="newsId" column="newsId" />
+		<result property="newsTitle" column="newsTitle" />
+	</resultMap>
+	
+	<select id="getApplyInfoList" parameterClass="HashMap" resultMap="result_signUp">
+		select s.*,n.newsTitle from palm_school_news_apply_info s,palm_school_news n
+		where 1=1 and s.newsId = n.newsId 
+		<isNotEmpty property="createTime">
+		and s.createTime like CONCAT("%",#createTime#,"%") 
+		</isNotEmpty>
+		<isNotEmpty property="status">
+			and s.status = #status# 
+		</isNotEmpty>
+		and s.schoolId = #schoolId# 
+		<isNotEmpty property="queryContent">
+			and (s.username like CONCAT("%",#queryContent#,"%") or s.phone like CONCAT("%",#queryContent#,"%")) 
+		</isNotEmpty>
+		order by s.createTime desc
+		<isNotEmpty property="startIndex">
+			LIMIT #startIndex#, #length#
+		</isNotEmpty>
+	</select>
+	
+	<select id="getApplyInfoListCount" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM ( 
+			 select s.*,n.newsTitle from palm_school_news_apply_info s,palm_school_news n
+				where 1=1 and s.newsId = n.newsId 
+				<isNotEmpty property="createTime">
+				and s.createTime like CONCAT("%",#createTime#,"%") 
+				</isNotEmpty>
+				<isNotEmpty property="status">
+					and s.status = #status# 
+				</isNotEmpty>
+				and s.schoolId = #schoolId# 
+				<isNotEmpty property="queryContent">
+					and (s.username like CONCAT("%",#queryContent#,"%") or s.phone like CONCAT("%",#queryContent#,"%")) 
+				</isNotEmpty>
+	    )tt
+	</select>
+	<insert id="addApplyInfo" parameterClass="applyInfo">
+		insert into palm_school_news_apply_info 
+		(
+			schoolId,
+			userName,
+			phone,
+			referrer,
+			address,
+			remark,
+			birth,
+			sex,
+			createTime,
+			status,
+			newsId
+		) values (
+			#schoolId#,
+			#userName#,
+			#phone#,
+			#referrer#,
+			#address#,
+			#remark#,
+			#birth#,
+			#sex#,
+			now(),
+			#status#,
+			#newsId#
+		)
+	</insert>
+	
+	<update id="updateStatus" parameterClass="Integer">
+		update palm_school_news_apply_info set status = 1 where id = #id#
+	</update>
+	
+	<!-- 添加我要参加信息 -->
+	<insert id="addTakePartInActivity" parameterClass="activity">
+		insert into palm_school_activity_apply_info 
+		(
+			schoolId,
+			name,
+			sex,
+			schoolYear,
+			linkMan,
+			linkPhone,
+			childNum,
+			adultNum,
+			createTime,
+			newsId
+		) values (
+			#schoolId#,
+			#name#,
+			#sex#,
+			#schoolYear#,
+			#linkMan#,
+			#linkPhone#,
+			#childNum#,
+			#adultNum#,
+			#createTime#,
+			#newsId#
+		)
+	</insert>
+	
+	<select id="getTakePartInActivityList" parameterClass="HashMap" resultClass="activity">
+		select s.*,n.newsTitle from palm_school_activity_apply_info s,palm_school_news n
+		where 1=1 and s.newsId = n.newsId 
+		<isNotEmpty property="createTime">
+		and s.createTime like CONCAT("%",#createTime#,"%") 
+		</isNotEmpty>
+		and s.schoolId = #schoolId# 
+		<isNotEmpty property="queryContent">
+			and (s.username like CONCAT("%",#queryContent#,"%") or s.phone like CONCAT("%",#queryContent#,"%")) 
+		</isNotEmpty>
+		order by s.createTime desc
+		<isNotEmpty property="startIndex">
+			LIMIT #startIndex#, #length#
+		</isNotEmpty>
+	</select>
+	
+	<select id="getTakePartInActivityCount" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM ( 
+			 select s.*,n.newsTitle from palm_school_activity_apply_info s,palm_school_news n
+				where 1=1 and s.newsId = n.newsId 
+				<isNotEmpty property="createTime">
+				and s.createTime like CONCAT("%",#createTime#,"%") 
+				</isNotEmpty>
+				and s.schoolId = #schoolId# 
+				<isNotEmpty property="queryContent">
+					and (s.username like CONCAT("%",#queryContent#,"%") or s.phone like CONCAT("%",#queryContent#,"%")) 
+				</isNotEmpty>
+	    )tt
+	</select>
+	
+	<select id="getCountByNewsId" parameterClass="Integer" resultClass="Integer">
+		SELECT COUNT(*) FROM palm_school_activity_apply_info where newsId = #newsId#
+	</select>
+</sqlMap>

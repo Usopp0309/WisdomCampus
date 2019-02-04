@@ -1,0 +1,70 @@
+package com.guotop.palmschool.bluetooth.controller;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.guotop.palmschool.bluetooth.entity.BluetoothData;
+import com.guotop.palmschool.bluetooth.service.BluetoothDataService;
+import com.guotop.palmschool.util.Pages;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 手环数据
+ * 
+ * @author chenyong
+ *
+ */
+@Controller
+@RequestMapping("/data")
+public class DataController {
+
+	@Autowired
+	private BluetoothDataService bluetoothDataService;
+
+	/**
+	 * 进入数据列表
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月26日 上午10:12:32
+	 */
+	@RequestMapping("/toRecord.do")
+	public String toRecord() {
+
+		return "asset/asset_historyRecord";
+	}
+
+	/**
+	 * 获得蓝牙手环的数据
+	 * 
+	 * @author chenyong
+	 * @Time 2017年4月26日 上午11:31:43
+	 */
+	@RequestMapping("/getPageData.do")
+	@ResponseBody
+	public void getPageData(HttpServletResponse response, Integer page, Integer pageSize, String startTime,
+			String endTime, Integer clazzId, Integer userId) {
+		Map<String, Object> paramMap = new HashMap<>();
+		paramMap.put("startTime", startTime);
+		paramMap.put("endTime", endTime);
+		paramMap.put("clazzId", clazzId);
+		paramMap.put("userId", userId);
+		Pages<BluetoothData> pages = bluetoothDataService.getPageBluetoothData(page, pageSize, paramMap);
+		response.setCharacterEncoding("UTF-8");
+		try {
+			response.getWriter().write(GsonHelper.toJson(pages));
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+}

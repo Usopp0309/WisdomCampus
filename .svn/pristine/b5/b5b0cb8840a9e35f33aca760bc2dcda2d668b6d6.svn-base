@@ -1,0 +1,326 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+        <meta charset="utf-8" />
+        <title>学生添加</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta content="width=device-width, initial-scale=1" name="viewport" />
+         <!--公共css开始-->
+		<%@ include file="/public_module/public_css_new.jsp"%>
+	 	<!--公共css结束--> 
+        </head>
+    <body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed">
+    	<input class="themes" type="hidden" value="<%=basePath%>">
+        <!-- 公共顶部开始-->
+        <%@ include file="/public_module/public_header.jsp"%>    
+        <!--公共顶部结束-->
+        <div class="clearfix"> </div>
+        <!-- 内容页开始 -->
+        <div class="page-container">
+            <!--主菜单开始-->
+            <%@include file="/public_module/public_menu.jsp"%>
+            <!--主菜单结束-->
+            <div class="page-content-wrapper">
+                <div class="page-content m_overflow_hidden m_page_content">
+                	<div class="col-md-1 col-sm-1 m_padding_0_0_0_15">
+                    <%@include file="/public_module/public_sub_menu.jsp" %>
+                	</div>
+                	<div class="col-md-11 col-sm-11 m_page_con">
+                    <div class="page-bar m_margin_0_0_0_0">
+                        <ul class="page-breadcrumb">
+                            <li><a href="<%=basePath %>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+                            <li><a href="">学校管理</a><i class="fa fa-circle"></i></li>
+                            <li><span>学生添加</span></li>
+                        </ul>
+                    </div>
+                    <h3 class="page-title">学生添加</h3>
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption"><i class="fa fa-list"></i>学生资料添加</div>
+	                            </div>
+	                            <div class="portlet-body m_overflow_hidden form-horizontal">
+	                                <div class="col-md-8 col-sm-8">
+	                                	<div class="row">
+	                                		<div class="col-md-6 col-sm-6">
+	                                			<div class="form-group">
+	                                                <label class="control-label col-md-2" for="inputWarning">学号</label>
+	                                                <div class="col-md-10">
+	                                                    <input type="text" class="form-control"  />
+	                                                </div>
+	                                            </div>
+	                                		</div>
+	                                		<div class="col-md-6 col-sm-6">
+	                                			<div class="form-group">
+	                                                <label class="control-label col-md-2" for="inputWarning">姓名</label>
+	                                                <div class="col-md-10">
+	                                                    <input type="text" class="form-control"  />
+	                                                </div>
+	                                            </div>
+	                                		</div>
+	                                	</div>
+	                                	<div class="row">
+	                                		<div class="col-md-6 col-sm-6">
+	                                			<div class="form-group">
+	                                                <label class="control-label col-md-2" for="inputWarning">手机号</label>
+	                                                <div class="col-md-10">
+	                                                    <input type="text" class="form-control"  />
+	                                                </div>
+	                                            </div>
+	                                		</div>
+	                                		<div class="col-md-6 col-sm-6">
+	                                			<div class="form-group">
+	                                                <label class="control-label col-md-2" for="inputWarning">班级</label>
+	                                                <div class="col-md-10">
+	                                                    <input type="text" class="form-control"  />
+	                                                </div>
+	                                            </div>
+	                                		</div>
+	                                	</div>
+	                                	<div class="row">
+	                                		<div class="col-md-6 col-sm-6">
+	                                			<div class="form-group">
+	                                                <label class="control-label col-md-2" for="inputWarning">类型</label>
+	                                                <div class="col-md-10">
+	                                                    <input type="text" class="form-control"  />
+	                                                </div>
+	                                            </div>
+	                                		</div>
+	                                		<div class="col-md-6 col-sm-6">
+	                                			<div class="form-group">
+	                                                <label class="control-label col-md-2" for="inputWarning">亦信号</label>
+	                                                <div class="col-md-10">
+	                                                    <input type="text" class="form-control"  />
+	                                                </div>
+	                                            </div>
+	                                		</div>
+	                                	</div>
+	                                </div>
+	                                <div class="col-md-4 col-sm-4">
+	                                <div class="row">
+	                                		<div class="col-md-12 col-sm-12">
+	                                			<div class="form-group cardDiv">
+	                                                <label class="control-label col-md-2" for="inputWarning">卡号</label>
+	                                                <div class="col-md-8">
+	                                                    <input type="text" class="form-control"/>
+	                                                </div>
+	                                                <div class="col-md-2">
+	                                                    <a href="javascript:;" class="btn btn-icon-only red" onclick="appendCardAdd(this)">
+                                                            <i class="fa fa-plus"></i>
+                                                        </a>
+	                                                </div>
+	                                            </div>
+	                                		</div>
+	                                	</div>
+	                                </div>
+	                            </div>
+	                        </div>
+                            <div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption"><i class="fa fa-list"></i>家长资料添加</div>
+	                            </div>
+	                            <div class="portlet-body m_overflow_hidden form-horizontal">
+	                                <div class="row parents">
+	                                		<div class="col-md-6 col-sm-6">
+	                                			<div class="portlet">
+					                                <div class="portlet-title">
+					                                    <div class="caption">
+					                                        <span class="caption-subject font-dark">家长一</span>
+					                                    </div>
+					                                    <div class="actions">
+					                                        <a class="btn btn-circle btn-icon-only btn-default" href="javascript:;">
+					                                            <i class="fa fa-close close_parent"></i>
+					                                        </a>
+					                                    </div>
+					                                </div>
+					                                <div class="portlet-body">
+                                						<div class="col-md-6 col-sm-6">
+                                							<div class="form-group m_overflow_hidden">
+				                                                <label class="control-label col-md-3" for="inputWarning">手机号</label>
+				                                                <div class="col-md-9">
+				                                                    <input type="text" class="form-control"/>
+				                                                </div>
+				                                            </div>
+				                                            <div class="form-group m_overflow_hidden">
+				                                                <label class="control-label col-md-3" for="inputWarning">姓名</label>
+				                                                <div class="col-md-9">
+				                                                    <input type="text" class="form-control"/>
+				                                                </div>
+				                                            </div>
+				                                            <div class="form-group m_overflow_hidden">
+				                                                <label class="control-label col-md-3" for="inputWarning">密码</label>
+				                                                <div class="col-md-9">
+				                                                    <input type="text" class="form-control"/>
+				                                                </div>
+				                                            </div>
+				                                            <div class="form-group m_overflow_hidden">
+				                                                <label class="control-label col-md-3" for="inputWarning">亦信号</label>
+				                                                <div class="col-md-9">
+				                                                    <input type="text" class="form-control"/>
+				                                                </div>
+				                                            </div>
+                                						</div>
+                                						<div class="col-md-6 col-sm-6">
+                                							<div class="form-group m_overflow_hidden cardDiv">
+				                                                <label class="control-label col-md-3" for="inputWarning">电子卡</label>
+				                                                <div class="col-md-7">
+				                                                    <input type="text" class="form-control"/>
+				                                                </div>
+				                                                <div class="col-md-2">
+				                                                    <a href="javascript:;" class="btn btn-icon-only red"  onclick="appendCardAdd(this)">
+                                                                        <i class="fa fa-plus"></i>
+                                                                    </a>
+				                                                </div>
+				                                            </div>
+                                						</div>
+					                                </div>
+					                            </div>
+	                                		</div>
+	                                		<div class="col-md-6 col-sm-6">
+	                                			<div class="portlet">
+					                                <div class="portlet-title">
+					                                    <div class="caption">
+					                                        <span class="caption-subject font-dark">家长二</span>
+					                                    </div>
+					                                    <div class="actions">
+					                                        <a class="btn btn-circle btn-icon-only btn-default" href="javascript:;">
+					                                            <i class="fa fa-close close_parent"></i>
+					                                        </a>
+					                                    </div>
+					                                </div>
+					                                <div class="portlet-body">
+                                						<div class="col-md-6 col-sm-6">
+                                							<div class="form-group m_overflow_hidden">
+				                                                <label class="control-label col-md-3" for="inputWarning">手机号</label>
+				                                                <div class="col-md-9">
+				                                                    <input type="text" class="form-control"  />
+				                                                </div>
+				                                            </div>
+				                                            <div class="form-group m_overflow_hidden">
+				                                                <label class="control-label col-md-3" for="inputWarning">姓名</label>
+				                                                <div class="col-md-9">
+				                                                    <input type="text" class="form-control"  />
+				                                                </div>
+				                                            </div>
+				                                            <div class="form-group m_overflow_hidden">
+				                                                <label class="control-label col-md-3" for="inputWarning">密码</label>
+				                                                <div class="col-md-9">
+				                                                    <input type="text" class="form-control"  />
+				                                                </div>
+				                                            </div>
+				                                            <div class="form-group m_overflow_hidden">
+				                                                <label class="control-label col-md-3" for="inputWarning">亦信号</label>
+				                                                <div class="col-md-9">
+				                                                    <input type="text" class="form-control"  />
+				                                                </div>
+				                                            </div>
+                                						</div>
+                                						<div class="col-md-6 col-sm-6">
+                                							<div class="form-group m_overflow_hidden cardDiv">
+				                                                <label class="control-label col-md-3" for="inputWarning">电子卡</label>
+				                                                <div class="col-md-7">
+				                                                    <input type="text" class="form-control"/>
+				                                                </div>
+				                                                <div class="col-md-2">
+				                                                    <a href="javascript:;" class="btn btn-icon-only red"  onclick="appendCardAdd(this)">
+                                                                        <i class="fa fa-plus"></i>
+                                                                    </a>
+				                                                </div>
+				                                            </div>
+                                						</div>
+					                                </div>
+					                            </div>
+	                                		</div>
+	                                	</div>
+	                            </div>
+	                        </div>
+                            <div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption"><i class="fa fa-list"></i>接受短信添加</div>
+	                            </div>
+	                            <div class="portlet-body m_overflow_hidden form-horizontal">
+	                                <div class="row">
+	                                		<div class="col-md-4 col-sm-4">
+		                                		<div class="form-group m_overflow_hidden cardDiv">
+	                                                <label class="control-label col-md-3" for="inputWarning">手机号</label>
+	                                                <div class="col-md-7">
+	                                                    <input type="text" class="form-control"/>
+	                                                </div>
+	                                                <div class="col-md-2">
+	                                                    <a href="javascript:;" class="btn btn-icon-only red" onclick="appendCardAdd(this)">
+                                                                     <i class="fa fa-plus"></i>
+                                                                 </a>
+	                                                </div>
+	                                            </div>
+	                                		</div>
+	                                		
+	                                	</div>
+	                            </div>
+	                        </div>
+	                        <div class="clearfix m_text_align_conter m_margin_15_0">
+	                            <input type="button" class="btn green" value="保存">
+	                        </div>
+                         </div>
+                   	</div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 亦信聊天开始 -->
+        	<%@ include file="/public_module/public_QQ.jsp" %>
+            <!-- 亦信聊天结束 -->
+        </div>
+        <!-- 内容页结束 -->
+        <!-- 底部开始 -->
+        <%@ include file="/public_module/public_footer.jsp" %>
+        <!-- 底部结束 -->
+    </body>
+        <!-- 公共js开始 -->
+        <%@ include file="/public_module/public_js.jsp" %>
+        <!-- 公共js结束 -->
+	<script src="<%=basePath%>assets/global/plugins/layer/layer.js"></script>
+	<script>
+		$(function(){  
+			loadSubMenu("schoolManager"); 
+			//选取当前菜单位置
+			setActive("schoolManager","studentParentManage");   
+			//添加新增卡号输入框
+			$(".close_parent").on("click",function(){
+				if($(".parents").children(".col-md-6").length==1){
+					alert("必须要有一位家长")
+				}else{
+					$(this).closest(".col-md-6").remove();
+				}
+			})
+		})
+		function appendCardAdd(obj)
+			{
+					var	appendHtml ='<div class="form-group">';
+					appendHtml +='<label class="control-label col-md-2" for="inputWarning"></label>';
+					appendHtml +='<div class="col-md-8">';
+					appendHtml +='<input class="form-control" type="text">';
+					appendHtml +='</div>';
+					appendHtml +='<div class="col-md-2">';
+					appendHtml +='<a href="javascript:;" class="btn btn-icon-only grey-cascade">';
+					appendHtml +='<i class="fa fa-minus"></i>';
+					appendHtml +='</a>';
+					appendHtml +='</div>';
+					$(obj).closest(".cardDiv").after(appendHtml);
+			}
+			
+			//删除新增卡号输入框		
+			function removeCardAdd(obj)
+			{
+				if(confirm("确定要删除此电子卡吗？"))
+			 	{
+			 		obj.parent().parent().remove();
+			 	}
+			}
+	</script>
+
+</html>

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="OnlineMessage">
+	<typeAlias alias="onlinemessage" type="com.guotop.palmschool.entity.OnlineMessage" />
+
+	<resultMap class="com.guotop.palmschool.entity.OnlineMessage" id="result-onlinemessage">
+		<result property="id" column="id" />
+		<result property="content" column="content" />
+		<result property="senderId" column="senderId" />
+		<result property="module" column="module" />
+		<result property="sentTime" column="sentTime" />
+		<result property="createTime" column="createTime" />
+		<result property="senderName" column="senderName" />
+	</resultMap>
+	
+	
+<!-- 	<resultMap class="com.guotop.palmschool.entity.OnlineMessage" id="result-onlinemessageDetail"> -->
+<!-- 		<result property="id" column="id" /> -->
+<!-- 		<result property="content" column="content" /> -->
+<!-- 		<result property="senderId" column="senderid" /> -->
+<!-- 		<result property="senderRoleId" column="senderroleid" /> -->
+<!-- 		<result property="module" column="module" /> -->
+<!-- 		<result property="receiver" column="receiver" /> -->
+<!-- 		<result property="sentTime" column="senttime" /> -->
+<!-- 		<result property="createTime" column="createtime" /> -->
+
+<!-- 	</resultMap> -->
+
+	<!--新增在线留言内容  syj 20151214-->
+	<insert id="addOnlineMessage" parameterClass="onlinemessage">
+		insert into palm_online_message
+		(
+			content,
+			senderId,
+			module,
+			sentTime,
+			createTime,
+			senderName
+		)
+		values
+		(
+			#content#,
+			#senderId#,
+			#module#,
+			#sentTime#,
+			#createTime#,
+			#senderName#
+		)
+	<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    </selectKey>
+	</insert>
+	
+	<!-- 校长权限  加载在线留言列表 -->
+	<!-- 校长，学校管理员，董事长 加载在线留言列表  syj 20151214 -->
+	<select id="loadSmsListAsMaster" parameterClass="HashMap" resultMap="result-onlinemessage">
+		 SELECT s.* FROM palm_online_message s
+			 WHERE 1 = 1
+			<!-- 查询短信内容 -->
+			<isNotEmpty prepend="and" property="queryContent">
+				(s.content like CONCAT('%',#queryContent#,'%') or s.senderName like CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			ORDER BY s.sentTime DESC
+			LIMIT #startIndex#, #length#
+	</select>
+	<!-- 校长权限  加载在线留言列表 【福建专用】-->
+	<!-- 校长，学校管理员，董事长 加载在线留言列表  syj 20151214 -->
+	<select id="loadSmsListAsMasterFj" parameterClass="HashMap" resultMap="result-onlinemessage">
+		 SELECT s.* FROM palm_online_message s
+			 WHERE 1 = 1
+			<!-- 查询短信内容 -->
+			<isNotEmpty prepend="and" property="queryContent">
+				(s.content like CONCAT('%',#queryContent#,'%') or s.senderName like CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			ORDER BY s.sentTime DESC
+			LIMIT #startIndex#, #length#
+	</select>
+	
+	<!-- 校长，学校管理员，董事长  加载在线留言列表总数 syj  20151214 -->
+	<select id="loadSmsCountAsMaster" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM(
+		   SELECT s.* FROM palm_online_message s
+			    WHERE 1 = 1
+				<!-- 查询短信内容 -->
+				<isNotEmpty prepend="and" property="queryContent">
+					(s.content like CONCAT('%',#queryContent#,'%') or s.senderName like CONCAT('%',#queryContent#,'%'))
+				</isNotEmpty>
+		  ) tt
+	</select>
+	<!-- 校长，学校管理员，董事长  加载在线留言列表总数 【福建专用】-->
+	<select id="loadSmsCountAsMasterFj" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM(
+		   SELECT s.* FROM palm_online_message s
+			    WHERE 1 = 1
+				<!-- 查询短信内容 -->
+				<isNotEmpty prepend="and" property="queryContent">
+					(s.content like CONCAT('%',#queryContent#,'%') or s.senderName like CONCAT('%',#queryContent#,'%'))
+				</isNotEmpty>
+		  ) tt
+	</select>
+
+	<!-- 除去 校长，学校管理员，董事长  之外的人员只能看到自己发送的在线留言信息 syj  20151214 -->
+	<select id="loadSmsListAsSelf" parameterClass="HashMap" resultMap="result-onlinemessage">
+		SELECT s.* FROM palm_online_message s
+			WHERE s.senderId = #userId#
+			<!-- 查询短信内容 -->
+			<isNotEmpty prepend="and" property="queryContent">
+				(s.content like CONCAT('%',#queryContent#,'%') or s.senderName like CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			ORDER BY s.sentTime DESC
+			LIMIT #startIndex#, #length#
+	</select>
+	<!-- 除去 校长，学校管理员，董事长  之外的人员只能看到自己发送的在线留言信息 【福建专用】 -->
+	<select id="loadSmsListAsSelfFj" parameterClass="HashMap" resultMap="result-onlinemessage">
+		SELECT s.* FROM palm_online_message s
+			WHERE s.senderId = #userId#
+			<!-- 查询短信内容 -->
+			<isNotEmpty prepend="and" property="queryContent">
+				(s.content like CONCAT('%',#queryContent#,'%') or s.senderName like CONCAT('%',#queryContent#,'%'))
+			</isNotEmpty>
+			ORDER BY s.sentTime DESC
+			LIMIT #startIndex#, #length#
+	</select>
+	
+	<!-- 除去 校长，学校管理员，董事长  之外的人员只能看到自己发送在线留言的总数 syj  20151214 -->
+	<select id="loadSmsCountAsSelf" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM(
+			SELECT s.* FROM palm_online_message s
+				WHERE s.senderId = #userId#
+				<!-- 查询短信内容 -->
+				<isNotEmpty prepend="and" property="queryContent">
+					(s.content like CONCAT('%',#queryContent#,'%') or s.senderName like CONCAT('%',#queryContent#,'%'))
+				</isNotEmpty>
+		) tt
+	</select>
+	<!-- 除去 校长，学校管理员，董事长  之外的人员只能看到自己发送在线留言的总数【福建专用】 -->
+	<select id="loadSmsCountAsSelfFj" parameterClass="HashMap" resultClass="Integer">
+		SELECT COUNT(*) FROM(
+			SELECT s.* FROM palm_online_message s
+				WHERE s.senderId = #userId#
+				<!-- 查询短信内容 -->
+				<isNotEmpty prepend="and" property="queryContent">
+					(s.content like CONCAT('%',#queryContent#,'%') or s.senderName like CONCAT('%',#queryContent#,'%'))
+				</isNotEmpty>
+		) tt
+	</select>
+
+	<!-- 班主任权限 加载在线留言列表 -->
+<!-- 	<select id="loadSmsListAsTeacher" parameterClass="HashMap" -->
+<!-- 		resultMap="result-onlinemessage"> -->
+<!-- 		select sms.*, u.name -->
+<!-- 			from palm_online_message sms, palm_user u, palm_user_role ur -->
+<!-- 			where sms.senderid = u.id -->
+<!-- 			and u.id = ur.userId -->
+ 			<!-- 查询留言内容 -->
+<!-- 			<isNotEmpty prepend="and" property="queryContent"> -->
+<!-- 				sms.content like concat('%',#queryContent#,'%')  -->
+<!-- 			</isNotEmpty> -->
+<!-- 			and ur.clazzId = #clazzId# -->
+<!-- 			and ur.roleId in (4) -->
+<!-- 		union	 -->
+<!-- 		select sms.*, u.name -->
+<!-- 			from palm_online_message sms, palm_user u, palm_user_role ur -->
+<!-- 			where sms.senderid = u.id -->
+<!-- 			and u.id = ur.userId -->
+ 			<!-- 查询留言内容 -->
+<!-- 			<isNotEmpty prepend="and" property="queryContent"> -->
+<!-- 				u.name like concat('%',#queryContent#,'%') -->
+<!-- 			</isNotEmpty> -->
+<!-- 			and ur.clazzId = #clazzId# -->
+<!-- 			and ur.roleId in (4)			 -->
+<!-- 			order by senttime desc -->
+<!-- 	</select> -->
+	
+</sqlMap>

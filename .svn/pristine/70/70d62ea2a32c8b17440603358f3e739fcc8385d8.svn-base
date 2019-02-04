@@ -1,0 +1,64 @@
+package com.guotop.palmschool.system.service;
+
+import java.util.HashMap;
+import java.util.List;
+
+import com.guotop.palmschool.system.entity.CardApplyAudit;
+import com.guotop.palmschool.system.entity.CardApplyAudit_person;
+
+/**
+ * 在线审核申请业务类
+ * @author admin
+ *
+ */
+public interface CardApplyAuditService 
+{
+	/**
+	 * 页面加载在线审核申请列表
+	 * @param paramMap 参数map
+	 * @return 检测在线审核申请/分页
+	 */
+	public List<CardApplyAudit> getCardApplyAuditList(HashMap<String, Object> map);
+	/**
+	 * 查询审核通过列表
+	 * @param map
+	 * @return
+	 */
+	public List<CardApplyAudit> getCardApplyPassList(HashMap<String, Object> map);
+	/**
+	 * 查询审核不通过列表
+	 * @param map
+	 * @return
+	 */
+	public List<CardApplyAudit> getCardApplyNotPassList(HashMap<String, Object> map);
+	/**
+	 * 修改状态
+	 * @param map
+	 */
+	public void modifyStatus(HashMap<String, Object> map);
+	/**
+	 * 加载更多
+	 * @param map
+	 * @return
+	 */
+	public List<CardApplyAudit> loadMore(HashMap<String, Object> map);
+	/**
+	 * 添加补办卡申请
+	 * @param cardApply
+	 */
+	public void addCardApply(CardApplyAudit cardApply);
+	
+	/**
+	 * 添加个人在线补办卡申请
+	 * @param cardApplyAudit_person
+	 */
+	public void addCardApplyPerson(CardApplyAudit_person cardApplyAudit_person);
+	
+	/**
+	 * 更新个人在线补办卡信息
+	 * @param id
+	 * @param auditStatus
+	 * @param remark
+	 */
+	public void updateCardApplyPerson(Integer id,String auditStatus,String remark);
+}

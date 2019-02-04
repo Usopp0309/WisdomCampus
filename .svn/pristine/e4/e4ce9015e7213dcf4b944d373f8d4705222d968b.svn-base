@@ -1,0 +1,189 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>RichX智慧校园 - 订单列表</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+ 	<link href="<%=basePath%>assets/global/css/skin_m.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body id="body">
+	<%@ include file="/public_module/header.jsp"%>
+	
+	 <div class="Fill_Card">
+		<div class="header">
+			<div class="pablic_search_box Fill_Card_search_box">
+					<form action="<%=basePath %>shopping/getOrdersList.do" id="searchForm" method="post">
+						<button type="submit" class="fa fa-search search_submit"></button>
+						<input class="search_text" type="text" name="condition"
+							placeholder="请输入手机号、姓名、商品名..." value="${condition }"></input>
+						<input type="hidden" name="status" id="status" value="${status}">
+					</form>
+				</div>
+		</div>
+		<div class="con">
+			<h3>购物订单</h3>
+			<div class="tabbable tabbable-custom">
+				<ul class="nav nav-tabs">
+					<c:if test="${status eq '1'}">
+						<li class="active"><a href="javascript:changeStatus(1)">代发货订单</a></li>
+						<li class=""><a href="javascript:changeStatus(3)">已发货订单</a></li>
+					</c:if>
+					<c:if test="${status ne '1'}">
+						<li ><a href="javascript:changeStatus(1)">代发货订单</a></li>
+						<li class="active"><a href="javascript:changeStatus(3)">已发货订单</a></li>
+					</c:if>
+					
+
+				</ul>
+	
+				
+	
+				<p class="Fill_Card_title" style="background-color:#f2f2f2">
+				   
+					<span>商品名</span>
+					<span class="Response">数量</span>
+					<span>收件人</span>
+					<span class="Response">收件电话</span>
+					<span class="Response">收件地址</span>
+					<span> 操作</span>
+				</p>
+				<div class="tab-content" style="padding: 0px;">
+					<c:if test="${status eq '1'}">
+						<div >
+							       <c:forEach items="${list }" var="orders">
+							       		<p class="Fill_Card_accordion_title">
+											<span>${orders.goodsName }</span>
+											<span class="Response">${orders.counts }</span>
+											<span>${orders.receiver }</span>
+											<span class="Response">${orders.phone }</span>
+											<span class="Response">${orders.address }</span>
+											<span>
+											<a style=" background-color: #3aa4f1;color: #fff;cursor: pointer;padding: 5px 20px;" href="javascript:showModal(${orders.id },'${orders.goodsName }','${orders.receiver }','${orders.phone }')" >确定</a>
+										</span>
+										</p>
+							       
+							       </c:forEach>
+						</div>
+						<div data-keyboard="false" data-backdrop="static" tabindex="-1" class="modal hide fade" id="static" style="display: none;" aria-hidden="true">
+		
+							<div class="modal-body">
+		
+								<p>确定发货后，买家将收到短信提醒，是否确定发货</p>
+								<input type="hidden" id="goodsName" name="goodsName"/>
+								<input type="hidden" id="receiver" name="receiver">
+								<input type="hidden" id="phone" name="phone">
+								<input type="hidden" id="orderId" name="orderId">
+							</div>
+		
+							<div class="modal-footer">
+		
+								<button class="btn" data-dismiss="modal" type="button">取消</button>
+		
+								<button class="btn green" data-dismiss="modal" type="button" onclick="send()">确定</button>
+		
+							</div>
+		
+						</div>
+					</c:if>
+					<c:if test="${status eq '3'}">
+						<div >
+							 <c:forEach items="${list }" var="order">
+								<p class="Fill_Card_accordion_title">
+										<span>${order.goodsName }</span>
+										<span class="Response">${order.counts }</span>
+										<span>${order.receiver }</span>
+										<span class="Response">${order.phone }</span>
+										<span class="Response">${order.address }</span>
+										<span>已发货</span>
+									</p>
+							</c:forEach>
+						</div>
+					</c:if>
+						
+	
+				</div>
+	
+			</div>
+		</div>
+	</div>
+	<%@ include file="/public_module/footer.jsp" %>
+	</body>
+	<%@ include file="/public_module/public_js.jsp" %>
+	<script type="text/javascript">
+		$(function() {
+			
+			//导航定位
+			$(".menu_li a").removeClass("hover");
+			$("#menu7").addClass("hover");
+			//点击状态改变
+			$(".accordion-toggle").on("click", function() {
+				if($(this).parent().parent().find(".accordion-body").hasClass("in")){
+					$(this).removeAttr("style");
+					$(this).find("span").removeAttr("style");
+					$(this).find("i").removeClass("icon-chevron-down");
+				}else{
+					$(".accordion").find(".accordion-toggle").removeAttr("style");
+					$(".accordion").find(".accordion-toggle").find("span").removeAttr("style");
+					$(".accordion").find("i").removeClass("icon-chevron-down");
+					$(this).css({"background-color":"#3aa4f1"}).find("span").css({"color":"#fff"});
+					$(this).find("i").addClass("icon-chevron-down");
+				};
+				
+			})
+			
+			
+			$(".authorization_con").on("click", function() {
+				$(this).find("button").addClass("blue");
+				$(this).siblings().find("button").removeClass("blue");
+			})
+		})
+		function changeStatus(obj){
+			$("#status").val(obj);
+			$("#searchForm").submit();
+			
+		}
+		function showModal(orderId,goodsName,receiver,phone){
+			$("#orderId").val(orderId);
+			$("#goodsName").val(goodsName);
+			$("#receiver").val(receiver);
+			$("#phone").val(phone);
+			$('#static').modal('show');
+		}
+		function send(orderId){
+			var body = $("#body");
+			App.blockUI(body);
+			
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>shopping/sendOrders.do",
+				data:{
+						orderId : $("#orderId").val(),
+						goodsName : $("#goodsName").val(),
+						receiver : $("#receiver").val(),
+						phone : $("#phone").val()
+				},
+				success: function(data){
+					var data = $.parseJSON(data);
+					if (data.code == 0){
+						window.location.reload();
+					}else{
+						alert(data.msg);
+						$('#static').modal('hide');
+					}
+          			//解锁UI
+          			App.unblockUI(body);
+          			/* $(".search_box").css({"display":"none"}); */
+				},
+			});
+		}
+	</script>
+</html>

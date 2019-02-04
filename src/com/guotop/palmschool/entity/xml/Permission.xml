@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Permission">
+	<typeAlias alias="permission" type="com.guotop.palmschool.entity.Permission"/>
+	<typeAlias alias="userPermission" type="com.guotop.palmschool.entity.UserPermission"/>
+	
+	<!--权限列表-->		
+	<resultMap class="com.guotop.palmschool.entity.Permission" id="result_permission">
+		<result property="permissionCode" column="permissionCode"/>
+		<result property="permissionName" column="permissionName"/>	
+		<result property="type" column="type"/>
+		<result property="parentCode" column="parentCode"/>
+	</resultMap>
+	
+   <!-- 表单校验 -->
+	<select id="getPermissionByUserId" parameterClass="Integer" resultMap="result_permission">
+ 		select distinct p.permissionCode, p.permissionName, p.type, p.parentCode from palm_permission p, palm_user_permission up
+ 			where p.permissionCode = up.permissionCode and up.userId = #userId#
+	</select>
+	<!-- 获取所有权限 -->
+	<select id="getPermissionList" resultClass="permission">
+ 		select * from palm_permission
+	</select>
+	<!-- 获取有父级权限 的 权限 -->
+	<select id="getByParentCodeNull" resultClass="permission">
+ 		SELECT * FROM palm_permission 
+	</select>
+	<!-- 根据permissionCode查询 -->
+	<select id="getPermissionPermissionCode" resultClass="permission" parameterClass="String">
+ 		select * from palm_permission where permissionCode=#permissionCode#
+	</select>
+	<!-- 查询该用户是否已经拥有该权限 -->
+	<select id="getPermissionByUserIdAndPermissionCode" parameterClass="HashMap" resultClass="Integer">
+ 		select COUNT(*) from palm_user_permission
+ 			where userId = #userId#
+ 			and (permissionCode = #permissionCode# or permissionCode='admin')
+	</select>
+	
+	<!-- 根据用户Id查询已有权限 -->
+	<select id="getHavePermissionById" parameterClass="Integer" resultMap="result_permission">
+ 		select distinct p.* from palm_permission p, palm_user_permission up
+ 			where p.permissionCode = up.permissionCode 
+ 			and up.userId = #userId#
+ 			and up.roleCode != 'parent'
+	</select>
+	
+	<!-- 根据用户Id查询未有权限 -->
+	<select id="getNotHavePermissionById" parameterClass="Integer" resultMap="result_permission">
+ 	  SELECT * FROM palm_permission p
+         WHERE 1= 1
+            AND NOT EXISTS
+             ( SELECT p.permissionCode FROM palm_user_permission up
+ 			       WHERE p.permissionCode = up.permissionCode 
+ 			         AND up.userId = #userId#
+ 			 )
+	</select>
+	<!-- 查询按钮权限 -->
+	<select id="getPermissionBytype1"  resultMap="result_permission">
+ 	  SELECT * FROM palm_permission  WHERE type =1
+	</select>
+	
+	<insert id="addPermission">
+			insert into
+		palm_permission
+		(
+		permissionCode,
+		permissionName,
+		type,
+		parentCode
+		)
+		values
+		(
+		#permissionCode#,
+		#permissionName#,
+		#type#,
+		#parentCode#
+		)
+	
+	</insert>
+	
+	<update id="updatePermission" parameterClass="Permission">
+		update palm_permission 
+			set 
+				 permissionName = #permissionName#,
+				 type = #type#,
+				 parentCode = #parentCode#
+				 where permissionCode = #permissionCode#
+	</update>
+	<!-- 修改菜单 级联修改权限	 -->
+	<update id="updatePermissionByMenu" parameterClass="HashMap">
+		update palm_permission 
+			set 
+				 parentCode = #parentCode#
+				 where parentCode = #oldParentCode#
+	</update>
+	
+<!-- 	删除 -->
+	<delete id="deleteByPermissionCode" parameterClass="String">
+		DELETE FROM palm_permission WHERE permissionCode=#permissionCode# OR parentCode=#permissionCode#
+	</delete>
+</sqlMap>

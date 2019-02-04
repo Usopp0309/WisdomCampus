@@ -1,0 +1,19 @@
+#mysql-driver
+jdbc.driverClassName=com.mysql.jdbc.Driver
+#jdbc.url=jdbc:mysql://121.199.27.191:3308/platform?characterEncoding=utf-8
+jdbc.url=jdbc:mysql://192.168.0.249:3306/platform?characterEncoding=utf-8
+#jdbc.url=jdbc:mysql://localhost:3307/platform?characterEncoding=utf-8
+jdbc.username=palmSchool
+jdbc.password=palmSchool
+jdbc.initialSize=20
+jdbc.maxActive=50
+jdbc.maxIdle=10
+jdbc.minIdle=5
+
+##DataSource Global Setting
+ds.initialSize=20
+ds.minIdle=5
+ds.maxActive=50
+ds.maxWait=60000
+ds.timeBetweenEvictionRunsMillis=60000
+ds.minEvictableIdleTimeMillis=300000

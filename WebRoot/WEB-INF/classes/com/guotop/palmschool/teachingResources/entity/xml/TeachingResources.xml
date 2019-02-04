@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="TeachingResources">
+
+	<typeAlias alias="teachingResources"
+		type="com.guotop.palmschool.teachingResources.entity.TeachingResources" />
+	<!-- 分页获得教学资源信息 -->
+	<select id="getTeachingResources" parameterClass="HashMap"
+		resultClass="teachingResources">
+		select r.* from palm_teaching_resources r where 1=1
+		<isNotEmpty property="fileName">
+			and fileName like CONCAT('%',#fileName#,'%')
+		</isNotEmpty>
+		<isNotEmpty property="fileType">
+		and fileType=#fileType#
+		</isNotEmpty>
+		<isNotEmpty property="startTime">
+		and DATE_FORMAT(r.createTime,'%Y%m%d')&gt;=DATE_FORMAT(#startTime#,'%Y%m%d')
+		</isNotEmpty>
+		<isNotEmpty property="endTime">
+		and DATE_FORMAT(r.createTime,'%Y%m%d')&lt;=DATE_FORMAT(#endTime#,'%Y%m%d')
+		</isNotEmpty>
+		order by r.createTime desc
+		limit #startIndex# , #length#
+	</select>
+	<!-- 分页获得教学资源信息总数 -->
+	<select id="getTeachingResourcesCount" parameterClass="HashMap"
+		resultClass="Integer">
+		select count(*) from palm_teaching_resources r where 1=1
+		<isNotEmpty property="fileName">
+			and fileName like CONCAT('%',#fileName#,'%')
+		</isNotEmpty>
+		<isNotEmpty property="fileType">
+		and fileType=#fileType#
+		</isNotEmpty>
+		<isNotEmpty property="startTime">
+		and DATE_FORMAT(r.createTime,'%Y%m%d')&gt;=DATE_FORMAT(#startTime#,'%Y%m%d')
+		</isNotEmpty>
+		<isNotEmpty property="endTime">
+		and DATE_FORMAT(r.createTime,'%Y%m%d')&lt;=DATE_FORMAT(#endTime#,'%Y%m%d')
+		</isNotEmpty>
+	</select>
+	<!-- 添加教学资源 -->
+	<insert id="addTeachingResources" parameterClass="teachingResources" >
+		insert into palm_teaching_resources(
+		`fileName` ,
+		`uploadUserId`,
+		`userName`,
+		`fileSize`,
+		`createTime`,
+		`taskSubjectId`,
+		`taskSubjectName`,
+		`taskContentImage`,
+		`taskContent`,
+		`createDate`,
+		`clazzId`,
+		`sendUserId`,
+		`sendUserName`,
+		`fileUrl`,
+		`fileType`
+		)
+		values(
+		#fileName# ,
+		#uploadUserId#,
+		#userName#,
+		#fileSize#,
+		now(),
+		#taskSubjectId#,
+		#taskSubjectName#,
+		#taskContentImage#,
+		#taskContent#,
+		#createDate#,
+		#clazzId#,
+		#sendUserId#,
+		#sendUserName#,
+		#fileUrl#,
+		#fileType#
+		)
+			<selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+<!-- 添加RichClound本校资源 -->
+	<insert id="addResourceDetail" parameterClass="HashMap">
+		insert into richcloud.cloud_resource (
+		    chargeId,
+		    title,
+		    introduction,
+		    resourceType,
+		    propertyType,
+		    introductionType,
+		    regionCode,
+		    gradeId,
+		    subjectId,
+		    semester,
+		    releaseType,
+		    userId,
+		    createTime,
+		    updateTime,
+		    clickCount,
+		    score,
+		    status,
+		    fileType,
+		    parentId,
+		    resourcePath,
+		    resourceSize,
+		    stage,
+		    schoolId,
+		    resourceCoverPath,
+		    type
+		) values (
+		    #chargeId#,
+		    #title#,
+		    #introduction#,
+		    #resourceType#,
+		    #propertyType#,
+		    #introductionType#,
+		    #regionCode#,
+		    #gradeId#,
+		    #subjectId#,
+		    #semester#,
+		    #releaseType#,
+		    #userId#,
+		    now(),
+		    now(),
+		    #clickCount#,
+		    #score#,
+		    #status#,
+		    #fileType#,
+		    #parentId#,
+		    #resourcePath#,
+		    #resourceSize#,
+		    #stage#,
+		    #schoolId#,
+		    #resourceCoverPath#,
+		    #type#
+		)
+		<selectKey resultClass="int" type="post" keyProperty="resourceId">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	<!-- RichClound资源收费表，记录资源的收费信息 -->
+	<insert id="addResourceCharge" parameterClass="HashMap">
+		insert into richcloud.cloud_resource_charge (
+		    chargeMoney,
+		    chargeType,
+		    createTime,
+		    isCharge
+		) values (
+		    #chargeMoney#,
+		    #chargeType#,
+		   NOW(),
+		    1
+		)
+		<selectKey resultClass="int" type="post" keyProperty="chargeId">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+	<!-- 根据主键获得资源 -->
+	<select id="getBykey" parameterClass="java.lang.Integer" resultClass="teachingResources">
+	select * from palm_teaching_resources where id=#id#
+	</select>
+	<!-- 更新教学资源的url -->
+	<update id="updateTeachingResourcesByFileUrl" parameterClass="HashMap">
+	     update palm_teaching_resources set fileUrl=#key# where fileUrl=#inputKey# 
+	</update>
+	<!-- 删除RichClound教学资源 -->
+	<delete id="deleteCloudResources" parameterClass="java.lang.String">
+	delete from richcloud.cloud_resource where  resourcePath=#resourcePath#
+	</delete>
+	<!-- 更新RichClound教学资源的url -->
+	<update id="updateRichCloundResourcesByurl" parameterClass="HashMap">
+	     update richcloud.cloud_resource set resourcePath=#key# where resourcePath=#inputKey# 
+	</update>
+	<!-- 删除教学资源 -->
+	<delete id="deleteTeachingResources" parameterClass="Integer">
+	delete from palm_teaching_resources where id=#id#
+	</delete>
+</sqlMap>

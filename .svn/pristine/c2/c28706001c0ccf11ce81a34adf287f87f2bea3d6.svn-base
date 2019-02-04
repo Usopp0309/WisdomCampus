@@ -1,0 +1,809 @@
+package com.guotop.palmschool.controller;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.gson.Gson;
+import com.guotop.palmschool.common.entity.ResultInfo;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.entity.Clazz;
+import com.guotop.palmschool.entity.Groupmember;
+import com.guotop.palmschool.entity.Groups;
+import com.guotop.palmschool.entity.RolePermission;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.entity.UserPermission;
+import com.guotop.palmschool.service.ClazzService;
+import com.guotop.palmschool.service.GroupmemberService;
+import com.guotop.palmschool.service.GroupsService;
+import com.guotop.palmschool.service.StudentService;
+import com.guotop.palmschool.service.UserDataChangeRecordsService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.util.HttpClientUtil;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+import com.guotop.palmschool.util.TimeUtil;
+import com.guotop.palmschool.util.XmlUtil;
+
+import dev.gson.GsonHelper;
+
+/**
+ * 班级控制类
+ * 
+ * @author shengyinjiang
+ *
+ */
+@RequestMapping("/clazz")
+@Controller
+public class ClazzController extends BaseController
+{
+	@Resource
+	private ClazzService clazzService;
+
+	@Resource
+	private CommonService commonService;
+
+	@Resource
+	private StudentService studentService;
+
+	@Resource
+	private GroupsService groupsService;
+
+	@Resource
+	private GroupmemberService groupmemberService;
+
+	@Resource
+	private UserService userService;
+
+	@Resource
+	private UserDataChangeRecordsService userDataChangeRecordsService;
+
+	private String syncObject = "3"; // 同步对象 3：班级
+
+	private String operationClass = "class"; // 操作对象
+
+	/**
+	 * 进入班级管理页面
+	 */
+	@RequestMapping(value = "/toClazzList.do")
+	public String toClazzList()
+	{
+		return "clazz/clazz_list";
+	}
+
+	/**
+	 * 不同权限查看到不同的page
+	 * 
+	 */
+	@RequestMapping(value = "/getClazzList.do")
+	public String getClazzList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+        User user=(User) session.getAttribute("user");
+		try
+		{
+			// 分页信息
+			Integer currentPage = 1;
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			// 查询内容
+			String queryContent = request.getParameter("queryContent");
+
+			// 参数map
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("queryContent", queryContent);
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("permissionCode", "classManager");
+
+			this.getPages().setPageSize(50);
+			Pages pages = null;
+			if(!StringUtil.isFjequals(user.getSchoolId())){
+				
+				pages = clazzService.getClazzList(this.getPages().getPageSize(), currentPage, user, paramMap);
+			}else{
+			paramMap.put("fjSchoolId", user.getFjSchoolId());
+			pages = clazzService.getClazzListFj(this.getPages().getPageSize(), currentPage, user, paramMap);
+			}
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 进入修改班级页面
+	 * 
+	 */
+	@RequestMapping(value = "/toModifyClazz.do")
+	public String toModifyClazz(HttpServletRequest request, HttpSession session, HttpServletResponse response, ModelMap modelMap)
+	{
+
+		User loginUser = (User) session.getAttribute("user");
+
+		String clazzId = request.getParameter("clazzId");
+		Clazz clazz = clazzService.getClazzById(Integer.valueOf(clazzId));
+
+		modelMap.addAttribute("clazzId", clazz.getId());
+		modelMap.addAttribute("code", clazz.getCode());
+		modelMap.addAttribute("clazzName", clazz.getClazzName());
+		modelMap.addAttribute("leaderId", clazz.getLeaderId());
+		modelMap.addAttribute("userId", loginUser.getUserId());
+		modelMap.addAttribute("gradeName", clazz.getGradeName());
+		modelMap.addAttribute("gradeId",clazz.getGradeId());
+		modelMap.addAttribute("type", clazz.getType());
+		return "clazz/clazz_modify";
+	}
+
+	/**
+	 * 加载加载所有教师信息，不需要职工
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getAllClazzLeader.do")
+	public String getAllClazzLeader(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		List<User> userList = clazzService.getAllClazzLeader();
+		try
+		{
+			Gson gson = new Gson();
+			String json = gson.toJson(userList);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 表单校验-- 班级修改表单 map 原班级编号和修改后的班级编号
+	 */
+	@RequestMapping(value = "/checkClazzModifyByCode.do")
+	public String checkClazzModifyByCode(HttpServletRequest request, HttpServletResponse response, HttpSession session, ModelMap modelMap)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			String code = request.getParameter("code");
+			String originalcode = request.getParameter("originalcode");
+			modelMap.put("code", code);
+			modelMap.put("originalcode", originalcode);
+
+			ResultInfo resultInfo = clazzService.checkClazzModifyByCode(modelMap);
+
+			Gson gson = new Gson();
+			String json = gson.toJson(resultInfo);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	/**
+	 * 执行修改班级逻辑
+	 */
+	@RequestMapping(value = "/doModifyClazz.do")
+	public String doModifyClazz(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		// 班级代码
+		String code = request.getParameter("code");
+		// 新班主任id
+		Integer newLeaderId = 0;
+		if (!StringUtil.isEmpty(request.getParameter("clazzLeaderSelect")))
+		{
+			newLeaderId = Integer.valueOf(request.getParameter("clazzLeaderSelect"));
+		}
+
+		// 班级id
+		Integer clazzId = Integer.valueOf(request.getParameter("clazzId"));
+		// 班级名称
+		String clazzName = request.getParameter("clazzName");
+		// 参数map
+		HashMap<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("clazzId", clazzId);
+		paramMap.put("code", code);
+		paramMap.put("leaderId", newLeaderId);
+		paramMap.put("updatetime", TimeUtil.getInstance().now());
+		paramMap.put("clazzName", clazzName);
+
+		// 1.修改班级信息
+		clazzService.modifyClazzById(paramMap);
+
+		String classLeader = "classLeader";
+		paramMap.put("roleCode", classLeader);
+
+		// 删除原班主任的关于本班的权限信息
+		String oldLeaderId = request.getParameter("oldLeaderId");
+		boolean oldFlag = false;
+		boolean newFlag = false;
+		if ("0".equals(oldLeaderId) && "0".equals(newLeaderId+""))
+		{
+			//什么也不操作
+			oldFlag = false;
+			newFlag = false;
+		}else if("0".equals(oldLeaderId) && !"0".equals(newLeaderId+"")){
+			//只需要对新班主任做操作
+			oldFlag = false;
+			newFlag = true;
+		}else if(!"0".equals(oldLeaderId) && "0".equals(newLeaderId+"")){
+			//只需要对旧班主任做操作
+			oldFlag = true;
+			newFlag = false;
+		}else if(!"0".equals(oldLeaderId) && !"0".equals(newLeaderId+"")){
+			if(!oldLeaderId.equals(newLeaderId+"")){
+				oldFlag = true;
+				newFlag = true;
+			}else{
+				oldFlag = false;
+				newFlag = false;
+			}
+		}
+
+		if(oldFlag){
+			/*
+			 * 判断原班主任带有几个班级 如果一个 直接更新user_permission optClazzId 为 null 如果有多个
+			 * 直接删除和本班级有关的权限 delete user_permission where optClazzId = 本班
+			 */
+			List<UserPermission> old_userPerList = commonService.getUserPermissionGroupByOptClazzId(StringUtil.toint(oldLeaderId),classLeader);
+			if (!CollectionUtils.isEmpty(old_userPerList))
+			{
+				paramMap.put("userId", Integer.valueOf(oldLeaderId));
+				paramMap.put("optClazzId", clazzId);
+				if (old_userPerList.size() == 1)
+				{
+					clazzService.updateOptClazzId2NullByClazzIdAndUserId(paramMap);
+				} else
+				{
+					commonService.deleteUserRolePermissionByUserIdAndClazzId(paramMap);
+				}
+			}
+		}
+		
+		if(newFlag){
+			/*
+			 * 判断新班主任 之前是否是其他班的班主任 
+			 * 是: 添加本班对应的权限 
+			 * 否 :没有带班 直接update optCLazzId
+			 */
+			List<UserPermission> new_userPerList = commonService.getUserPermissionGroupByOptClazzId(newLeaderId,classLeader);
+			if (!CollectionUtils.isEmpty(new_userPerList))
+			{
+				paramMap.put("userId", newLeaderId);
+				paramMap.put("optClazzId", clazzId);
+
+				if (new_userPerList.size() == 1 && StringUtil.isEmpty(new_userPerList.get(0).getOptClazzId()))
+				{
+					// 如果只有一条记录 且 optClazzId为空 则直接update 因为修改班主任的之前，该人员必须现有班主任权限
+					commonService.updateUserPermissionByUserId(paramMap);
+				} else
+				{
+					List<RolePermission> rolePermissionList = commonService.getPermissionByRoleCode(classLeader);
+					List<UserPermission> userPermissionList = new ArrayList<UserPermission>();
+					if(!CollectionUtils.isEmpty(rolePermissionList)){
+						for (RolePermission role : rolePermissionList)
+						{
+							paramMap.put("permissionCode", role.getPermissionCode());
+							UserPermission up = new UserPermission();
+							up.setUserId(newLeaderId);
+							up.setPermissionCode(role.getPermissionCode());
+							up.setOptClazzId(String.valueOf(clazzId));
+							up.setRoleCode(classLeader);
+							userPermissionList.add(up);
+						}
+						if(!CollectionUtils.isEmpty(userPermissionList)){
+							commonService.addUserPermission(userPermissionList);
+						}
+					}
+				}
+			}
+		}
+		return "clazz/clazz_list";
+	}
+
+	/**
+	 * 进入增加班级页面
+	 */
+	@RequestMapping(value = "/toAddClazz.do")
+	public String toAddClazz(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		User loginUser = (User) session.getAttribute("user");
+
+		/**
+		 * 存放页面隐藏域
+		 */
+		modelMap.addAttribute("user", loginUser);
+
+		return "clazz/clazz_add";
+	}
+
+	/**
+	 * 执行增加班级逻辑
+	 */
+	@RequestMapping(value = "/doAddClazz.do")
+	public String doAddClazz(HttpServletRequest request, HttpSession session, ModelMap modelMap)
+	{
+		// 班级代码
+		String code = request.getParameter("code");
+		// 班级名称
+		String clazzName = request.getParameter("clazzName");
+		// 班主任id
+		Integer leaderId = Integer.valueOf(request.getParameter("clazzLeaderSelect"));
+		// 年级id
+		Integer gradeId = Integer.valueOf(request.getParameter("gradeId"));
+
+		Clazz clazz = new Clazz();
+		clazz.setCode(code);
+		clazz.setClazzName(clazzName);
+		clazz.setGradeId(gradeId);
+		clazz.setLeaderId(leaderId);
+		clazz.setCreateTime(TimeUtil.getInstance().now());
+		clazz.setUpdateTime(TimeUtil.getInstance().now());
+
+		// 1.添加班级
+		int clazzId = clazzService.addClazz(clazz);
+
+		if (leaderId != 0)
+		{
+			// 2.添加新班主任的user_role信息，
+			// 添加之前判断先判断user_role新班主任有没有同样的角色对应(user_permission已经包含在addUserRole)
+			HashMap<String, Object> map = new HashMap<String, Object>();
+			map.put("userId", leaderId);
+			map.put("roleCode", "classLeader");
+			map.put("optClazzId", clazzId);
+			commonService.addUserRole(map);
+		}
+
+		/*
+		// 用户操作日志记录增加操作
+		String operateType = "0"; // 操作类型 0：新增
+		UserDataChangeRecords userOprateLog = new UserDataChangeRecords(clazzId, operateType, syncObject);
+		// recordsId：插入数据后生成的主键Id
+		int recordsId = userDataChangeRecordsService.addUserOprateLog(userOprateLog);
+		Map<String, String> detailMap = putDetailMap(clazz);
+		for (Map.Entry<String, String> entry : detailMap.entrySet())
+		{
+			String key = entry.getKey();
+			String value = entry.getValue();
+			if (StringUtils.isEmpty(key) || StringUtils.isEmpty(value))
+			{
+				continue;
+			}
+			UserDataChangeRecordsDetail userDataChangeRecordsDetail = new UserDataChangeRecordsDetail(operationClass, operateType, key, value, recordsId);
+			userDataChangeRecordsService.addDetail(userDataChangeRecordsDetail);
+		}
+		*/
+		return "clazz/clazz_list";
+	}
+
+	/**
+	 * 表单校验---begin
+	 */
+	@RequestMapping(value = "/checkClazzByCode.do")
+	public String checkClazzByCode(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			String code = request.getParameter("code");
+			ResultInfo resultInfo = clazzService.checkClazzByCode(code);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(resultInfo);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@RequestMapping(value = "/checkClazzByClazzName.do")
+	public String checkClazzByClazzName(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			String clazzName = request.getParameter("clazzName");
+			String gradeId = request.getParameter("gradeId");
+			Map<String, Object> paramMa = new HashMap<String, Object>();
+			paramMa.put("clazzName", clazzName);
+			paramMa.put("gradeId", gradeId);
+			ResultInfo resultInfo = clazzService.checkClazzByClazzName(paramMa);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(resultInfo);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	/**
+	 * 修改时判断班级名称是否存在
+	  @author chenyong
+	  @date 2016年10月12日 下午6:14:06
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/checkUpdateClazzByClazzName.do")
+	public String checkUpdateClazzByClazzName(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			String clazzName = request.getParameter("clazzName");
+			String gradeId = request.getParameter("gradeId");
+			String classId = request.getParameter("classId");
+			Map<String, Object> paramMa = new HashMap<String, Object>();
+			paramMa.put("clazzName", clazzName);
+			paramMa.put("gradeId", gradeId);
+			List<Clazz> cList=clazzService.getClazzByClazzName(paramMa);
+			int flag=0;
+			if((!CollectionUtils.isEmpty(cList))){//班级已存在
+				for(Clazz c:cList){
+					if(!classId.equals(c.getId().toString())){
+						flag=1;
+						break;
+					}
+				}
+			}
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(GsonHelper.toJson(flag));
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	/**
+	 * 根据clazzId清空班级里的所有学生和其对应的学号
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/clearClazzStudent.do")
+	public String clearClazzStudent(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		try
+		{
+			Integer clazzId = StringUtil.toint(request.getParameter("clazzId"));
+			boolean flag = false;
+			try
+			{
+
+				clazzService.clearClazzStudent(clazzId);
+				flag = true;
+			} catch (Exception e)
+			{
+				flag = false;
+				e.printStackTrace();
+			}
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(flag);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 表单校验---end
+	 */
+
+	/**
+	 * 创建班级群
+	 * 
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/createClazzGroup.do")
+	public String createDepartGroup(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		String resultMsg = "";
+		try
+		{
+			String clazzId = request.getParameter("clazzId");
+			User loginUser = (User) session.getAttribute("user");
+			Long schoolId = Long.valueOf(loginUser.getSchoolId());
+			List<Integer> groupsList = groupsService.getGroupsBySchoolIdAndClazzId(schoolId, Integer.valueOf(clazzId));
+			if (groupsList != null && groupsList.size() > 0)
+			{
+				resultMsg = "该班级群已经存在，不能继续创建";
+			} else
+			{
+				List<User> schoolAdminList = commonService.getSchoolAdminBySchoolId(schoolId); // 查找学校管理员
+				User schoolAdmin = new User();
+				if (schoolAdminList != null)
+				{
+					schoolAdmin = schoolAdminList.get(0);
+				}
+				List<User> parentList = studentService.getParentListByClazzId(Integer.valueOf(clazzId),schoolId+"");
+				if (parentList != null && parentList.size() > 0)
+				{
+					Clazz clazz = clazzService.getClazzById(Integer.valueOf(clazzId));
+					String clazzName = clazz.getClazzName();
+					String gradeName = clazz.getGradeName();
+					String type = clazz.getType(); // 0 幼儿园 1小学 2 初中 3 高中
+					String createYear = clazz.getCreateYear();
+					if (type.equals("0"))
+					{
+						type = "幼儿园";
+					} else if (type.equals("1"))
+					{
+						type = "小学";
+					} else if (type.equals("2"))
+					{
+						type = "初中";
+					} else if (type.equals("3"))
+					{
+						type = "高中";
+					}
+					Groups lastlyGroups = groupsService.getLastlyGroups();
+					int lastlyGroupsCode = 11111111;
+					if (lastlyGroups != null)
+					{
+						lastlyGroupsCode = Integer.valueOf(lastlyGroups.getGroupCode());
+						lastlyGroupsCode++;
+					}
+					String groupName = createYear + "届" + type + gradeName + "-" + clazzName + "群";
+					String currentTime = TimeUtil.getInstance().now();
+					Groups groups = new Groups();
+					groups.setGroupName(groupName);
+					groups.setGroupCode(String.valueOf(lastlyGroupsCode));
+					groups.setPublicMessage("暂时还没有公开信息");
+					groups.setGroupMessage("暂时还没有群公告");
+					groups.setType(2);// 0-互信创建普通群，1-智慧校园创建部门群，2-智慧校园创建班级群，3-互信创建部门群，4-互信创建班级群
+					groups.setModifiable(1);
+					groups.setCreatetime(currentTime);
+					groups.setActivetime(currentTime);
+					groups.setAuthentication(1);// 0-允许任何人加入,1-需要身份验证,2-不允许任何人加入
+					groups.setDeClazzId(Integer.valueOf(clazzId));
+					groups.setSchoolId(Long.valueOf(loginUser.getSchoolId()));
+					groups.setCreateId(loginUser.getUserId());
+					if (!loginUser.getUserId().equals(schoolAdmin.getUserId()))
+					{
+						groups.setGroupAdminMemberCount(2);// 班级群管理员个数 = 群主 +
+															// 班主任
+					} else
+					{
+						if (clazz.getLeaderId() != null && !clazz.getLeaderId().equals(schoolAdmin.getUserId()))
+						{
+							groups.setGroupAdminMemberCount(2);// 班级群管理员个数 = 群主
+																// + 班主任
+						} else
+						{
+							groups.setGroupAdminMemberCount(1);// 班级群管理员个数 = 群主
+																// + 班主任
+						}
+					}
+					groups.setGroupMemberCount(parentList.size() + groups.getGroupAdminMemberCount());
+
+					// 创建容联云群
+					Map<String, String> parMap = new HashMap<String, String>();
+					parMap.put("name", groupName);
+					parMap.put("type", "1");// 群组类型 0：临时组(上限100人) 1：普通组(上限300人)
+											// 2：普通组(上限500人)
+					parMap.put("permission", "0");// 0：默认直接加入 1：需要身份验证 2：私有群组
+					String xmlresult = HttpClientUtil.postXML(schoolAdmin.getVoipAccount(), "Group", "CreateGroup", parMap);
+					String statusCode = XmlUtil.parseXml(xmlresult, "statusCode");
+					if ("000000".equals(statusCode))
+					{
+						String yuntxGroupId = XmlUtil.parseXml(xmlresult, "groupId");
+						groups.setYuntxGroupId(yuntxGroupId);
+						Integer groupId = groupsService.addGroups(groups);
+
+						Groupmember groupmember_leader = new Groupmember(); // 创建群主
+						groupmember_leader.setUserId(schoolAdmin.getUserId());
+						groupmember_leader.setGroupId(groupId);
+						groupmember_leader.setShowName(schoolAdmin.getRealName());
+						groupmember_leader.setPhone(schoolAdmin.getPhone());
+						groupmember_leader.setType(0);// 0-群主，1-管理员 2-普通用户
+						groupmember_leader.setModifiable(1);
+						groupmember_leader.setCreatetime(currentTime);
+						groupmember_leader.setActivetime(currentTime);
+						groupmember_leader.setMyGroupCard(groupName + "群主");
+						groupmemberService.addGroupmember(groupmember_leader);
+
+						Groupmember groupmember_admin = new Groupmember(); // 创建群管理员
+						if (!loginUser.getUserId().equals(schoolAdmin.getUserId()))
+						{
+							if (clazz.getLeaderId() != null && !clazz.getLeaderId().equals(schoolAdmin.getUserId()))
+							{
+								groupmember_admin.setUserId(clazz.getLeaderId());
+								groupmember_admin.setShowName(clazz.getLeaderName());
+								groupmember_admin.setPhone(clazz.getPhone());
+							} else if (clazz.getLeaderId() == null)
+							{
+								groupmember_admin.setUserId(loginUser.getUserId());
+								groupmember_admin.setShowName(loginUser.getRealName());
+								groupmember_admin.setPhone(loginUser.getPhone());
+							}
+							groupmember_admin.setGroupId(groupId);
+							groupmember_admin.setType(1);// 0-群主，1-管理员 2-普通用户
+							groupmember_admin.setModifiable(1);
+							groupmember_admin.setCreatetime(currentTime);
+							groupmember_admin.setActivetime(currentTime);
+							groupmember_admin.setMyGroupCard(groupName + "管理员");
+
+							String groupmember_admin_voipAccount = userService.getVoipAccountByUserId(groupmember_admin.getUserId());
+							// 加入容联云群组
+							String parXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + "<Request>" + "<groupId>" + yuntxGroupId + "</groupId>" + "<members>" + "<member>" + groupmember_admin_voipAccount + "</member>" + "</members>" + "<confirm>1</confirm>" + "</Request>";
+							String inviteJoinGroupXmlresult = HttpClientUtil.postXMLInviteJoinGroup(schoolAdmin.getVoipAccount(), "Group", "InviteJoinGroup", parXml);
+							String inviteJoinGroupStatusCode = XmlUtil.parseXml(inviteJoinGroupXmlresult, "statusCode");
+							if ("000000".equals(inviteJoinGroupStatusCode))
+							{
+								groupmemberService.addGroupmember(groupmember_admin);
+							}
+						} else
+						{
+							groupmember_admin.setUserId(schoolAdmin.getUserId());
+							if (clazz.getLeaderId() != null && !clazz.getLeaderId().equals(schoolAdmin.getUserId()))
+							{
+								groupmember_admin.setUserId(clazz.getLeaderId());
+								groupmember_admin.setShowName(clazz.getLeaderName());
+								groupmember_admin.setPhone(clazz.getPhone());
+								groupmember_admin.setGroupId(groupId);
+								groupmember_admin.setType(1);// 0-群主，1-管理员
+																// 2-普通用户
+								groupmember_admin.setModifiable(1);
+								groupmember_admin.setCreatetime(currentTime);
+								groupmember_admin.setActivetime(currentTime);
+								groupmember_admin.setMyGroupCard(groupName + "管理员");
+
+								String groupmember_admin_voipAccount = userService.getVoipAccountByUserId(groupmember_admin.getUserId());
+								// 加入容联云群组
+								String parXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + "<Request>" + "<groupId>" + yuntxGroupId + "</groupId>" + "<members>" + "<member>" + groupmember_admin_voipAccount + "</member>" + "</members>" + "<confirm>1</confirm>" + "</Request>";
+								String inviteJoinGroupXmlresult = HttpClientUtil.postXMLInviteJoinGroup(schoolAdmin.getVoipAccount(), "Group", "InviteJoinGroup", parXml);
+								String inviteJoinGroupStatusCode = XmlUtil.parseXml(inviteJoinGroupXmlresult, "statusCode");
+								if ("000000".equals(inviteJoinGroupStatusCode))
+								{
+									groupmemberService.addGroupmember(groupmember_admin);
+								}
+							}
+						}
+
+						for (User parent : parentList)
+						{
+							Integer parentId = parent.getUserId();
+							Groupmember groupmember = new Groupmember(); // 创建群成员,部门管理员是群管理员
+							groupmember.setUserId(parentId);
+							groupmember.setGroupId(groupId);
+							groupmember.setShowName(parent.getRealName());
+							groupmember.setPhone(parent.getPhone());
+							if (parentId == groupmember_leader.getUserId() || parentId == groupmember_admin.getUserId())
+							{
+								continue;
+							} else
+							{
+								groupmember.setType(2);
+								groupmember.setMyGroupCard(groupName + "群组人员");
+								groupmember.setModifiable(0);
+								groupmember.setCreatetime(currentTime);
+								groupmember.setActivetime(currentTime);
+
+								// 加入容联云群组
+								String parXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + "<Request>" + "<groupId>" + yuntxGroupId + "</groupId>" + "<members>" + "<member>" + parent.getVoipAccount() + "</member>" + "</members>" + "<confirm>1</confirm>" + "</Request>";
+								String inviteJoinGroupXmlresult = HttpClientUtil.postXMLInviteJoinGroup(schoolAdmin.getVoipAccount(), "Group", "InviteJoinGroup", parXml);
+								String inviteJoinGroupStatusCode = XmlUtil.parseXml(inviteJoinGroupXmlresult, "statusCode");
+								if ("000000".equals(inviteJoinGroupStatusCode))
+								{
+									groupmemberService.addGroupmember(groupmember);
+								}
+							}
+						}
+						resultMsg = "班级群创建成功， 班级人员成功添加";
+					} else
+					{
+						resultMsg = "亦信班级群创建失败，请稍后重试";
+					}
+				} else
+				{
+					resultMsg = "班级人数为空,不能创建亦信班级群";
+				}
+			}
+			Gson gson = new Gson();
+			String json = gson.toJson(resultMsg);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 初始化detail的参数
+	 * 
+	 * @param grade
+	 * @return
+	 */
+	public Map<String, String> putDetailMap(Clazz clazz)
+	{
+		Map<String, String> detailMap = new HashMap<String, String>();
+		detailMap.put("id", String.valueOf(clazz.getId()));
+		detailMap.put("name", clazz.getClazzName());
+		detailMap.put("createTime", clazz.getCreateTime());
+		detailMap.put("gradeId", String.valueOf(clazz.getGradeId()));
+		detailMap.put("classNumber", clazz.getCode());
+		return detailMap;
+	}
+
+	/**
+	 * 初始化modify detail的参数
+	 * 
+	 * @param grade
+	 * @return
+	 */
+	public Map<String, String> putModifyDetailMap(Clazz clazz)
+	{
+		Map<String, String> detailMap = new HashMap<String, String>();
+		detailMap.put("id", String.valueOf(clazz.getId()));
+		detailMap.put("classNumber", clazz.getCode());
+		detailMap.put("name", clazz.getClazzName());
+		detailMap.put("updateTime", clazz.getUpdateTime());
+		return detailMap;
+	}
+}

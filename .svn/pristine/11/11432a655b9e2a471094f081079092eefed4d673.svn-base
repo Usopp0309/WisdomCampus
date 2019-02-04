@@ -1,0 +1,387 @@
+/**
+Core script to handle the entire layout and base functions
+**/
+
+
+function pagIngTeaRecord(type){
+	
+	var currentPage = document.getElementById("pageCount").value;
+	
+	var currentZpage = document.getElementById("pageZcount").value;
+	
+	if(type==4){
+		
+		if(parseInt(currentZpage)/25<parseInt(currentPage)){
+			
+			alert("已经最大页");
+		}else{
+		
+			for(var i=1;i<parseInt(currentZpage)+1;i++){
+				
+				document.all("record"+i).style.display="none";
+			}	
+			currentPage = parseInt(currentPage)+1;
+			var currentPage1 = (parseInt(currentPage)-1)*25;
+			
+			$("#pagIngCount").html(currentPage);
+			
+			document.getElementById("pageCount").value=currentPage;
+			
+			
+			
+			for(var i=parseInt(currentPage1)+1;i<=25+parseInt(currentPage1)+1;i++){
+				
+				//document.all("record"+i).style.visibility="visible";
+				document.all("record"+i).style.display="table-row";
+			}
+		}
+	}else if(type==0){
+		
+		if(parseInt(currentPage)==1){
+			alert("已经第一页了");
+		}else{
+			
+			for(var i=1;i<parseInt(currentZpage)+1;i++){
+				
+				document.all("record"+i).style.display="none";
+			}	
+			currentPage = parseInt(currentPage)-1;
+			var currentPage1 = (parseInt(currentPage)-1)*25;
+			
+			for(var i=parseInt(currentPage1)+1;i<=25+parseInt(currentPage1)+1;i++){
+				
+				//document.all("record"+i).style.visibility="visible";
+				document.all("record"+i).style.display="table-row";
+			}
+			$("#pagIngCount").html(currentPage);
+			document.getElementById("pageCount").value=currentPage;
+		}
+	}else if(type==1 || type==2){
+		
+		for(var i=1;i<parseInt(currentZpage)+1;i++){
+			
+			document.all("record"+i).style.display="none";
+		}	
+		currentPage = type;
+		var currentPage1 = (parseInt(currentPage)-1)*25;
+		
+		for(var i=parseInt(currentPage1)+1;i<=25+parseInt(currentPage1)+1;i++){
+			
+			//document.all("record"+i).style.visibility="visible";
+			document.all("record"+i).style.display="table-row";
+		}
+		$("#pagIngCount").html(currentPage);
+		document.getElementById("pageCount").value=currentPage;
+	}
+	
+}
+
+function showMaxShow(){
+	
+	alert("数据量比较大，请耐心等待");
+	var url ="/WisdomCapus/palmIoutControler!execute?pageAllPalm=ns";
+	window.location.href = url;
+}
+
+function pagIngRecord(type){
+	
+	var currentPage = document.getElementById("countPage").value;
+	
+	var currentAll = document.getElementById("countAll").value;
+	
+	var pageAllPalm = document.getElementById("pageAllPalm").value;
+	
+	
+	
+	var typeTea = document.getElementById("typeTea").value;
+	
+	if(parseInt(currentPage)<parseInt(currentAll)){
+		var page=0;
+		if(type==0){
+			if(currentPage==1){
+				alert("已经第一页");
+				page = parseInt(currentPage);
+				document.getElementById("countPage").value=page;
+			}else{
+				page = parseInt(currentPage)-1;
+				document.getElementById("countPage").value=page;
+			}
+		}else if(type==4){
+			page = parseInt(currentPage)+1;
+			document.getElementById("countPage").value=page;
+		}else if(type==1){
+			page =1;
+			document.getElementById("countPage").value=page;
+		}else if(type==2){
+			page =2;
+			document.getElementById("countPage").value=page;
+		}
+		
+		$.post("/WisdomCapus/palmIoutControler!pagIngRecord",{"recordpPage":page,"pageAllPalm":pageAllPalm,"typeTea":typeTea},function(rv){
+			
+				var inout = eval(rv);
+				var str="";
+				for(var i=0;i<inout.length;i++){
+					if(typeTea==1){
+						str+="<tr><td>"+inout[i].userInfoCard.realname+"<span style='color:red'>老师</span></td>";
+						if(inout[i].status==0){
+							str+="<td><span style='color:red'>外出</span></td>";
+						}
+						if(inout[i].status==1){
+							str+="<td><span style='color:red'>进入</span></td>";
+						}
+						if(inout[i].status==3){
+							str+="<td><span style='color:red'>指纹考勤</span></td>";
+						}
+						
+						str+="<td class='hidden-480'>"+inout[i].userInfoCard.cardcode+"</td><td><span class='label label-success'>"+inout[i].createtime+"</span></td></tr>";
+					}else if(typeTea==2){
+						str+="<tr><td>"+inout[i].userInfoCard.realname+"<span style='color:red'>同学</span></td>";
+						if(inout[i].status==0){
+							str+="<td><span style='color:red'>外出</span></td>";
+						}
+						if(inout[i].status==1){
+							str+="<td><span style='color:red'>进入</span></td>";
+						}
+						if(inout[i].status==3){
+							str+="<td><span style='color:red'>指纹考勤</span></td>";
+						}
+						
+						str+="<td class='hidden-480'>"+inout[i].userInfoCard.cardcode+"</td><td><span class='label label-success'>"+inout[i].createtime+"</span></td></tr>";
+					}
+					
+				}
+				$("#tbodyTr").html(str);
+				$("#pagIngCount").html(page);
+				
+		},"json");
+	}else{
+		alert("已经最大页");
+	}
+}
+
+
+function showPagIng(page,type){
+	
+	if(type==0){
+
+		var currentPage = document.getElementById("ancMent1").value;
+		
+		if(page=="4"){
+			page =  parseInt(currentPage)+1;
+		}else if(page =="0"){
+			page =  parseInt(currentPage)-1;
+		}
+		if(page != "9" && page !="0"){
+			$.post("/WisdomCapus/announcementController!selecPagIng",{"skipPage":page,"pageType":type},function(rv){
+				 var itemsd = eval(rv);
+				 var str="";
+				 str+="<input type='hidden' value="+page+" id='ancMent1'><strong>"+itemsd[2]+"--"+itemsd[1]+"<span  style='color:Red'> (第"+page+"条)</span></strong><br />"+itemsd[0];
+				 $("#divMent1").html(str);
+			},"json");
+		}else if(page=="0"){
+			alert("已经第一条了！");
+		}else{
+			
+			alert("已经最后一条了！");
+		}
+		
+	}else if(type==1){
+	
+		var currentPage = document.getElementById("ancMent2").value;
+		
+		if(page=="4"){
+			page =  parseInt(currentPage)+1;
+		}else if(page =="0"){
+			page =  parseInt(currentPage)-1;
+		}
+		if(page !="0"){
+			$.post("/WisdomCapus/announcementController!selecPagIng",{"skipPage":page,"pageType":type},function(rv){
+				 var itemsd = eval(rv);
+				 if(itemsd[1]=="NoCount"){
+					 alert("最大"+itemsd[0]+"页！");
+				 }else{
+					 var str="";
+					 str+="<input type='hidden' value="+page+" id='ancMent2'><strong>"+itemsd[2]+"--"+itemsd[1]+"<span  style='color:Red'> (第"+page+"条)</span></strong><br />"+itemsd[0];
+					 $("#divMent2").html(str);
+				 }
+				 
+			},"json");
+		}else if(page=="0"){
+			alert("已经第一条了！");
+		}
+	}else if(type==2){
+		
+		var currentPage = document.getElementById("ancMent3").value;
+		
+		if(page=="4"){
+			page =  parseInt(currentPage)+1;
+		}else if(page =="0"){
+			page =  parseInt(currentPage)-1;
+		}
+		if(page !="0"){
+			$.post("/WisdomCapus/announcementController!selecPagIng",{"skipPage":page,"pageType":type},function(rv){
+				 var itemsd = eval(rv);
+				 if(itemsd[1]=="NoCount"){
+					 alert("最大"+itemsd[0]+"页！");
+				 }else{
+					 var str="";
+					 str+="<input type='hidden' value="+page+" id='ancMent3'><strong>"+itemsd[2]+"--"+itemsd[1]+"<span  style='color:Red'> (第"+page+"条)</span></strong><br />"+itemsd[0];
+					 $("#divMent3").html(str);
+				 }
+				 
+			},"json");
+		}else if(page=="0"){
+			alert("已经第一条了！");
+		}
+	}else if(type==3){
+		
+		var currentPage = document.getElementById("ancMent4").value;
+		
+		if(page=="4"){
+			page =  parseInt(currentPage)+1;
+		}else if(page =="0"){
+			page =  parseInt(currentPage)-1;
+		}
+		if(page !="0"){
+			$.post("/WisdomCapus/announcementController!selecPagIng",{"skipPage":page,"pageType":type},function(rv){
+				 var itemsd = eval(rv);
+				 if(itemsd[1]=="NoCount"){
+					 alert("最大"+itemsd[0]+"页！");
+				 }else{
+					 var str="";
+					 str+="<input type='hidden' value="+page+" id='ancMent4'><strong>"+itemsd[2]+"--"+itemsd[1]+"<span  style='color:Red'> (第"+page+"条)</span></strong><br />"+itemsd[0];
+					 $("#divMent4").html(str);
+				 }
+				 
+			},"json");
+		}else if(page=="0"){
+			alert("已经第一条了！");
+		}
+		
+	}
+}
+
+function showFindClazz(clazzid,type){
+	if(clazzid==-1){
+		 var url = "/WisdomCapus/palmClazzController!CGClazzFindAll" 
+		 window.location.href = url;
+	}else if(type==0){
+		 var url = "/WisdomCapus/palmClazzController!CGclazzStudentFind?stuClazzid="+clazzid;
+		 window.location.href = url;
+	}else{
+	   var url = "/WisdomCapus/palmClazzController!ClazzStudentFind?stuClazzid="+clazzid;
+	   window.location.href = url;
+	}
+}
+
+
+function doSend(sendType){
+	
+	var checkArray = document.getElementsByName("stuSend");
+	var checkNum = 0;
+	var str="";
+	for(var i=0;i<checkArray.length;i++)
+	{
+		 if(checkArray[i].checked)
+		 {
+		  checkNum++;
+		  str+= checkArray[i].value+",";
+		 }
+	}
+	if(str !=""){
+		var url ="/WisdomCapus/palmClazzController!SendStudent?sendStu="+checkNum+"&sendNumStu="+str+"&sendType="+sendType;
+		window.location.href = url;
+	}else{
+		alert("请选择发送人!!");
+	 }
+	}
+
+
+function doGradeTeaSend(gradeType){
+	
+	var checkArray = document.getElementsByName("stuSend");
+	var checkNum = 0;
+	var str="";
+	for(var i=0;i<checkArray.length;i++)
+	{
+		 if(checkArray[i].checked)
+		 {
+		  checkNum++;
+		  str+= checkArray[i].value+",";
+		 }
+	}
+	
+	if(str != ""){
+		var url ="/WisdomCapus/palmTeaSmsController!SendTeacher?sendTeaNum="+checkNum+"&sendTea="+str+"&gradeType="+gradeType;
+		window.location.href = url;
+	}else{
+		alert("请选择发送人!!");
+	}
+}
+
+
+
+
+function sendShow(){
+
+	var sendContent = document.getElementById("sendContent").value;
+	
+	var sendStu = document.getElementById("sendStu").value;
+	
+	var sendNumStu = document.getElementById("sendNumStu").value;
+	
+	var sendType = document.getElementById("sendType").value;
+	
+	var sendTy="短信不能为空!!";
+	
+	if(sendContent !=""){
+		
+		var url ="/WisdomCapus/palmSmsController!execute?sendContent="+encodeURI(encodeURI(sendContent))+"&sendStu="+sendNumStu+"&sendNumStu="+sendStu+"&sendType="+sendType;
+		
+		window.location.href=url;
+	}else{
+		alert(sendTy);
+	}
+}
+
+function sendTeaShow(){
+	
+	
+	var sendContext = document.getElementById("sendContent").value;
+	
+	var sendTea = document.getElementById("sendTea").value;
+	
+	var sendTeaNum =document.getElementById("sendTeaNum").value;
+	
+	var gradeType = document.getElementById("gradeType").value;
+	var sendTy="短信不能为空!!";
+	if(sendContext !=""){
+		var url ="/WisdomCapus/palmTeaSmsController!sendTea?sendContext="+encodeURI(encodeURI(sendContext))+"&sendTea="+sendTea+"&sendTeaNum="+sendTeaNum+"&gradeType="+gradeType;
+		window.location.href=url;
+	}else{
+		alert(sendTy);
+	}
+}
+
+
+function showFindGrade(type){
+	
+	if(type==-1){
+		 var url = "/WisdomCapus/palmTeaSmsController!GradeFind" 
+		 window.location.href = url;
+	}else{
+	   var url = "/WisdomCapus/palmTeaSmsController!GradeTeaFind?gradeid="+type;
+	   window.location.href = url;
+	}
+}
+
+function showAnnounce(){
+	
+	var announceContent = document.getElementById("accontent").value;
+	
+	var url ="/WisdomCapus/announcementController!addAnnounceMent?announceContent="+encodeURI(encodeURI(announceContent));
+	
+	alert(url);
+	window.location.href = url;
+}

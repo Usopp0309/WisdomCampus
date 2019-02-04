@@ -1,0 +1,46 @@
+	body{background-color:#fff;font-size:14px;}
+	ul,li{list-style-type: none;margin:0px;padding:0px;}
+	a{text-decoration:none;}
+	.phonehome{width:400px;height:750px;border:1px solid #ccc;margin:0px auto;border-radius: 20px!important;padding:20px;}
+	.phonehome .m_row{overflow:hidden;}
+	.phonehome .m_row em{display:block;height:10px;width:20%;border:1px solid #ccc;border-radius:10px;margin:30px auto 20px;}
+	.phonehome .m_row .header{background-color:#009EE8;color:#fff;text-align:center;height:50px;line-height:50px;display:block;}
+	.phonehome .m_row .ad{background-color:#ccc;color:#fff;text-align:center;height:220px;position: relative;overflow:hidden;}
+	.phonehome .m_row .ad ul{background-color:#ccc;color:#fff;text-align:center;height:220px;position: absolute;bottom:0px;left:0px;width:20000px;}
+	.phonehome .m_row .ad ul li{background-color:#ccc;color:#fff;text-align:center;height:220px;padding:0px;margin:0px;text-align: center;width:400px;float:left}
+	.phonehome .m_row .ad ul li i{background-color:#ccc;color:#fff;text-align:center;height:100px;padding:0px;margin:60px auto 0px; }
+	.phonehome .m_row .ad ul li img{max-width:100%; height:220px;}
+	.phonehome .m_row .ad p{width:400px; height:10px;position: absolute;bottom:10px;left:0px;text-align: center;margin:0px;padding:0px;}
+	.phonehome .m_row .ad p em{height:10px;width:10px;margin:0px 10px;border:none; background-color:#666;border-radius:5px;display:inline-block;cursor: pointer;}
+	.phonehome .m_row .ad p .select{background-color:#fff;}
+	.phonehome .m_row ul{padding:0px;margin:0px;}
+	.phonehome .m_row ul li{position:relative; width:80px;height:80px;margin:15px 8px;text-align:center; color:#666;background-color:#fff; float:left;list-style-type: none;border:1px solid #ccc;}
+	.phonehome .m_row ul li em{position:absolute; width:15px;display:inline-block;border:none;height:15px;top:0px;right:0px;margin:0px;padding:0px;background-color:#009EE8!important;color:#fff;}
+	.phonehome .m_row ul li i{width:45px;height:45px;line-height:45px;display:block; margin:5px auto 0px;text-align:center;font-size: 40px;color:#ccc;}
+	.phonehome .m_row ul li .add_img{width:80px;height:80px;line-height:80px;font-size:40px;}
+	.phonehome .m_row ul li p{width:100%;height:30px;line-height:30px;margin:0 auto;text-align: center;color:#666;font-size:14px;}
+	.phone_page{width:2000px;position: absolute;left:0px;top:50px;}
+	.phone_page li{width:400px;float:left;height:590px;}
+	.thumbnail img{width:100%;height:100%;}
+	.width_100{width:90%;}
+	.upload_p{padding:0px 0 15px!important;}
+	.dialog{display:none}
+	.dialog p{margin:0px;padding:0px;}
+	.dialog ul{padding:0px;margin:0px;width:100%;overflow:hidden;}
+	.dialog ul li{width:100%;min-height:80px;margin:0px auto 15px;list-style-type: none;border-bottom:1px solid #ccc;overflow:hidden;}
+	.dialog ul li span{width:80px;height:80px;margin:15px 8px;text-align:center;display:block; color:#666;cursor: pointer; float:left;list-style-type: none;border:1px solid #ccc;cursor: pointer;}
+	.dialog ul li span i{width:45px;height:45px;line-height:45px;margin:5px auto 0px;display:block;font-size:30px;}
+	.dialog ul li span p{width:100%;height:30px;line-height:30px;margin:0 auto;text-align: center;overflow:hidden;}
+	.dialog ul .select{color:#FBB03B;border:1px solid #FBB03B;}
+	h2{margin:0px;padding:0px;font-size:18px;}
+	.phone_bg{height:660px;border:1px solid #ccc;overflow:hidden;position: relative;}
+	.phone_bg .pages{position:absolute; bottom:10px;left:0px;padding:0px;margin:0px; text-align: center;width:400px;}
+	.phone_bg .pages em{height:10px;width:10px;margin:0px 10px;border:none; background-color:#666;border-radius:5px;display:inline-block;cursor: pointer;}
+	.phone_bg .pages .select{background-color:#009EE8;}
+	.address{padding:0px;margin:0px;}
+	.address dd{width:400px;height:40px;margin:0 auto;float:left;overflow:hidden;border-bottom:1px solid #ccc;padding:10px 0px;}
+	.address dd i{display:inline-block;float:left;width:40px;line-height:40px;margin:0 0 0 15px;font-size:24px;}
+	.address dd .icon-ok{border:1px solid #ccc;color:#ccc;}
+	.address dd .select{border:1px solid #009EE8;color:#009EE8;}
+	.address dd em{display:inline-block;float:left;line-height:40px;font-size:24px; color:#009EE8;border:none; width:auto!important;margin:0 0 0 15px!important;border-radius:0px!important;border:none!important}
+	.address dd span{display:inline-block;float:left;line-height:40px;margin:0 0 0 15px;}

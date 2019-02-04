@@ -1,0 +1,45 @@
+package com.guotop.palmschool.scheduler.service;
+
+import java.util.List;
+
+import com.guotop.palmschool.scheduler.entity.SchoolCountInfo;
+
+/**
+ * 学校统计信息服务接口
+ * @author jfy
+ * @date 2015年12月7日
+ */
+public interface CountService
+{
+	/**
+	 * 获取待统计学校列表
+	 * @return
+	 */
+	public List<SchoolCountInfo> getSchoolList();
+	
+	/**
+	 * 获取待统计学校列表
+	 * @return
+	 */
+	public List<SchoolCountInfo> getSchoolDataSorceList();
+	/**
+	 * 根据学校ID获取学校总用户数
+	 * @param schoolId
+	 * @return
+	 */
+	public Integer getUserCountBySchoolId(Long schoolId);
+	/**
+	 * 获取学生总数
+	 * @return
+	 */
+	public Integer getStudentCountBySchoolId();
+	/**
+	 * 获取老师总数
+	 * @return
+	 */
+	public Integer getTeacherCountBySchoolId();
+	/**
+	 * 更新统计信息
+	 */
+	public void updateCountInfo(SchoolCountInfo schoolCountInfo);
+}

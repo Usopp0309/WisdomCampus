@@ -1,0 +1,170 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]-->
+<!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]-->
+<!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>智慧校园</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta content="width=device-width, initial-scale=1" name="viewport" />
+<!--公共css开始-->
+<%@ include file="/public_module/public_css_new.jsp"%>
+<!--公共css结束-->
+<style type="text/css">
+input[type="radio"] {
+	margin-left: -2px !important;
+}
+body{color:#777777;}
+.span_{
+float: right;
+font-size: 14px;
+}
+.bolorder_{
+border-bottom: solid 1px #e6e6e6;
+margin-top:9px;
+}
+</style>
+</head>
+<body style="background-color: #fff;">
+	<input value="${assetId}" type="hidden" id="assetId">
+	<input value="${schoolId}" type="hidden" id="schoolId">
+	<div>
+		<div>
+			<div>
+				<div>
+					 <div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+						 <span class="m_span" style="font-size:18px;color: #333333;">资产详情</span>
+						 <div class="bolorder_"></div>
+					 </div>
+					  <div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+						  <span class="m_span">资产编号</span>
+						 <span id="newcode" class="span_"></span>
+						 <div class="bolorder_"></div>
+					</div>
+					<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+						<span class="m_span">资产名称</span>
+						 <span id="dname" class="span_"></span>
+						 <div class="bolorder_"></div>
+					</div>
+					<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+						<span class="m_span">厂商名称</span> 
+						<span id="manufacturer" class="span_"></span>
+						 <div class="bolorder_"></div>
+					</div>
+					<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+						<span class="m_span">资产规格</span> 
+						<span id="spec" class="span_"></span>
+						 <div class="bolorder_"></div>
+					</div>
+					<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+						<span class="m_span">厂商型号</span>
+						 <span id="model" class="span_"></span>
+						 <div class="bolorder_"></div>
+					</div>
+					<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+						 <span class="m_span">资产类型</span>
+						 <span id="dtype" class="span_"></span>
+						 <div class="bolorder_"></div>
+					</div>
+					<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+						<span class="m_span">计量单位</span>
+						 <span id="units" class="span_"></span>
+						 <div class="bolorder_"></div>
+					</div>
+					<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+						<span class="m_span">资产数量</span> 
+						<span class="span_" id="count"></span>
+						 <div class="bolorder_"></div>
+					</div>
+					<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+						<span class="m_span">资产单价</span>
+						 <span class="span_" id="price"></span>
+						 <div class="bolorder_"></div>
+					</div>
+					<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+						<span class="m_span">负&nbsp;&nbsp;责&nbsp;&nbsp;人</span> 
+						<span class="span_" id="respPersonIdList"></span>
+						 <div class="bolorder_"></div>
+					</div>
+					<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+						<span class="m_span">存放地点</span> 
+						<span id="site" class="span_"></span>
+						 <div class="bolorder_"></div>
+					</div>
+					<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+						<span class="m_span">购入时间</span> 
+						<span id="buyDate" class="span_"></span>
+						 <div class="bolorder_"></div>
+					</div>
+					<div class="col-md-4 col-sm-4 col-lg-4 m_margin_top-15">
+						<span class="m_span">保修期至</span>
+						 <span id="qualityDate" class="span_"></span>
+						 <div class="bolorder_"></div>
+					</div>
+				</div>
+				<div class="row m_margin_10_auto search_box">
+					<div class="col-md-12 col-sm-12 col-lg-12 m_margin_top-15">
+						<span class="m_display_inline m_float_left m_width_10" style="color:#777777;">备注</span>
+						<textarea class="m_width_90 m_float_left form-control" id="remark" style="background-color: #fff;color:#777777;"
+							name="remark" readonly="readonly"></textarea>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<!-- 公共js开始 -->
+<%@ include file="/public_module/public_js.jsp"%>
+<!-- 公共js结束 -->
+<script type="text/javascript">
+   	$(function(){
+   		showDetail();
+   	})
+   	//查看详情
+   	function showDetail()
+   	{
+   		var id=$("#assetId").val();
+   		var schoolId=$("#schoolId").val();
+   		$.ajax({
+			type: "post",
+			async: false,
+			url: "<%=basePath%>asset/getAppAssetDetailById.do",
+			dataType:"json",
+			data:{
+				id : id,
+				schoolId:schoolId
+			},
+			success: function(asset){
+				//type
+				$("#newcode").text(asset.code);
+				$("#dname").text(asset.name);
+				$("#manufacturer").text(asset.manufacturer);
+				$("#spec").text(asset.spec);
+				$("#model").text(asset.model);
+				$("#count").text(asset.count);
+				$("#price").text(asset.price);
+				$("#site").text(asset.site);
+				$("#units").text(asset.units);
+				$("#price").text(asset.price);
+				$("#buyDate").text(asset.buyDate);
+				$("#qualityDate").text(asset.qualityDate);
+				$("#remark").text(asset.remark);
+				$("#respPersonIdList").text(asset.respPerson);
+				var typeJson=eval(${type});
+				for(var i=0;i<typeJson.length;i++){
+					if(typeJson[i].id==asset.type){
+						$("#dtype").text(typeJson[i].name);
+						break;
+					}
+				}
+			},
+		});
+   	}
+   
+   </script>
+</html>

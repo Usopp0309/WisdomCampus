@@ -1,0 +1,421 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>作息时间详情</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+</head>
+	<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+		<input class="themes" type="hidden" value="<%=ThemePath%>">
+	    <!-- 公共顶部开始-->
+	    <%@ include file="/public_module/public_header.jsp"%>    
+	    <!--公共顶部结束-->
+	    <div class="clearfix"> </div>
+	    <!-- 内容页开始 -->
+	    <div class="page-container">
+	        <!--主菜单开始-->
+	        <%@include file="/public_module/public_menu.jsp"%>
+	        <!--主菜单结束-->
+	        <div class="page-content-wrapper">
+	            <div class="page-content m_overflow_hidden m_page_content">
+	            	<!-- 页面内容开始 -->
+	            	<div class="col-md-12 col-sm-12 m_page_con">
+	                <div class="page-bar m_margin_0_0_0_0">
+	                    <ul class="page-breadcrumb">
+	                        <li><a href="">首页</a><i class="fa fa-circle"></i></li>
+	                        <li><a href="">作息时间</a><i class="fa fa-circle"></i></li>
+	                        <li><span>作息时间详情</span></li>
+	                    </ul>
+	                </div>
+	                <h3 class="page-title">作息时间详情</h3>
+	                <div class="row">
+	                    <div class="col-md-12 col-sm-12">
+	                        <!-- 添加功能菜单开始 -->
+	                        <div class="portlet light form-fit m_margin_0_0_15_0">
+	                        	<a href="javascript:void(0);" onclick="toScheduleModifyPage()" class="btn blue" title="可以批量选择人员修改作息时间">修改</a>
+								<span>已选<b id="selectCount">0</b>个对象</span>
+	                        </div>
+	                        <!-- 添加功能菜单结束 -->
+	                        <!-- 页面搜索开始 -->
+	                        <div class="portlet light form-fit bordered search_box">
+	                        	
+	                         <div class="row m_margin_10_auto">
+	
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">选择对象：</span>
+	                                <select  id="allType" class="form-control m_select">
+										<option value="0" >教师</option>
+										<option value="1">学生</option>
+								    </select>
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">选择部门：</span>
+	                         		<select  id="departMentList" class="form-control m_select">
+									</select>
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">选择年级：</span>
+	                         		<select  id="gradeList" class="form-control m_select">
+									</select>
+	                         	</div>
+	                         	<div class="col-md-4 col-sm-4 col-lg-3 m_margin_top-15">
+	                         		<span class="m_span">选择班级：</span>
+	                         		<select  id="clazzList" class="form-control m_select">
+										<option value="all" >选择班级</option>
+								    </select>
+	                         	</div>
+	                         </div>
+	                        </div>
+	                       	<div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption">
+	                                    <i class="fa fa-list"></i>作息时间详情</div>
+	                            </div>
+	                            <div class="portlet-body flip-scroll">
+	                            	<form  action="<%=basePath%>schedule/toScheduleModifyPage.do" id="modifySubmit" class="form-horizontal" method="post">
+	                                <input type="text" name="liveingDate" style="display: none" id="liveingDate" value="${liveingDate }"/>
+									<input type="text" name="objectType" style="display: none" id="objectType" />
+									<input type="text" name="departIdOrGradeId" style="display: none" id="departIdOrGradeId"/>
+									<input type="text" name="map" style="display: none" id="map" />
+	                                <table class="table table-bordered table-hover">
+	                                    <thead id="thead">
+	                                    </thead>
+	                                    <tbody id="tbody">
+	                                       
+	                                    </tbody>
+	                                </table>
+	                                </form>
+	                            </div>
+	                        </div>
+	                       <!-- 列表展现开始 -->
+	                      <%--   <!-- 分页开始 -->
+	                        <%@include file="/public_module/public_page.jsp" %>
+	                        <!-- 分页结束 --> --%>
+	                    </div>
+	                </div>
+	                </div>
+	                <!--页面内容结束 -->
+	            </div>
+	        </div>
+	        <!-- 亦信聊天开始 -->
+	    	<%@ include file="/public_module/public_QQ.jsp" %>
+	        <!-- 亦信聊天结束 -->
+	    </div>
+	    <!-- 内容页结束 -->
+	    <!-- 底部开始 -->
+	    <%@ include file="/public_module/public_footer.jsp" %>
+	    <!-- 底部结束 -->
+	    <input type="hidden" id="objectTypeOrg" value="${objectType}">
+		<input type="hidden" type="text" id="departIdOrGradeIdOrg" value="${departIdOrGradeId }"/>
+	</body>
+    <!-- 公共js开始 -->
+    <%@ include file="/public_module/public_js.jsp" %>
+    <!-- 公共js结束 -->
+	<script>
+		$(function() {    
+			loadSubMenu("schoolManager"); 
+			//选取当前菜单位置
+			setActive("schoolManager","scheduleManage");  
+			if($("#objectTypeOrg").val()=="" || $("#objectTypeOrg").val()=="0")
+			{
+				$("#allType").val("0");
+			}
+			else
+			{
+				$("#allType").val("1");
+			}
+			
+			
+			//初始化加载部门列表
+			loadDepartList();
+			loadGradeList();
+			loadScheduleByLiveingDate();
+			
+		  	//班级改变对应的相册也改变
+		    $("#clazzList").change(function(){
+				//根据clazzId获取班级的考勤
+				loadScheduleByLiveingDate();
+			});
+			
+			//部门change事件
+		    $("#allType").change(function(){
+		    	//根据departmentId获取部门的考勤
+		    	var type = $("#allType").val();
+		    	if(type == 0){
+					//教师
+					$("#grade").css({ display: "none"});
+					$("#clazz").css({ display: "none"});
+					$("#departMent").css({ display: "block"});
+					 $("#departMentList").change();
+			    }else{
+					//学生
+			    	$("#grade").css({ display: "block"});
+					$("#clazz").css({ display: "block"});
+					$("#departMent").css({ display: "none"});
+
+					$("#gradeList").change();
+				}
+			});
+			
+		    $("#allType").change();
+			//部门change事件
+		    $("#departMentList").change(function(){
+		    	//根据departmentId获取部门的考勤
+		    	loadScheduleByLiveingDate();
+			});
+			  
+			//年级改变对应的班级也会改变
+		    $("#gradeList").change(function(){
+				var gradeId = $("#gradeList").val();
+				loadClazzListByGradeId(gradeId);
+
+				//根据gradeId获取的考勤
+				loadScheduleByLiveingDate();
+			});
+		})
+
+		//加载部门列表
+		function loadDepartList()
+		{
+			$.ajax({
+				type: "post",
+				async : false,
+				data:{},
+				url: "<%=basePath%>baseData/getDepartmentList.do",
+				success: function(data){
+					var departList = eval("(" + data + ")");
+					var appendHtml = '';
+					$.each(departList, function(n, value) {  
+						appendHtml += '<option value="'+value.id+'" >'+value.departmentName+'</option>'
+	          		});
+					$("#departMentList").html(appendHtml);
+				},
+			});
+			if($("#departIdOrGradeIdOrg").val() != ""){
+				$("#departMentList").val($("#departIdOrGradeIdOrg").val());
+			}
+		}
+
+		//加载年级列表
+		function loadGradeList()
+		{
+			$.ajax({
+				type: "post",
+				async : false,
+				url: "<%=basePath%>baseData/loadGradeList.do",
+				data:{
+					},
+				success: function(data){
+					var gradeList = eval("(" + data + ")");
+					var appendHtml = '';
+					appendHtml += '<option value="all" >选择年级</option>';
+					$.each(gradeList, function(n, value) 
+					{
+						appendHtml += '<option value="'+value.id+'" >'+value.name+'</option>'
+           			}); 
+           			$("#gradeList").html(appendHtml);
+				},
+			});
+			if($("#departIdOrGradeIdOrg").val() != ""){
+				$("#gradeList").val($("#departIdOrGradeIdOrg").val());
+			}
+		}
+
+		//根据年级ID查询出班级列表
+		function loadClazzListByGradeId(gradeId)
+		{
+			$.ajax({
+				type: "post",
+				async : false,
+				url: "<%=basePath%>baseData/loadClazzListByGradeId.do",
+				data:{
+					gradeId : gradeId
+					},
+				success: function(data){
+					var clazzList = eval("(" + data + ")");
+					var appendHtml = '';
+					appendHtml += '<option value="all" >选择班级</option>';
+					$.each(clazzList, function(n, value) 
+					{
+						appendHtml += '<option value="'+value.id+'" >'+value.clazzName+'</option>'
+           			}); 
+           			$("#clazzList").html(appendHtml);
+				},
+			});
+		}
+
+		//根据条件加载对应的作息时间详情
+		function loadScheduleByLiveingDate(){
+			$("#selectCount").text(0);
+			var liveingDate = $("#liveingDate").val();
+			var objectType = $("#allType").val();
+			var departmentId = $("#departMentList").val();
+			var gradeId = $("#gradeList").val();
+			var clazzId = $("#clazzList").val();
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>schedule/loadScheduleByLiveingDate.do",
+				data:{
+					liveingDate : liveingDate,
+					objectType : objectType,
+					departmentId : departmentId,
+					gradeId : gradeId,
+					clazzId : clazzId
+					},
+				success: function(data){
+					var list = eval("(" + data + ")");
+					var headHtml = '';
+					var appendHtml = '';
+					$.each(list, function(n, value){
+						var type = value.trueType;//(0分段，1整天)
+						if(objectType == '0'){
+							//获取教职工的考勤
+							if(n == 0){//第一次循环
+								headHtml += '<tr >';
+								headHtml += '<th><i class="schedule_detail" onclick="selectAll(this)"></i></th>';
+								headHtml += '<th>姓名</th>';
+								if(type == 0){
+									headHtml += '<th>上午</th>';
+									headHtml += '<th>下午</th>';
+// 									headHtml += '<th>晚上</th>';
+								}else{
+									headHtml += '<th>全天</th>';
+								}
+								headHtml += '</tr>';
+							}
+						}else{
+							//获取班级或年级的考勤
+							if(n == 0){//第一次循环
+								headHtml += '<tr >';
+								headHtml += '<th><i class="schedule_detail" onclick="selectAll(this)"></i></th>';
+								headHtml += '<th>班级</th>';
+								if(type == 0){
+									headHtml += '<th>上午</th>';
+									headHtml += '<th>下午</th>';
+// 									headHtml += '<th>晚上</th>';
+								}else{
+									headHtml += '<th>全天</th>';
+
+								}
+								headHtml += '</tr>';
+							}
+						}
+
+						appendHtml += '<tr>';
+						
+						if(objectType == '0'){
+							appendHtml += '<td><i attr1="'+value.trueTeacherId+'" attr2="'+value.realName+'" attr3="'+value.trueDepartmentId+'" class="schedule_detail" onclick="select(this)"></i></td>';
+							appendHtml += '<td>'+value.realName+'</td>';
+						}else{
+							appendHtml += '<td><i attr1="'+value.trueClazzId+'" attr2="'+value.clazzName+'" attr3="'+value.trueGradeId+'" class="schedule_detail" onclick="select(this)"></i></td>';
+							appendHtml += '<td>'+value.clazzName+'</td>';
+						}
+						if(type == 0){
+							if(typeof(value.amStartTime) != "undefined"){
+								appendHtml += '<td><span>'+value.amStartTime+'</span>--<span>'+value.amEndTime+'</span></td>';
+							}else{
+								appendHtml += '<td><span>暂无设置作息时间</span></td>';
+							}
+							if(typeof(value.pmStartTime) != "undefined"){
+								appendHtml += '<td><span>'+value.pmStartTime+'</span>--<span>'+value.pmEndTime+'</span></td>';
+							}else{
+								appendHtml += '<td><span>暂无设置作息时间</span></td>';
+							}
+// 							if(typeof(value.nightStartTime) != "undefined"){
+// 								appendHtml += '<td><span>'+value.nightStartTime+'</span>--<span>'+value.nightEndTime+'</span></td>';
+// 							}else{
+// 								appendHtml += '<td><span>无作息时间</span></td>';
+// 							}
+						}else{
+							if(typeof(value.beginTime) != "undefined"){
+								appendHtml += '<td><span>'+value.beginTime+'</span>--<span>'+value.endTime+'</span></td>';
+							}else{
+								appendHtml += '<td><span>暂无设置作息时间</span></td>';
+							}
+						}
+						appendHtml += '</tr>';
+					});
+					$("#thead").html(headHtml);
+           			$("#tbody").html(appendHtml);
+				},
+			});
+		}
+		//进入修改页面
+		function toScheduleModifyPage(){
+			var selectCount = $("#tbody .schedule_detail.fa-check").length;
+			if(selectCount > 0){
+				// 0.教职工 1班级
+				var objectType = $("#allType").val();
+
+				var idMap = {};
+				var parentIdMap = {};
+				
+				$("#tbody .schedule_detail.fa-check").each(function(){
+					var id = $(this).attr("attr1");
+					var name = $(this).attr("attr2");
+					var parentId = $(this).attr("attr3");
+					if(!(id in idMap)){
+						if(parentId in parentIdMap){
+							//存在
+							var arry = parentIdMap[parentId];
+							var parmMap = {};
+							parmMap[id] = name;
+							arry.push(parmMap);
+						}else{
+							//不存在
+							var arry = new Array();
+							var parmMap = {};
+							parmMap[id] = name;
+							arry.push(parmMap);
+							parentIdMap[parentId] = arry;
+						}
+						idMap[id] = id;
+					}	
+				});
+				$("#objectType").val(objectType);
+				$("#map").val(JSON.stringify(parentIdMap));
+				if(objectType == 0){
+					$("#departIdOrGradeId").val($("#departMentList").val());
+				}else{
+					$("#departIdOrGradeId").val($("#gradeList").val());
+				}
+				
+				$("#modifySubmit").submit();
+			}else{
+				layer.msg('请选择操作对象！');
+			}
+			
+		}
+		//全选
+		function selectAll(object){
+			if($(object).hasClass("fa-check")){
+				$(".schedule_detail").removeClass("fa fa-check");
+				$("#selectCount").text(0);
+			}else{
+				$(".schedule_detail").addClass("fa fa-check");
+				var selectCount = $("#tbody .schedule_detail.fa-check").length;
+				$("#selectCount").text(selectCount);
+			}
+		}
+		
+		//选择checkBox
+		function select(object){
+			if($(object).hasClass("fa-check")){
+				$(object).removeClass("fa fa-check");
+			}else{
+				$(object).addClass("fa fa-check");
+			}
+			var selectCount = $("#tbody .schedule_detail.fa-check").length;
+			$("#selectCount").text(selectCount);
+		}
+
+	</script>
+</html>

@@ -1,0 +1,213 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<head>
+        <meta charset="utf-8" />
+        <title>添加电子卡</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta content="width=device-width, initial-scale=1" name="viewport" />
+         <!--公共css开始-->
+		<%@ include file="/public_module/public_css_new.jsp"%>
+	 	<!--公共css结束--> 
+        </head>
+    <body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed">
+    	<input class="themes" type="hidden" value="<%=basePath%>">
+        <!-- 公共顶部开始-->
+        <%@ include file="/public_module/public_header.jsp"%>    
+        <!--公共顶部结束-->
+        <div class="clearfix"> </div>
+        <!-- 内容页开始 -->
+        <div class="page-container">
+            <!--主菜单开始-->
+            <%@include file="/public_module/public_menu.jsp"%>
+            <!--主菜单结束-->
+            <div class="page-content-wrapper">
+                <div class="page-content m_overflow_hidden m_page_content">
+                	<div class="col-md-1 col-sm-1 m_padding_0_0_0_15">
+                    <%@include file="/public_module/public_sub_menu.jsp" %>
+                	</div>
+                	<div class="col-md-11 col-sm-11 m_page_con">
+                    <div class="page-bar m_margin_0_0_0_0">
+                        <ul class="page-breadcrumb">
+                            <li><a href="<%=basePath %>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+                            <li><a href="">学校管理</a><i class="fa fa-circle"></i></li>
+                            <li><span>添加电子卡</span></li>
+                        </ul>
+                    </div>
+                    <h3 class="page-title">添加电子卡</h3>
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12">
+                            
+                            <div class="portlet light portlet-fit portlet-form bordered m_margin_15_auto_0" >
+                                <div class="portlet-title">
+                                    <div class="caption">
+                                        <i class=" icon-layers font-green"></i>
+                                        <span class="caption-subject font-green sbold uppercase">电子卡</span>
+                                    </div>
+                                </div>
+                                <div class="portlet-body">
+                                    <form action="<%=basePath%>card/doAddCard.do" class="form-horizontal" method="post" id="addForm">
+                                        <div class="form-body">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">添加电子卡</label>
+                                                <div class="col-md-4">
+                                                	<input type="text" name="code"  id="code" class="form-control"/>
+										      		<span class="help-block" style="display: none;" id="codeHelp"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-actions">
+                                            <div class="row">
+                                                <div class="col-md-offset-3 col-md-9">
+                                                    <button type="button" class="btn green" id="save">确定</button>
+                                                    <button type="button" class="btn" onclick="history.go(-1);">返回</button>
+                                                    <input type="hidden" value="${user.id}" name="userId"/>
+													<input type="hidden" value="${user.roleCode}" name="roleId"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                                </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 亦信聊天开始 -->
+        	<%@ include file="/public_module/public_QQ.jsp" %>
+            <!-- 亦信聊天结束 -->
+        </div>
+        <!-- 内容页结束 -->
+        <!-- 底部开始 -->
+        <%@ include file="/public_module/public_footer.jsp" %>
+        <!-- 底部结束 -->
+    </body>
+        <!-- 公共js开始 -->
+        <%@ include file="/public_module/public_js.jsp" %>
+        <!-- 公共js结束 -->
+	<script>
+
+		jQuery(document).ready(function() {  
+			loadSubMenu("schoolManager"); 
+			//选取当前菜单位置
+			setActive("schoolManager","cardManage");   
+			$("#cancel").click(function(){
+				 window.location.href='javascript:history.go(-1);';
+			});
+			
+			//电子卡
+			
+			//添加电子卡表单校验---begin
+			
+			//表单验证flag
+		
+			$("#code").blur(function(){
+				var code = $("#code").val();
+				//未输入学号
+				if ("" == code)
+				{
+					$("#codeGroup").addClass("error");
+					$("#codeHelp").show();
+					$("#codeHelp").html("卡号不能为空");
+				}
+				else if (checkCode(code))
+				{
+					$("#codeGroup").addClass("error");
+					$("#codeHelp").show();
+					$("#codeHelp").html("卡号已存在");
+				}
+				else
+				{
+					$("#codeGroup").removeClass("error");
+					$("#codeHelp").hide();
+				}
+				
+			});
+			//添加电子卡表单校验---end
+			
+			
+			$("#save").click(function(){
+			     
+				if (checkForm())
+				{   
+					$("#addForm").submit();
+				}
+			});
+
+		});
+		
+		//表单校验相关---begin
+		
+		function checkForm()
+		{
+			var codeFlag = false;
+		
+			//卡号
+			var code = $("#code").val();
+			//未输入卡号
+			if ("" == code)
+			{
+				$("#codeGroup").addClass("error");
+				$("#codeHelp").show();
+				$("#codeHelp").html("卡号不能为空");
+				
+				codeFlag = false;
+			}
+			else if (checkCode(code))
+			{
+				$("#codeGroup").addClass("error");
+				$("#codeHelp").show();
+				$("#codeHelp").html("卡号已存在");
+				
+				codeFlag = false;
+			}
+			else
+			{
+				$("#codeGroup").removeClass("error");
+				$("#codeHelp").hide();
+				
+				codeFlag = true;
+			}
+			if (codeFlag)
+			{
+				return true;
+			}	
+			else
+			{
+				return false;
+			}
+		
+		}
+
+		
+		function checkCode(code)
+		{
+			var flag = false;
+			$.ajax({
+				async:false, 
+				type: "post",
+				data:{
+					code : code,
+				},
+				url: "<%=basePath%>card/checkCardCode.do",
+				success: function(data)
+				{
+					var result = eval("(" + data + ")");
+					//此卡号存在
+					if ("success" == result.resultCode)
+					{
+						flag = true;
+					}
+					else
+					{
+						flag = false;
+					}
+					
+				},
+			});
+			
+			return flag;
+		}
+	</script>
+</html>

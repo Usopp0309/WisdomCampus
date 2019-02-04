@@ -1,0 +1,91 @@
+package com.guotop.palmschool.system.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.system.entity.CardApplyAudit;
+import com.guotop.palmschool.system.entity.CardApplyAudit_person;
+import com.guotop.palmschool.system.service.CardApplyAuditService;
+
+/**
+ * 在线审核业务实现类
+ * @author zhou
+ */
+@Service("cardApplyAuditService")
+public class CardApplyAuditServiceImpl extends BaseService implements CardApplyAuditService
+{
+	/**
+	 * 页面加载在线审核申请列表
+	 * @param paramMap 参数map
+	 * @return 检测在线审核申请/分页
+	 */
+	@SuppressWarnings("unchecked")
+	public List<CardApplyAudit> getCardApplyAuditList(HashMap<String, Object> map)
+	{
+		List<CardApplyAudit> list = getBaseDao().selectListByObject("CardApplyAudit.getCardApplyAuditList", map);
+		
+		return list;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<CardApplyAudit> getCardApplyPassList(HashMap<String, Object> map)
+	{
+		List<CardApplyAudit> list = getBaseDao().selectListByObject("CardApplyAudit.getCardApplyListByStatus", map);
+		
+		return list;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<CardApplyAudit> getCardApplyNotPassList(HashMap<String, Object> map)
+	{
+		List<CardApplyAudit> list = getBaseDao().selectListByObject("CardApplyAudit.getCardApplyListByStatus", map);
+		
+		return list;
+	}
+
+	@Override
+	public void modifyStatus(HashMap<String, Object> map)
+	{
+		getBaseDao().updateObject("CardApplyAudit.updateCardApplyAudit", map);
+		
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<CardApplyAudit> loadMore(HashMap<String, Object> map)
+	{
+		List<CardApplyAudit> list = getBaseDao().selectListByObject("CardApplyAudit.getCardApplyListByStatus", map);
+		
+		return list;
+	}
+
+	@Override
+	public void addCardApply(CardApplyAudit cardApply)
+	{
+		getBaseDao().addObject("CardApplyAudit.addCardApplyAudit", cardApply);
+		
+	}
+	
+	@Override
+	public void addCardApplyPerson(CardApplyAudit_person cardApplyAudit_person)
+	{
+		getBaseDao().addObject("CardApplyAudit.addCardApplyAuditPerson", cardApplyAudit_person);
+		
+	}
+	
+	@Override
+	public void updateCardApplyPerson(Integer id,String auditStatus,String remark)
+	{
+		HashMap<String, Object> parmMap = new HashMap<String, Object>();
+		parmMap.put("id", id);
+		parmMap.put("auditStatus", auditStatus);
+		parmMap.put("remark", remark);
+		getBaseDao().updateObject("CardApplyAudit.updateCardApplyAuditPerson", parmMap);
+		
+	}
+}

@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="CardApplyAudit">
+	<typeAlias alias="cardApplyAudit" type="com.guotop.palmschool.system.entity.CardApplyAudit" />
+	<typeAlias alias="cardApplyAuditPerson" type="com.guotop.palmschool.system.entity.CardApplyAudit_person" />
+	
+	<resultMap class="com.guotop.palmschool.system.entity.CardApplyAudit"
+		id="result-cardAudit">
+		<result property="id" column="id" />
+		<result property="applyTime" column="applyTime" />
+		<result property="auditstatus" column="auditstatus" />
+		<result property="cardtype" column="cardtype" />
+		<result property="remark" column="remark" />
+		<result property="schoolId" column="schoolId" />
+		<result property="applyUserId" column="applyUserId" />
+		<result property="attachPath" column="attachPath" />
+		<result property="phone" column="phone" />
+		<result property="sumNumber" column="sumNumber" />
+		<result property="applyName" column="applyName" />
+		<result property="schoolName" column="schoolName" />
+		<result property="memberUserId" column="memberUserId" />
+	</resultMap>
+
+	<!-- 查找所有待审核记录 -->
+	<select id="getCardApplyAuditList" parameterClass="HashMap" resultMap="result-cardAudit">
+		select rc.*, ud.realname applyName, s.schoolName schoolName
+		 from platform.reissuedcard rc , platform.user_detail ud, platform.school s 
+		  where rc.applyUserId = ud.userId 
+		    and rc.schoolId = s.schoolId 
+		    and rc.auditstatus=#status#
+		    <isNotEmpty prepend="and" property="schoolList">
+						   rc.schoolId IN 
+						   <iterate open="(" close=")" conjunction="," property="schoolList" > 
+						        #schoolList[].schoolId# 
+						   </iterate>
+			</isNotEmpty>
+		    <isNotEmpty prepend="and" property="condition">
+			  s.schoolName like concat('%',#condition#, '%')
+		    </isNotEmpty>
+		    order by id
+		    <isNotEmpty property="startIndex">
+	           LIMIT #startIndex#, #length#
+            </isNotEmpty>
+	</select>
+	<!-- 查找所有待审核记录总数 -->
+	<select id="getCardApplyAuditListCount" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from platform.reissuedcard rc , platform.user_detail ud, platform.school s 
+		  where rc.applyUserId = ud.userId 
+		    and rc.schoolId = s.schoolId 
+		    and rc.auditstatus=#status#
+		    <isNotEmpty prepend="and" property="schoolList">
+						   rc.schoolId IN 
+						   <iterate open="(" close=")" conjunction="," property="schoolList" > 
+						        #schoolList[].schoolId# 
+						   </iterate>
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="condition">
+				s.schoolName like concat('%',#condition#, '%')
+			</isNotEmpty>
+			order by id
+			
+	</select>
+	<!-- 查找所有通过记录 -->
+	<select id="getCardApplyListByStatus" parameterClass="HashMap" resultMap="result-cardAudit">
+		select rc.*, ud.realname applyName, s.schoolName schoolName
+		  from platform.reissuedcard rc , platform.user_detail ud, platform.school s 
+		    where rc.applyUserId = ud.userId 
+		      and rc.schoolId = s.schoolId 
+		      and rc.auditstatus=#status# 
+		      <isNotEmpty prepend="and" property="schoolList">
+						   rc.schoolId IN 
+						   <iterate open="(" close=")" conjunction="," property="schoolList" > 
+						        #schoolList[].schoolId# 
+						   </iterate>
+			</isNotEmpty>
+			  <isNotEmpty prepend="and" property="condition">
+				s.schoolName like concat('%',#condition#, '%')
+			  </isNotEmpty>
+			  <isNotEmpty property="startIndex">
+	           LIMIT #startIndex#, #length#
+            </isNotEmpty> 
+	</select>
+	<!-- 查找所有通过记录总数 -->
+	<select id="getCardApplyListByStatusCount" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from platform.reissuedcard rc , platform.user_detail ud, platform.school s 
+		    where rc.applyUserId = ud.userId 
+		      and rc.schoolId = s.schoolId 
+		      and rc.auditstatus=#status# 
+		      <isNotEmpty prepend="and" property="schoolList">
+						   rc.schoolId IN 
+						   <iterate open="(" close=")" conjunction="," property="schoolList" > 
+						        #schoolList[].schoolId# 
+						   </iterate>
+			</isNotEmpty>
+			  <isNotEmpty prepend="and" property="condition">
+				s.schoolName like concat('%',#condition#, '%')
+			  </isNotEmpty>
+	</select>
+	<!-- 查找个人补办卡信息 -->
+	<select id="getReissuedcardPersonByStatus" parameterClass="HashMap" resultClass="com.guotop.palmschool.system.entity.CardApplyAudit_person">
+		select rc.*, s.schoolName schoolName,o.status as orderStatue,o.amount as orderMoney,ud.`code`,ud.realName
+		  from platform.reissuedcard_person rc , platform.user_detail ud, platform.school s ,platform.orders o 
+		    where rc.userId = ud.userId 
+		      and rc.schoolId = s.schoolId 
+		      and rc.orderId=o.id 
+		      and o.status != '0'
+		      and rc.auditstatus in ($auditstatus$) 
+		      <isNotEmpty prepend="and" property="schoolList">
+						   rc.schoolId IN 
+						   <iterate open="(" close=")" conjunction="," property="schoolList" > 
+						        #schoolList[].schoolId# 
+						   </iterate>
+			  </isNotEmpty>
+			  <isNotEmpty prepend="and" property="condition">
+				(rc.applyUserName like concat('%',#condition#, '%') or rc.phone like concat('%',#condition#, '%'))
+			  </isNotEmpty>
+		     order by id DESC 
+		     <isNotEmpty property="startIndex">
+		     	limit #startIndex#, #endLenth#
+		     </isNotEmpty>
+	</select>
+	
+	<!-- 根据主键获取个人补办卡信息以及支付状态 -->
+	<select id="getReissuedcardPersonById" parameterClass="Integer" resultClass="cardApplyAuditPerson">
+		select rc.*,o.status as orderStatue,o.amount as orderMoney
+		  from platform.reissuedcard_person rc , platform.orders o 
+		    where rc.orderId=o.id 
+		      and rc.id = #id#
+	</select>
+	
+	<!-- 通过类型和状态查找支付成功的补办卡或新办卡人数 -->
+	<select id="getCountByTypeAndStatus" parameterClass="HashMap" resultClass="Integer">
+		select COUNT(rc.id)
+		  from platform.reissuedcard_person rc , platform.orders o 
+		    where rc.orderId=o.id 
+		      and o.status in (1,3)
+		      <isNotEmpty prepend="and" property="schoolId">
+			  	rc.schoolId = #schoolId#
+			  </isNotEmpty>
+		      <isNotEmpty prepend="and" property="auditstatus">
+		      	rc.auditstatus = #auditstatus#
+			  </isNotEmpty>
+			  <isNotEmpty prepend="and" property="type">
+			  	rc.type = #type#
+			  </isNotEmpty> 
+	</select>
+	
+	<!-- 根据类型和状态查找补办卡或者新办卡总金额 -->
+	<select id="getAmountCountByTypeAndStatus" parameterClass="HashMap" resultClass="Double">
+		select IFNULL(SUM(IFNULL(o.`amount`,0)),0)
+		  from platform.reissuedcard_person rc , platform.orders o 
+		    where rc.orderId=o.id 
+		      and o.status in (1,3)
+		      <isNotEmpty prepend="and" property="schoolId">
+			  	rc.schoolId = #schoolId#
+			  </isNotEmpty>
+		      <isNotEmpty prepend="and" property="auditstatus">
+		      	rc.auditstatus = #auditstatus#
+			  </isNotEmpty>
+			  <isNotEmpty prepend="and" property="type">
+			  	rc.type = #type#
+			  </isNotEmpty> 
+	</select>
+	
+	<!-- 新增导入记录 -->
+	<insert id="addCardApplyAudit" parameterClass="cardApplyAudit">
+		insert into
+		platform.reissuedcard
+		(
+		applyTime ,
+		auditstatus,
+		cardtype ,
+		remark ,
+		schoolId ,
+		applyUserId,
+		attachPath ,
+		phone ,
+		sumNumber ,
+		memberUserId
+		)
+		values
+		(
+		#applyTime# ,
+		#auditstatus#,
+		#cardtype# ,
+		#remark# ,
+		#schoolId# ,
+		#applyUserId#,
+		#attachPath# ,
+		#phone# ,
+		#sumNumber# ,
+		#memberUserId#
+		)
+		 <selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+
+	<!-- 修改导入记录 -->
+	<update id="updateCardApplyAudit" parameterClass="HashMap">
+		update
+		platform.reissuedcard
+		set auditstatus=#status#
+		where id=#id#
+	</update>
+     
+	<!-- 新增申请记录 -->
+	<insert id="addCardApplyAuditPerson" parameterClass="cardApplyAuditPerson">
+		insert into
+		platform.reissuedcard_person
+		(
+		applyTime,
+		updateTime,
+		userId,
+		userInfo,
+		applyUserId,
+		applyUserName,
+		phone,
+		attachPath,
+		schoolId,
+		auditstatus,
+		type,
+		remark,
+		orderId
+		)
+		values
+		(
+		now(),
+		now(),
+		#userId#,
+		#userInfo#,
+		#applyUserId#,
+		#applyUserName#,
+		#phone#,
+		#attachPath#,
+		#schoolId#,
+		#auditstatus#,
+		#type#,
+		#remark#,
+		#orderId#
+		)
+		 <selectKey resultClass="int" type="post" keyProperty="id">
+        	select LAST_INSERT_ID() as value
+    	</selectKey>
+	</insert>
+
+	<!-- 修改个人申请记录 -->
+	<update id="updateCardApplyAuditPerson" parameterClass="HashMap">
+		update
+		platform.reissuedcard_person
+		set auditstatus=#auditstatus#
+		<isNotEmpty property="remark">
+				,remark = #remark#
+		</isNotEmpty>
+		where id=#id#
+	</update>
+</sqlMap>

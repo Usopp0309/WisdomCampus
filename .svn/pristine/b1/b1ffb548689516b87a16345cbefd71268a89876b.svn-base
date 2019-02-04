@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="UserAccount">
+  	<typeAlias alias="userAccount" type="com.guotop.palmschool.entity.UserAccount" />
+
+	<insert id="addUserAccount" parameterClass="userAccount">
+		insert into platform.user_account
+		(
+			userId,
+			balance,
+			createTime,
+			updateTime,
+			status,
+			endTime,
+			password,
+			isSmsValidate
+		)
+		values
+		(
+			#userId#,
+			#balance#,
+			#createTime#,
+			#updateTime#,
+			#status#,
+			#endTime#,
+			#password#,
+			#isSmsValidate#
+		)
+	</insert>
+	
+	<update id="updateUserAccount" parameterClass="userAccount">
+		update platform.user_account
+		set balance = #balance#,
+			password = #password#,
+			createTime = #createTime#,
+			updateTime = #updateTime#,
+			status = #status#,
+			endTime = #endTime#,
+			password = #password#,
+			isSmsValidate = #isSmsValidate#
+		WHERE userId = #userId#
+	</update>
+	
+	<select id="getUserAccount" parameterClass="Integer" resultClass="userAccount">
+		SELECT * FROM  platform.user_account WHERE userId = #userId#
+	</select>
+	<select id="getUserAccountCountByUserIdAndPassWord" parameterClass="HashMap" resultClass="Integer">
+		SELECT count(*) FROM  platform.user_account WHERE userId = #userId# and passWord = #passWord#
+	</select>
+	
+	<delete id="delYinAccountByUserId" parameterClass="Integer" >
+		DELETE ua.*,uah.* 
+		FROM platform.user_account ua , platform.user_account_history uah  
+		WHERE ua.userId = uah.userId 
+		AND ua.userId = #yUserId#
+	</delete>
+	
+	<update id="updateUserAccountByUserIdForYinToWisdom" parameterClass="HashMap">
+		update platform.user_account
+		set userId = #wUserId#
+		WHERE userId = #yUserId#
+	</update>
+	<update id="updateUserAccountHistoryByUserIdForYinToWisdom" parameterClass="HashMap">
+		update platform.user_account_history
+		set userId = #wUserId#
+		WHERE userId = #yUserId#
+	</update>
+	
+	<delete id="delUserAccount"  parameterClass="Integer">
+	     delete uc,uch from platform.user_account uc,platform.user_account_history uch 
+	     	where uc.userId = uch.userId
+	     	and uc.userId = #userId#
+	</delete>
+</sqlMap>

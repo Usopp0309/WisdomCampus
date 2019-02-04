@@ -1,0 +1,286 @@
+package com.guotop.palmschool.listener;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextEvent;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
+
+import com.guotop.palmschool.check.service.AbnormalService;
+import com.guotop.palmschool.check.service.CheckService;
+import com.guotop.palmschool.check.service.TotalService;
+import com.guotop.palmschool.check.service.impl.AbnormalServiceImpl;
+import com.guotop.palmschool.check.service.impl.CheckServiceImpl;
+import com.guotop.palmschool.check.service.impl.TotalServiceImpl;
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.common.service.impl.CommonServiceImpl;
+import com.guotop.palmschool.dormitory.service.DormitoryService;
+import com.guotop.palmschool.dormitory.service.impl.DormitoryServiceImpl;
+import com.guotop.palmschool.scheduler.service.CountService;
+import com.guotop.palmschool.schoolbus.service.SchoolBusAbnormalService;
+import com.guotop.palmschool.schoolbus.service.SchoolBusService;
+import com.guotop.palmschool.schoolbus.service.impl.SchoolBusServiceImpl;
+import com.guotop.palmschool.service.ClazzService;
+import com.guotop.palmschool.service.DeviceMonitorService;
+import com.guotop.palmschool.service.DeviceService;
+import com.guotop.palmschool.service.InoutService;
+import com.guotop.palmschool.service.LocationInfoService;
+import com.guotop.palmschool.service.OrderMessageService;
+import com.guotop.palmschool.service.PermissionService;
+import com.guotop.palmschool.service.ScheduleService;
+import com.guotop.palmschool.service.UserService;
+import com.guotop.palmschool.service.impl.DeviceMonitorServiceImpl;
+import com.guotop.palmschool.service.impl.InoutServiceImpl;
+import com.guotop.palmschool.service.impl.ScheduleServiceImpl;
+import com.guotop.palmschool.service.impl.UserServiceImpl;
+import com.guotop.palmschool.shopping.service.OrdersService;
+import com.guotop.palmschool.thread.AbnormalChecker;
+import com.guotop.palmschool.thread.BusTCPServer;
+import com.guotop.palmschool.thread.ImportHandler;
+import com.guotop.palmschool.thread.InoutAbnormalTotalThread;
+import com.guotop.palmschool.thread.NewTCPServer;
+import com.guotop.palmschool.thread.RVRXTCPServer;
+import com.guotop.palmschool.thread.SchoolBusServer;
+import com.guotop.palmschool.thread.TCPServer;
+import com.guotop.palmschool.thread.TCPServerSY;
+import com.guotop.palmschool.thread.TCPServerWT;
+import com.guotop.palmschool.thread.TotalHandler;
+
+/**
+ * 启动监听，启动注入servicebean和启动线程
+ * @author zhou
+ *
+ */
+public class StartupListener extends BaseStartupListener 
+{
+	private static String root;
+	
+	public static AbnormalChecker abnormalChecker;
+	public static InoutAbnormalTotalThread inoutAbnormalTotalThread;
+	public static CommonService commonService;
+	
+	public static InoutService inoutService;
+	
+	/**
+	 * 用户业务类
+	 */
+	public static UserService userService;
+	
+	/**
+	 * 时间作息表业务类
+	 */
+	public static ScheduleService scheduleService;
+	
+	/**
+	 * 考勤业务类
+	 */
+	public static CheckService checkService;
+	
+	/**
+	 * 考勤异常业务类
+	 */
+	public static AbnormalService abnormalService;
+	
+	/**
+	 * 考勤统计业务类
+	 */
+	public static TotalService totalService;
+	
+	/**
+	 * 宿舍管理业务类
+	 */
+	public static DormitoryService dormitoryService;
+	
+	/**
+	 * 校车管理业务类
+	 */
+	public static SchoolBusService schoolBusService;
+	
+	/**
+	 * 班级业务类
+	 */
+	public static ClazzService clazzService;
+	
+	/**
+	 * 校车异常管理业务类
+	 */
+	public static SchoolBusAbnormalService schoolBusAbnormalService;
+	
+	/**
+	 * TCP服务
+	 */
+	public static TCPServer server;
+	/**
+	 * 新TCP服务
+	 */
+	public static NewTCPServer newServer;
+	/**
+	 * BusTCP服务
+	 */
+	public static BusTCPServer busServer;
+	/**
+	 * TCP服务
+	 */
+	public static TCPServerWT serverwt;
+	
+	/**
+	 * TCP服务
+	 */
+	public static SchoolBusServer schoolBusServer;
+	
+	/**
+	 * TCP服务
+	 */
+	public static RVRXTCPServer rvrxTCPServer;
+	
+	/**
+	 * TCP服务
+	 */
+	public static TCPServerSY tcpServerSY;
+	
+	/**
+	 * 导入handler
+	 */
+	public static ImportHandler importHandler;
+	
+	/**
+	 * 考勤统计线程
+	 */
+	public static TotalHandler totalHandler;
+	
+	/**
+	 * 设备监控业务类
+	 */
+	public static DeviceMonitorService deviceMonitorService;
+	/**
+	 * 设备业务类
+	 */
+	public static DeviceService deviceService;
+	/**
+	 * 学校统计类
+	 */
+	public static CountService countService;
+	
+	public static OrdersService ordersService;
+	
+	public static OrderMessageService orderMessageService;
+	/**
+	 * 定位实现类
+	 */
+	public static LocationInfoService locationInfoService;
+	
+	public static PermissionService permissionService;
+	
+	public void init(ServletContext context) 
+	{
+		ApplicationContext ctx = WebApplicationContextUtils
+				.getRequiredWebApplicationContext(context);
+		
+		root = context.getRealPath("/");
+		
+		commonService = (CommonServiceImpl)ctx.getBean("commonService");
+		inoutService = (InoutServiceImpl)ctx.getBean("inoutService");
+		userService = (UserServiceImpl) ctx.getBean("userService");
+		
+		scheduleService = (ScheduleServiceImpl)ctx.getBean("scheduleService");
+		checkService = (CheckServiceImpl)ctx.getBean("checkService");
+		abnormalService = (AbnormalServiceImpl)ctx.getBean("abnormalService");
+		schoolBusAbnormalService = (SchoolBusAbnormalService)ctx.getBean("schoolBusAbnormalService");
+		totalService = (TotalServiceImpl)ctx.getBean("totalService");
+		
+		dormitoryService = (DormitoryServiceImpl) ctx.getBean("dormitoryService");
+		schoolBusService = (SchoolBusServiceImpl) ctx.getBean("schoolBusService");
+		deviceService = (DeviceService)ctx.getBean("deviceService");
+		deviceMonitorService = (DeviceMonitorServiceImpl) ctx.getBean("deviceMonitorService");
+		countService = (CountService)ctx.getBean("countService");
+		ordersService = (OrdersService)ctx.getBean("ordersService");
+		orderMessageService = (OrderMessageService)ctx.getBean("orderMessageService");
+		locationInfoService = (LocationInfoService)ctx.getBean("locationInfoService");
+		permissionService = (PermissionService)ctx.getBean("permissionService");
+		clazzService = (ClazzService)ctx.getBean("clazzService");
+		
+		server = new TCPServer();
+		newServer = new NewTCPServer();
+		busServer = new BusTCPServer();
+		serverwt = new TCPServerWT();
+		schoolBusServer = new SchoolBusServer();
+		rvrxTCPServer = new RVRXTCPServer();
+		tcpServerSY = new TCPServerSY();
+//		importHandler = new ImportHandler(ctx);
+//		inoutAbnormalTotalThread = new InoutAbnormalTotalThread();
+//		totalHandler = new TotalHandler();
+		
+//		deviceMonitorService.updateDevice();
+//		dormitoryAbnormalChecker = new DormitoryAbnormalChecker();
+//		dormitoryAbnormalTotalThread = new DormitoryAbnormalTotalThread();
+//		schoolBusAbnormalChecker = new SchoolBusAbnormalChecker();
+//		schoolBusAbnormalTotalThread = new SchoolBusAbnormalTotalThread();
+	}
+	
+	
+	public static void wakeupImportHandler() 
+	{
+		if (importHandler != null)
+		{
+			importHandler.wakeup();
+		}
+	}
+	
+	
+	public void close(ServletContextEvent event) 
+	{
+		server.disconnect();
+		server = null;
+		
+		newServer.disconnect();
+		newServer = null;
+		
+		busServer.disconnect();
+		busServer = null;
+		
+		serverwt.disconnect();
+		serverwt = null;
+//		
+		schoolBusServer.disconnect();
+		schoolBusServer = null;
+		
+		rvrxTCPServer.disconnect();
+		rvrxTCPServer = null;
+		
+		tcpServerSY.disconnect();
+		tcpServerSY = null;
+		
+		abnormalChecker.close();
+		
+		importHandler.close();
+		importHandler = null;
+		
+		/**
+		 * 关闭统计线程
+		 */
+		totalHandler.stopThread();
+		
+		/**
+//		 * 关闭宿管异常计算线程
+//		 */
+//		dormitoryAbnormalChecker.close();
+//		
+//		/**
+//		 * 关闭宿管统计线程
+//		 */
+//		dormitoryAbnormalTotalThread.close();
+	}
+	
+	public static String getRoot() 
+	{
+		return root;
+	}
+	
+	public static long seqno = System.currentTimeMillis();
+	
+	public static String getSeq() 
+	{
+		return String.valueOf(seqno++);
+	}
+	
+}

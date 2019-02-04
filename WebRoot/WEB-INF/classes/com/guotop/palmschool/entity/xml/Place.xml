@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Place">
+	<typeAlias alias="place" type="com.guotop.palmschool.entity.Place"/>	
+	
+	<!-- 查找地点点信息 20151129-->	
+	<select id="getPlaceList" resultClass="place">
+		select * from palm_place
+	</select>
+	
+	<!-- 根据Id查找所有地点信息 -->	
+	<select id="selectPlaceListByPlaceId" parameterClass="Integer" resultClass="place">
+		select * from palm_place where id = #placeId#
+	</select>
+	
+	<!-- 根据type查找所有地点信息 用于添加会议时加载会议地点 20151207-->	
+	<select id="getPlaceListByType" parameterClass="String" resultClass="place">
+		select * from palm_place where type = #type#
+	</select>
+	
+	<!-- 添加地点点 -->
+	<insert id="addPlace" parameterClass="place">
+		insert into palm_place
+		(
+			name,
+			type,
+			functionType, 
+			functionId,
+			wifi,
+			createTime
+		)
+		values
+		(			
+			#name#, 
+			#type#, 
+			#functionType#,
+			#functionId#,
+			#wifi#,
+			#createTime#
+		)
+	</insert>
+	
+	<!-- 修改地点 -->
+	<update id="modifyPlace" parameterClass="place">
+		update palm_place 
+			SET
+			  name = #name#,
+			  type = #type#,
+			  functionType = #functionType#,
+			  functionId = #functionId#,
+			  wifi = #wifi#
+			WHERE id = #id#
+	</update>
+	
+	<!-- 根据placeId删除地点和对应的设备 -->
+	<delete id="deletePlaceAndDevice" parameterClass="Integer">
+	    delete p,d from palm_place p LEFT JOIN palm_device d ON p.id = d.placeId  where p.id =#placeId#
+	</delete>
+	
+	<!-- 根据placeId删除地点和对应的摄像头 -->
+	<delete id="deletePlaceAndCamera" parameterClass="Integer">
+	    delete p,c from palm_place p LEFT JOIN palm_camera c ON p.id = c.placeId  where p.id =#placeId#
+	</delete>
+	
+	
+</sqlMap>

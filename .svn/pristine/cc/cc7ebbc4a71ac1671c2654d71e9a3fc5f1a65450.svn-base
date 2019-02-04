@@ -1,0 +1,42 @@
+package com.guotop.palmschool.thread;
+
+import javax.annotation.Resource;
+
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.listener.StartupListener;
+import com.guotop.palmschool.scheduler.entity.SchoolCountInfo;
+import com.guotop.palmschool.scheduler.service.CountService;
+/**
+ * 统计线程
+ * @author jfy
+ * @date 2015年12月7日
+ */
+public class CountSchoolInfoThread extends Thread
+{
+	private Long schoolId;
+	@Resource
+	private CountService countService;
+	
+	public CountSchoolInfoThread(Long schoolId)
+	{
+		this.schoolId = schoolId;
+		countService = StartupListener.countService;
+		this.start();
+	}
+	public void run()
+	{
+		DBContextHolder.setDBType(String.valueOf(schoolId));
+		SchoolCountInfo schoolCountInfo = new SchoolCountInfo();
+		//获取统计数据
+		Integer userCount = countService.getUserCountBySchoolId(schoolId);
+		Integer studentCount = countService.getStudentCountBySchoolId();
+		Integer teacherCount = countService.getTeacherCountBySchoolId();
+		//更新统计数据
+		schoolCountInfo.setUserCount(userCount);
+		schoolCountInfo.setStudentCount(studentCount);
+		schoolCountInfo.setTeacherCount(teacherCount);
+		schoolCountInfo.setSchoolId(schoolId);
+		
+		countService.updateCountInfo(schoolCountInfo);		
+	}
+}

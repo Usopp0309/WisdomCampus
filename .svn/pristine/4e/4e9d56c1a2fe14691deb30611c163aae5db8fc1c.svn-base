@@ -1,0 +1,95 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>RichX智慧校园 -财务报表</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->        
+ 	<link href="<%=basePath%>assets/global/css/skin_m.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body id="body">
+<%@include file="/public_module/header.jsp" %>
+	 <div class="Fill_Card">
+		<div class="header">
+			<div class="pablic_search_box Fill_Card_search_box" onkeypress="KeyP()" >
+					<button type="button" class="fa fa-search search_submit" onclick="getList()"></button>
+					<input class="search_text" type="text" name="condition" id="condition"
+						placeholder="请输入学校名或代理商名" value=""></input>
+				</div>
+		</div>
+		<div class="con">
+			<h3>财务报表  <span style="float:right; font-size:18px;">总金额:<em style="color:#ea5514;font-size:22px;font-style: normal;padding:0px 10px;font-weight: bold;" id="totalAmount">0</em>元</span></h3>
+			<div class="tabbable tabbable-custom">
+				<p class="Fill_Card_title num4" style="background-color:#f2f2f2">
+					<span>学校</span>
+					<span>代理商</span>
+					<span>金额</span>
+					<span>操作</span>
+				</p>
+				<div class="tab-content" style="padding: 0px;">
+					<div id="content">     
+						  
+					</div>
+				</div>
+	
+			</div>
+		</div>
+		<form id="detailForm" method="post" action="<%=basePath%>financialStatements/toFinancialStatementsDetail.do">
+			<input type="hidden" name="schoolId" id="schoolId">
+		</form>
+	</div>
+	<%@include file="/public_module/footer.jsp" %>
+	<%@include file="/public_module/public_js.jsp" %>
+
+	<script type="text/javascript">
+		$(function(){
+			getList();
+			
+		});
+		function getList(){
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>financialStatements/getFinancialStatementsList.do",
+				data:{
+					condition : $("#condition").val()
+					},
+				success: function(data){
+					var reData = $.parseJSON(data);
+					$("#totalAmount").text(reData.totalAmount);
+					var appendHtml = "";
+					$.each(reData.list, function(n,value){
+						appendHtml += '<p class="authorization_con finance_border_bottom">';
+						appendHtml += '<span>' + value.schoolName + '</span>';
+						appendHtml += '<span>' + value.agencyName + '</span>';
+						appendHtml += '<span>' + value.amount + '</span>';
+						appendHtml += '<span>';
+						appendHtml += '<a href="javascript:showDetail(' + value.schoolId + ')">详情</a>';
+						appendHtml += '</span>';
+						appendHtml += '</p>';    
+						
+					});
+					$("#content").html(appendHtml);
+				}
+			});
+		}
+		function KeyP(){
+			 if (event.keyCode == 13 ){
+	              getList();   
+	          }
+		}
+		//查看详情
+		function showDetail(schoolId, schoolName){
+			$("#schoolId").val(schoolId);
+			$("#detailForm").submit();
+		}
+	</script>
+</body>
+</html>

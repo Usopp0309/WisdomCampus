@@ -1,0 +1,178 @@
+package com.guotop.palmschool.meeting.websocket.onchat;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.java_websocket.WebSocket;
+import org.java_websocket.WebSocketImpl;
+import org.java_websocket.framing.Framedata;
+import org.java_websocket.handshake.ClientHandshake;
+import org.java_websocket.server.WebSocketServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.guotop.palmschool.listener.DBContextHolder;
+import com.guotop.palmschool.listener.StartupListener;
+import com.guotop.palmschool.meeting.entity.Meeting;
+import com.guotop.palmschool.meeting.entity.MeetingInoutWifi;
+import com.guotop.palmschool.meeting.websocket.utils.Constant;
+import com.guotop.palmschool.util.TimeUtil;
+
+public class ChatServer extends WebSocketServer
+{
+	private Logger logger = LoggerFactory.getLogger(ChatServer.class);
+	
+	public ChatServer(int port) throws UnknownHostException
+	{
+		super(new InetSocketAddress(port));
+	}
+
+	public ChatServer(InetSocketAddress address)
+	{
+		super(address);
+	}
+
+	/**
+	 * 触发连接事件
+	 */
+	@Override
+	public void onOpen(WebSocket conn, ClientHandshake handshake)
+	{
+
+	}
+
+	/**
+	 * 触发关闭事件
+	 */
+	@Override
+	public void onClose(WebSocket conn, int code, String reason, boolean remote)
+	{
+		userLeave(conn);
+		System.out.println("用户离线");
+	}
+
+	/**
+	 * 客户端发送消息到服务器时触发事件
+	 */
+	@Override
+	public void onMessage(WebSocket conn, String message)
+	{
+		message = message.toString();
+		if (null != message && message.startsWith(Constant._online_user_))
+		{// 用户上线
+			System.out.println("用户上线");
+			String userIdSchoolId = message.replaceFirst(Constant._online_user_, "");
+			this.userjoin(conn, userIdSchoolId);
+		}
+		if (null != message && message.startsWith(Constant._leave_user_))
+		{// 用户离线
+			System.out.println("用户离线");
+			this.userLeave(conn);
+		}
+		if (null != message && message.contains(Constant._sendLocation_))
+		{//发送定位信息
+			String info = message.replaceFirst(Constant._sendLocation_, "");
+			try{
+				String[] array = info.split("&&");
+				String wifi =  array[0];
+				String position = array[1];
+				String device =  array[2];
+				String meetingId = array[3];
+				String userId =  array[4];
+				String schoolId = array[5];
+				String currentTime = TimeUtil.getInstance().now();
+				
+				MeetingInoutWifi miw = new MeetingInoutWifi();
+				miw.setStatus(0);
+				miw.setPosition(position);
+				miw.setWifi(wifi);
+				miw.setDevice(device);
+				miw.setUserId(Integer.valueOf(userId));
+				miw.setMeetingId(Integer.valueOf(meetingId));
+				miw.setCreateTime(currentTime);
+				
+				DBContextHolder.setDBType(schoolId);
+				//保持到数据库表会议手机签到表中
+				StartupListener.meetingService.addMeetingInoutWifi(miw);
+				//更新palm_meeting_detail表中状态
+				Meeting meeting = StartupListener.meetingService.selectMeetingByMeetingId(Integer.valueOf(meetingId));
+				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				Date starTime = (Date) formatter.parse(meeting.getStartTime());// 会议开始时间
+				Date endTime = (Date) formatter.parse(meeting.getEndTime());// 会议结束时间
+				
+				Map<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("meetingId", meetingId);
+				paramMap.put("attendeeId", userId);
+				Date nowTime = (Date) formatter.parse(currentTime);// 刷卡时间
+				if (nowTime.getTime() < starTime.getTime())
+				{
+					paramMap.put("attenStatus", 0);
+					
+				} else if (starTime.getTime() < nowTime.getTime() && nowTime.getTime() < endTime.getTime())
+				{
+					paramMap.put("attenStatus", 1);
+				}
+				StartupListener.meetingDetailService.updateAttensta(paramMap);
+				//获取个人姓名
+				String realName = StartupListener.userService.getUserNameByUserId(Integer.valueOf(userId));
+				ChatServerPool.sendMessage(Constant._msg_+realName+": 在 "+currentTime+" 签到成功", schoolId);
+				
+			}catch(Exception e){
+				logger.error("收到会议签到定位信息出错,错误信息如下:"+e.getMessage());
+			}
+		}
+	}
+
+	public void onFragment(WebSocket conn, Framedata fragment)
+	{
+	}
+
+	/**
+	 * 触发异常事件
+	 */
+	@Override
+	public void onError(WebSocket conn, Exception ex)
+	{
+		ex.printStackTrace();
+		if (conn != null)
+		{
+			// some errors like port binding failed may not be assignable to a
+			// specific websocket
+		}
+	}
+
+	/**
+	 * 用户加入处理
+	 * 
+	 * @param user
+	 */
+	public void userjoin(WebSocket conn, String user)
+	{
+		ChatServerPool.addUser(conn, user); // 向连接池添加当前的连接对象
+	}
+
+	/**
+	 * 用户下线处理
+	 * 
+	 * @param user
+	 */
+	public void userLeave(WebSocket conn)
+	{
+		boolean b = ChatServerPool.removeUser(conn); // 在连接池中移除连接
+	}
+
+	public static void main(String[] args) throws InterruptedException, IOException
+	{
+		WebSocketImpl.DEBUG = false;
+		int port = 8667; // 端口
+		ChatServer s = new ChatServer(port);
+		s.start();
+		// System.out.println( "服务器的端口" + s.getPort() );
+	}
+
+}

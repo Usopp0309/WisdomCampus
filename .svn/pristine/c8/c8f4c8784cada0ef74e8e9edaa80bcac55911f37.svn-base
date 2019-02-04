@@ -1,0 +1,102 @@
+package com.guotop.palmschool.scheduler.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.scheduler.entity.SchoolCountInfo;
+import com.guotop.palmschool.scheduler.service.CountService;
+import com.guotop.palmschool.service.BaseService;
+/**
+ * 学校统计信息服务接口实现类
+ * @author jfy
+ * @date 2015年12月7日
+ */
+@Service("countService")
+public class CountServiceImpl extends BaseService implements CountService
+{
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<SchoolCountInfo> getSchoolList()
+	{
+		return getBaseDao().selectListBySql("SchoolCountInfo.getAllCountInfo");
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<SchoolCountInfo> getSchoolDataSorceList()
+	{
+		return getBaseDao().selectListBySql("SchoolCountInfo.getSchoolDataSorceList");
+	}
+	
+
+	@Override
+	public Integer getUserCountBySchoolId(Long schoolId)
+	{
+		return (Integer)getBaseDao().selectObjectByObject("SchoolCountInfo.getUserCountBySchoolId", schoolId);
+	}
+
+	@Override
+	public Integer getStudentCountBySchoolId()
+	{
+		return (Integer)getBaseDao().selectObjectByObject("SchoolCountInfo.getStudentCountBySchoolId",null);
+	}
+
+	@Override
+	public Integer getTeacherCountBySchoolId()
+	{
+		return (Integer)getBaseDao().selectObjectByObject("SchoolCountInfo.getTeacherCountBySchoolId", null);
+	}
+
+	@Override
+	public void updateCountInfo(SchoolCountInfo schoolCountInfo)
+	{
+		getBaseDao().updateObject("SchoolCountInfo.updateCountInfoBySchoolId", schoolCountInfo);
+	}
+
+	@Override
+	public void addCountInfoBK(SchoolCountInfo schoolCountInfo)
+	{
+		getBaseDao().addObject("SchoolCountInfo.addCountInfoBK", schoolCountInfo);
+	}
+
+	@Override
+	public SchoolCountInfo getCountInfoBySchoolId(Long schoolId)
+	{
+		return (SchoolCountInfo) getBaseDao().selectObjectByObject("SchoolCountInfo.getCountInfoBySchoolId", schoolId);
+	}
+
+	@Override
+	public Double getServiceTotalAmount(Long schoolId, String startTime, String endTime)
+	{
+		Map<String,Object> parmMap = new HashMap<String, Object>();
+		parmMap.put("schoolId", schoolId);
+		parmMap.put("startTime", startTime);
+		parmMap.put("endTime", endTime);
+		return (Double) getBaseDao().selectObjectByObject("SchoolCountInfo.getServiceTotalAmount", parmMap);
+	}
+
+	@Override
+	public Integer getCardNumber(Long schoolId, String startTime, String endTime)
+	{
+		Map<String,Object> parmMap = new HashMap<String, Object>();
+		parmMap.put("schoolId", schoolId);
+		parmMap.put("startTime", startTime);
+		parmMap.put("endTime", endTime);
+		return (Integer) getBaseDao().selectObjectByObject("SchoolCountInfo.getCardNumber", parmMap);
+	}
+
+	@Override
+	public Double getCardTotalDepositAmount(Long schoolId, String startTime, String endTime)
+	{
+		Map<String,Object> parmMap = new HashMap<String, Object>();
+		parmMap.put("schoolId", schoolId);
+		parmMap.put("startTime", startTime);
+		parmMap.put("endTime", endTime);
+		return (Double) getBaseDao().selectObjectByObject("SchoolCountInfo.getCardTotalDepositAmount", parmMap);
+	}
+	
+}

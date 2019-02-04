@@ -1,0 +1,87 @@
+#windownbg1 { display: none; position: absolute; width: 100%; height: 100%; background: #000; /*body-bg*/ top: 0; left: 0; z-index:999998;  }
+#windown-box1 { display: none; position: fixed; _position: absolute; /*For IE 6.0*/ border: 5px solid #E9F3FD; background: #FFF; text-align: left; }
+#windown-title1 { position: relative; height: 30px; border: 1px solid #A6C9E1; overflow: hidden; background:url(table/opendiv.gif) 0 0 repeat-x; }
+#windown-title1 h2 { position: relative; left: 10px; top: 5px; font-size: 14px; color: #666; }
+#windown-close1 { position: absolute; right: 10px; top: 10px; width: 9px; height: 9px; text-indent: -10em; overflow: hidden; background: url(table/opendiv.gif) 0 -32px no-repeat; cursor: pointer; }
+#windown-content-border1 { position: relative; top: -1px; border: 1px solid #A6C9E1; padding: 5px 0 5px 5px; background:url(table/opendiv.gif) 0 -43px repeat-x; }
+#windown-content1 { position: relative; overflow: auto;  color:#000; }
+#windown-content1 img, #windown-content1 iframe { display: block; }
+#windown-content1 .loading { position: absolute; left: 50%; top: 50%; margin-left: -8px; margin-top: -8px; }
+
+#windownbg2 { display: none; position: absolute; width: 100%; height: 100%; background: #000; /*body-bg*/ top: 0; left: 0; z-index:999998; }
+#windown-box2 { display: none; position: fixed; _position: absolute; /*For IE 6.0*/ border: 5px solid; background: #FFF; text-align: left; }
+#windown-title2 { position: relative; height: 30px; border: 1px solid #A6C9E1; overflow: hidden; background:url(table/opendiv.gif) 0 0 repeat-x; }
+#windown-title2 h2 { position: relative; left: 10px; top: 5px; font-size: 14px; color: #666; }
+#windown-close2 { position: absolute; right: 10px; top: 10px; width: 9px; height: 9px; text-indent: -10em; overflow: hidden; background: url(table/opendiv.gif) 0 -32px no-repeat; cursor: pointer; }
+#windown-content-border2 { position: relative; top: -1px; border: 1px solid #A6C9E1; padding: 5px 0 5px 5px; background:url(table/opendiv.gif) 0 -43px repeat-x; }
+#windown-content2 { position: relative; overflow: auto; color:#000;}
+#windown-content2 img, #windown-content2 iframe { display: block; }
+#windown-content2 .loading { position: absolute; left: 50%; top: 50%; margin-left: -8px; margin-top: -8px; }
+
+#windownbg3 { display: none; position: absolute; width: 100%; height: 100%; background: #000; /*body-bg*/ top: 0; left: 0; z-index:999998; }
+#windown-box3 { display: none; position: fixed; _position: absolute; /*For IE 6.0*/ border: 5px solid #E9F3FD; background: #FFF; text-align: left; }
+#windown-title3 { position: relative; height: 30px; border: 1px solid #A6C9E1; overflow: hidden; background:url(table/opendiv.gif) 0 0 repeat-x; }
+#windown-title3 h2 { position: relative; left: 10px; top: 5px; font-size: 14px; color: #666; }
+#windown-close3 { position: absolute; right: 10px; top: 10px; width: 9px; height: 9px; text-indent: -10em; overflow: hidden; background: url(table/opendiv.gif) 0 -32px no-repeat; cursor: pointer; }
+#windown-content-border3 { position: relative; top: -1px; border: 1px solid #A6C9E1; padding: 5px 0 5px 5px; background:url(table/opendiv.gif) 0 -43px repeat-x; }
+#windown-content3 { position: relative; overflow: auto; color:#000;}
+#windown-content3 img, #windown-content3 iframe { display: block; }
+#windown-content3 .loading { position: absolute; left: 50%; top: 50%; margin-left: -8px; margin-top: -8px; }
+
+
+#windownbg4 { display: none; position: absolute; width: 100%; height: 100%; background: #000; /*body-bg*/ top: 0; left: 0; z-index:999998; }
+#windown-box4 { display: none; position: fixed; _position: absolute; /*For IE 6.0*/ border: 5px solid #E9F3FD; background: #FFF; text-align: left; }
+#windown-title4 { position: relative; height: 30px; border: 1px solid #A6C9E1; overflow: hidden; background:url(table/opendiv.gif) 0 0 repeat-x; }
+#windown-title4 h2 { position: relative; left: 10px; top: 5px; font-size: 14px; color: #666; }
+#windown-close4 { position: absolute; right: 10px; top: 10px; width: 9px; height: 9px; text-indent: -10em; overflow: hidden; background: url(table/opendiv.gif) 0 -32px no-repeat; cursor: pointer; }
+#windown-content-border4 { position: relative; top: -1px; border: 1px solid #A6C9E1; padding: 5px 0 5px 5px; background:url(table/opendiv.gif) 0 -43px repeat-x; }
+#windown-content4 { position: relative; overflow: auto; color:#000;}
+#windown-content4 img, #windown-content4 iframe { display: block; }
+#windown-content4 .loading { position: absolute; left: 50%; top: 50%; margin-left: -8px; margin-top: -8px; }
+
+
+
+#windownbg5 { display: none; position: absolute; width: 100%; height: 100%; background: #000; /*body-bg*/ top: 0; left: 0; z-index:999998; }
+#windown-box5 { display: none; position: fixed; _position: absolute; /*For IE 6.0*/ border: 5px solid #E9F3FD; background: #FFF; text-align: left; }
+#windown-title5 { position: relative; height: 30px; border: 1px solid #A6C9E1; overflow: hidden; background:url(table/opendiv.gif) 0 0 repeat-x; }
+#windown-title5 h2 { position: relative; left: 10px; top: 5px; font-size: 14px; color: #666; }
+#windown-close5 { position: absolute; right: 10px; top: 10px; width: 9px; height: 9px; text-indent: -10em; overflow: hidden; background: url(table/opendiv.gif) 0 -32px no-repeat; cursor: pointer; }
+#windown-content-border5 { position: relative; top: -1px; border: 1px solid #A6C9E1; padding: 5px 0 5px 5px; background:url(table/opendiv.gif) 0 -43px repeat-x; }
+#windown-content5 { position: relative; overflow: auto; color:#000;}
+#windown-content5 img, #windown-content5 iframe { display: block; }
+#windown-content5 .loading { position: absolute; left: 50%; top: 50%; margin-left: -8px; margin-top: -8px; }
+
+
+#windownbg6 { display: none; position: absolute; width: 100%; height: 100%; background: #000; /*body-bg*/ top: 0; left: 0; z-index:999998; }
+#windown-box6 { display: none; position: fixed; _position: absolute; /*For IE 6.0*/ border: 5px solid #E9F3FD; background: #FFF; text-align: left; }
+#windown-title6 { position: relative; height: 30px; border: 1px solid #A6C9E1; overflow: hidden; background:url(table/opendiv.gif) 0 0 repeat-x; }
+#windown-title6 h2 { position: relative; left: 10px; top: 5px; font-size: 14px; color: #666; }
+#windown-close6 { position: absolute; right: 10px; top: 10px; width: 9px; height: 9px; text-indent: -10em; overflow: hidden; background: url(table/opendiv.gif) 0 -32px no-repeat; cursor: pointer; }
+#windown-content-border6 { position: relative; top: -1px; border: 1px solid #A6C9E1; padding: 5px 0 5px 5px; background:url(table/opendiv.gif) 0 -43px repeat-x; }
+#windown-content6 { position: relative; overflow: auto; color:#000;}
+#windown-content6 img, #windown-content6 iframe { display: block; }
+#windown-content6 .loading { position: absolute; left: 50%; top: 50%; margin-left: -8px; margin-top: -8px; }
+
+
+
+#windownbg7 { display: none; position: absolute; width: 100%; height: 100%; background: #000; /*body-bg*/ top: 0; left: 0; z-index:999998; }
+#windown-box7 { display: none; position: fixed; _position: absolute; /*For IE 6.0*/ border: 5px solid #E9F3FD; background: #FFF; text-align: left; }
+#windown-title7 { position: relative; height: 30px; border: 1px solid #A6C9E1; overflow: hidden; background:url(table/opendiv.gif) 0 0 repeat-x; }
+#windown-title7 h2 { position: relative; left: 10px; top: 5px; font-size: 14px; color: #666; }
+#windown-close7 { position: absolute; right: 10px; top: 10px; width: 9px; height: 9px; text-indent: -10em; overflow: hidden; background: url(table/opendiv.gif) 0 -32px no-repeat; cursor: pointer; }
+#windown-content-border7 { position: relative; top: -1px; border: 1px solid #A6C9E1; padding: 5px 0 5px 5px; background:url(table/opendiv.gif) 0 -43px repeat-x; }
+#windown-content7 { position: relative; overflow: auto; color:#000;}
+#windown-content7 img, #windown-content7 iframe { display: block; }
+#windown-content7 .loading { position: absolute; left: 50%; top: 50%; margin-left: -8px; margin-top: -8px; }
+
+
+
+#windownbg8 { display: none; position: absolute; width: 100%; height: 100%; background: #000; /*body-bg*/ top: 0; left: 0; z-index:999998; }
+#windown-box8 { display: none; position: fixed; _position: absolute; /*For IE 6.0*/ border: 5px solid #E9F3FD; background: #FFF; text-align: left; }
+#windown-title8 { position: relative; height: 30px; border: 1px solid #A6C9E1; overflow: hidden; background:url(table/opendiv.gif) 0 0 repeat-x; }
+#windown-title8 h2 { position: relative; left: 10px; top: 5px; font-size: 14px; color: #666; }
+#windown-close8 { position: absolute; right: 10px; top: 10px; width: 9px; height: 9px; text-indent: -10em; overflow: hidden; background: url(table/opendiv.gif) 0 -32px no-repeat; cursor: pointer; }
+#windown-content-border8 { position: relative; top: -1px; border: 1px solid #A6C9E1; padding: 5px 0 5px 5px; background:url(table/opendiv.gif) 0 -43px repeat-x; }
+#windown-content8 { position: relative; overflow: auto; color:#000;}
+#windown-content8 img, #windown-content8 iframe { display: block; }
+#windown-content8 .loading { position: absolute; left: 50%; top: 50%; margin-left: -8px; margin-top: -8px; }

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Permission">
+	<typeAlias alias="permission" type="com.guotop.palmschool.entity.Permission"/>
+	<typeAlias alias="userPermission" type="com.guotop.palmschool.entity.UserPermission"/>
+	
+	<!--权限列表-->		
+	<resultMap class="com.guotop.palmschool.entity.Permission" id="result_permission">
+		<result property="permissionCode" column="permissionCode"/>
+		<result property="permissionName" column="permissionName"/>	
+		<result property="type" column="type"/>
+		<result property="parentCode" column="parentCode"/>
+	</resultMap>
+	
+   <!-- 表单校验 -->
+	<select id="getPermissionByUserId" parameterClass="Integer" resultMap="result_permission">
+ 		select distinct p.permissionCode, p.permissionName, p.type, p.parentCode from palm_permission p, palm_user_permission up
+ 			where p.permissionCode = up.permissionCode and up.userId = #userId#
+	</select>
+	<!-- 获取所有权限 -->
+	<select id="getPermissionList" resultClass="permission">
+ 		select * from palm_permission
+	</select>
+	<!-- 查询该用户是否已经拥有该权限 -->
+	<select id="getPermissionByUserIdAndPermissionCode" parameterClass="HashMap" resultClass="Integer">
+ 		select COUNT(*) from palm_user_permission
+ 			where userId = #userId#
+ 			and (permissionCode = #permissionCode# or permissionCode='admin')
+	</select>
+	
+	<!-- 根据用户Id查询已有权限 -->
+	<select id="getHavePermissionById" parameterClass="Integer" resultMap="result_permission">
+ 		select distinct p.* from palm_permission p, palm_user_permission up
+ 			where p.permissionCode = up.permissionCode 
+ 			and up.userId = #userId#
+ 			and up.roleCode != 'parent'
+	</select>
+	
+	<!-- 根据用户Id查询未有权限 -->
+	<select id="getNotHavePermissionById" parameterClass="Integer" resultMap="result_permission">
+ 	  SELECT * FROM palm_permission p
+         WHERE 1= 1
+            AND NOT EXISTS
+             ( SELECT p.permissionCode FROM palm_user_permission up
+ 			       WHERE p.permissionCode = up.permissionCode 
+ 			         AND up.userId = #userId#
+ 			 )
+	</select>
+</sqlMap>

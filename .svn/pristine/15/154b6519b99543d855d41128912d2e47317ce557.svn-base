@@ -1,0 +1,265 @@
+package com.guotop.palmschool.asset.entity;
+
+import java.util.List;
+
+/**
+ * 资产实体类
+ * @author taomingyue
+ */
+public class AssetRepair
+{
+	private int id;
+	/**
+	 * 资产ID
+	 */
+	private Integer assetId;
+	/**
+	 * 资产名称
+	 */
+	private String assetName;
+	/**
+	 * 资产记量单位
+	 */
+	private String units;
+	/**
+	 * 联系方式
+	 */
+	private String phone;
+	/**
+	 * 维修人员
+	 */
+	private String serviceman;
+	/**
+	 * 维修人员ID
+	 */
+	private Integer servicemanId;
+	/**
+	 * 报修价格
+	 */
+	private Double price;
+	/**
+	 * 维修估计
+	 */
+	private Double repairPrice;
+	/**
+	 * 报修人ID
+	 */
+	private Integer userId;
+	/**
+	 * 报修人
+	 */
+	private String realName;
+	/**
+	 * 报修类型
+	 */
+	private Integer type;
+	private String typeName;
+	/**
+	 * 状态:0待审核 1审核不通过 2待维修 3已领取工单 4已拒绝工单 5维修完成
+	 */
+	private Integer status;
+	private String statusName;
+	/**
+	 * 描述
+	 */
+	private String remark;
+	/**
+	 * 审核意见
+	 */
+	private String auditRemark;
+	/**
+	 * 创建时间
+	 */
+	private String createTime;
+	/**
+	 * 预计完成时间
+	 */
+	private String estimatedTime;
+	/**
+	 * 完成时间
+	 */
+	private String finishTime;
+	/**
+	 * 更新时间
+	 */
+	private String updateTime;
+	
+	private List<AssetRepairImg> imgList;
+	public int getId()
+	{
+		return id;
+	}
+	public void setId(int id)
+	{
+		this.id = id;
+	}
+	public Integer getAssetId()
+	{
+		return assetId;
+	}
+	public void setAssetId(Integer assetId)
+	{
+		this.assetId = assetId;
+	}
+	public String getAssetName()
+	{
+		return assetName;
+	}
+	public void setAssetName(String assetName)
+	{
+		this.assetName = assetName;
+	}
+	public String getUnits()
+	{
+		return units;
+	}
+	public void setUnits(String units)
+	{
+		this.units = units;
+	}
+	public String getPhone()
+	{
+		return phone;
+	}
+	public void setPhone(String phone)
+	{
+		this.phone = phone;
+	}
+	public Double getRepairPrice()
+	{
+		return repairPrice;
+	}
+	public void setRepairPrice(Double repairPrice)
+	{
+		this.repairPrice = repairPrice;
+	}
+	public String getServiceman()
+	{
+		return serviceman;
+	}
+	public void setServiceman(String serviceman)
+	{
+		this.serviceman = serviceman;
+	}
+	public Integer getServicemanId()
+	{
+		return servicemanId;
+	}
+	public void setServicemanId(Integer servicemanId)
+	{
+		this.servicemanId = servicemanId;
+	}
+	public Double getPrice()
+	{
+		return price;
+	}
+	public void setPrice(Double price)
+	{
+		this.price = price;
+	}
+	public Integer getType()
+	{
+		return type;
+	}
+	public void setType(Integer type)
+	{
+		this.type = type;
+	}
+	public Integer getStatus()
+	{
+		return status;
+	}
+	public void setStatus(Integer status)
+	{
+		this.status = status;
+	}
+	public String getRemark()
+	{
+		return remark;
+	}
+	public void setRemark(String remark)
+	{
+		this.remark = remark;
+	}
+	public Integer getUserId()
+	{
+		return userId;
+	}
+	public void setUserId(Integer userId)
+	{
+		this.userId = userId;
+	}
+	public String getRealName()
+	{
+		return realName;
+	}
+	public void setRealName(String realName)
+	{
+		this.realName = realName;
+	}
+	public String getAuditRemark()
+	{
+		return auditRemark;
+	}
+	public void setAuditRemark(String auditRemark)
+	{
+		this.auditRemark = auditRemark;
+	}
+	public String getCreateTime()
+	{
+		return createTime;
+	}
+	public void setCreateTime(String createTime)
+	{
+		this.createTime = createTime;
+	}
+	public String getEstimatedTime()
+	{
+		return estimatedTime;
+	}
+	public void setEstimatedTime(String estimatedTime)
+	{
+		this.estimatedTime = estimatedTime;
+	}
+	public String getFinishTime()
+	{
+		return finishTime;
+	}
+	public void setFinishTime(String finishTime)
+	{
+		this.finishTime = finishTime;
+	}
+	public String getUpdateTime()
+	{
+		return updateTime;
+	}
+	public void setUpdateTime(String updateTime)
+	{
+		this.updateTime = updateTime;
+	}
+	public String getTypeName()
+	{
+		return typeName;
+	}
+	public void setTypeName(String typeName)
+	{
+		this.typeName = typeName;
+	}
+	public String getStatusName()
+	{
+		return statusName;
+	}
+	public void setStatusName(String statusName)
+	{
+		this.statusName = statusName;
+	}
+	public List<AssetRepairImg> getImgList()
+	{
+		return imgList;
+	}
+	public void setImgList(List<AssetRepairImg> imgList)
+	{
+		this.imgList = imgList;
+	}
+	
+}

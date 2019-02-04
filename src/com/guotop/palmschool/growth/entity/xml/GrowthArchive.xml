@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Growth">
+	<typeAlias alias="growthArchive" type="com.guotop.palmschool.growth.entity.GrowthArchive" />
+
+	<resultMap class="com.guotop.palmschool.growth.entity.GrowthArchive" id="result_archiveList">
+		<result property="userId" column="userId" />
+		<result property="realName" column="realName" />
+		<result property="gradeName" column="gradeName" />
+		<result property="clazzName" column="clazzName" />
+		<result property="leaderName" column="leaderName" />
+		<result property="updateTime" column="updateTime" />
+		<result property="templateName" column="templateName" />
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.growth.entity.GrowthArchive" id="result_archiveList_detail">
+		<result property="id" column="id" />
+		<result property="path" column="path" />
+		<result property="gradeName" column="gradeName" />
+		<result property="term" column="term" />
+		<result property="createYear" column="createYear" />
+		<result property="userId" column="userId" />
+	</resultMap>
+	
+	<!--查找学校学生列表 -->
+	<select id="getArchiveList" resultMap="result_archiveList">
+		select growth.userId,growth.realName,growth.leaderName,growth.templateName,growth.updateTime,growth.gradeName,growth.clazzName from 
+		(select ar.userId,ar.realName,ar.leaderName,gt.`name` templateName,gc.updateTime, ar.clazzName, ar.gradeName,ar.clazzId from 
+	(select ud.userId,ud.realName,platform.getRealName(c.leaderId) leaderName,c.clazzName,getGradeName(c.gradeId) gradeName,c.id clazzId 
+	from platform.user_detail ud,platform.user_school us, palm_student_clazz sc,palm_clazz c,palm_grade g
+	where ud.userid=sc.userId  and sc.clazzId = c.id and ud.userid=us.userId AND g.id = c.gradeId AND g.state = '0' ) ar
+	LEFT JOIN  palm_selfgrowth sg ON ar.userId=sg.userId
+	LEFT JOIN palm_growthtemplate gt ON sg.templateId=gt.id
+	LEFT JOIN palm_growthcontent gc ON sg.id=gc.growthId) growth where 1=1
+	<isNotNull property="clazzIds">
+		<isNotEmpty prepend="and" property="clazzIds">
+			growth.clazzId IN 
+	       <iterate open="(" close=")" conjunction="," property="clazzIds" > 
+	           #clazzIds[]# 
+	       </iterate> 
+     	</isNotEmpty>
+	     </isNotNull>
+	<isNotNull property="clazzId">
+		<isNotEmpty prepend="and" property="clazzId">
+			growth.clazzId=#clazzId#
+		</isNotEmpty>
+	</isNotNull>
+	<isNotNull property="queryContent">
+		<isNotEmpty prepend="and" property="queryContent">
+			growth.realName like concat('%',#queryContent#,'%')
+		</isNotEmpty>
+	</isNotNull>
+	  group by growth.userId order by growth.updateTime desc
+	<isNotNull property="startIndex">
+		<isNotEmpty property="startIndex">
+			limit #startIndex#, #length#
+		</isNotEmpty>
+	</isNotNull>
+	</select>
+	<!--查找学校学生列表 -->
+	<select id="getArchiveList4Parent" resultMap="result_archiveList">
+		select growth.userId,growth.realName,growth.leaderName,growth.templateName,growth.updateTime,growth.gradeName,growth.clazzName from
+		 (select ar.userId,ar.realName,ar.leaderName,gt.`name` templateName,gc.updateTime, ar.clazzName, ar.gradeName,ar.clazzId, ar.gradeId from 
+		(select ud.userId,ud.realName,platform.getRealName(c.leaderId) leaderName,c.clazzName,getGradeName(c.gradeId) gradeName,c.id clazzId, c.gradeId from 
+		platform.user_detail ud,platform.user_school us, palm_student_clazz sc,palm_clazz c,palm_grade g,platform.student_parent sp 
+		where ud.userid=sc.userId  and sc.clazzId = c.id and ud.userid=sp.userId and ud.userid=us.userId AND g.id = cl.gradeId AND g.state = '0' and sp.parent_userId=#userId# ) ar
+		LEFT JOIN  palm_selfgrowth sg ON ar.userId=sg.userId
+		LEFT JOIN palm_growthtemplate gt ON sg.templateId=gt.id
+		LEFT JOIN palm_growthcontent gc ON sg.id=gc.growthId) growth where 1=1
+	<isNotNull property="clazzIds">
+		<isNotEmpty prepend="and" property="clazzIds">
+			growth.clazzId IN 
+	       <iterate open="(" close=")" conjunction="," property="clazzIds" > 
+	           #clazzIds[]# 
+	       </iterate> 
+     	</isNotEmpty>
+	     </isNotNull>
+	<isNotNull property="clazzId">
+		<isNotEmpty prepend="and" property="clazzId">
+			growth.clazzId=#clazzId#
+		</isNotEmpty>
+	</isNotNull>
+	<isNotNull property="queryContent">
+		<isNotEmpty prepend="and" property="queryContent">
+			growth.realName like concat('%',#queryContent#,'%')
+		</isNotEmpty>
+	</isNotNull>
+	 group by growth.userId order by growth.updateTime desc
+	<isNotNull property="startIndex">
+		<isNotEmpty property="startIndex">
+			limit #startIndex#, #length#
+		</isNotEmpty>
+	</isNotNull>
+	</select>
+	<select id="getArchiveInfoByUserId" resultClass="growthArchive" parameterClass="Integer">
+		select ar.*, gt.name templateName,gt.path from (select ud.userId,ud.realName,platform.getRealName(c.leaderId) leaderName,c.clazzName,getGradeName(c.gradeId) gradeName,s.schoolname 
+		from platform.user_detail ud, palm_student_clazz sc,palm_clazz c, palm_grade g,platform.user_school sch,platform.school s
+	where ud.userid=sc.userId  and sc.clazzId = c.id and ud.userid=sch.userid and sch.schoolId=s.schoolId AND g.id = cl.gradeId AND g.state = '0' and ud.userId=#userId#) ar
+	LEFT JOIN  palm_selfgrowth sg ON ar.userId=sg.userId
+	LEFT JOIN palm_growthtemplate gt ON sg.templateId=gt.id
+	</select>
+	<select id="getThisTermCount" parameterClass="HashMap" resultClass="Integer">
+		select count(*) from palm_selfgrowth where userId=#userId# and term=#term# and gradeName=#gradeName#
+	</select>
+	<select id="getModalInfoByUserId" parameterClass="HashMap" resultMap="result_archiveList_detail">
+		select s.id,c.path,s.gradeName,s.term,g.createYear,s.userId 
+		from palm_growthtemplate c,palm_selfgrowth s,palm_grade g 
+		where s.templateId = c.id and g.name = s.gradeName and g.state = '0' and s.userId = #userId# group by s.id
+	</select>
+</sqlMap>

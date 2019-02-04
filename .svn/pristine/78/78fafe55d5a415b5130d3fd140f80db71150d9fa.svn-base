@@ -1,0 +1,166 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<head>
+	<title>教学资源</title>
+  	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+	<!--公共css开始-->
+	<%@ include file="/public_module/app_public_css.jsp"%>
+	<!--公共css结束--> 
+</head>
+
+
+<body style="padding:0px 10px;">
+
+	<div class="app_head">
+		<i class="  m_icon-return icon_left" onclick="window.richbook.onFinish();"></i>教学资源
+	</div>  
+	<form action=""  id="addForm" method="post">
+	
+			<ul class="teachingresources" id="appendHtml">
+			 
+			</ul>
+			<span id="genduo">
+			  
+	      </span>
+	</form>
+	
+
+	<!-- 上传 -->
+     <div class="select_role">
+		<dl>
+		        <r:right rightCode="teachingResourcesUpload">
+			<dd class="role_more m_icon-set" id="buttonUpload"></dd>
+		       </r:right>
+			<dd class="role_search m_icon-toolsearch" id="search"></dd>
+		</dl>
+		<span class="role_img m_icon-add"></span>
+	</div>
+	<div data-keyboard="false" data-backdrop="static" tabindex="-1" class="modal hide fade" id="static" style="display: none; margin-top: 10%;" aria-hidden="true">
+		<div class="modal-body">
+			<img src=""  id="photo" class="pos_img">
+		</div>
+		<div class="modal-footer">
+			<button class="btn green" data-dismiss="modal" type="button">关闭</button>
+		</div>
+	</div>
+	<input type="hidden" id="apiKeyTimeOut" value="${apiKeyTimeOut}">
+	<input type="hidden" id="apiKey" name="apiKey" value="${apiKey}">
+	<input type="hidden" id="schoolId" name="schoolId" value="${schoolId}">
+	
+	<input type="hidden" id="startTime" name="startTime" value="${startTime}">
+	<input type="hidden" id="endTime" name="endTime" value="${endTime}">
+	<input type="hidden" id="queryContent" name="fileName" value="${fileName}">
+	<input type="hidden" id="seleteFileType" name="fileType" value="${fileType}">
+	
+	</body>
+	<!--公共js开始-->
+	<%@ include file="/public_module/app_public_js.jsp"%>
+	<!--公共js结束--> 
+	<script type="text/javascript">
+    var pageInfo={};
+	jQuery(document).ready(function() {    
+		var timeOut = $("#apiKeyTimeOut").val();
+		if(timeOut == '1')
+		{
+			alert("您的apiKey已过期,您的账户可能被别人登陆，请修改密码或重新登陆");
+			return;
+		}
+		pageInfo.cpage=1;
+		showList(1);
+		$("#search").on("click",function(){
+			var apiKey = $("#apiKey").val();
+			var schoolId = $("#schoolId").val();
+			//var roleCode = $("#roleCode").val();
+			window.location.href= '<%=basePath%>jsp/app/teachingResources/search_app.jsp?apiKey=' + apiKey + '&schoolId='+schoolId;
+		}) 
+		//上传 
+		$("#buttonUpload").on("click",function(){
+			var apiKey = $("#apiKey").val();
+			var schoolId = $("#schoolId").val();
+			//var roleCode = $("#roleCode").val();
+			window.location.href= '<%=basePath%>jsp/app/teachingResources/upload.jsp?apiKey=' + apiKey + '&schoolId='+schoolId;
+		})  
+	});
+	//加载手机页面
+	function showList(){
+		    var startTime=$("#startTime").val();
+	        var endTime=$("#endTime").val();
+	        var queryContent=$("#queryContent").val();
+	        var seleteFileType=$("#seleteFileType").val();
+	        var apiKey=$("#apiKey").val();
+	        var schoolId=$("#schoolId").val();
+		  $.ajax({
+	           url:"<%=basePath%>teachingResources/getAppPageTeachingResources.do",
+	           type:"post",
+	           dataType:"json",
+	           data:{"apiKey":apiKey,"schoolId":schoolId,"startTime":startTime,"endTime":endTime,"fileName":queryContent,"fileType":seleteFileType,"page":pageInfo.cpage},
+	           error:function(){},
+	           success:function(results){
+	        	   if(results.list.length>0){
+	                var  result=results.list;
+	                var appendHtml='';
+	            	//$("#currentPage").html(results.currentPage);
+					//$("#totalPage").html(results.totalPage);
+					var tolocaleLowerCase="";
+	                for(var i=0;i<result.length;i++){
+	                	tolocaleLowerCase=result[i].fileUrl.toLowerCase();
+	                	appendHtml+='<li><a href="javascript:void(0);"><div class="img">';
+	                	    if(result[i].fileType==1){//视频
+		                		appendHtml+='<img src="<%=basePath%>assets/global/img/m_img/mp4.jpg">';
+		                	}else if(result[i].fileType==2){//办公类型
+		                		if(tolocaleLowerCase.indexOf("xls")>-1 && tolocaleLowerCase.indexOf("xlsx")>-1){
+			                		appendHtml+='<img src="<%=basePath%>assets/global/img/m_img/excel.png">';
+                                  }else if(tolocaleLowerCase.indexOf("doc")>-1 && tolocaleLowerCase.indexOf("docx")>-1){
+                                	  appendHtml+='<img src="<%=basePath%>assets/global/img/m_img/word.png">';
+                                  }else if(tolocaleLowerCase.indexOf("txt")>-1){
+                                	  appendHtml+='<img src="<%=basePath%>assets/global/img/m_img/txt.png">';
+                                  }else{
+                                   appendHtml+='<img src="<%=basePath%>assets/global/img/m_img/file_other.png">';
+                                   }
+			                }else if(result[i].fileType==3){//压缩包
+			                	 appendHtml+='<img src="<%=basePath%>assets/global/img/m_img/zip.png">';
+			                }else if(result[i].fileType==4){//图片
+			                	 appendHtml+='<img src="<%=basePath%>assets/global/img/m_img/img.png">';
+			                }else if(result[i].fileType==5){//音频
+			                	 appendHtml+='<img src="<%=basePath%>assets/global/img/m_img/mp3.png">';
+			                }else if(result[i].fileType==6){//其他
+			                	 appendHtml+='<img src="<%=basePath%>assets/global/img/m_img/file_other.png">';
+			                }
+	                	appendHtml+='</div><div class="text">';
+	                	appendHtml+='<p>'+result[i].fileName+'</p>';
+	                	appendHtml+='<p><span>'+result[i].userName+'</span><span>'+result[i].createTime.substring(0,10)+'</span></p>';
+	                	appendHtml+='</div>';
+	                	appendHtml+='<div class="img right" onclick="download(\''+result[i].fileUrl+'\');">';	
+	                	appendHtml+='<img src="<%=basePath%>assets/global/img/m_img/download.png">';	
+	                	appendHtml+=' </div>';	
+	                	appendHtml+='  </a>';	
+	                }
+	                 if(results.totalPage>results.currentPage && results.totalPage>pageInfo.cpage){
+                         $("#genduo").html('<a href="javascript:void(0);" id="op_all_save" class="op_all_save" onclick="showList();">查看更多</a>');
+                         if(pageInfo.cpage<results.totalPage){
+     	                	pageInfo.cpage++;
+     		             }
+		              }else{
+		            	  $("#genduo").html("");
+			              }
+	                $("#appendHtml").append(appendHtml);
+	              }else{
+	            	  $("#genduo").html('<a href="javascript:void(0);" id="op_all_save" class="op_all_save">暂无数据</a>');
+		              }
+		  }
+	            });
+
+		}
+	//下载文件
+	function download(fileUrl){
+		var last=fileUrl.lastIndexOf("/");
+		var fileName=fileUrl.substring(last);
+		var domainKey=fileUrl.substring(0,last);
+		var url=fileUrl+"?download"+fileName;
+        location.href=url;
+	}
+	
+	</script>
+</html>

@@ -1,0 +1,100 @@
+package com.guotop.palmschool.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+
+import com.guotop.palmschool.entity.Menu;
+import com.guotop.palmschool.service.BaseService;
+import com.guotop.palmschool.service.MenuService;
+/**
+ * 菜单服务实现类
+ * @author jfy
+ * @date 2015年12月2日
+ */
+@Service("menuService")
+public class MenuServiceImpl extends BaseService implements MenuService
+{
+	/**
+	 * 获取菜单信息
+	 */
+	@SuppressWarnings("unchecked")
+	@Cacheable(value="menuCache", key="#schoolId",condition="#schoolId ne null")
+	public List<Menu> getAllMenuInfo(String schoolId, Integer status)
+	{
+		HashMap<String,Object> map = new HashMap<String, Object>();
+		map.put("status", status);
+		List<Menu> parentMenusList = new ArrayList<Menu>();
+		parentMenusList = getBaseDao().selectListByObject("Menu.getParentMenuInfo", map);
+		for (Menu menu : parentMenusList)
+		{
+			map.put("menuId", menu.getId());
+			menu.setSubMenuList(getBaseDao().selectListByObject("Menu.getSubMenuInfo", map));
+		}
+		
+		return parentMenusList;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<Menu> getAllMenuInfoNOCache(String schoolId, Integer status)
+	{
+		HashMap<String,Object> map = new HashMap<String, Object>();
+		map.put("status", status);
+		List<Menu> parentMenusList = new ArrayList<Menu>();
+		parentMenusList = getBaseDao().selectListByObject("Menu.getParentMenuInfo", map);
+		for (Menu menu : parentMenusList)
+		{
+			map.put("menuId", menu.getId());
+			menu.setSubMenuList(getBaseDao().selectListByObject("Menu.getSubMenuInfo", map));
+		}
+		
+		return parentMenusList;
+	}
+	
+	/**
+	 * 获取菜单信息(超级管理员)
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Menu> getAllMenuInfoSysadmin(String schoolId, Integer status)
+	{
+		HashMap<String,Object> map = new HashMap<String, Object>();
+		map.put("status", status);
+		List<Menu> parentMenusList = new ArrayList<Menu>();
+		parentMenusList = getBaseDao().selectListByObject("Menu.getParentMenuInfo", map);
+		for (Menu menu : parentMenusList)
+		{
+			map.put("menuId", menu.getId());
+			menu.setSubMenuList(getBaseDao().selectListByObject("Menu.getSubMenuInfo", map));
+		}
+		
+		return parentMenusList;
+	}
+	
+	@CacheEvict(value="menuCache",key="#schoolId")
+	public void modifyMenuStatus(String schoolId,HashMap<String, Object> map)
+	{
+		getBaseDao().updateObject("Menu.modifyMenuStatus", map);
+	}
+	/**
+	 * 获取菜单信息
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Menu> getMenusInfo(Integer status)
+	{
+		HashMap<String,Object> map = new HashMap<String, Object>();
+		map.put("status", status);
+		List<Menu> parentMenusList = getBaseDao().selectListByObject("Menu.getParentMenuInfo", map);
+		for (Menu menu : parentMenusList)
+		{
+			map.put("menuId", menu.getId());
+			menu.setSubMenuList(getBaseDao().selectListByObject("Menu.getSubMenuInfo", map));
+		}
+		
+		
+		return parentMenusList;
+	}
+}

@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="SchoolBusAbnormal">
+	<typeAlias alias="schoolbusabnormal" type="com.guotop.palmschool.schoolbus.entity.SchoolBusAbnormal"/>
+	
+	<resultMap class="com.guotop.palmschool.schoolbus.entity.SchoolBusAbnormal" id="result-abnormal">
+		<result property="id" column="id"/>
+		<result property="code" column="code"/>
+		<result property="type" column="type"/>	
+		<result property="message" column="message"/>
+		<result property="sentTime" column="senttime"/>
+		<result property="userId" column="userid"/>
+		<result property="createTime" column="createtime"/>
+		<result property="userName" column="userName"/>
+	</resultMap>
+	
+	<resultMap class="com.guotop.palmschool.schoolbus.entity.SchoolBusAbnormal" id="result-abnormalmain">
+		<result property="id" column="id"/>
+		<result property="code" column="code"/>
+		<result property="type" column="type"/>	
+		<result property="message" column="message"/>
+		<result property="sentTime" column="senttime"/>
+		<result property="userId" column="userid"/>
+		<result property="createTime" column="createtime"/>
+	</resultMap>
+	
+	<!-- 新增异常记录 -->
+	<insert id="addSchoolBusAbnormal" parameterClass="schoolbusabnormal">
+		insert into palm_schoolbus_abnormal
+		(
+			code, 
+			type, 
+			message, 
+			senttime,
+			userid,
+			createtime
+		)
+		values
+		(
+			#code#,
+			#type#,
+			#message#,
+			#sentTime#, 
+			#userId#, 
+			#createTime#
+		)
+	</insert>
+	
+	<!-- 查找所有异常报警(权限：校长) 查看(全校老师)/(全校学生)的异常报警 -->
+	<select id="selectSchoolBusAbnormalList" parameterClass="HashMap" resultMap="result-abnormal">
+		select distinct a.*, u.name as userName
+			from palm_schoolbus_abnormal a, palm_user u, palm_user_role ur
+			where a.userid = u.id
+				and u.id = ur.userId
+				
+				<isNotEmpty property="type">
+					<!-- 教师 -->
+					<isEqual property="type" compareValue="1">
+						and ur.roleId in (4, 5)
+					</isEqual>
+					<!-- 学生 -->
+					<isEqual property="type" compareValue="2">
+						and ur.roleId in (7, 6)
+					</isEqual>
+				</isNotEmpty> 
+				<isEmpty property="type">
+					and ur.roleId in(3, 4, 5, 7, 6, 8)
+				</isEmpty>
+				<isNotEmpty  property="queryContent">
+					AND ( a.message  LIKE CONCAT('%',#queryContent#,'%')
+					   or u.name  LIKE CONCAT('%',#queryContent#,'%')
+					)
+				</isNotEmpty>
+				 order by a.id desc		
+	
+	</select>
+	
+	<!-- 查找所有异常报警(权限：年级组长)的异常报警 -->
+	<select id="selectSchoolBusAbnormalListGradeLeader" parameterClass="HashMap" resultMap="result-abnormal">
+		select a.*, u.name as userName
+			from palm_schoolbus_abnormal a, palm_user u, palm_user_role ur
+			where a.userid = u.id
+				and u.id = ur.userId
+				and ur.gradeId = #gradeId#
+				<isNotEmpty property="type">
+					<!-- 教师 -->
+					<isEqual property="type" compareValue="1">
+						and ur.roleId in (4, 5)
+					</isEqual>
+					<!-- 学生 -->
+					<isEqual property="type" compareValue="2">
+						and ur.roleId in (7, 6)
+					</isEqual>
+				</isNotEmpty> 
+				<isEmpty property="type">
+					and ur.roleId in(4, 5, 7, 6)
+				</isEmpty>
+			<isNotEmpty  property="queryContent">
+					AND ( a.message  LIKE CONCAT('%',#queryContent#,'%')
+					   or u.name  LIKE CONCAT('%',#queryContent#,'%')
+					)
+				</isNotEmpty>
+				 order by a.id desc
+	</select>
+	
+	<!-- 查找所有异常报警(权限:班主任)的异常报警 -->
+	<select id="selectSchoolBusAbnormalListHeadTeacher" parameterClass="HashMap" resultMap="result-abnormal">
+		select a.*, u.name as userName
+			from palm_schoolbus_abnormal a, palm_user u, palm_user_role ur
+			where a.userid = u.id
+				and u.id = ur.userId
+				and ur.clazzId = #clazzId#
+				and ur.roleId in (7, 6)
+				<isNotEmpty  property="queryContent">
+					AND ( a.message  LIKE CONCAT('%',#queryContent#,'%')
+					   or u.name  LIKE CONCAT('%',#queryContent#,'%')
+					)
+				</isNotEmpty>
+				 order by a.id desc
+	</select>
+	
+	<!-- 查找所有异常报警(权限:老师)的异常报警 -->
+	<select id="selectSchoolBusAbnormalListTeacher" parameterClass="HashMap" resultMap="result-abnormal">
+		select a.*, u.name as userName
+			from palm_schoolbus_abnormal a, palm_user u, palm_user_role ur
+			where a.userid = u.id
+				and u.id = ur.userId
+				<isNotEmpty  property="queryContent">
+					AND ( a.message  LIKE CONCAT('%',#queryContent#,'%')
+					   or u.name  LIKE CONCAT('%',#queryContent#,'%')
+					)
+				</isNotEmpty>	
+				and a.userId = #userId#	
+				order by a.id desc
+	</select>
+	
+	<!-- 查找所有异常报警(学生、家长)的异常报警 -->
+	<select id="selectSchoolBusAbnormalListStudent" parameterClass="HashMap" resultMap="result-abnormal">
+		select a.*, u.name as userName
+			from palm_schoolbus_abnormal a, palm_user u, palm_user_role ur
+			where a.userid = u.id
+				and u.id = ur.userId
+				<isNotEmpty  property="queryContent">
+					AND ( a.message  LIKE CONCAT('%',#queryContent#,'%')
+					   or u.name  LIKE CONCAT('%',#queryContent#,'%')
+					)
+				</isNotEmpty>	
+				and a.userId = #userId#	
+			    order by a.id desc
+	</select>
+	
+	<!-- 查询所有的异常警报 -->
+	<select id="selectAllAbnormalForMain" parameterClass="String" resultMap="result-abnormalmain">
+		SELECT * FROM palm_schoolbus_abnormal
+	</select>
+	
+	<!-- 查询统计报表 -->
+	<select id="selectTotalData" parameterClass="HashMap" resultMap="result-abnormalmain">
+		select * from palm_schoolbus_abnormal 
+	</select>
+	
+</sqlMap>

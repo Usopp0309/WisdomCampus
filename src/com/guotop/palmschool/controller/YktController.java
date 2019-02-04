@@ -1,0 +1,192 @@
+package com.guotop.palmschool.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.gson.Gson;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.entity.YktPlace;
+import com.guotop.palmschool.service.YktService;
+import com.guotop.palmschool.util.Pages;
+import com.guotop.palmschool.util.StringUtil;
+
+/**
+ * 一卡通总览控制类
+ *
+ */
+@RequestMapping("/ykt")
+@Controller
+public class YktController extends BaseController
+{
+	@Resource
+	private YktService yktService;
+
+	/**
+	 * 进入一卡通总览list
+	 */
+	@RequestMapping(value = "/toYktTotalList.do")
+	public String toYktTotalList()
+	{
+		return "ykt/ykt_total_list";
+	}
+
+
+	/**
+	 * 不同权限查看到不同的page 
+	 * 加载一卡通总览列表
+	 */
+	@RequestMapping(value = "/getYktTotalList.do")
+	public String getYktTotalList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		/**
+		 * 参数map
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		try
+		{
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			User user = (User) session.getAttribute("user");
+			
+			String queryContent = request.getParameter("queryContent");
+			
+			String roleCode = request.getParameter("roleCode");
+			String userType=request.getParameter("type");
+			Integer type = null;
+			if(!StringUtil.isEmpty(userType)){
+				type = Integer.valueOf(userType);
+			}
+			String yktPlace = request.getParameter("yktPlace");
+			
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("queryContent", queryContent);
+			paramMap.put("roleCode", roleCode);
+			paramMap.put("type", type);
+			paramMap.put("yktPlace", yktPlace);
+
+			Pages pages = yktService.getYktTotalList(this.getPages().getPageSize(), currentPage, paramMap,user);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 进入一卡通信息总览list
+	 */
+	@RequestMapping(value = "/toYktTotalInformationList.do")
+	public String toYktTotalInformationList()
+	{
+		return "ykt/ykt_information_list";
+	}
+
+
+	/**
+	 * 不同权限查看到不同的page 
+	 * 加载一卡通信息总览列表
+	 */
+	@RequestMapping(value = "/getYktTotalInformationList.do")
+	public String getYktTotalInformationList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+
+		/**
+		 * 参数map
+		 */
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+
+		try
+		{
+			/**
+			 * 分页信息
+			 */
+			Integer currentPage = 1;
+
+			try
+			{
+				currentPage = Integer.valueOf(request.getParameter("cPage"));
+			} catch (Exception e)
+			{
+				currentPage = 1;
+			}
+
+			User user = (User) session.getAttribute("user");
+			
+			String queryContent = request.getParameter("queryContent");
+			String roleCode = request.getParameter("roleCode");
+
+			paramMap.put("userId", user.getUserId());
+			paramMap.put("queryContent", queryContent);
+			paramMap.put("roleCode", roleCode);
+
+			Pages pages = yktService.getYktTotalInformationList(this.getPages().getPageSize(), currentPage, paramMap,user);
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	/**
+	 * 加载一卡通消费地点
+	 */
+	@RequestMapping(value = "/getYktPlaceList.do")
+	public String getYktPlaceList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			
+			List<YktPlace> pages = yktService.getYktPlaceList();
+			/**
+			 * flush到页面
+			 */
+			Gson gson = new Gson();
+			String json = gson.toJson(pages);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+}

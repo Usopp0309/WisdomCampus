@@ -1,0 +1,286 @@
+package com.guotop.palmschool.rest.controller;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.guotop.palmschool.common.service.CommonService;
+import com.guotop.palmschool.constant.Cons;
+import com.guotop.palmschool.controller.BaseController;
+import com.guotop.palmschool.entity.Clazz;
+import com.guotop.palmschool.entity.Department;
+import com.guotop.palmschool.entity.Role;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.service.ClazzService;
+import com.guotop.palmschool.service.StudentService;
+import com.guotop.palmschool.service.UserService;
+import com.richx.pojo.HClazz;
+import com.richx.pojo.HUser;
+import com.richx.pojo.RichHttpResponse;
+
+import dev.gson.GsonHelper;
+
+@RequestMapping("/contact")
+@Controller
+public class ContactListController extends BaseController
+{
+	@Resource
+	private UserService userService;
+	@Resource
+	private CommonService commonService;
+	@Resource
+	private StudentService studentService;
+	@Resource
+	private ClazzService clazzService;
+
+	/**
+	 * 查询登陆用户的班级通讯录
+	 * 
+	 * @param type
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@SuppressWarnings(
+	{ "rawtypes", "unchecked" })
+	@RequestMapping(value = "/getClazzContactList.do")
+	public String getClazzContactList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		// 1.班级通讯录
+		// 1.1 身份：教职工,只有班级的授课教师才能看到班级通讯录，目前因为课程没有完成，也就是说只有班主任才能看到班级通讯录 【临时方案】 到权限表中获取所有班级
+		// 1.2 身份：家长,能自己小孩所在班的其他家长和授课教师的班级通讯录
+		// 1.3 身份:学生,能看到自己班其他学生和授课教师的班级通讯录
+		response.setHeader("Content-type", "application/json;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		RichHttpResponse<List<HClazz>> richHttpResponse = new RichHttpResponse<List<HClazz>>();
+		try
+		{
+			HashMap<Integer, List<User>> contactMap = new HashMap<Integer, List<User>>();
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+				List<Role> roleList = loginUser.getRoleList();
+				if (!CollectionUtils.isEmpty(roleList))
+				{
+					for (Role role : roleList)
+					{
+						
+						String roleCode = role.getRoleCode();
+						if (roleCode.equals("parent"))
+						{
+							// 获取他所有小孩所在的班级
+							List<User> childrenList = commonService.getAllChildrenByUserId(loginUser.getUserId());
+							if (childrenList != null && childrenList.size() > 0)
+							{
+								for (User children : childrenList)
+								{
+									List<User> contactList = new ArrayList<User>();
+									Integer clazzId = children.getClazzId();
+									// 1.获取该班班主任信息
+									User clazzLeader = userService.getClazzLeaderByClazzIdInRICHBOOK(clazzId);
+									// 2.获取该班所有家长信息
+									List<User> parentList = studentService.getParentListByClazzIdInRICHBOOK(clazzId);
+
+									if (clazzLeader != null)
+									{
+										contactList.add(clazzLeader);
+									}
+									if (parentList != null && parentList.size() > 0)
+									{
+										contactList.addAll(parentList);
+									}
+									if (contactList != null && contactList.size() > 0)
+									{
+										HashSet<User> hashSet = new HashSet<User>(contactList);
+										contactList.clear();
+										contactList.addAll(hashSet);
+										contactMap.put(clazzId, contactList);
+									}
+									
+								}
+							}
+						} else if (roleCode.equals("student"))
+						{
+							List<User> contactList = new ArrayList<User>();
+							String clazzId = userService.getClazzIdByUserId(loginUser.getUserId());
+							if (clazzId != null)
+							{
+								// 1.获取该班班主任信息
+								User clazzLeader = userService.getClazzLeaderByClazzIdInRICHBOOK(Integer.valueOf(clazzId));
+								// 2.获取该班所有学生信息
+								List<User> studentList = studentService.getStudentListByClazzIdInRICHBOOK(Integer.valueOf(clazzId));
+								
+								if (clazzLeader != null)
+								{
+									contactList.add(clazzLeader);
+								}
+								if (studentList != null && studentList.size() > 0)
+								{
+									contactList.addAll(studentList);
+								}
+								if (contactList != null && contactList.size() > 0)
+								{
+									HashSet<User> hashSet = new HashSet<User>(contactList);
+									contactList.clear();
+									contactList.addAll(hashSet);
+									contactMap.put(Integer.valueOf(clazzId), contactList);
+								}
+							}
+						} else
+						{
+							
+							// 教职工身份的话得看他是不是某个班的班主任
+//							List<Clazz> clazzList = commonService.loadClazzListByLeaderId(loginUser.getUserId());
+							List<Clazz> clazzList = clazzService.getClazzListForSetPermission(loginUser.getUserId());
+							if (!CollectionUtils.isEmpty(clazzList))
+							{
+								for (Clazz clazz : clazzList)
+								{
+									List<User> contactList = new ArrayList<User>();
+									Integer clazzId = clazz.getId();
+									// 1.获取该班班主任信息
+									User clazzLeader = userService.getClazzLeaderByClazzIdInRICHBOOK(clazzId);
+									// 2.获取该班所有家长信息
+									List<User> parentList = studentService.getParentListByClazzIdInRICHBOOK(clazzId);
+
+									if (clazzLeader != null)
+									{
+										contactList.add(clazzLeader);
+									}
+									if (parentList != null && parentList.size() > 0)
+									{
+										contactList.addAll(parentList);
+									}
+									if (!CollectionUtils.isEmpty(contactList))
+									{
+										HashSet<User> hashSet = new HashSet<User>(contactList);
+										contactList.clear();
+										contactList.addAll(hashSet);
+										contactMap.put(clazzId, contactList);
+									}
+								}
+							}
+						}
+					}
+					List<HClazz> hClazzList = new ArrayList<HClazz>();
+					Iterator it = contactMap.entrySet().iterator();
+					while (it.hasNext())
+					{
+						Entry entry = (Entry) it.next();
+						Integer clazzId = (Integer) entry.getKey();
+						String clazzName = clazzService.getClazzByIdInRICHBOOK(clazzId);
+						HClazz hClazz = new HClazz();
+						hClazz.clazzId = clazzId;
+						hClazz.clazzName = clazzName;
+						hClazz.userList = (ArrayList<HUser>) entry.getValue();
+						hClazzList.add(hClazz);
+					}
+
+					richHttpResponse.ResponseCode = 0;
+					richHttpResponse.ResponseResult = "获取成功";
+					richHttpResponse.ResponseObject = hClazzList;
+					String json = GsonHelper.toJsonWithAnnotation(richHttpResponse);
+					response.getWriter().write(json);
+					response.getWriter().flush();
+				}
+			} else
+			{
+				richHttpResponse.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+				String json = GsonHelper.toJson(richHttpResponse);
+				response.getWriter().write(json);
+				response.getWriter().flush();
+				return null;
+			}
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * 查询登陆用户的学校通讯录
+	 * 
+	 * @param type
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/getSchoolContactList.do")
+	public String getSchoolContactList(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+	{
+		RichHttpResponse<List<HClazz>> richHttpResponse = new RichHttpResponse<List<HClazz>>();
+		response.setHeader("Content-type", "application/json;charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		try
+		{
+			String apiKey = request.getParameter("apiKey");
+			String schoolId = request.getParameter("schoolId");
+			// 这边是利用apikey 进行模拟登录
+			User loginUser = userService.getUserByApiKeyAndSchoolId(apiKey, schoolId);
+			if (loginUser != null)
+			{
+				// 这里的HClazz就是部门
+				List<HClazz> clazzlist = new ArrayList<HClazz>();
+				// 获取所有部门列表
+				List<Department> departmentList = commonService.getDepartList();
+				// 对象部门循环，获取每个门下所有老师
+				for (Department department : departmentList)
+				{
+					HClazz hClazz = new HClazz();
+					hClazz.clazzId = department.getId();
+					hClazz.clazzName = department.getDepartmentName();
+					List<HUser> hUserlist = new ArrayList<HUser>();
+					List<User> teacherList = commonService.getTeacherListByDepartmentIdInRICHBOOK(department.getId());
+					for (User user : teacherList)
+					{
+						HUser hUser = new HUser();
+						hUser.userId = user.getUserId();
+						hUser.uuserId = user.getUuserId();
+						hUser.userName = user.getUserName();
+						hUser.nickName = user.getNickName();
+						hUser.headImg = user.getHeadImg();
+						hUser.phone = user.getPhone();
+						hUserlist.add(hUser);
+					}
+					hClazz.userList = (ArrayList<HUser>) hUserlist;
+					clazzlist.add(hClazz);
+				}
+				richHttpResponse.ResponseCode = 0;
+				richHttpResponse.ResponseResult = "获取成功";
+				richHttpResponse.ResponseObject = clazzlist;
+			} else
+			{
+				richHttpResponse.ResponseCode = Cons.LOGIN_APIKEY_ERROR_CODE;
+				richHttpResponse.ResponseResult = Cons.LOGIN_APIKEY_INVALID;
+			}
+			String json = GsonHelper.toJson(richHttpResponse);
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+}

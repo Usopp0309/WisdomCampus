@@ -1,0 +1,460 @@
+/* 页头 */
+#header {  width: auto; height: 128px; background: url('header/middle3.jpg') repeat-x; }
+#header .logo { z-index:1;
+position: absolute;
+padding: 0px 0 0 0px; width: 230px; height: 128px; }
+#header .logo a { display: block; width: 325px; height: 128px; background: url('header/normal.png') no-repeat;}
+#header .logo a span { display: none; }
+/* #header .logo a:hover { background:url('header/left1.jpg') repeat-x; display: block;width: 336px;height: 99px} */
+#header .hello { 
+float:right;
+color: #ff0; text-align: rigth;  width: 1024px; height: 126px; line-height: 22px; background: url('header/right3.jpg') no-repeat;}
+#header .hello a { color: #ff0; }
+#header .hello a:hover { color: white; }
+#header .onlinecs { position: absolute; top: 120px; right: 16px; background: white; }
+#header .onlinecs label,
+#header .onlinecs img { vertical-align: middle; }
+.people {float: right; padding: 55px 0 0 0px; color: #ff0;}
+
+
+/* 锟斤拷锟藉部锟斤拷 */
+#mainc { padding: 0 0 0 0px; width:auto; min-height: 200px;}
+
+/* 页锟斤拷 */
+#footer { border-top: 4px solid #077F9A; padding-top: 15px; _width:expression((document.documentElement.clientWidth||document.body.clientWidth)<980?"980px":""); min-width: auto; height: 100px; /*background: #f5f5f5;*/ background: url('front/background_stripes.gif');}
+#footer div { text-align: center; margin: 0 auto; width: 980px; height: 20px; }
+
+/* 锟斤拷锟斤拷锟剿碉拷 */
+#menu { font-size: 14px; padding-top: 6px; width:auto; height: 85px; background: url('front/background_stripes.gif') 0px 0px; }
+#menu .menulist { float: left; height: 80px; width: 100%;}
+#menu .menulist .current1 a  {width:120px;color:white; background: url('menu/校园锟斤拷息.png') 70px 0px no-repeat ;}
+#menu .menulist .current1 a:hover { color: white; }
+
+#menu .menulist .current2 a  {width:120px;color:white; background: url('menu/锟斤拷锟斤拷锟�png') 70px 0px no-repeat ;}
+#menu .menulist .current2 a:hover { color: white; }
+
+/* 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷 */
+.topToolbar a{    
+	margin-left: 10px;
+	width: 67px;
+    height: 72px;
+    float: left;
+}
+
+/* 学校锟斤拷息 */
+.schoolInforApp a{background: url(menu/topToolbar/schoolInfor_app.png) no-repeat;}
+.schoolInforApp a:HOVER{background: url(menu/topToolbar/schoolInfor_app_choose.png) no-repeat;}
+.schoolInforAppCurrent a{background: url(menu/topToolbar/schoolInfor_app_choose.png) no-repeat;}
+
+/* 锟斤拷息时锟斤拷锟�*/
+.timeRuleApp a{background: url(menu/topToolbar/timeRule_app.png) no-repeat;}
+.timeRuleApp a:HOVER{background: url(menu/topToolbar/timeRule_app_choose.png) no-repeat;}
+.timeRuleAppCurrent a{background: url(menu/topToolbar/timeRule_app_choose.png) no-repeat;}
+
+/* 锟斤拷锟斤拷锟斤拷息锟斤拷锟斤拷 */
+.messageApp a{background: url(menu/topToolbar/message_app.png) no-repeat;}
+.messageApp a:HOVER{background: url(menu/topToolbar/message_app_choose.png) no-repeat;}
+.messageAppCurrent a{background: url(menu/topToolbar/message_app_choose.png) no-repeat;}
+
+/* 锟斤拷俟锟斤拷锟�*/
+.leaveApp a{background: url(menu/topToolbar/leave_app.png) no-repeat;}
+.leaveApp a:HOVER{background: url(menu/topToolbar/leave_app_choose.png) no-repeat;}
+.leaveAppCurrent a{background: url(menu/topToolbar/leave_app_choose.png) no-repeat;}
+
+/* 学校锟斤拷锟斤拷 */
+.basicApp a{background: url(menu/topToolbar/basic_app.png) no-repeat;}
+.basicApp a:HOVER{background: url(menu/topToolbar/basic_app_choose.png) no-repeat;}
+.basicAppCurrent a{background: url(menu/topToolbar/basic_app_choose.png) no-repeat;}
+
+.meetApp a{background: url(menu/topToolbar/asdae.png) no-repeat;}
+.meetApp a:HOVER{background: url(menu/topToolbar/wergwerg.png) no-repeat;}
+.meetAppCurrent a{background: url(menu/topToolbar/wergwerg.png) no-repeat;}
+
+/* 锟斤拷锟斤拷 */
+.checkApp a{background: url(menu/topToolbar/check_app.png) no-repeat;}
+.checkApp a:HOVER{background: url(menu/topToolbar/check_app_choose.png) no-repeat;}
+.checkAppCurrent a{background: url(menu/topToolbar/check_app_choose.png) no-repeat;}
+
+/* 学锟斤拷锟斤拷息 */
+.studentInforApp a{background: url(menu/topToolbar/studentInfor_app.png) no-repeat;}
+.studentInforApp a:HOVER{background: url(menu/topToolbar/studentInfor_app_choose.png) no-repeat;}
+.studentInforAppCurrent a{background: url(menu/topToolbar/studentInfor_app_choose.png) no-repeat;}
+
+/* 锟轿程憋拷 */
+.timeTableApp a{background: url(menu/topToolbar/timeTable_app.png) no-repeat;}
+.timeTableApp a:HOVER{background: url(menu/topToolbar/timeTable_app_choose.png) no-repeat;}
+.timeTableAppCurrent a{background: url(menu/topToolbar/timeTable_app_choose.png) no-repeat;}
+
+/* 锟斤拷学锟斤拷锟斤拷 */
+.teachingCommentApp a{background: url(menu/topToolbar/teachingComment_app.png) no-repeat;}
+.teachingCommentApp a:HOVER{background: url(menu/topToolbar/teachingComment_app_choose.png) no-repeat;}
+.teachingCommentAppCurrent a{background: url(menu/topToolbar/teachingComment_app_choose.png) no-repeat;}
+
+/* 学校一卡通统计 */
+.schoolbillApp a{background: url(menu/topToolbar/schoolDillImage.png) no-repeat;}
+.schoolbillApp a:HOVER{background: url(menu/topToolbar/school_app_Dill.png) no-repeat;}
+.schoolbillAppCurrent a{background: url(menu/topToolbar/school_app_Dill.png) no-repeat;}
+
+/* 系统锟斤拷锟斤拷 */
+.systemApp a{background: url(menu/topToolbar/system_app.png) no-repeat;}
+.systemApp a:HOVER{background: url(menu/topToolbar/system_app_choose.png) no-repeat;}
+.systemAppCurrent  a{background: url(menu/topToolbar/system_app_choose.png) no-repeat;}
+
+/* 锟斤拷锟斤拷锟斤拷锟斤拷 */
+.onlineApp a{background: url(menu/topToolbar/Online_app.png) no-repeat;}
+.onlineApp a:HOVER{background: url(menu/topToolbar/Online_app_choose.png) no-repeat;}
+.onlineAppCurrent  a{background: url(menu/topToolbar/Online_app_choose.png) no-repeat;}
+
+
+
+#menu .item1 { display: block; float: left; width: 120px; height: 90px; background: url('menu/校园锟斤拷息1.png') 70px 0px no-repeat ;}
+#menu .item1 a { display: block; text-align: center; padding-top: 6px; width: 120px; height: 90px; }
+.current a { position: relative; color: #2165c6; border: 1px solid #c8c8c8; border-bottom: 0; padding-top: 5px; width: 166px; height: 20px; background: white; }
+
+#menu .item2 { display: block; float: left; width: 120px; height: 90px; background: url('menu/锟斤拷锟斤拷锟�.png') 70px 0px no-repeat ;}
+#menu .item2 a { display: block; text-align: center; padding-top: 6px; width: 120px; height: 90px; }
+
+#menu .item3 { display: block; float: left; width: 120px; height: 90px; background: url('menu/锟斤拷息锟斤拷锟斤拷.png') 42px -10px no-repeat ;}
+#menu .item3 a { display: block; text-align: center; padding-top: 6px; width: 120px; height: 90px; }
+
+#menu .item4 { display: block; float: left; width: 120px; height: 90px; background: url('menu/锟斤拷息时锟斤拷.png') 42px -10px no-repeat ;}
+#menu .item4 a { display: block; text-align: center; padding-top: 6px; width: 120px; height: 90px; }
+
+#menu .item5 { display: block; float: left; width: 120px; height: 90px; background: url('menu/锟斤拷俟锟斤拷锟�png') 42px -10px no-repeat ;}
+#menu .item5 a { display: block; text-align: center; padding-top: 6px; width: 120px; height: 90px; }
+
+#menu .item6 { display: block; float: left; width: 120px; height: 90px; background: url('menu/锟斤拷锟斤拷系统.png') 44px -5px no-repeat ;}
+#menu .item6 a { display: block; text-align: center; padding-top: 6px; width: 120px; height: 90px; }
+
+#menu .item7 { display: block; float: left; width: 120px; height: 90px; background: url('menu/学锟斤拷锟斤拷息锟斤拷.png') 44px -3px no-repeat ;}
+#menu .item7 a { display: block; text-align: center; padding-top: 6px; width: 120px; height: 90px; }
+
+#menu .item8 { display: block; float: left; width: 120px; height: 90px; background: url('menu/锟轿程憋拷.png') 42px -10px no-repeat ;}
+#menu .item8 a { display: block; text-align: center; padding-top: 6px; width: 120px; height: 90px; }
+
+#menu .item9 { display: block; float: left; width: 120px; height: 90px; background: url('menu/锟斤拷师锟斤拷锟斤拷.png') 42px -10px no-repeat ;}
+#menu .item9 a { display: block; text-align: center; padding-top: 6px; width: 120px; height: 90px; }
+
+#menu .item10 { display: block; float: left; width: 120px; height: 90px; background: url('menu/系统锟斤拷锟斤拷.png') 42px -10px no-repeat ;}
+#menu .item10 a { display: block; text-align: center; padding-top: 6px; width: 120px; height: 90px; }
+
+
+/* 锟斤拷锟剿碉拷 */
+#submenu { _position: absolute; _left: 0px; float: left; width: 174px; /*font-weight: bold;*/ background: url('menu/sub-top.gif') 0px 13px no-repeat;
+font-size: 13px;}
+#submenu .title { display: none; }
+#submenu .cont { display: block; padding: 0px 0 21px 0; width: 174px; _height: 600px; min-height: 565px; background: url('menu/sub-top.gif') 0px 13px no-repeat;}
+#submenu .cont .item a { display: block; margin-bottom: 4px; padding: 9px 0 0 48px; width: 133px; height: 28px; cursor: pointer; }
+#submenu .cont .current a { color: white; background: #077F9B;  }
+#submenu .cont .item a:hover { background: #EDEFEF; color:#077F9B;}
+#submenu .cont .current a:hover {background: #077F9B; color:white;/*#A1EDFA;*/}
+#submenu .cont .item a span { display: block; padding: 2px 0 0 33px; height: 30px; background-repeat: no-repeat; }
+
+
+/* Navi */
+#navi { margin: 0 0 0 182px; height: 50px; background: white url('menu/main-line.gif') 0 0px repeat-x; }
+#navi a { display: block; float: left; text-align: center; margin-top: 14px; padding: 10px 16px 0; height: 19px; }
+#navi .curr a { color: #3281e6; height: 26px; background: #e1e1e1 url('menu/navi-bg.gif') center 29px no-repeat; }
+
+/* 锟斤拷示锟斤拷息 */
+.msginfo { font-size: 14px; font-weight: bold; color: red; text-align: center; line-height: 16px; }
+
+/* 锟斤拷锟斤拷锟斤拷 */
+#mainc .maincon { padding: 0px 0 11px 0; padding-left: 182px; *padding-left: 7px; _padding-left: 182px; _height: 400px; min-height: 550px; }
+/* Table - 锟斤拷锟�*/
+.dtlist .mtframe { background:url('menu/sub-top.gif'); border: 1px solid #cacaca; }
+
+/* Table - 锟斤拷钮锟斤拷锟斤拷锟斤拷 */
+.wwActionToolBar { margin: 0; padding: 0; height: 22px; background: url('button/bg.gif') repeat-x; overflow: hidden; }
+.wwActionToolBar li { display: block; float: left; height: 22px; background: url('button/split.gif') no-repeat; list-style-type: none; }
+.wwActionToolBar li.firstToolBarItem { background: none; }
+.wwActionToolBar li a { display: block; float: left; color: #999999; text-decoration: none !important; padding: 6px 15px 3px 34px; height: 13px; background-repeat: no-repeat; background-position: 16px 5px; overflow: hidden; white-space: nowrap; }
+.wwActionToolBar li a:hover { color: black !important; text-decoration: none !important; border: 1px solid #9d9d9d; padding: 5px 14px 2px 33px; background-position: 15px 4px; }
+.wwActionToolBar li a:visited { color: #999999; text-decoration: none !important; }
+.wwActionToolBar li .right { display: block; float: right; padding: 6px 10px; }
+
+.wwActionToolBar select { margin: 2px 5px; vertical-align: middle; }
+.wwActionToolBar input { vertical-align: middle; }
+.wwActionToolBar img { vertical-align: middle; }
+
+/* Table - 锟斤拷锟斤拷锟斤拷锟�*/
+table.maintable { width: 100%; table-layout: fixed; height:22px;}
+table.maintable thead { background: url('table/head.gif') repeat-x; }
+table.maintable thead th { border: 1px solid #b5b5b5; border-left: 1px solid white; padding: 0 4px; height: 22px; }
+table.maintable thead th.first { border-left: 0px; }
+table.maintable thead th.last { border-right: 0px; }
+table.maintable thead th.sorted { background: url('table/sorted.gif') repeat-x; }
+table.maintable thead th.sorted a { padding-right: 17px; background-position: right top; background-repeat: no-repeat; hetght:22px; }
+table.maintable thead th.order1 a { background-image: url('table/order1.gif'); }
+table.maintable thead th.order2 a { background-image: url('table/order2.gif'); }
+table.maintable thead th a { color: #0055a8; text-decoration: none !important; }
+table.maintable thead th a:hover,
+table.maintable thead th a:visited { color: #0055a8; text-decoration: none !important; }
+table.maintable tbody td { line-height: 15px; border: 1px solid #fff; border-width: 1px 0; padding: 6px 4px 4px; word-wrap: break-word; word-break: break-all; }
+table.maintable tbody tr.even td { border-color: #b5b5b5; }
+table.maintable tbody tr.even1 td { border-color: #b5b5b5; }
+table.maintable tr.even { background: #f0f0f0; }
+table.maintable tr.odd { background: #fff; }
+table.maintable tbody tr.over td { border-color: #523A0B; background: #ffc; }
+table.maintable tbody tr.choice td,
+table.maintable tbody tr.choice td a { color: white; border-color: #5796e6; background: #5796e6 !important; }
+
+/* Table - 锟斤拷锟斤拷锟斤拷 */
+.searchbar { border-top: 0px solid #b1cbe4; padding-top: 0px; padding-left: 0px;  height: 30px; background: url('table/search.gif') 2px 4px no-repeat; }
+.searchbar #searchindex { width: 6em; }
+.searchbar #searchkey { margin: 0 1px; width: 12em; }
+
+/* Table - 锟斤拷页锟斤拷锟斤拷锟斤拷 */
+#pagingbannerbottom { float:right; right:50px; border-top: 0px solid #b1cbe4; *width: 230px;  }
+#pagebanner { display: block; float: right; padding: 8px 4px 0 4px; }
+#pagelinks {position: absolute; right:200px; display: block; float: right; padding-top: 0px; }
+#pagelinks a { cursor: pointer; }
+#pagelinks input { text-align: center; width: 30px; height: 18px; font-size: 15px; color: blue; font-weight: bold; }
+#pagelinks td div { width: 62px; height: 18px; }
+#pagelinks td div span { display: none; }
+#pagelinks .nf { background: url('back/multi-selection-lall.gif')  no-repeat; }
+#pagelinks .gf { background: url('back/multi-selection-lall.gif') 1px no-repeat; }
+#pagelinks .np { background: url('back/multi-selection-lone.gif')  no-repeat; }
+#pagelinks .gp { background: url('back/multi-selection-lone.gif') 1px no-repeat; }
+#pagelinks .nn { background: url('back/multi-selection-rone.gif') 1px no-repeat; }
+#pagelinks .gn { background: url('back/multi-selection-rone.gif') no-repeat; }
+#pagelinks .nl { background: url('back/multi-selection-rall.gif') 1px  no-repeat; }
+#pagelinks .gl { background: url('back/multi-selection-rall.gif') no-repeat; }
+
+/* Table - 锟叫匡拷 */
+table.maintable .dw0 { }
+table.maintable .dwb { width: 1em; }
+table.maintable .dwa { width: 2em; }
+table.maintable .dw1 { width: 3em; }
+table.maintable .dw2 { width: 4em; }
+table.maintable .dw3 { width: 5em; }
+table.maintable .dw4 { width: 6em; }
+table.maintable .dw5 { width: 7em; }
+table.maintable .dw6 { width: 8em; }
+table.maintable .dw7 { width: 9em; }
+table.maintable .dw8 { width: 10em; }
+table.maintable .dw9 { width: 11em; }
+table.maintable .dw10 { width: 12em; }
+table.maintable .dw11 { width: 13em; }
+table.maintable .dw12 { width: 14em; }
+table.maintable .dw13 { width: 15em; }
+table.maintable .dw14 { width: 16em; }
+table.maintable .dw15 { width: 17em; }
+table.maintable .dw16 { width: 18em; }
+
+/* Table - 锟叫讹拷锟诫方式 */
+table.maintable td.left,
+table.maintable th.left { text-align: left; }
+table.maintable td.center,
+table.maintable th.center { text-align: center; }
+table.maintable td.right,
+table.maintable th.right { text-align: right; }
+
+/* 锟斤拷锟斤拷 */
+table.maintable .unread { font-weight: bold; color: black; }
+table.maintable .sms { background: url('table/phone.gif') 8px 0px no-repeat; padding-left: 2em;  }
+table.maintable .mms { background: url('menu/icon/wxkj.gif') 8px 0px no-repeat; padding-left: 2em;  }
+
+/* 锟� */
+.defaultForm { background: url('menu/sub-top.gif'); padding: 15px 0 0 5px; }
+
+.defaultForm table { border-collapse: collapse; width: 100%; background: url('menu/sub-top.gif'); }
+.defaultForm td { padding: 4px; }
+.defaultForm td.label { /*font-weight: bold;*/ padding-top: 7px; padding-left: 25px; width: 84px; background-image: url('form/icon.gif'); background-repeat: no-repeat; background-position: 2px 7px; vertical-align: top; }
+.defaultForm td.nb { background-image: url('form/notblank.gif'); }
+.defaultForm td.model { font-weight: bold; padding-top: 4px; width: 109px; vertical-align: top; }
+.defaultForm td.wide { width: auto; }
+.defaultForm td.wd2 { width: 38px; padding-right: 0px; }
+.defaultForm td.wd3 { width: 50px; padding-right: 0px; }
+.defaultForm td.wd4 { width: 62px; padding-right: 0px; }
+.defaultForm td.wd5 { width: 74px; padding-right: 0px; }
+.defaultForm td.wd6 { width: 86px; padding-right: 0px; }
+.defaultForm td.wd7 { width: 98px; padding-right: 0px; }
+.defaultForm td.wd8 { width: 146px; padding-right: 0px; }
+.defaultForm td.noa2 { background-image: none; padding-left: 49px; }
+
+.defaultForm .small { width: 150px; }
+.defaultForm .medium { width: 250px; }
+.defaultForm .large { width: 100%; }
+.defaultForm textarea.small { height: 6em; }
+.defaultForm textarea.medium { height: 8em; }
+.defaultForm textarea.large { height: 10em; }
+.defaultForm .label .nb { color: red; }
+
+.defaultForm .checkbox { margin: 0 3px 2px 0; width: 13px; height: 13px; vertical-align: middle; }
+.defaultForm .checkboxeslist span { display: block; float: left; width: 272px; }
+.defaultForm .formline { border-top: 1px solid #cbcbcb; margin-top: 10px; height: 10px; }
+.defaultForm .checkboxeslist2 { float: left; width: 272px; }
+.defaultForm .checkboxeslist2 span { display: block; height: 21px; }
+.defaultForm .typeslist { float: left; }
+.defaultForm .typeslist div { padding-top: 1px; height: 20px; }
+
+.defaultForm .listtext { line-height: 20px; }
+.defaultForm .hint { text-indent: -1em; line-height: 18px; padding: 8px 5px 5px 1.5em; }
+.defaultForm .modellist span { padding-right: 30px; }
+.defaultForm .memo { padding-left: 10px; }
+
+#nopadding.defaultForm { padding-top: 0; }
+
+/* 锟�锟斤拷钮 */
+.formButtons { border-top: 1px solid #cbcbcb; margin-top: 0px; padding: 20px 0 0 10px; height: 50px; background: url('menu/sub-top.gif'); }
+.formButtons li { display: block; float: left; background: url('menu/sub-top.gif'); }
+.formButtons a { display: block; float: left; color: white; line-height: 14px; border-bottom: 4px solid #1d70b6; margin-right: 15px; _margin-right: 7.5px; padding: 6px 20px 1px; background: #68a6f1; }
+.formButtons a:hover { color: yellow; }
+
+/* 锟斤拷锟斤拷选锟斤拷锟斤拷 */
+.mulsels { padding: 10px 0; }
+.mulsels .types { padding-bottom: 6px; }
+.mulsels .filter { padding-bottom: 6px; }
+.mulsels .types select { color: #487499; }
+.mulsels .filter input { width: 200px; }
+.mulsels .choice { width: 100%; table-layout: fixed; }
+.mulsels .choice .left,
+.mulsels .choice .right { width: 45% }
+.mulsels .choice .arrow { width: 10%; }
+.mulsels .choice select.wide { color: #487499; width: 100%; font-size: 13px; }
+.mulsels .choice .arrow div { text-align: center; }
+.mulsels .choice button { border: 0; margin: 3px 0; width: 62px; height: 18px; background-repeat: no-repeat; }
+.mulsels .choice button#rone { background-image: url('mulsel/rone.gif'); }
+.mulsels .choice button#rall { background-image: url('mulsel/rall.gif'); }
+.mulsels .choice button#lone { background-image: url('mulsel/lone.gif'); }
+.mulsels .choice button#lall { background-image: url('mulsel/lall.gif'); }
+.mulsels .choice button span { display: none; }
+.mulsels .hint { line-height: 15px; padding: 6px 0 0 1.5em; text-indent: -1em; }
+.mulsels .cbx { padding-right: 10px; }
+.mulsels .cbxlast { padding-right: 0; }
+.mulsels .sendtypesmsmms { height: 24px; }
+.mulsels .sendtypesmsmms select { color: #487499; width: 200px; }
+
+.mulsels .sel { border: 1px solid red; padding: 2px 2px 0 2px; overflow: auto; border: 1px inset #ccc;  height: 144px; cursor: default; }
+.mulsels .sel .frame { height: 1px; }
+.mulsels .sel table { width: 100%; }
+.mulsels .sel table div { padding: 2px 2px 0 2px; height: 14px; margin-bottom: 2px; color: #487499; -moz-user-select: none; }
+.mulsels .sel table div.selected { color: white; background: #3399ff; }
+
+/* 锟斤拷锟斤拷锟斤拷锟斤拷示页 */
+/*table#tsucc, table#tfail { table-layout: automatic; }*/
+table#tsucc td, table#tfail td { border: 1px solid #ccc; }
+table#tsucc tr.h td, table#tfail tr.h td { background: #eee; }
+
+/* 锟斤拷锟斤拷锟斤拷 */
+#popbox { border: 4px solid #aac7e7; width: 400px; margin: 75px auto; background: white; }
+#popbox .title { height: 33px; background: #aac7e7; }
+#popbox .title .label { float: left; font-size: 14px; font-weight: bold; color: white; padding: 10px 0 0 2px; }
+#popbox .close { float: right; margin: 9px 9px 0 0; width: 16px; height: 16px; background: url('popbox/close.gif') no-repeat; }
+#popbox .close span { display: none; }
+#popbox .con { border: 1px solid #7ea5c2; padding-bottom: 18px; }
+#popbox .hint { border: 1px solid #f3e5b8; padding: 8px 16px 0 7px; height: 20px; background:#fffedf; }
+#popbox .cont { padding: 7px 14px 0 14px; }
+#popbox .conte { padding-bottom: 10px; }
+#popbox .con .true,
+#popbox .con .false { line-height: 16px; padding: 48px 30px 30px 98px; background-position: 30px 38px; background-repeat: no-repeat; }
+#popbox .con .true { background-image: url('popbox/succ.gif'); }
+#popbox .con .false { background-image: url('popbox/fail.gif'); }
+#popbox .con .text { font-size: 14px; text-align: center; padding: 20px 0 30px; }
+#popbox .con .url { text-align: center; }
+#popbox .con .time { color: red; padding: 0 5px; }
+#popbox.float { position: absolute; left: 400px; top: 250px; margin: 0; }
+#popbox .con table { table-layout: fixed; }
+#popbox .con .tdname { width: 6em; }
+#popbox .con #ctext { color: blue; white-space: pre-wrap; *white-space: pre; word-wrap: break-word; }
+
+/* 锟斤拷锟酵匡拷 */
+#sendcontent #key { margin-right: 3px; }
+#sendcontent #sch { width: 12em; }
+#sendcontent .btn { color: white; height: 18px; border: 0; margin: 0 4px; padding: 2px 5px 0; background: #68a6f1; }
+#sendcontent #smssel { width: 20em; }
+.defaultForm .smscon { margin-bottom: 6px; width: 100%; height: 5em; }
+.defaultForm .send { float: left; border: 0; width: 225px; height: 60px; background: url('mulsel/send.gif'); }
+.defaultForm .timing { float: left; border: 0; width: 225px; height: 60px; background: url('mulsel/timing.jpg'); }
+.defaultForm #rlower { float: right; text-align: right; }
+.defaultForm #rlower div { height: 20px; }
+.defaultForm #sti { padding-left: 2px; }
+.defaultForm #sendtime { width: 120px; vertical-align: middle; height: 14px; }
+.defaultForm #message span { padding: 0 4px; }
+#mmsthumb { margin-top: 6px; }
+#mmsamount { padding-top: 6px; color: red; }
+.defaultForm .options { margin-bottom: 6px; }
+.defaultForm .options input { margin-right: 15px; width: 8em; }
+
+/* 锟斤拷锟斤拷锟铰凤拷锟斤拷锟斤拷 */
+#otherreceiver { padding-bottom: 6px; }
+#otherreceiver .bb { padding-left: 4px; }
+#otherreceiver input.button { border: none; width: 16px; height: 16px; }
+#otherreceiver #btnaddphone { background: url('mulsel/btn-add.gif'); }
+#otherreceiver #btnmorephone { background: url('mulsel/btn-paste.gif') }
+#otherreceiver #btnaddfile { height: 16px; width: 16px; filter: alpha(opacity=0); -moz-opacity: 0; opacity: 0; }
+#otherreceiver #btnfileframe { width: 16px; height: 16px; background: url('mulsel/btn-file.gif') no-repeat; }
+#otherreceiver input.up { background: url('mulsel/btn-up.gif'); }
+#otherreceiver #morephonesform textarea { width: 390px; height: 150px; margin-bottom: 5px; }
+#otherreceiver #morephonesform #morephonesnumdiv { height: 20px; }
+#otherreceiver #uploadmsg { color: red; }
+
+/* 锟斤拷锟酵筹拷锟�*/
+#stat .statf { padding-bottom: 20px; line-height: 20px; }
+#stat .statf .total { padding-left: 1.5em; background: url('form/icon.gif') 0px 5px no-repeat; }
+#stat .statf .label { padding-left: 1.5em;}
+#stat .statf .item { padding-left: 4em;}
+#stat .light { color: #2165c6;}
+
+/* Excel */
+.excelBody .defaultForm { padding-top: 0px; }
+.excelFrame .eleft,
+.excelFrame .eright { padding: 1px; background: #999; }
+.excelFrame .eleft { width: 140; }
+.excelFrame .eright { padding-left: 0; }
+.excelFrame .excel { border-collapse: collapse; table-layout: fixed; }
+.excelFrame .excel td { padding: 4px; background: #eee; border: 1px solid white; white-space: nowrap; overflow: hidden; font-family: Arial, SimSun; line-height: 14px; }
+.excelFrame .excel .r0 td,
+.excelFrame .excel td.c0 { background: #ddd; text-align: center; }
+.excelFrame .excel td.c0 { width: 16px; }
+.excelFrame td.ex { background-position: 2px 9px; width: auto; }
+.excelFrame td.left { width: auto; }
+.excelFrame td.right { width: 210px; }
+.excelFrame td.btd { width: 80px; }
+.excelFrame a.button { display: block; float: left; color: white; line-height: 14px; border-bottom: 4px solid #1d70b6; margin-right: 15px; _margin-right: 7.5px; padding: 6px 20px 1px; background: #68a6f1; }
+
+/* Course */
+#course a.view { color: #3281e6; }
+#course a.clear { color: red; }
+#course a.view:hover,
+#course a.clear:hover { text-decoration: underline; }
+#course .uploadform { padding-left: 30px; }
+
+/* Exercise */
+#exercise .exef { border-top: 1px solid #cbcbcb; margin-top: 10px; padding: 10px 0 0 13px; }
+#exercise .title { background: url('button/icon/file.gif') no-repeat; line-height: 18px; padding: 0 0 0 17px; }
+#exercise .option { line-height: 15px; padding: 4px 0 0 35px; text-indent: -18px; }
+#exercise .correct { color: red; }
+
+/* Question */
+#question .maintable thead { display: none; }
+#question .mtframe { border: 0; }
+#question .quesframe { border: 1px solid #ccc; }
+#question .maintable tr.even { background: #fff; }
+#question .maintable tbody tr.even td { border-color: #ccc; }
+
+.questitle { background: url('discuss/title.gif') no-repeat; font-size: 14px; font-weight: bold; height: 25px; padding-left: 24px; }
+
+#question .author { background: url('discuss/comment.gif') no-repeat; float: left; height: 20px; padding-left: 20px; }
+#question .author span { padding-left: 10px; }
+#question .author span.isnew { background: url('discuss/new.gif') right top no-repeat; padding-right: 40px; }
+#question .opt { float: right; height: 20px; }
+#question .content { clear: both; line-height: 16px; padding: 0 20px 8px; }
+
+.quesform { border-top: 1px solid #ccc; }
+.quesform .text { padding: 10px 20px 5px 10px; }
+.quesform textarea { width: 100%; height: 5em; }
+.quesform .button { padding: 0px 0px 5px 10px; }
+#question #ms { padding: 5px 0 0 10px; height: 14px; }
+#question .replys { padding: 7px 0 0 20px; }
+
+/* uploadframe */
+#buploadframe { background: white; border: 1px solid #ccc; height: 21px; padding: 5px; position: absolute; right: 32px; top: 426px; width: /*500*/470px; }
+#buploadframe .mco { float: left; width: 470px; }
+#buploadframe .close { background: url('mms/btn-del.gif') 2px 3px no-repeat; border: 0; float: right; height: 20px; width: 20px; }
+#buploadframe #buploadbar table { border: 1px solid black; height: 22px; width: 100%; }
+#buploadframe #buploadbar td { background: blue; }
+#buploadframe #buploadbar td#uploaded { background: yellow; }
+#buploadframe .precent { position: absolute; color: red; padding: 3px 0 0 6px; font-size: 14px; }
+#buploadframe #uploadedpre { padding-right: 2px; }

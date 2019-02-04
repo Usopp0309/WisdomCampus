@@ -1,0 +1,213 @@
+package com.guotop.palmschool.system.entity;
+
+/**
+ * 导入类实体类
+ * 
+ * @author zhou
+ */
+public class Import
+{
+	/**
+	 * ID
+	 */
+	private Integer id;
+
+	/**
+	 * 上传文件名（仅用于显示）
+	 */
+	private String fileName;
+
+	/**
+	 * 上传文件（文件存放路径）
+	 */
+	private String filePath;
+
+	/**
+	 * 类型标识
+	 */
+	private String type;
+
+	/**
+	 * 处理程序bean(继承自BaseImportController)
+	 */
+	private String handler;
+
+	/**
+	 * 总行数
+	 */
+	private Integer total;
+
+	/**
+	 * 当前状态，0:待导入，1:导入中，2:导入失败，3:导入成功
+	 */
+	private Integer result;
+
+	/**
+	 * 结果文字说明
+	 */
+	private String resultDescription;
+
+	/**
+	 * 用时
+	 */
+	private Integer costTime;
+
+	/**
+	 * 修改时间
+	 */
+	private String updateTime;
+
+	/**
+	 * 创建时间
+	 */
+	private String createTime;
+
+	/**
+	 * 操作人id
+	 */
+	private Integer userId;
+
+	/**
+	 * 操作人姓名
+	 */
+	private String userName;
+
+	public Integer getId()
+	{
+		return id;
+	}
+
+	public void setId(Integer id)
+	{
+		this.id = id;
+	}
+
+	public String getFileName()
+	{
+		return fileName;
+	}
+
+	public void setFileName(String fileName)
+	{
+		this.fileName = fileName;
+	}
+
+	public String getFilePath()
+	{
+		return filePath;
+	}
+
+	public void setFilePath(String filePath)
+	{
+		this.filePath = filePath;
+	}
+
+	public String getType()
+	{
+		return type;
+	}
+
+	public void setType(String type)
+	{
+		this.type = type;
+	}
+
+	public String getHandler()
+	{
+		return handler;
+	}
+
+	public void setHandler(String handler)
+	{
+		this.handler = handler;
+	}
+
+	public Integer getTotal()
+	{
+		return total;
+	}
+
+	public void setTotal(Integer total)
+	{
+		this.total = total;
+	}
+
+	public Integer getResult()
+	{
+		return result;
+	}
+
+	public void setResult(Integer result)
+	{
+		this.result = result;
+	}
+
+	public String getResultDescription()
+	{
+		return resultDescription;
+	}
+
+	public void setResultDescription(String resultDescription)
+	{
+		this.resultDescription = resultDescription;
+	}
+
+	public Integer getCostTime()
+	{
+		return costTime;
+	}
+
+	public void setCostTime(Integer costTime)
+	{
+		this.costTime = costTime;
+	}
+
+	public String getUpdateTime()
+	{
+		return updateTime;
+	}
+
+	public void setUpdateTime(String updateTime)
+	{
+		this.updateTime = updateTime;
+	}
+
+	public String getCreateTime()
+	{
+		return createTime;
+	}
+
+	public void setCreateTime(String createTime)
+	{
+		this.createTime = createTime;
+	}
+
+	// 结束时间
+	public void setEndNow(long start)
+	{
+		long t = System.currentTimeMillis() - start;
+		int period = (int) (t / 1000);
+		setCostTime(period);
+	}
+
+	public Integer getUserId()
+	{
+		return userId;
+	}
+
+	public void setUserId(Integer userId)
+	{
+		this.userId = userId;
+	}
+
+	public String getUserName()
+	{
+		return userName;
+	}
+
+	public void setUserName(String userName)
+	{
+		this.userName = userName;
+	}
+
+}

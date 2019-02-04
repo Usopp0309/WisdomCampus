@@ -1,0 +1,155 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<head>
+	<title>班级列表</title>
+  	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+	<!--公共css开始-->
+	<%@ include file="/public_module/app_public_css.jsp"%>
+	<!--公共css结束--> 
+</head>
+
+
+<body id="body">
+
+	<div class="app_head">
+	
+		<i class="  m_icon-return icon_left" onclick="window.richbook.onFinish();"></i>${clazz.clazzName} 
+<!-- 		<i class="fa fa-ellipsis-v icon_right"></i> -->
+<!-- 		<ul class="submenu"> -->
+<%-- 			<c:forEach items="${clazzList}" var="clazz"  varStatus="status"> --%>
+<%-- 				<li id="${clazz.id }">${clazz.clazzName }</li> --%>
+<%-- 			</c:forEach> --%>
+<!-- 		</ul> -->
+	</div>  
+	<input id="clazzId" value="${clazz.id }" style="display: none"/> 
+	
+		
+	<ul class="evaluation_h">
+		<li class="select">已评价</li>
+		<li>未评价</li>
+	</ul>
+<!-- 	<div class="p_search"> -->
+<!-- 			<input type="text"> -->
+<!-- 			<i class="m_icon-search" id="search" ></i> -->
+<!-- 	</div> -->
+	<ul class="evaluation_c">
+		
+		<li style="display:block">
+		<dl>
+		<c:forEach items="${alreadyCommentStudentList}" var="user"  varStatus="status">
+			<dd>
+				<a href="javascript:;" id="${user.userId }" attr1="already">${user.realName }</a><span>已评价</span>
+			</dd>
+		</c:forEach>
+		</dl>
+		
+	   </li>
+	   <li>
+		<dl>
+		<c:forEach items="${noCommentStudentList}" var="user"  varStatus="status">
+			<dd>
+				<a href="javascript:;" id="${user.userId }" attr1="no">${user.realName }</a><span>未评价</span>
+			</dd>
+		</c:forEach>
+		</dl>
+		
+	   </li>
+	</ul>
+			
+	<div class="select_role">
+		<dl>
+			<c:if test="${roleListSize >1}">
+				<dd class="role_more m_icon-set" id="role"></dd>
+			</c:if>
+			<dd class="role_search iconfont" id="search">&#xe602;</dd>
+		</dl>
+		<span class="role_img iconfont">&#xe600;</span>
+	</div>
+	 <div class="modal fade bs-modal-sm" id="static" tabindex="-1" role="dialog" aria-hidden="true">
+		    <ul class="more_role_choose" id="moreRole">
+		    	<li id="0">请选择角色</li>
+		    	<c:forEach items="${roleList}" var="r">
+			       <c:if test="${r.roleCode == 'admin'}">
+				  	 <li id="${r.roleCode}">校管</li>
+			       </c:if>
+			       <c:if test="${r.roleCode == 'president'}">
+				  	 <li id="${r.roleCode}">校长</li>
+			       </c:if>
+			       <c:if test="${r.roleCode == 'departManager'}">
+				  	 <li id="${r.roleCode}">部门管理员</li>
+			       </c:if>
+			       <c:if test="${r.roleCode == 'classLeader'}">
+				  	 <li id="${r.roleCode}">班主任</li>
+			       </c:if>
+			       <c:if test="${r.roleCode == 'teacher'}">
+				  	 <li id="${r.roleCode}">教师</li>
+			       </c:if>
+			       <c:if test="${r.roleCode == 'student'}">
+				  	 <li id="${r.roleCode}">学生</li>
+			       </c:if>
+			        <c:if test="${r.roleCode == 'parent'}">
+				  	 <li id="${r.roleCode}">家长</li>
+			       </c:if>
+			   </c:forEach>
+			</ul>
+		<div class="modal-footer">
+			<button class="btn green" data-dismiss="modal" type="button">关闭</button>
+		</div>
+	</div>
+		
+			
+	</body>
+	<!--公共js开始-->
+	<%@ include file="/public_module/app_public_js.jsp"%>
+	<!--公共js结束--> 
+	
+	<script type="text/javascript">
+	$(function() {    
+		$(".fa-ellipsis-v").on("click",function(){
+			$(".submenu").show();
+		})
+		$(".submenu li").on("click",function(){
+			var id = $(this).attr("id");
+			//当前页面的班级id
+			var clazzId = $("#clazzId").val();
+			if(clazzId != id){
+				standardPost('<%=basePath%>evaluateKindergarten/getStudentList.do',{clazzId:id});
+			}
+		})
+		$(".evaluation_h li").on("click",function(){
+			$(".evaluation_h li").removeAttr("class");
+			$(this).addClass("select");
+			var id=$(this).index();
+			$(".evaluation_c li").removeAttr("style");
+			$(".evaluation_c li").eq(id).show();
+		})
+		$(".evaluation_c li dl dd a").on("click",function(){
+			var userId = $(this).attr("id");
+			var attr1 = $(this).attr("attr1");
+			var clazzId = $("#clazzId").val();
+			//进入评价得分页面
+			standardPost('<%=basePath%>evaluateKindergarten/toEvaluationTeacher.do',{userId:userId,attr1:attr1,clazzId:clazzId});
+			})
+
+		$("#role").on("click",function(){
+			$("#static").modal("show");
+		});
+		
+		$(".more_role_choose li").on("click",function(){
+			var roleCode = $(this).attr("id");
+			if(roleCode == 'parent' || roleCode == 'student'){
+				window.location.href='<%=basePath%>evaluateKindergarten/toChangeByStudentId.do';
+			}else{
+				window.location.href='<%=basePath%>evaluateKindergarten/getStudentList.do';
+			}
+		});
+
+		$("#search").on("click",function(){
+			window.location.href= '<%=basePath%>evaluateKindergarten/toEvaluateTeacherSearchByApiKey.do';
+		});
+	});
+	
+	</script>
+</html>

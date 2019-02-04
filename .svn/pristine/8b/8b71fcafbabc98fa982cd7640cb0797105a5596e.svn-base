@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="BluetoothData">
+	<typeAlias alias="bluetoothData"
+		type="com.guotop.palmschool.bluetooth.entity.BluetoothData" />
+		<!-- 根据班级获得平均值 -->
+		<select id="getClazzAvgByClazzIdAndTimeId" resultClass="bluetoothData" parameterClass="HashMap">
+		 select avg(d.steps) as avgSteps,avg(d.heartRate) as avgHeartRate,avg(d.calorie) as avgCalorie,
+		 d.clazzName,d.dataTime  from palm_bluetooth_data d  
+		 where d.bluetoothCourseTimeId=#bluetoothCourseTimeId# and d.clazzId=#clazzId#
+		 GROUP BY d.dataTime order by d.dataTime asc
+		</select>
+		<!-- 根据班级和课程时间段获得数 -->
+		<select id="getByClazzAndTimeId" resultClass="bluetoothData">
+		select d.realName,t.startTime,DATE_FORMAT(t.endTime,'%H:%i:%s') as
+		time,t.id as bluetoothCourseTimeId,d.userId,c.`name` as
+		courseName,d.braceletMac,d.braceletCode,d.userCode
+		,d.clazzName,d.clazzId from palm_bluetooth_data d
+		inner join
+		palm_bluetooth_course_time t on t.id=d.bluetoothCourseTimeId
+		inner join
+		palm_bluetooth_course c on c.id=t.bluetoothCourseId
+		where d.clazzId=#clazzId# and d.bluetoothCourseTimeId=#bluetoothCourseTimeId# GROUP BY d.userId order
+		by dataTime asc
+		</select>
+	<!-- 一个学生的一次课程的蓝牙数据 -->
+	<select id="getBluetoothDataByUserIdTimeId" resultClass="bluetoothData">
+		select
+		d.* from palm_bluetooth_data d where
+		bluetoothCourseTimeId=#bluetoothCourseTimeId# and d.userId=#userId#
+		order by dataTime ASC
+	</select>
+	<!-- 根据课程时间和班级获得不同的数据 -->
+	<select id="getGroupBluetoothDataByTimeId" resultClass="bluetoothData" parameterClass="HashMap">
+		select
+		min(d.steps) as minSteps,max(d.steps) as maxSteps,avg(d.steps) as
+		avgSteps,
+		min(d.heartRate) as minHeartRate,max(d.heartRate) as
+		maxHeartRate,avg(d.heartRate) as avgHeartRate,
+		min(d.calorie) as
+		minCalorie,max(d.calorie) as maxCalorie,avg(d.calorie) as
+		avgCalorie,d.dataTime
+		from palm_bluetooth_data d where
+		d.bluetoothCourseTimeId=#bluetoothCourseTimeId# and d.clazzId=#clazzId#  GROUP BY dataTime order
+		by dataTime asc
+	</select>
+
+	<select id="getStatisticsBluetoothData" parameterClass="HashMap"
+		resultClass="bluetoothData">
+		select d.realName,t.startTime,DATE_FORMAT(t.endTime,'%H:%i:%s') as
+		time,t.id as bluetoothCourseTimeId,d.userId,c.`name` as
+		courseName,d.braceletMac,d.braceletCode,d.userCode
+		,d.clazzName,d.clazzId from palm_bluetooth_data d
+		inner join
+		palm_bluetooth_course_time t on t.id=d.bluetoothCourseTimeId
+		inner join
+		palm_bluetooth_course c on c.id=t.bluetoothCourseId
+		where 1=1
+		<isNotEmpty property="course">
+			and t.bluetoothCourseId=#course#
+		</isNotEmpty>
+		<isNotEmpty property="startTime">
+			and t.startTime &gt;=#startTime#
+		</isNotEmpty>
+		<isNotEmpty property="startTime">
+			and t.endTime &lt;=#endTime#
+		</isNotEmpty>
+		<isNotEmpty property="clazzId">
+		    and d.clazzId=#clazzId#
+		</isNotEmpty>
+		<isNotEmpty property="content">
+			and ((d.realName like concat('%',#content#,'%')) or (d.userCode like
+			concat('%',#content#,'%')))
+		</isNotEmpty>
+		<isEqual compareValue="parent" property="roleCode">
+			<!-- 家长看自己小孩 -->
+			and d.userId in ($studentIds$)
+			GROUP BY t.id,d.userId order by
+			t.startTime DESC
+		</isEqual>
+		<isEqual compareValue="classLeader" property="roleCode">
+		<!-- 班主任权限 -->
+		   GROUP BY d.clazzId,d.bluetoothCourseTimeId
+		</isEqual>
+		<isEqual compareValue="president" property="roleCode">
+		<!-- 校长权限 -->
+		   GROUP BY d.clazzId,d.bluetoothCourseTimeId
+		</isEqual>
+		limit #startIndex#, #length#
+	</select>
+	<select id="getStatisticsBluetoothDataCount" parameterClass="HashMap"
+		resultClass="Integer">
+		select count(*) from (select count(*) from palm_bluetooth_data d
+		inner
+		join palm_bluetooth_course_time t on t.id=d.bluetoothCourseTimeId
+		inner join palm_bluetooth_course c on c.id=t.bluetoothCourseId
+		where 1=1
+		<isNotEmpty property="course">
+			and t.bluetoothCourseId=#course#
+		</isNotEmpty>
+		<isNotEmpty property="startTime">
+			and t.startTime &gt;=#startTime#
+		</isNotEmpty>
+		<isNotEmpty property="startTime">
+			and t.endTime &lt;=#endTime#
+		</isNotEmpty>
+		<isNotEmpty property="clazzId">
+		    and d.clazzId=#clazzId#
+		</isNotEmpty>
+		<isNotEmpty property="content">
+			and ((d.realName like concat('%',#content#,'%')) or (d.userCode like
+			concat('%',#content#,'%')))
+		</isNotEmpty>
+		<isEqual compareValue="parent" property="roleCode">
+			<!-- 家长看自己小孩 -->
+			and d.userId in ($studentIds$)
+			GROUP BY t.id,d.userId order by
+			t.startTime DESC
+		</isEqual>
+		<isEqual compareValue="classLeader" property="roleCode">
+		<!-- 班主任权限 -->
+		   GROUP BY d.clazzId,d.bluetoothCourseTimeId
+		</isEqual>
+		<isEqual compareValue="president" property="roleCode">
+		<!-- 校长权限 -->
+		   GROUP BY d.clazzId,d.bluetoothCourseTimeId
+		</isEqual>
+		) t
+	</select>
+
+	<!-- 获取指定学生的蓝牙手环数据 -->
+	<select id="getStuDataByDate" resultClass="bluetoothData"
+		parameterClass="HashMap">
+		select s.*,t.startTime,t.endTime
+		from
+		palm_bluetooth_data s
+		inner join palm_bluetooth_course_time t on
+		t.id=s.bluetoothCourseTimeId
+		where
+		clazzId=#clazzId# and userId=#userId#
+		and
+		DATE_FORMAT(#startTime#,'%Y%m%d')=DATE_FORMAT(s.dataTime,'%Y%m%d')
+		order by s.dataTime asc
+	</select>
+	<!-- 批量添加学生使用手环的数据 -->
+	<insert id="insertBathBluetoothData" parameterClass="java.util.List">
+		insert into
+		palm_bluetooth_data(bluetoothBraceletId,createTime,dataTime,calorie,heartRate,steps,userId
+		,realName,clazzId,clazzName,ip,mac,braceletMac,bluetoothCourseTimeId,braceletCode,userCode
+		)
+		values
+		<iterate conjunction=",">
+			(#bluetoothDatas[].bluetoothBraceletId#,NOW(),#bluetoothDatas[].dataTime#,#bluetoothDatas[].calorie#,#bluetoothDatas[].heartRate#,#bluetoothDatas[].steps#,#bluetoothDatas[].userId#
+			,#bluetoothDatas[].realName#,#bluetoothDatas[].clazzId#,#bluetoothDatas[].clazzName#,#bluetoothDatas[].ip#,
+			#bluetoothDatas[].mac#,#bluetoothDatas[].braceletMac#,#bluetoothDatas[].bluetoothCourseTimeId#,#bluetoothDatas[].braceletCode#,#bluetoothDatas[].userCode#)
+		</iterate>
+	</insert>
+	<!-- 添加学生使用手环的数据 -->
+	<insert id="insertBluetoothData" parameterClass="bluetoothData">
+		insert into
+		palm_bluetooth_data(bluetoothBraceletId,createTime,dataTime,calorie,heartRate,steps,userId
+		,realName,clazzId,clazzName,ip,mac,braceletMac,bluetoothCourseTimeId,braceletCode,userCode)
+		values
+		(#bluetoothBraceletId#,NOW(),#dataTime#,#calorie#,#heartRate#,#steps#,#userId#
+		,#realName#,#clazzId#,#clazzName#,#ip#,#mac#,#braceletMac#,#bluetoothCourseTimeId#,#braceletCode#,#userCode#)
+	</insert>
+	<!-- 分页获得学生与手环的关系 -->
+	<select id="getPageBluetoothData" parameterClass="HashMap"
+		resultClass="bluetoothData">
+		select s.*,(select c.name from palm_bluetooth_course c where
+		c.id=t.bluetoothCourseId) as courseName
+		from palm_bluetooth_data s
+		inner join palm_bluetooth_course_time t on
+		t.id=s.bluetoothCourseTimeId
+		where 1=1
+		<isNotEmpty property="clazzId">
+			and s.clazzId=#clazzId#
+		</isNotEmpty>
+		<isNotEmpty property="userId">
+			and s.userId=#userId#
+		</isNotEmpty>
+		<isNotEmpty property="startTime">
+			and
+			DATE_FORMAT(#startTime#,'%Y%m%d%H%i%s')&lt;=DATE_FORMAT(t.dataTime,'%Y%m%d%H%i%s')
+		</isNotEmpty>
+		<isNotEmpty property="endTime">
+			and
+			DATE_FORMAT(#endTime#,'%Y%m%d%H%i%s')&gt;=DATE_FORMAT(t.dataTime,'%Y%m%d%H%i%s')
+		</isNotEmpty>
+		order by dataTime desc
+		limit #startIndex#, #length#
+	</select>
+	<!-- 分页获得学生与手环的关系 -->
+	<select id="getPageBluetoothDataCount" parameterClass="HashMap"
+		resultClass="Integer">
+		select count(*)
+		from palm_bluetooth_data s
+		inner join
+		palm_bluetooth_course_time t on t.id=s.bluetoothCourseTimeId
+		where 1=1
+		<isNotEmpty property="clazzId">
+			and s.clazzId=#clazzId#
+		</isNotEmpty>
+		<isNotEmpty property="clazzId">
+			and s.userId=#userId#
+		</isNotEmpty>
+		<isNotEmpty property="startTime">
+			and
+			DATE_FORMAT(#startTime#,'%Y%m%d%H%i%s')&lt;=DATE_FORMAT(t.startTime,'%Y%m%d%H%i%s')
+		</isNotEmpty>
+		<isNotEmpty property="endTime">
+			and
+			DATE_FORMAT(#endTime#,'%Y%m%d%H%i%s')&gt;=DATE_FORMAT(t.endTime,'%Y%m%d%H%i%s')
+		</isNotEmpty>
+	</select>
+</sqlMap>
+	

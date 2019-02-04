@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="RolePermission">
+  	<typeAlias alias="rolePermission" type="com.guotop.palmschool.entity.RolePermission" />
+
+	<!-- 根据roleCode查找对应的permission 20151124-->
+	<select id="getPermissionListByRoleCode" parameterClass="String" resultClass="rolePermission">
+		select * from palm_role_permission where roleCode = #roleCode#
+	</select>
+	
+	<!-- 根据roleCode查找对应的permission 20151124-->
+	<select id="getPermissionCodeListByRoleCode" parameterClass="String" resultClass="String">
+		select permissionCode from palm_role_permission where roleCode = #roleCode#
+	</select>	
+</sqlMap>

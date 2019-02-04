@@ -1,0 +1,201 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<head>
+	<title>搜索异常</title>
+  	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+	<!--公共css开始-->
+	<%@ include file="/public_module/app_public_css.jsp"%>
+	<!--公共css结束--> 
+</head>
+<body id="body">
+
+	<div class="app_head">
+		<i class=" m_icon-return icon_left" onclick="window.richbook.onFinish();"></i>宿舍异常搜索
+	</div>
+	
+	<c:if test="${listSize == 0}">
+		<div class="null_con">
+			<img src="<%=basePath%>assets/global/img/m_img/null.png">
+		</div>
+	</c:if>
+	
+	<c:if test="${listSize > 0}">
+	
+		<ul class="inout_list">
+		  
+			    <c:forEach items="${list}" var="d">
+			      <li>
+			         <c:if test="${d.status eq '出宿舍已刷卡' || d.status eq '出宿舍未刷卡'}">
+			         	<em class="sms">出</em>
+			         </c:if>
+			         <c:if test="${d.status eq '进宿舍已刷卡' || d.status eq '进宿舍未刷卡'}">
+			         	<em class="Push">进</em>
+			         </c:if>
+			        <p class="top_p">
+			              <span class="span_left">${d.realName}</span>
+			              <span class="span_right">${d.clazzName}</span>
+			         </p>
+			         
+			         <p>
+			         	 <i class="fa fa-credit-card"></i>
+				         <span class="span2">${d.code}</span>
+				         <span class="span2">${d.cardCode}</span>
+				        
+			         </p>
+			         <p>
+			          <span class="span3">${d.status}</span>
+			         </p>
+			         </li>
+			    </c:forEach>
+		
+		</ul>
+			
+	  	<c:if test="${listSize >19}">
+			<a href="#" id="op_all_save" class="op_all_save" onclick="loadMoreList()">查看更多</a>
+		</c:if>
+		
+	</c:if>
+	
+	<form action="<%=basePath%>dormitory/toDormitoryAbnormalDetailListByHuxinId.do"  id="addForm" class="form-horizontal" method="post">
+		<input type="hidden" id="cPage" name="cPage" value="${cPage}">
+		<input type="hidden" id="apiKey" name="apiKey" value="${apiKey}">
+		<input type="hidden" id="schoolId" name="schoolId" value="${schoolId}">
+		<input type="hidden" id="roleCode" name="roleCode" value="${roleCode}">
+		<input type="hidden" id="type" name="type" value="${type}">
+		<input type="hidden" id="queryContent" name="queryContent" value="${queryContent}">
+		<input type="hidden" id="startDate" name="startDate" value="${startDate}">
+		<input type="hidden" id="startTime" name="startTime" value="${startTime}">
+		<input type="hidden" id="endDate" name="endDate" value="${endDate}">
+		<input type="hidden" id="endTime" name="endTime" value="${endTime}">
+		<input type="hidden" id="clazzId" name="clazzId" value="${clazzList}">
+		<input type="hidden" id="apiKeyTimeOut" value="${apiKeyTimeOut}">
+	</form>
+	
+	<div class="select_role">
+		<dl>
+			<dd class="role_search iconfont" id="search">&#xe602;</dd>
+		</dl>
+		<span class="role_img iconfont">&#xe600;</span>
+	</div>
+	
+			
+	</body>
+	<!--公共js开始-->
+	<%@ include file="/public_module/app_public_js.jsp"%>
+	<!--公共js结束--> 
+	
+	<script type="text/javascript">
+
+    $(function() {    
+
+
+		var timeOut = $("#apiKeyTimeOut").val();
+		if(timeOut == '1')
+		{
+			alert("您的apiKey已过期,您的账户可能被别人登陆，请修改密码或重新登陆");
+		}
+
+		$("#search").on("click",function(){
+			var apiKey = $("#apiKey").val();
+			var schoolId = $("#schoolId").val();
+			var roleCode = $("#roleCode").val();
+			window.location.href= '<%=basePath%>dormitory/toDormitoryAbnormalSearchAPP.do?apiKey=' + apiKey  + '&schoolId='+schoolId + '&roleCode='+roleCode;
+		})
+	      
+	});
+	function seturl(){
+		
+		var apiKey = $("#apiKey").val();
+		var schoolId = $("#schoolId").val();
+		var roleCode = $("#roleCode").val();
+		window.location.href= '<%=basePath%>dormitory/toDormitoryAbnormalSearchAPP.do?apiKey=' + apiKey  + '&schoolId='+schoolId + '&roleCode='+roleCode;
+	}
+  //加载电子卡页面
+	function loadMoreList()
+	{
+		var apiKey = $("#apiKey").val();
+		var schoolId = $("#schoolId").val();
+		var type = $("#type").val();
+		var queryContent = $("#queryContent").val();
+		var startDate = $("#startDate").val();
+		var startTime = $("#startTime").val();
+		var endDate = $("#endDate").val();
+		var endTime = $("#endTime").val();
+		var cPage = $("#cPage").val();
+		var roleCode = $("#roleCode").val();
+		var clazzId = $("#clazzId").val();
+
+		$.ajax({
+			type: "post",
+			url: "<%=basePath%>dormitory/toLoadDormitoryAbnormalDetailListAPP.do",
+			data:{
+					apiKey : apiKey,
+					schoolId : schoolId,
+					type : type,
+					clazzId : clazzId,
+					queryContent : queryContent,
+					startDate : startDate,
+					startTime : startTime,
+					endDate : endDate,
+					endTime : endTime,
+					roleCode : roleCode,
+					cPage : cPage
+			},
+			success: function(data){
+
+				var data = eval("(" + data + ")");
+				
+				$("#type").val(data.type);
+   				$("#clazzList").val(data.clazzList);
+   				$("#queryContent").val(data.queryContent);
+   				$("#startDate").val(data.startDate);
+   				$("#startTime").val(data.startTime);
+   				$("#endDate").val(data.endDate);
+   				$("#endTime").val(data.endTime);
+   				$("#cPage").val(data.cPage);
+   				$("#clazzId").val(data.clazzList);
+
+   				var listSize = data.listSize;
+   				if(listSize < 19)
+   	   			{
+   					$("#op_all_save").hide();
+   	   	   		}
+   	   	   		
+				var appendHtml = '';
+				
+				$.each(data.list, function(n, value) {  
+
+					appendHtml += '<li>';
+					var status = value.status;
+					if(status == "出宿舍已刷卡" || status == "出宿舍未刷卡")
+					{
+       					appendHtml += '<em class="sms">出</em>';
+               		}
+       				else
+           			{
+       					appendHtml += '<em class="Push">进</em>';
+               		}
+					appendHtml += '<p class="top_p">';
+					appendHtml += '<span class="span_left">'+value.realName+'</span>';
+					appendHtml += '<span class="span_right">'+value.clazzName+'</span>';
+					appendHtml += '</p>';
+					appendHtml += '<p>';
+					appendHtml += '<i class="fa fa-credit-card"></i>';
+					appendHtml += '<span class="span2">'+value.code+'</span>';
+					appendHtml += '<span class="span2">'+value.cardCode+'</span>';
+			        appendHtml += '</p>';
+					appendHtml += '<p>';
+					appendHtml += '<span class="span3">'+value.status+'</span>';
+					appendHtml += '</p>';
+       				appendHtml += '</li>';
+
+      			}); 
+      			
+      			$(".inout_list").append(appendHtml);
+			},
+		});
+	}
+    </script>
+</html>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap         
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"         
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="AuthUser">
+	<typeAlias alias="authUser"
+		type="com.guotop.palmschool.authuser.entity.AuthUser" />
+	<!-- 根据主键获得信息(非新生) -->
+	<select id="getDetailByAuthId" resultClass="authUser"
+		parameterClass="Integer">
+		select a.*,getClazzName((SELECT sc.clazzId from palm_student_clazz sc where sc.userId=a.stuUserId)) as
+		fullClazzName,platform.getHeadImg(a.stuUserId) as headImg from platform.auth_user a
+		where
+		a.authId=#authId#
+	</select>
+	<!-- 根据主键获得信息 -->
+	<select id="getByAuthId" resultClass="authUser" parameterClass="Integer">
+		select * from platform.auth_user a where a.authId=#authId#
+	</select>
+	<!-- 添加数据 -->
+	<insert id="insertAuthUser" parameterClass="authUser">
+		insert into
+		platform.auth_user(stuUserId,applyName,applyPhone,stuName,type,remark,status,comment,createTime,updateTime,clazzId,applyUserId,auditor,schoolId,phone,parentId)
+		values(#stuUserId#,#applyName#,#applyPhone#,#stuName#,#type#,#remark#,#status#,#comment#,NOW(),NOW(),#clazzId#,#applyUserId#,#auditor#,#schoolId#,#phone#,#parentId#)
+		<selectKey resultClass="int" type="post" keyProperty="authId">
+			select
+			LAST_INSERT_ID() as value
+		</selectKey>
+	</insert>
+	<!-- 班主任审核 -->
+	<update id="updateAuthUser" parameterClass="authUser">
+		update
+		platform.auth_user set
+		comment=#comment#,updateTime=NOW(),status=#status#,auditor=#auditor#
+		where
+		authId=#authId#
+	</update>
+	<!-- 分页获得数据 -->
+	<select id="getauthUserPages" parameterClass="HashMap"
+		resultClass="authUser">
+		select a.*,getClazzName(sz.clazzId)
+		fullClazzName,ifnull(getClazzName(a.clazzId),'') as modifyClazzName
+		from
+		platform.auth_user a
+		inner join palm_student_clazz sz on
+		sz.userId=a.stuUserId
+		where 1=1
+		and (a.status=0 or a.status=3)
+		<isNotEmpty property="auditor">
+			<isNotNull property="auditor">
+				and a.auditor=#auditor#
+			</isNotNull>
+		</isNotEmpty>
+		order by createTime desc
+		<isNotEmpty property="startIndex">
+			limit #startIndex#, #length#
+		</isNotEmpty>
+	</select>
+	<select id="getauthUserPagesCount" parameterClass="HashMap"
+		resultClass="Integer">
+		select count(*) from platform.auth_user a
+		inner join palm_student_clazz
+		sz on
+		sz.userId=a.stuUserId
+		where 1=1
+		and (a.status=0 or a.status=3)
+		<isNotEmpty property="auditor">
+			<isNotNull property="auditor">
+				and a.auditor=#auditor#
+			</isNotNull>
+		</isNotEmpty>
+	</select>
+</sqlMap>

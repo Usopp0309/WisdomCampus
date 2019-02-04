@@ -1,0 +1,244 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<head>
+        <meta charset="utf-8" />
+        <title>导入教职工</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta content="width=device-width, initial-scale=1" name="viewport" />
+         <!--公共css开始-->
+		<%@ include file="/public_module/public_css_new.jsp"%>
+	 	<!--公共css结束-->
+	 	<link href="<%=basePath %>assets/global/plugins/bootstrap-fileinput/bootstrap-fileinput.css" rel="stylesheet" type="text/css" /> 
+        </head>
+    <body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed">
+    	<input class="themes" type="hidden" value="<%=basePath%>">
+        <!-- 公共顶部开始-->
+        <%@ include file="/public_module/public_header.jsp"%>    
+        <!--公共顶部结束-->
+        <div class="clearfix"> </div>
+        <!-- 内容页开始 -->
+        <div class="page-container">
+            <!--主菜单开始-->
+            <%@include file="/public_module/public_menu.jsp"%>
+            <!--主菜单结束-->
+            <div class="page-content-wrapper">
+                <div class="page-content m_overflow_hidden m_page_content">
+                	<div class="col-md-12 col-sm-12 m_page_con">
+                    <div class="page-bar m_margin_0_0_0_0">
+                        <ul class="page-breadcrumb">
+                            <li><a href="<%=basePath %>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+                            <li><a href="">学校管理</a><i class="fa fa-circle"></i></li>
+                            <li><span>导入教职工</span></li>
+                        </ul>
+                    </div>
+                    <h3 class="page-title">导入教职工</h3>
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="portlet box green m_margin_15_auto_0" >
+                                <div class="portlet-title">
+	                                <div class="caption"><i class="fa fa-list"></i>导入教职工</div>
+	                            </div>
+                                <div class="portlet-body">
+                                    <form action="<%=basePath%>teacherImport/onUploadTeacher.do" id="upload" class="form-horizontal" method="post" enctype="multipart/form-data">
+                                        <div class="form-body">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">选择文件：</label>
+                                                <div class="col-md-4">
+                                                	<div class="fileinput fileinput-new" data-provides="fileinput">
+                                                        <div class="input-group input-large">
+                                                            <div class="form-control uneditable-input input-fixed input-medium" data-trigger="fileinput">
+                                                                <i class="fa fa-file fileinput-exists"></i>&nbsp;
+                                                                <span class="fileinput-filename"> </span>
+                                                            </div>
+                                                            <span class="input-group-addon btn default btn-file">
+                                                                <span class="fileinput-new">选择文件</span>
+                                                                <span class="fileinput-exists">换一个</span>
+                                                                <input type="file" name="inputFile"> </span>
+                                                            <a href="javascript:;" class="input-group-addon btn red fileinput-exists" data-dismiss="fileinput">移除</a>
+                                                        </div>
+                                                    </div>
+                                                    <span>${errorMsg}</span>
+                                                </div>
+                                                <div class="col-md-1">
+                                                	<span><a href="<%=basePath%>templet/teacher.xls" class="btn red">模板下载</a></span>
+                                                </div>
+                                            </div>
+                                            
+                                        <div class="form-actions">
+                                            <div class="row">
+                                                <div class="col-md-offset-3 col-md-9">
+                                                    <input type="button" onclick="submitTeacher()" class="btn green" value="确定"/>
+													<input type="hidden" value="${userId}" name="userId"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                         </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                    	<div class="col-sm-12 col-md-12">
+                    		<div class="portlet box green m_margin_15_auto_0">
+	                            <div class="portlet-title">
+	                                <div class="caption">
+	                                    <i class="fa fa-list"></i>教职工导入记录</div>
+	                            </div>
+	                            <div class="portlet-body flip-scroll">
+	                                <table class="table table-bordered table-hover">
+	                                    <thead class="flip-content">
+	                                        <tr>
+	                                            <th class="m_width_20">导入文件名称</th>
+	                                            <th class="m_width_10">总导入数据</th>
+	                                            <th class="m_width_10">导入成功</th>
+	                                            <th class="m_width_10">导入失败</th>
+	                                            <th class="m_width_20">导入时间</th>
+	                                            <th class="m_width_10">导入人员</th>
+	                                            <th class="m_width_10">操作</th>
+	                                           
+	                                        </tr>
+	                                    </thead>
+	                                    <tbody id="tbody">
+	                                       
+	                                    </tbody>
+	                                </table>
+	                            </div>
+	                        </div>
+                    	</div>
+                    </div>
+                     <!-- 分页开始 -->
+                     	<%@include file="/public_module/public_page.jsp" %>
+                     <!-- 分页结束 -->
+                    </div>
+                </div>
+            </div>
+            <!-- 亦信聊天开始 -->
+        	<%@ include file="/public_module/public_QQ.jsp" %>
+            <!-- 亦信聊天结束 -->
+        </div>
+        <!-- 内容页结束 -->
+        <!-- 底部开始 -->
+        <%@ include file="/public_module/public_footer.jsp" %>
+        <!-- 底部结束 -->
+    </body>
+        <!-- 公共js开始 -->
+        <%@ include file="/public_module/public_js.jsp" %>
+        <script src="<%=basePath %>assets/global/plugins/bootstrap-fileinput/bootstrap-fileinput.js" type="text/javascript"></script>
+        <!-- 公共js结束 -->
+	<script>
+		jQuery(document).ready(function() {
+			loadSubMenu("schoolManager");  
+			//选取当前菜单位置
+			setActive("schoolManager","teacherManage");   
+			getImportList(null);  
+		});
+
+		function submitTeacher(){
+			var fileinputFilename=$.trim($(".fileinput-filename").text());
+			if(fileinputFilename!=""){
+				fileinputFilename=fileinputFilename.toLowerCase(); 
+				if(fileinputFilename.indexOf(".xls")>-1 || fileinputFilename.indexOf(".xlsx")>-1){
+					layer.msg('正在导入数据,请稍候。。。',{icon: 16,time:0,shade:0.3});
+					$("#upload").submit();
+				}else{
+					 layer.alert("文件格式不对,目前支持:xls,xlsx为后缀名的excel",{icon:5});		
+				}
+			 }else{
+				 layer.msg("请选择文件",{icon:5,time:2000});
+			 }
+		}
+		//获取导入列表
+		function getImportList(cPage){	
+			$.ajax({
+				type: "post",
+				url: "<%=basePath%>fileImport/getImportList.do",
+				data:{
+						type : 1,
+						cPage : cPage
+					},
+				success: function(data){
+					var page = eval("(" + data + ")");
+					$("#currentPage").html(page.currentPage);
+					$("#totalPage").html(page.totalPage);
+					var appendHtml = '';
+					$.each(page.list, function(n, value) {  
+						appendHtml += '<tr>';
+						appendHtml += '<td>'+value.filename+'</td>';
+						appendHtml += '<td>'+value.total+' 条</td>';
+						appendHtml += '<td>'+value.success+' 条</td>';
+						appendHtml += '<td><span class="font-red-mint">'+value.error+'</span> 条</td>';
+						appendHtml += '<td>'+value.createTime+'</td>';
+						appendHtml += '<td>'+value.realName+'</td>';
+						<c:if test="${sessionScope.user.userId==1}">
+							if(value.status == 0){
+								appendHtml += '<td><a class="btn btn-sm red teacher_import_del" onclick="delImportUser('+value.id+');">删除</a></td>';
+							}else{
+								appendHtml += '<td>-</td>';
+							}
+						</c:if>
+						<c:if test="${sessionScope.user.userId !=1}">
+							appendHtml += '<td>-</td>';
+						</c:if>
+						
+						appendHtml += '</tr>';
+          			}); 
+          			$("tbody").html(appendHtml);
+				},
+				
+			});
+		}
+
+		//删除导入人员
+		function delImportUser(importId){
+			 var l_=layer.confirm('确定清空本次导入人员？一旦清空数据不可恢复！',{
+				  btn: ['确定','取消'] //按钮
+				}, function(){
+					layer.close(l_);
+					var d_ = layer.msg('正在清空本次导入数据,请稍候。。。',{icon: 16,time:0,shade:0.3});
+					 $.ajax({
+				           type:"post",
+				           url: "<%=basePath%>fileImport/delImportUser.do",
+						   data:{
+							   importId : importId
+						   },
+				           error:function(){ 
+					           layer.close(l_);
+					           layer.close(d_);
+					       },
+				           success:function(data){
+				        	   var flag = eval("(" + data + ")");
+				        	   if(flag){
+				        		   layer.msg('清空成功',{icon:1,time:1000});
+				        		   location.reload();
+					        	}else{
+					        		layer.msg('清空失败，请联系系统管理员',{icon:2,time:1000});
+						        }
+				           }
+				    }); 
+				}, function(){
+				  layer.close(l_);
+				});
+		}
+		
+		//分页相关
+		function jumpPage(type)
+		{
+			var cPage = $("#currentPage").html();
+			var totalPage = $("#totalPage").html();
+
+			var cPageInt = parseInt(cPage);
+			var totalPageInt = parseInt(totalPage);
+			var newCPageInt = returnCPageInt(type,cPageInt,totalPageInt);
+			if(newCPageInt < 0){
+				return;
+			}else{
+				cPageInt = newCPageInt;
+			}	
+				
+			getImportList(cPageInt);
+		
+		   	$("#currentPage").html(cPageInt);
+		}
+	</script>
+</html>

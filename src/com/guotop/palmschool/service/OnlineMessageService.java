@@ -1,0 +1,131 @@
+package com.guotop.palmschool.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.guotop.palmschool.entity.OnlineMessage;
+import com.guotop.palmschool.entity.OnlineMessageDetail;
+import com.guotop.palmschool.entity.User;
+import com.guotop.palmschool.util.Pages;
+
+/**
+ * 在线留言业务类接口
+ * 
+ * @author shengyinjiang
+ * 
+ */
+public interface OnlineMessageService
+{
+	/**
+	 * 新增在线留言内容
+	 * 
+	 * @param oms
+	 *            待新增的在线留言实体
+	 *            
+	 * update by syj 20151214
+	 */
+	public int addSms(OnlineMessage onlineMessage);
+
+	/**
+	 * 新增在线留言内容详情
+	 * 
+	 * @param sms
+	 *            待新增的在线留言实体详情
+	 * update by syj 20151214           
+	 */
+	public void addSmsDetail(OnlineMessageDetail onlineMessageDetail);
+
+	/**
+	 * 加载在線留言列表信息
+	 * 
+	 * @param pageSize
+	 * @param page
+	 * @param paramMap
+	 *            参数列表
+	 * @return 根据不同权限加载在线留言列表数据(分页)
+	 * 
+	 * update syj 20151214
+	 */
+	public Pages loadSmsList(int pageSize, int page, Map<String, Object> paramMap, User user);
+	/**
+	 * 加载在線留言列表信息【福建专用】
+	 * 
+	 * @param pageSize
+	 * @param page
+	 * @param paramMap
+	 *            参数列表
+	 * @return 根据不同权限加载在线留言列表数据(分页)
+	 * 
+	 * update syj 20151214
+	 */
+	public Pages loadSmsListFj(int pageSize, int page, Map<String, Object> paramMap, User user);
+
+	/**
+	 * 根据id 查询发送留言详情
+	 * 
+	 * update syj 20151214
+	 */
+	public List<OnlineMessageDetail> loadSmsListDetail(Integer messageId);
+
+
+	/**
+	 * 加载接收在线未读留言列表信息
+	 * 
+	 * @param pageSize
+	 * @param page
+	 * @param paramMap
+	 *            参数列表
+	 * @return 加载未读在线留言列表数据(分页)
+	 */
+	public Pages loadAcceptUnReadSmsList(int pageSize, int page, Map<String, Object> paramMap);
+
+	/**
+	 * 通过id查询 "接受在线留言"详情
+	 * 
+	 * shengyinjiang 2015/12/14
+	 */
+	public OnlineMessageDetail loadOnlineMessageDetailById(Integer id);
+	
+	/**
+	 * 通过id将接受的留言状态更改为已读
+	 * 
+	 * shengyinjiang 2015/12/14
+	 */
+	public void updateOnlineMessageStatusById(Integer id);
+	
+	/**
+	 * 将接受的留言状态全部更改为已读
+	 * 
+	 * shengyinjiang 2015/12/14
+	 */
+	public void updateOnlineMessageStatus(Map<String, Object> paramMap);
+	
+	/**
+	 * 通过receiverId 找到该用户三条未读消息，用于导航栏显示
+	 * 
+	 * update syj 20151214
+	 */
+	public List<OnlineMessageDetail> selectUnReadOnlineMessageByUserIdLimitThree(Map<String, Object> paramMap);
+
+	/**
+	 * 通过receiverId 找到该用户所有未读消息，用户点击查看所有未读留言显示
+	 * 
+	 * update syj 20151214
+	 */
+	public List<OnlineMessageDetail> selectUnReadOnlineMessageByUserId(Map<String, Object> paramMap);
+
+	/**
+	 * 通过receiverId 找到该用户所有消息，用户点击查看所有留言显示
+	 * 
+	 * @param receiverId
+	 *            接受用户id
+	 * update syj 20151214           
+	 */
+	public Pages selectOnlineMessageByUserId(int pageSize, int page,Map<String, Object> paramMap);
+	/**
+	 *  通过userId 找到该用户所有未读留言数量
+	 * @author chenyong
+	 * @Time 2016年12月17日 下午4:51:28
+	 */
+	public Integer selectUnReadOnlineMessageByUserIdCount(Map<String,Object> map);
+}

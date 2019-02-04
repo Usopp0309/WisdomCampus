@@ -1,0 +1,214 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ include file="/basepath.jsp"%>
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <title>蓝牙手环-历史记录</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!--公共css开始-->
+	<%@ include file="/public_module/public_css_new.jsp"%>
+ 	<!--公共css结束-->
+ 	<style type="text/css">
+ 	    .header ul{margin-left: 20px;}
+ 	    .header ul li{float: left;margin-left: 20px;}
+ 	    .timer{border-radius:3px;height: 30px;padding: 10px;border: 1px solid #c2cad8;width: 254px;}
+ 	    .content_data{border-bottom: 1px solid #f1f1f1;height:50px;line-height:50px;}
+ 	    table.table tr td {padding: 10px;}
+ 		table thead th{padding:10px;}
+ 		.detail{margin-left: 40px;}
+ 		.content_wrap{border: 1px solid #f1f1f1;height: 150px;width: 500px;margin: 5% auto;"}
+ 		
+ 		
+ 	</style>    
+</head>
+	<body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-sidebar-fixed" id="body">
+		<input class="themes" type="hidden" value="<%=ThemePath%>">
+		<input  type="hidden" value="${schoolId}" id=schoolId>
+	    <!-- 公共顶部开始-->
+	    <%@ include file="/public_module/public_header.jsp"%>    
+	    <!--公共顶部结束-->
+	    <div class="clearfix"> </div>
+	    <!-- 内容页开始 -->
+	    <div class="page-container">
+	        <!--主菜单开始-->
+	        <%@include file="/public_module/public_menu.jsp"%>
+	        <!--主菜单结束-->
+	        <div class="page-content-wrapper">
+	            <div class="page-content m_overflow_hidden m_page_content">
+	            	
+	            	<!-- 页面内容开始 -->
+	            	<div class="col-md-12 col-sm-12 m_page_con">
+	                <div class="page-bar m_margin_0_0_0_0">
+	                    <ul class="page-breadcrumb">
+	                        <li><a href="<%=basePath%>user/enterMain.do">首页</a><i class="fa fa-circle"></i></li>
+	                        <li><a href="<%=basePath%>asset/toAssetInfoList.do">资产管理</a><i class="fa fa-circle"></i></li>
+	                        <li><span>历史记录</span></li>
+	                    </ul>
+	                </div>
+	                
+	                <div class="portlet box green m_margin_15_auto_0">
+	                    <div class="portlet-title">
+		                           <div class="caption">
+		                             <i class="fa fa-list"></i>历史记录
+		                           </div>
+		                      </div>
+	                       <div class="portlet-body">
+	                          <div class="portlet light form-fit bordered search_box">
+	                         	<form action="#" class="form-horizontal">
+				                         <div class="row m_margin_10_auto">
+				
+				                         	<div class="col-lg-3 m_margin_top-15" style="width: 20%;">
+				                         		<span class="m_span">使用时间：</span>
+				                         		 <input class="m_input form-control" type="text" id="startTime"/>
+				                         	</div>
+		
+				                         	<div class="col-lg-3 m_margin_top-15" style="margin-left: -120px;">
+				                         		 <input class="m_input form-control" type="text" id="endTime"/>
+				                         	</div>
+				                         	
+				                         	<div class="col-lg-3 m_margin_top-15" style="width: 20%;">
+				                         		<span class="m_span">选择班级：</span>
+				                                <select class="form-control m_select"></select>
+				                         	</div>
+				                         	
+				                         	<div class="col-lg-3 m_margin_top-15" style="width: 20%;">
+				                         		<span class="m_span">选择学生：</span>
+				                                <select class="form-control m_select"></select>
+				                         	</div>
+				                         	
+				                         	<div class="col-lg-3 m_margin_top-15">
+				                         		<button type="submit" class="btn green">查找</button>
+				                         	</div>
+				                         </div>
+	                              </form>
+	                        </div>   
+	                      </div>
+	                      
+	                       <table class="table table-hover table-bordered table-condensed" cellpadding="0" cellspacing="0">
+	                             <caption>全部记录</caption>
+					                       <thead>
+					                            <th>学生</th>
+					                            <th>班级</th>
+					                            <th>卡路里</th>
+					                            <th>心率(分/次)</th>
+					                            <th>步数</th>
+					                            <th>使用时间</th>
+					                            <th>记录时间</th>
+					                            <th>操作</th>
+					                        </thead>
+					                       <tbody id="tbody">
+					                       <tr>
+					                            <td>54545</td>
+					                            <td>adasd</td>
+					                            <td>asdas</td>
+					                            <td>54545</td>
+					                            <td>asdas</td>
+					                            <td>asdas</td>
+					                            <td>asdas</td>
+					                            <td> <a href="#" class="text-success detail" data-toggle="modal" data-target="#detail">详情</a></td>
+					                        </tr>
+					                       
+					                       </tbody>
+					                   </table>
+	                              </div>
+	                               <!-- 分页开始 -->
+	                            <%@include file="/public_module/public_page.jsp" %>
+	                              <!-- 分页结束 -->
+	                              <!-- 详情弹窗 start-->
+	                                <div class="modal fade" id="detail" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+								          <div class="modal-dialog" role="document">
+								              <div class="modal-content">
+								                  <div class="modal-body">
+								                     <div class="header">
+								                            <ul class="header_list">
+								                                  <li>学生：张一</li>
+								                                  <li>蓝牙编号：4464</li>
+								                                  <li>使用时间：46545</li>
+								                            </ul>                                                 
+								                     </div>
+								                     <div class="content_wrap">
+								                              <div class="content_data">
+																  <label>心跳率:</label>
+								                              </div>
+								                              
+								                              <div class="content_data">
+																  <label>消耗卡路里:</label>
+								                              </div>
+								                              
+								                             <div class="content_data">
+																  <label>行走步数:</label>
+								                              </div>
+								                     </div>
+								                    </div>
+								                </div>
+								          </div>
+							       </div>
+                             <!--详情弹窗end  -->
+                             
+	                          </div>
+	                    </div>
+	               </div>
+	    <!-- 底部开始 -->
+	    <%@ include file="/public_module/public_footer.jsp" %>
+	    <!-- 底部结束 -->
+	</body>
+    <!-- 公共js开始 -->
+    <%@ include file="/public_module/public_js.jsp" %>
+    <!-- 公共js结束 -->
+    <script type="text/javascript">
+    $(function(){
+    	loadSubMenu("assetManagement");  
+		//选取当前菜单位置
+		setActive("assetManagement","bluetoothList"); 
+		$('#startTime,#endTime').datetimepicker({
+			 format:"Y-m-d H:i:00" 
+		});
+		init(1);
+    });
+    function init(page){
+    	//var indexlayer = layer.msg('正在获取数据,请稍候。。。',{icon: 16,time:0,shade:0.3});
+    	$.ajax({
+    		url:"<%=basePath%>data/getPageData.do",
+    		type:"POST",
+    		dataType:"json",
+    		data:{"page":page,pageSize:50},
+    		success:function(data){
+    		     var html='';
+    		    $("#currentPage").html(data.currentPage);
+ 				$("#totalPage").html(data.totalPage);
+    		    var list=data.list;
+    			for(var i=0;i<list.length;i++){
+    			 
+    		
+    		     }
+    			$("#tbody").html(html);
+    		},
+    		error:function(){
+    			
+    		}
+    	});	
+    }
+  //分页相关
+	function jumpPage(type)
+	{
+		var cPage = $("#currentPage").html();
+		var totalPage = $("#totalPage").html();
+
+		var cPageInt = parseInt(cPage);
+		var totalPageInt = parseInt(totalPage);
+					
+		var newCPageInt = returnCPageInt(type,cPageInt,totalPageInt);
+		if(newCPageInt < 0){
+			return;
+		}else{
+			cPageInt = newCPageInt;
+		}	
+		init(cPageInt);
+	    $("#currentPage").html(cPageInt);
+	}
+    </script>
+</html>
